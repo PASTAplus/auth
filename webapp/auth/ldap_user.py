@@ -88,6 +88,20 @@ class LdapUser(object):
     def token(self):
         return token_uid.to_token(uid = self._uid)
 
+    def bind(self):
+        result = False
+        dn = Config.LDAP_DN.replace(Config.LDAP_UID, self._uid)
+        server = Server(Config.LDAP, use_ssl=True, get_info=ALL)
+        try:
+            conn = Connection(server=server, user=dn, password=self._password,
+                              auto_bind=True, receive_timeout=30)
+            result = True
+            conn.unbind()
+        except Exception as e:
+            logger.error(e)
+        return result
+
+
     def change_password(self, new_password):
         result = False
         dn = Config.LDAP_DN.replace(Config.LDAP_UID, self._uid)
