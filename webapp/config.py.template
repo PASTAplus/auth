@@ -19,33 +19,13 @@ class Config(object):
     DEBUG = False
 
     # Webapp configuration
-    PASTA_URL = 'https://pasta.lternet.edu/package'
-    USERS = ('USER_DN')
-    DOMAINS = {'edi': 'o=EDI,dc=edirepository,dc=org',
-               'lter':'o=LTER,dc=ecoinformatics,dc=org',}
+    DOMAINS = {'o=EDI,dc=edirepository,dc=org': 'ldap.edirepository.org',
+               'o=LTER,dc=ecoinformatics,dc=org': 'ldap.lternet.edu',}
     STATIC = 'STATIC IMAGE DIRECTORY PATH'
-
-
-    # LDAP configuration
-    LDAP = 'ldap.edirepository.org'
-    LDAP_ADMIN = 'LDAP_ADMIN_DN'
-    LDAP_ADMIN_PASSWORD = 'LDAP_ADMIN_PASSWORD'
-    LDAP_DN = 'uid=EDIUSER,o=EDI,dc=edirepository,dc=org'
-    LDAP_UID = 'EDIUSER'
-
-    # Email configuration
-    HOVER_MAIL = 'SUPPORT_EMAIL_ADDRESS'
-    HOVER_PASSWORD = 'SUPPORT_EMAIL_PASSWORD'
 
     # Test attributes
     TEST_USER_DN = 'USER_DN'
+    TEST_USER_BAD_DN = 'USER_BAD_DN'
     TEST_USER_PW = 'SECRET_PASSWORD'
-    TEST_USER_UID = 'USER_UID'
-    TEST_USER_NAME = 'USER_NAME'
-
-    # PASTA database connection
-    DB_USER = 'DB_USER'
-    DB_PW = 'SECRET_PASSWORD'
-    DB_HOST = 'DB_HOST'
-    DB_DB = 'pasta'
-    DB_DRIVER = 'postgres+psycopg2'
+    PUBLIC_KEY = 'PUBLIC_KEY_FILE'
+    PRIVATE_KEY = 'PRIVATE_KEY_FILE'
