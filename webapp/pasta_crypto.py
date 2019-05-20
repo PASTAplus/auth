@@ -38,7 +38,8 @@ def verify_authtoken(public_key: RSA.RsaKey, auth_token: str):
 
     The base64 decoded token is a PASTA+ custom string like:
 
-        uid=EDI,o=EDI,dc=edirepository,dc=org*https://pasta.edirepository.org/authentication*1558090703946*authenticated
+        uid=EDI,o=EDI,dc=edirepository,dc=org*https://pasta.edirepository.org/
+        authentication*1558090703946*authenticated
 
     :param pub_key:
     :param auth_token:
