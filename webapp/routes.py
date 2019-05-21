@@ -27,7 +27,7 @@ logger = daiquiri.getLogger('routes: ' + __name__)
 app = Flask(__name__)
 app.config.from_object(Config)
 
-@app.route('/auth/login', methods=['POST'])
+@app.route('/auth/login', methods=['GET'])
 def login():
     authorization = request.headers.get('Authorization')
     credentials = base64.b64decode(authorization.strip('Basic ')).decode('utf-8')
