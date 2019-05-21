@@ -14,10 +14,12 @@
 import base64
 
 import daiquiri
-from flask import Flask, request
+from flask import Flask, make_response, request
 
 from webapp.config import Config
+from webapp import pasta_crypto
 from webapp import pasta_ldap
+from webapp import pasta_token
 
 
 logger = daiquiri.getLogger('routes: ' + __name__)
@@ -32,9 +34,18 @@ def login():
     dn, password = credentials.split(':')
 
     if pasta_ldap.bind(dn, password):
-        return 'Success'
+        token = pasta_token.PastaToken()
+        token.uid = dn
+        token.system = Config.SYSTEM
+        token.groups = Config.AUTH_GROUP
+        private_key = pasta_crypto.import_key(Config.PRIVATE_KEY)
+        auth_token = pasta_crypto.create_authtoken(private_key, token.to_string())
+        resp = make_response()
+        resp.set_cookie('auth-token', auth_token)
+        return resp
     else:
-        return 'Failure'
+        resp = f'Authentication failed for user: {dn}'
+        return resp, 401
 
 
 def main():
