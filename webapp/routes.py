@@ -38,7 +38,10 @@ def login():
         dn, password = credentials.split(':')
         if pasta_ldap.bind(dn, password):
             uid = dn
-            token.groups = Config.AUTH_GROUP
+            if uid == 'uid=chase,o=EDI,dc=edirepository,dc=org':
+                token.groups = 'authenticated'
+            else:
+                token.groups = Config.AUTH_GROUP
         else:
             resp = f'Authentication failed for user: {dn}'
             return resp, 401
