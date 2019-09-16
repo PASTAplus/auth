@@ -1,0 +1,22 @@
+@startuml
+actor client
+participant auth_service
+participant IDP
+participant Gatekeeper
+participant PASTA_service
+database LDAP
+
+title auth-token request directly to Gatekeeper
+
+client->Gatekeeper: "request" with external (DN) token
+Gatekeeper->Gatekeeper: validate external (DN) token
+Gatekeeper->Gatekeeper: generate internal (DN) token
+Gatekeeper->PASTA_service: "request" internal (DN) token
+PASTA_service->PASTA_service: authorize service
+PASTA_service->PASTA_service: authorize resource
+PASTA_service->PASTA_service: perform service
+Gatekeeper<--PASTA_service: "response"
+Gatekeeper->Gatekeeper: wrap external (DN) token
+client<--Gatekeeper: "response" with external (DN) token
+
+@enduml

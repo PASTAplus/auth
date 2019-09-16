@@ -1,0 +1,27 @@
+@startuml
+actor client
+participant auth_service
+participant IDP
+participant Gatekeeper
+participant PASTA_service
+database LDAP
+
+title DN "login" to auth service
+
+client->auth_service: "request" with DN creds
+auth_service->LDAP: validate DN creds
+auth_service<--LDAP: success
+auth_service->auth_service: generate external (DN) token
+client<--auth_service: "response" with external (DN) token
+client->Gatekeeper: "request" with external (DN) token
+Gatekeeper->Gatekeeper: validate external (DN) token
+Gatekeeper->Gatekeeper: generate internal (DN) token
+Gatekeeper->PASTA_service: "request" internal (DN) token
+PASTA_service->PASTA_service: authorize service
+PASTA_service->PASTA_service: authorize resource
+PASTA_service->PASTA_service: perform service
+Gatekeeper<--PASTA_service: "response"
+Gatekeeper->Gatekeeper: wrap external (DN) token
+client<--Gatekeeper: "response" with external (DN) token
+
+@enduml

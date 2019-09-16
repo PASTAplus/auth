@@ -1,0 +1,35 @@
+@startuml
+actor client
+participant auth_service
+participant IDP
+participant Gatekeeper
+participant PASTA_service
+database LDAP
+
+title OAuth/OIC "login" to auth service
+
+client->auth_service: "request" login with OAuth/OIC
+client<--auth_service: "redirect" to OAuth/OIC provider with   \n auth_service_id and callback_url
+client->IDP: "request" login with auth_service_id \n and callback_url
+client<--IDP: login form
+client->IDP: client credentials
+client<--IDP: "redirect" to callback_url with auth_code
+client->auth_service: auth_code
+auth_service->IDP: "request" auth_token with auth_service_id  \n and auth_service_password
+auth_service<--IDP: auth_token
+auth_service->IDP: "request" user profile with auth_token
+auth_service<--IDP: user profile
+auth_service->auth_service: generate external (IDP) token
+client<--auth_service: "response" with external (IDP) token
+client->Gatekeeper: "request" with external (IDP) token
+Gatekeeper->Gatekeeper: validate external (IDP) token
+Gatekeeper->Gatekeeper: generate internal (IDP) token
+Gatekeeper->PASTA_service: "request" internal (IDP) token
+PASTA_service->PASTA_service: authorize service
+PASTA_service->PASTA_service: authorize resource
+PASTA_service->PASTA_service: perform service
+Gatekeeper<--PASTA_service: "response"
+Gatekeeper->Gatekeeper: wrap external (IDP) token
+client<--Gatekeeper: "response" with external (IDP) token
+
+@enduml

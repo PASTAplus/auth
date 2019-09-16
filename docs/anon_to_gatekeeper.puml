@@ -1,0 +1,21 @@
+@startuml
+actor client
+participant auth_service
+participant IDP
+participant Gatekeeper
+participant PASTA_service
+database LDAP
+
+title public request directly to Gatekeeper
+
+client->Gatekeeper: "request" as public
+Gatekeeper->Gatekeeper: generate internal (public) token
+Gatekeeper->PASTA_service: "request" internal (public) token
+PASTA_service->PASTA_service: authorize service
+PASTA_service->PASTA_service: authorize resource
+PASTA_service->PASTA_service: perform service
+Gatekeeper<--PASTA_service: "response"
+Gatekeeper->Gatekeeper: drop internal (public) token
+client<--Gatekeeper: "response"
+
+@enduml

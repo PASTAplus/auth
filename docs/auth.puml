@@ -1,0 +1,87 @@
+@startuml
+actor client
+participant auth_service
+participant IDP
+participant Gatekeeper
+participant PASTA_service
+database LDAP
+
+== public request directly to Gatekeeper ==
+
+client->Gatekeeper: "request" as public
+Gatekeeper->Gatekeeper: generate internal (public) token
+Gatekeeper->PASTA_service: "request" internal (public) token
+PASTA_service->PASTA_service: authorize service
+PASTA_service->PASTA_service: authorize resource
+PASTA_service->PASTA_service: perform service
+Gatekeeper<--PASTA_service: "response"
+Gatekeeper->Gatekeeper: drop internal (public) token
+client<--Gatekeeper: "response"
+
+== basic auth request directly to Gatekeeper ==
+
+client->Gatekeeper: "request" with DN creds
+Gatekeeper->LDAP: validate DN creds
+Gatekeeper<--LDAP: success
+Gatekeeper->Gatekeeper: generate internal (DN) token
+Gatekeeper->PASTA_service: "request" internal (DN) token
+PASTA_service->PASTA_service: authorize service
+PASTA_service->PASTA_service: authorize resource
+PASTA_service->PASTA_service: perform service
+Gatekeeper<--PASTA_service: "response"
+Gatekeeper->Gatekeeper: generate external (DN) token
+Gatekeeper->Gatekeeper: wrap external (DN) token
+client<--Gatekeeper: "response" with external (DN) token
+
+== auth-token request directly to Gatekeeper ==
+
+client->Gatekeeper: "request" with external (DN) token
+Gatekeeper->Gatekeeper: validate external (DN) token
+Gatekeeper->Gatekeeper: generate internal (DN) token
+Gatekeeper->PASTA_service: "request" internal (DN) token
+PASTA_service->PASTA_service: authorize service
+PASTA_service->PASTA_service: authorize resource
+PASTA_service->PASTA_service: perform service
+Gatekeeper<--PASTA_service: "response"
+Gatekeeper->Gatekeeper: wrap external (DN) token
+client<--Gatekeeper: "response" with external (DN) token
+
+== DN "login" to auth service ==
+
+client->auth_service: "request" with DN creds
+auth_service->LDAP: validate DN creds
+auth_service<--LDAP: success
+auth_service->auth_service: generate external (DN) token
+client<--auth_service: "response" with external (DN) token
+client->Gatekeeper: "request" with external (DN) token
+Gatekeeper->Gatekeeper: validate external (DN) token
+Gatekeeper->Gatekeeper: generate internal (DN) token
+Gatekeeper->PASTA_service: "request" internal (DN) token
+PASTA_service->PASTA_service: authorize service
+PASTA_service->PASTA_service: authorize resource
+PASTA_service->PASTA_service: perform service
+Gatekeeper<--PASTA_service: "response"
+Gatekeeper->Gatekeeper: wrap external (DN) token
+client<--Gatekeeper: "response" with external (DN) token
+
+== OAuth/OIC "login" to auth service ==
+
+client->auth_service: "request" login with OAuth/OIC
+client<--auth_service: "redirect" to OAuth/OIC provider
+client->IDP: "request" login with OAuth/OIC creds
+client<--IDP: success
+client->auth_service: OAuth/OIC IDP authentication token
+auth_service->auth_service: generate external (IDP) token
+client<--auth_service: "response" with external (IDP) token
+client->Gatekeeper: "request" with external (IDP) token
+Gatekeeper->Gatekeeper: validate external (IDP) token
+Gatekeeper->Gatekeeper: generate internal (IDP) token
+Gatekeeper->PASTA_service: "request" internal (IDP) token
+PASTA_service->PASTA_service: authorize service
+PASTA_service->PASTA_service: authorize resource
+PASTA_service->PASTA_service: perform service
+Gatekeeper<--PASTA_service: "response"
+Gatekeeper->Gatekeeper: wrap external (IDP) token
+client<--Gatekeeper: "response" with external (IDP) token
+
+@enduml
