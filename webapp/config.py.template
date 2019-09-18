@@ -19,14 +19,25 @@ class Config(object):
     DEBUG = False
 
     # Webapp configuration
+    CLIENT = None
+    RESPONSE = None
     DOMAINS = {'o=EDI,dc=edirepository,dc=org': 'ldap.edirepository.org',
                'o=LTER,dc=ecoinformatics,dc=org': 'ldap.lternet.edu',}
     STATIC = 'STATIC IMAGE DIRECTORY PATH'
+    PORTAL_PATH = '/nis/login'
+    PASTA = 'pasta'
+    GOOGLE = 'google'
+    GOOGLE_CLIENT_ID = 'Google client id'
+    GOOGLE_CLIENT_SECRET = 'Google client secret'
+    GOOGLE_DISCOVERY_URL = (
+        'https://accounts.google.com/.well-known/openid-configuration'
+    )
 
-    # Token attributes
+    # PASTA+ authentication token attributes
     PUBLIC = 'public'
     SYSTEM = 'https://pasta.edirepository.org/authentication'
-    AUTH_GROUP = 'authenticated'
+    VETTED = 'vetted*authenticated'
+    AUTHENTICATED = 'authenticated'
     TTL = 28800000
 
     # Test attributes
