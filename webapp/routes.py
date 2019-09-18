@@ -33,7 +33,7 @@ app.config.from_object(Config)
 
 @app.route('/auth/login/<idp>', methods=['GET'])
 def login(idp):
-    target = request.args['target']
+    target = request.args.get('target')
     if idp == 'pasta':
         authorization = request.headers.get('Authorization')
         if authorization is None:
@@ -52,6 +52,9 @@ def login(idp):
         response.set_cookie('auth-token', auth_token)
         return response
     elif idp == 'google':
+        if target is None:
+            resp = f'Target parameter not set'
+            return resp, 400
         client = WebApplicationClient(Config.GOOGLE_CLIENT_ID)
         google_provider_cfg = get_google_provider_cfg()
         authorization_endpoint = google_provider_cfg["authorization_endpoint"]
