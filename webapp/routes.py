@@ -18,6 +18,7 @@ import daiquiri
 from flask import Flask, make_response, redirect, request, url_for
 from oauthlib.oauth2 import WebApplicationClient
 import requests
+import urllib.parse
 
 from webapp.config import Config
 from webapp import pasta_crypto
@@ -106,7 +107,9 @@ def google_callback(target):
         auth_token = make_pasta_token(uid=Config.PUBLIC)
         common_name = Config.PUBLIC
 
-    redirect_url = make_target_url(target, auth_token, common_name)
+    redirect_url = make_target_url(target,
+                                   urllib.parse.quote(auth_token),
+                                   urllib.parse.quote(common_name))
     # redirect_url = f'{url_for("show_me")}?uid={users_name}'
     return redirect(redirect_url)
 
