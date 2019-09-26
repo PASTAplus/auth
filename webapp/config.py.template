@@ -24,14 +24,35 @@ class Config(object):
     DOMAINS = {'o=EDI,dc=edirepository,dc=org': 'ldap.edirepository.org',
                'o=LTER,dc=ecoinformatics,dc=org': 'ldap.lternet.edu',}
     STATIC = 'STATIC IMAGE DIRECTORY PATH'
+
+    # Portal configuration
     PORTAL_PATH = '/nis/login'
-    PASTA = 'pasta'
+    DEVELOPMENT = 'portal-d.edirepository.org'
+    STAGING = 'portal-s.edirepository.org'
+    PRODUCTION = 'portal.edirepository.org'
+
+    # Google OAuth client
     GOOGLE = 'google'
     GOOGLE_CLIENT_ID = 'Google client id'
     GOOGLE_CLIENT_SECRET = 'Google client secret'
     GOOGLE_DISCOVERY_URL = (
         'https://accounts.google.com/.well-known/openid-configuration'
     )
+
+    # Github OAuth client
+    GITHUB = 'github'
+    GITHUB_CLIENT_ID_LOCALHOST = 'Github client id for localhost'
+    GITHUB_CLIENT_SECRET_LOCALHOST = 'Github client secret for localhost'
+    GITHUB_CLIENT_ID_PORTAL_D = 'Github client id for portal-d.edirepository.org'
+    GITHUB_CLIENT_SECRET_PORTAL_D = 'Github client secret for portal-d.edirepository.org'
+    GITHUB_CLIENT_ID_PORTAL_S = 'Github client id for portal-s.edirepository.org'
+    GITHUB_CLIENT_SECRET_PORTAL_S = 'Github client secret for portal-s.edirepository.org'
+    GITHUB_CLIENT_ID_PORTAL = 'Github client id for portal.edirepository.org'
+    GITHUB_CLIENT_SECRET_PORTAL = 'Github client secret for portal.edirepository.org'
+    GITHUB_DISCOVERY_URL = ('https://api.github.com')
+    GITHUB_AUTH_ENDPOINT = 'https://github.com/login/oauth/authorize'
+    GITHUB_TOKEN_ENDPOINT = 'https://github.com/login/oauth/access_token'
+    GITHUB_USER_ENDPOINT = 'https://api.github.com/user'
 
     # PASTA+ authentication token attributes
     PUBLIC = 'public'

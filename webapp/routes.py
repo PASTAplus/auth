@@ -66,10 +66,59 @@ def login(idp):
             scope=["openid", "email", "profile"],
         )
         return redirect(request_uri)
+    elif idp == 'github':
+        if target is None:
+            resp = f'Target parameter not set'
+            return resp, 400
+        github_client_id, github_client_secret = get_github_client_info(target)
+        client = WebApplicationClient(github_client_id)
+        github_provider_cfg = get_github_provider_cfg()
+        authorization_endpoint = Config.GITHUB_AUTH_ENDPOINT
+        redirect_uri = f'{request.base_url}/callback/{target}'
+        request_uri = client.prepare_request_uri(
+            authorization_endpoint,
+            redirect_uri=redirect_uri,
+            scope=["user"],
+        )
+        return redirect(request_uri)
     else:
         resp = f'Unknown identity provider: {idp}'
         return resp, 400
 
+
+@app.route("/auth/login/github/callback/<target>", methods=['GET'])
+def github_callback(target):
+    code = request.args.get("code")
+    github_client_id, github_client_secret = get_github_client_info(target)
+    token_endpoint = Config.GITHUB_TOKEN_ENDPOINT
+    client = WebApplicationClient(github_client_id)
+    token_url, headers, body = client.prepare_token_request(
+        token_endpoint,
+        authorization_response=request.url,
+        redirect_url=request.base_url,
+        code=code,
+    )
+    headers["Accept"] = "application/json"
+    token_response = requests.post(
+        token_url,
+        headers=headers,
+        data=body,
+        auth=(github_client_id, github_client_secret),
+    ).json()
+    access_token = token_response['access_token']
+    userinfo_endpoint = f'{Config.GITHUB_USER_ENDPOINT}?access_token={access_token}'
+    userinfo_response = requests.get(url=userinfo_endpoint).json()
+    html_url = userinfo_response['html_url']
+    auth_token = make_pasta_token(uid=html_url, groups=Config.AUTHENTICATED)
+    if 'name' in userinfo_response:
+        common_name = userinfo_response['name']
+    else:
+        common_name = userinfo_response['login']
+
+    redirect_url = make_target_url(target,
+                                   urllib.parse.quote(auth_token),
+                                   urllib.parse.quote(common_name))
+    return redirect(redirect_url)
 
 
 @app.route("/auth/login/google/callback/<target>", methods=['GET'])
@@ -118,6 +167,25 @@ def google_callback(target):
 def show_me():
     uid = request.args['uid']
     return uid
+
+
+def get_github_client_info(target: str) -> tuple:
+    if target == Config.DEVELOPMENT:
+        return Config.GITHUB_CLIENT_ID_PORTAL_D,\
+               Config.GITHUB_CLIENT_SECRET_PORTAL_D
+    elif target == Config.STAGING:
+        return Config.GITHUB_CLIENT_ID_PORTAL_S, \
+               Config.GITHUB_CLIENT_SECRET_PORTAL_S
+    elif target == Config.PRODUCTION:
+        return Config.GITHUB_CLIENT_ID_PORTAL, \
+               Config.GITHUB_CLIENT_SECRET_PORTAL
+    else:
+        return Config.GITHUB_CLIENT_ID_LOCALHOST, \
+               Config.GITHUB_CLIENT_SECRET_LOCALHOST
+
+
+def get_github_provider_cfg():
+    return requests.get(Config.GITHUB_DISCOVERY_URL).json()
 
 
 def get_google_provider_cfg():
