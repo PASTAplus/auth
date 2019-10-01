@@ -54,6 +54,15 @@ class Config(object):
     GITHUB_TOKEN_ENDPOINT = 'https://github.com/login/oauth/access_token'
     GITHUB_USER_ENDPOINT = 'https://api.github.com/user'
 
+    # Orcid OAuth client
+    ORCID = 'orcid'
+    ORCID_CLIENT_ID = 'Orcid client id'
+    ORCID_CLIENT_SECRET = 'Orcid client secret'
+    ORCID_DNS = 'https://orcid.org/'
+    ORCID_AUTH_ENDPOINT = 'https://orcid.org/oauth/authorize'
+    ORCID_TOKEN_ENDPOINT = 'https://orcid.org/oauth/token'
+    ORCID_IMPLICIT_ENDPOINT = 'https://orcid.org/oauth/authorize'
+
     # PASTA+ authentication token attributes
     PUBLIC = 'public'
     SYSTEM = 'https://pasta.edirepository.org/authentication'
