@@ -60,10 +60,7 @@ class UserDb(object):
         user = query.filter(User.uid == uid).first()
         user.privacy_acceptance = True
         user.date_accepted = datetime.now()
-        try:
-            self.session.commit()
-        except Exception as e:
-            logger.error(e)
+        self.session.commit()
 
     def get_accepted(self, uid: str) -> bool:
         query = self.session.query(User)
@@ -74,10 +71,7 @@ class UserDb(object):
         query = self.session.query(User)
         user = query.filter(User.uid == uid).first()
         user.cname = cname
-        try:
-            self.session.commit()
-        except Exception as e:
-            logger.error(e)
+        self.session.commit()
 
     def get_cname(self, uid: str) -> str:
         query = self.session.query(User)
@@ -88,10 +82,7 @@ class UserDb(object):
         query = self.session.query(User)
         user = query.filter(User.uid == uid).first()
         user.email = email
-        try:
-            self.session.commit()
-        except Exception as e:
-            logger.error(e)
+        self.session.commit()
 
     def get_email(self, uid: str) -> str:
         query = self.session.query(User)
@@ -102,10 +93,7 @@ class UserDb(object):
         query = self.session.query(User)
         user = query.filter(User.uid == uid).first()
         user.token = token
-        try:
-            self.session.commit()
-        except Exception as e:
-            logger.error(e)
+        self.session.commit()
 
     def get_token(self, uid: str) -> str:
         query = self.session.query(User)
@@ -113,22 +101,14 @@ class UserDb(object):
         return user.token
 
     def set_user(self, uid: str, token: str, cname: str):
-        # Set uid and cname once, but update token for each new authentication
         if self.get_user(uid=uid) is None:
-            user = User(
-                uid=uid,
-                token=token,
-                cname=cname
-            )
+            user = User(uid=uid, token=token, cname=cname)
             self.session.add(user)
-            try:
-                self.session.commit()
-            except Exception as e:
-                logger.error(e)
-        else:
+            self.session.commit()
+        else:  # Set only token if user exists
             self.set_token(uid=uid, token=token)
 
-    def get_user(self, uid: str) -> tuple:
+    def get_user(self, uid: str):
         query = self.session.query(User)
         user = query.filter(User.uid == uid).first()
         return user
@@ -137,7 +117,4 @@ class UserDb(object):
         query = self.session.query(User)
         user = query.filter(User.uid == uid).first()
         self.session.delete(user)
-        try:
-            self.session.commit()
-        except Exception as e:
-            logger.error(e)
+        self.session.commit()
