@@ -24,6 +24,7 @@ from webapp.config import Config
 from webapp import pasta_crypto
 from webapp import pasta_ldap
 from webapp import pasta_token
+from webapp.user_db import UserDb
 
 
 logger = daiquiri.getLogger('routes: ' + __name__)
@@ -49,6 +50,9 @@ def login(idp):
             else:
                 resp = f'Authentication failed for user: {dn}'
                 return resp, 401
+            # TODO: set_uid and set_token; test for privacy_acceptance
+            udb = UserDb()
+            udb.set_user(uid=dn, token=auth_token, cname=get_dn_uid(dn))
         response = make_response()
         response.set_cookie('auth-token', auth_token)
         return response
@@ -130,6 +134,7 @@ def github_callback(target):
     redirect_url = make_target_url(target,
                                    urllib.parse.quote(auth_token),
                                    urllib.parse.quote(common_name))
+    # TODO: set_uid and set_token; test for privacy_acceptance
     return redirect(redirect_url)
 
 
@@ -171,6 +176,7 @@ def google_callback(target):
     redirect_url = make_target_url(target,
                                    urllib.parse.quote(auth_token),
                                    urllib.parse.quote(common_name))
+    # TODO: set_uid and set_token; test for privacy_acceptance
     return redirect(redirect_url)
 
 
@@ -199,6 +205,7 @@ def orcid_callback(target):
     redirect_url = make_target_url(target,
                                    urllib.parse.quote(auth_token),
                                    urllib.parse.quote(common_name))
+    # TODO: set_uid and set_token; test for privacy_acceptance
     return redirect(redirect_url)
 
 
@@ -221,6 +228,12 @@ def get_github_client_info(target: str) -> tuple:
     else:
         return Config.GITHUB_CLIENT_ID_LOCALHOST, \
                Config.GITHUB_CLIENT_SECRET_LOCALHOST
+
+
+def get_dn_uid(dn: str) -> str:
+    dn_parts = dn.split(",")
+    uid = dn_parts[0].split("=")[1]
+    return uid
 
 
 def get_github_provider_cfg():
