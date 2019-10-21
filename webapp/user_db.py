@@ -65,7 +65,7 @@ class UserDb(object):
     def get_accepted(self, uid: str) -> bool:
         query = self.session.query(User)
         user = query.filter(User.uid == uid).first()
-        return user.privacy_accepted
+        return user.privacy_acceptance
 
     def set_cname(self, uid: str, cname: str):
         query = self.session.query(User)
