@@ -108,4 +108,5 @@ venv.bak/
 
 # Project configuration
 config.py
-lternet.pem
+lternet.*
+user_db.sqlite
