@@ -271,15 +271,19 @@ def show_me():
 
 def get_github_client_info(target: str, request_base_url: str) -> tuple:
     if request_base_url.startswith('https://localhost:5000'):
+        logger.error('github_info: localhost')
         return Config.GITHUB_CLIENT_ID_LOCALHOST, \
                Config.GITHUB_CLIENT_SECRET_LOCALHOST
     elif target == Config.DEVELOPMENT:
+        logger.error('github_info: development')
         return Config.GITHUB_CLIENT_ID_PORTAL_D,\
                Config.GITHUB_CLIENT_SECRET_PORTAL_D
     elif target == Config.STAGING:
+        logger.error('github_info: staging')
         return Config.GITHUB_CLIENT_ID_PORTAL_S, \
                Config.GITHUB_CLIENT_SECRET_PORTAL_S
     elif target == Config.PRODUCTION:
+        logger.error('github_info: production')
         return Config.GITHUB_CLIENT_ID_PORTAL, \
                Config.GITHUB_CLIENT_SECRET_PORTAL
 
