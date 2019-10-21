@@ -107,7 +107,9 @@ def login(idp):
         return redirect(request_uri)
 
     elif idp == 'github':
-        github_client_id, _ = get_github_client_info(request.base_url)
+        github_client_id, _ = \
+            get_github_client_info(target=target,
+                                   request_base_url=request.base_url)
         client = WebApplicationClient(github_client_id)
         authorization_endpoint = Config.GITHUB_AUTH_ENDPOINT
         redirect_uri = f'{request.base_url}/callback/{target}'
@@ -135,7 +137,8 @@ def login(idp):
 @app.route("/auth/login/github/callback/<target>", methods=['GET'])
 def github_callback(target):
     code = request.args.get("code")
-    github_client_id, github_client_secret = get_github_client_info(request.base_url)
+    github_client_id, github_client_secret = \
+        get_github_client_info(target=target, request_base_url=request.base_url)
     token_endpoint = Config.GITHUB_TOKEN_ENDPOINT
     client = WebApplicationClient(github_client_id)
     token_url, headers, body = client.prepare_token_request(
@@ -266,19 +269,19 @@ def show_me():
     return uid
 
 
-def get_github_client_info(request_base_url: str) -> tuple:
-    if request_base_url.startswith(f'https://{Config.DEVELOPMENT}'):
-        return Config.GITHUB_CLIENT_ID_PORTAL_D,\
-               Config.GITHUB_CLIENT_SECRET_PORTAL_D
-    elif request_base_url.startswith(f'https://{Config.STAGING}'):
-        return Config.GITHUB_CLIENT_ID_PORTAL_S, \
-               Config.GITHUB_CLIENT_SECRET_PORTAL_S
-    elif request_base_url.startswith(f'https://{Config.PRODUCTION}'):
-        return Config.GITHUB_CLIENT_ID_PORTAL, \
-               Config.GITHUB_CLIENT_SECRET_PORTAL
-    else:
+def get_github_client_info(target: str, request_base_url: str) -> tuple:
+    if request_base_url.startswith('https://localhost:5000'):
         return Config.GITHUB_CLIENT_ID_LOCALHOST, \
                Config.GITHUB_CLIENT_SECRET_LOCALHOST
+    elif target == Config.DEVELOPMENT:
+        return Config.GITHUB_CLIENT_ID_PORTAL_D,\
+               Config.GITHUB_CLIENT_SECRET_PORTAL_D
+    elif target == Config.STAGING:
+        return Config.GITHUB_CLIENT_ID_PORTAL_S, \
+               Config.GITHUB_CLIENT_SECRET_PORTAL_S
+    elif target == Config.PRODUCTION:
+        return Config.GITHUB_CLIENT_ID_PORTAL, \
+               Config.GITHUB_CLIENT_SECRET_PORTAL
 
 
 def get_dn_uid(dn: str) -> str:
