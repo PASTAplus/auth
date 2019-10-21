@@ -15,12 +15,15 @@ import base64
 import json
 
 import daiquiri
-from flask import Flask, make_response, redirect, request, url_for
+from flask import Flask, make_response, redirect, render_template, request, \
+    url_for
+from flask_bootstrap import Bootstrap
 from oauthlib.oauth2 import WebApplicationClient
 import requests
 import urllib.parse
 
 from webapp.config import Config
+from webapp.forms import AcceptForm
 from webapp import pasta_crypto
 from webapp import pasta_ldap
 from webapp import pasta_token
@@ -31,35 +34,67 @@ logger = daiquiri.getLogger('routes: ' + __name__)
 
 app = Flask(__name__)
 app.config.from_object(Config)
+bootstrap = Bootstrap(app)
+
+
+@app.route('/auth/accept', methods=['POST'])
+def accept():
+    form = AcceptForm()
+    if form.validate_on_submit():
+        accepted = form.accept.data
+        target = form.target.data
+        uid = form.uid.data
+        if not accepted:
+            redirect_url = f'https://{target}/nis'
+            return redirect(redirect_url)
+        else:
+            udb = UserDb()
+            udb.set_accepted(uid=uid)
+            auth_token = udb.get_token(uid=uid)
+            cname = udb.get_cname(uid=uid)
+            redirect_url = make_target_url(target=target, auth_token=auth_token,
+                                           cname=cname)
+            return redirect(redirect_url)
+    else:
+        resp = 'Non-validated form submitted'
+        return resp, 400
 
 
 @app.route('/auth/login/<idp>', methods=['GET'])
 def login(idp):
     target = request.args.get('target')
+    if idp in ('github', 'google', 'orcid') and target is None:
+        resp = f'Target parameter not set'
+        return resp, 400
     if idp == 'pasta':
         authorization = request.headers.get('Authorization')
         if authorization is None:
-            uid = Config.PUBLIC
-            auth_token = make_pasta_token(uid=uid)
+            resp = f'No authorization header in request'
+            return resp, 400
         else:
             credentials = base64.b64decode(authorization.strip('Basic ')).\
                 decode('utf-8')
-            dn, password = credentials.split(':')
-            if pasta_ldap.bind(dn, password):
-                auth_token = make_pasta_token(uid=dn, groups=Config.VETTED)
+            uid, password = credentials.split(':')
+            if pasta_ldap.bind(uid, password):
+                cname = get_dn_uid(uid)
+                auth_token = make_pasta_token(uid=uid, groups=Config.VETTED)
             else:
-                resp = f'Authentication failed for user: {dn}'
+                resp = f'Authentication failed for user: {uid}'
                 return resp, 401
-            # TODO: set_uid and set_token; test for privacy_acceptance
-            udb = UserDb()
-            udb.set_user(uid=dn, token=auth_token, cname=get_dn_uid(dn))
-        response = make_response()
-        response.set_cookie('auth-token', auth_token)
-        return response
+
+        udb = UserDb()
+        udb.set_user(uid=uid, token=auth_token, cname=cname)
+        privacy_accepted = udb.get_accepted(uid=uid)
+        if privacy_accepted:
+            response = make_response()
+            response.set_cookie('auth-token', auth_token)
+            return response
+        else:
+            form = AcceptForm()
+            return render_template("accept.html", form=form, uid=uid,
+                                   target=target)
+
     elif idp == 'google':
-        if target is None:
-            resp = f'Target parameter not set'
-            return resp, 400
         client = WebApplicationClient(Config.GOOGLE_CLIENT_ID)
         google_provider_cfg = get_google_provider_cfg()
         authorization_endpoint = google_provider_cfg["authorization_endpoint"]
@@ -70,13 +105,10 @@ def login(idp):
             scope=["openid", "email", "profile"],
         )
         return redirect(request_uri)
+
     elif idp == 'github':
-        if target is None:
-            resp = f'Target parameter not set'
-            return resp, 400
-        github_client_id, _ = get_github_client_info(target)
+        github_client_id, _ = get_github_client_info(request.base_url)
         client = WebApplicationClient(github_client_id)
-        # github_provider_cfg = get_github_provider_cfg()
         authorization_endpoint = Config.GITHUB_AUTH_ENDPOINT
         redirect_uri = f'{request.base_url}/callback/{target}'
         request_uri = client.prepare_request_uri(
@@ -85,10 +117,8 @@ def login(idp):
             scope=["user"],
         )
         return redirect(request_uri)
+
     elif idp == 'orcid':
-        if target is None:
-            resp = f'Target parameter not set'
-            return resp, 400
         orcid_client_id = Config.ORCID_CLIENT_ID
         authorization_endpoint = Config.ORCID_IMPLICIT_ENDPOINT
         redirect_uri = f'{request.base_url}/callback/{target}'
@@ -96,6 +126,7 @@ def login(idp):
                       f'&response_type=code&scope=/authenticate&' + \
                       f'redirect_uri={redirect_uri}'
         return redirect(request_uri)
+
     else:
         resp = f'Unknown identity provider: {idp}'
         return resp, 400
@@ -104,7 +135,7 @@ def login(idp):
 @app.route("/auth/login/github/callback/<target>", methods=['GET'])
 def github_callback(target):
     code = request.args.get("code")
-    github_client_id, github_client_secret = get_github_client_info(target)
+    github_client_id, github_client_secret = get_github_client_info(request.base_url)
     token_endpoint = Config.GITHUB_TOKEN_ENDPOINT
     client = WebApplicationClient(github_client_id)
     token_url, headers, body = client.prepare_token_request(
@@ -124,18 +155,24 @@ def github_callback(target):
     userinfo_endpoint = f'{Config.GITHUB_USER_ENDPOINT}' + \
                         f'?access_token={access_token}'
     userinfo_response = requests.get(url=userinfo_endpoint).json()
-    html_url = userinfo_response['html_url']
-    auth_token = make_pasta_token(uid=html_url, groups=Config.AUTHENTICATED)
+    uid = userinfo_response['html_url']
     if 'name' in userinfo_response:
-        common_name = userinfo_response['name']
+        cname = userinfo_response['name']
     else:
-        common_name = userinfo_response['login']
+        cname = userinfo_response['login']
 
-    redirect_url = make_target_url(target,
-                                   urllib.parse.quote(auth_token),
-                                   urllib.parse.quote(common_name))
-    # TODO: set_uid and set_token; test for privacy_acceptance
-    return redirect(redirect_url)
+    auth_token = make_pasta_token(uid=uid, groups=Config.AUTHENTICATED)
+
+    udb = UserDb()
+    udb.set_user(uid=uid, token=auth_token, cname=cname)
+    privacy_accepted = udb.get_accepted(uid=uid)
+    if privacy_accepted:
+        redirect_url = make_target_url(target, auth_token, cname)
+        return redirect(redirect_url)
+    else:
+        form = AcceptForm()
+        return render_template("accept.html", form=form, uid=uid,
+                               target=target)
 
 
 @app.route('/auth/login/google/callback/<target>', methods=['GET'])
@@ -163,21 +200,29 @@ def google_callback(target):
 
     if userinfo_response.json().get('email_verified'):
         unique_id = userinfo_response.json()['sub']
-        email = userinfo_response.json()['email']
+        uid = userinfo_response.json()['email']
         picture = userinfo_response.json()['picture']
         given_name = userinfo_response.json()['given_name']
         sur_name = userinfo_response.json()['family_name']
-        auth_token = make_pasta_token(uid=email, groups=Config.AUTHENTICATED)
-        common_name = f'{given_name} {sur_name}'
+        cname = f'{given_name} {sur_name}'
+        groups = Config.AUTHENTICATED
     else:
-        auth_token = make_pasta_token(uid=Config.PUBLIC)
-        common_name = Config.PUBLIC
+        uid = Config.PUBLIC
+        cname = Config.PUBLIC
+        groups = ''
 
-    redirect_url = make_target_url(target,
-                                   urllib.parse.quote(auth_token),
-                                   urllib.parse.quote(common_name))
-    # TODO: set_uid and set_token; test for privacy_acceptance
-    return redirect(redirect_url)
+    auth_token = make_pasta_token(uid=uid, groups=groups)
+
+    udb = UserDb()
+    udb.set_user(uid=uid, token=auth_token, cname=cname)
+    privacy_accepted = udb.get_accepted(uid=uid)
+    if privacy_accepted:
+        redirect_url = make_target_url(target, auth_token, cname)
+        return redirect(redirect_url)
+    else:
+        form = AcceptForm()
+        return render_template("accept.html", form=form, uid=uid,
+                               target=target)
 
 
 @app.route('/auth/login/orcid/callback/<target>', methods=['GET'])
@@ -198,15 +243,21 @@ def orcid_callback(target):
         headers=headers,
         data=body,
     ).json()
-    common_name = token_response['name']
-    orcid = Config.ORCID_DNS + token_response['orcid']
-    auth_token = make_pasta_token(uid=orcid, groups=Config.AUTHENTICATED)
+    cname = token_response['name']
+    uid = Config.ORCID_DNS + token_response['orcid']
 
-    redirect_url = make_target_url(target,
-                                   urllib.parse.quote(auth_token),
-                                   urllib.parse.quote(common_name))
-    # TODO: set_uid and set_token; test for privacy_acceptance
-    return redirect(redirect_url)
+    auth_token = make_pasta_token(uid=uid, groups=Config.AUTHENTICATED)
+
+    udb = UserDb()
+    udb.set_user(uid=uid, token=auth_token, cname=cname)
+    privacy_accepted = udb.get_accepted(uid=uid)
+    if privacy_accepted:
+        redirect_url = make_target_url(target, auth_token, cname)
+        return redirect(redirect_url)
+    else:
+        form = AcceptForm()
+        return render_template("accept.html", form=form, uid=uid,
+                               target=target)
 
 
 @app.route('/auth/show_me', methods=['GET'])
@@ -215,14 +266,14 @@ def show_me():
     return uid
 
 
-def get_github_client_info(target: str) -> tuple:
-    if target == Config.DEVELOPMENT:
+def get_github_client_info(request_base_url: str) -> tuple:
+    if request_base_url.startswith(f'https://{Config.DEVELOPMENT}'):
         return Config.GITHUB_CLIENT_ID_PORTAL_D,\
                Config.GITHUB_CLIENT_SECRET_PORTAL_D
-    elif target == Config.STAGING:
+    elif request_base_url.startswith(f'https://{Config.STAGING}'):
         return Config.GITHUB_CLIENT_ID_PORTAL_S, \
                Config.GITHUB_CLIENT_SECRET_PORTAL_S
-    elif target == Config.PRODUCTION:
+    elif request_base_url.startswith(f'https://{Config.PRODUCTION}'):
         return Config.GITHUB_CLIENT_ID_PORTAL, \
                Config.GITHUB_CLIENT_SECRET_PORTAL
     else:
@@ -254,9 +305,11 @@ def make_pasta_token(uid, groups=''):
     return auth_token
 
 
-def make_target_url(target, auth_token, common_name):
+def make_target_url(target: str, auth_token: str, cname: str) -> str:
     path = Config.PORTAL_PATH
-    url = f'https://{target}{path}?token={auth_token}&cname={common_name}'
+    _auth_token = urllib.parse.quote(auth_token)
+    _cname = urllib.parse.quote(cname)
+    url = f'https://{target}{path}?token={_auth_token}&cname={_cname}'
     return url
 
 
