@@ -81,15 +81,13 @@ def login(idp):
                 udb = UserDb()
                 udb.set_user(uid=uid, token=auth_token, cname=cname)
                 privacy_accepted = udb.get_accepted(uid=uid)
-                privacy_accepted = True
                 if privacy_accepted:
                     response = make_response()
                     response.set_cookie('auth-token', auth_token)
                     return response
                 else:
-                    form = AcceptForm()
-                    return render_template('accept.html', form=form, uid=uid,
-                                           target=target)
+                    resp = 'I\'m a teapot, coffee is ready!'
+                    return resp, 418
             else:
                 resp = f'Authentication failed for user: {uid}'
                 return resp, 401
