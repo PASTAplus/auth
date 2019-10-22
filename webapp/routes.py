@@ -63,8 +63,8 @@ def accept():
             resp = 'Unknown uid'
             return resp, 400
         if target is None:
-            host = request.host
-            target = host.split(':')[0]
+            address = request.remote_addr
+            target = make_target(address=address)
         return render_template('accept.html', form=form, uid=uid, target=target)
     else:
         resp = 'Non-validated form submitted'
@@ -317,8 +317,17 @@ def make_pasta_token(uid, groups=''):
     return auth_token
 
 
-def make_target(host: str) -> str:
-    pass
+def make_target(address: str) -> str:
+    target = None
+    if address == Config.DEV_ADDR:
+        target = Config.DEVELOPMENT
+    elif address == Config.STAGE_ADDR:
+        target = Config.STAGING
+    elif address == Config.PROD_ADDR:
+        target = Config.PRODUCTION
+    elif address == Config.LOCAL_ADDR:
+        target = Config.LOCALHOST
+    return target
 
 
 def make_target_url(target: str, auth_token: str, cname: str) -> str:

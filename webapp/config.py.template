@@ -31,6 +31,11 @@ class Config(object):
     DEVELOPMENT = 'portal-d.edirepository.org'
     STAGING = 'portal-s.edirepository.org'
     PRODUCTION = 'portal.edirepository.org'
+    LOCALHOST = 'localhost:5000'
+    DEV_ADDR = '129.24.124.171'
+    STAGE_ADDR = '129.24.124.33'
+    PROD_ADDR = '129.24.124.30'
+    LOCAL_ADDR = '127.0.0.1'
 
     # Google OAuth client
     GOOGLE = 'google'
