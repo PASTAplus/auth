@@ -81,18 +81,18 @@ def login(idp):
                 udb = UserDb()
                 udb.set_user(uid=uid, token=auth_token, cname=cname)
                 privacy_accepted = udb.get_accepted(uid=uid)
+                privacy_accepted = True
                 if privacy_accepted:
                     response = make_response()
                     response.set_cookie('auth-token', auth_token)
                     return response
                 else:
                     form = AcceptForm()
-                    return render_template("accept.html", form=form, uid=uid,
+                    return render_template('accept.html', form=form, uid=uid,
                                            target=target)
             else:
                 resp = f'Authentication failed for user: {uid}'
                 return resp, 401
-
 
     elif idp == 'google':
         client = WebApplicationClient(Config.GOOGLE_CLIENT_ID)
@@ -174,7 +174,7 @@ def github_callback(target):
         return redirect(redirect_url)
     else:
         form = AcceptForm()
-        return render_template("accept.html", form=form, uid=uid,
+        return render_template('accept.html', form=form, uid=uid,
                                target=target)
 
 
@@ -224,7 +224,7 @@ def google_callback(target):
         return redirect(redirect_url)
     else:
         form = AcceptForm()
-        return render_template("accept.html", form=form, uid=uid,
+        return render_template('accept.html', form=form, uid=uid,
                                target=target)
 
 
@@ -259,7 +259,7 @@ def orcid_callback(target):
         return redirect(redirect_url)
     else:
         form = AcceptForm()
-        return render_template("accept.html", form=form, uid=uid,
+        return render_template('accept.html', form=form, uid=uid,
                                target=target)
 
 
