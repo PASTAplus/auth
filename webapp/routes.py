@@ -37,8 +37,9 @@ app.config.from_object(Config)
 bootstrap = Bootstrap(app)
 
 
-@app.route('/auth/accept', methods=['POST'])
+@app.route('/auth/accept', methods=['GET', 'POST'])
 def accept():
+    uid = request.args.get('uid')
     form = AcceptForm()
     if form.validate_on_submit():
         accepted = form.accept.data
@@ -55,6 +56,14 @@ def accept():
             redirect_url = make_target_url(target=target, auth_token=auth_token,
                                            cname=cname)
             return redirect(redirect_url)
+    elif uid is not None:
+        udb = UserDb()
+        if udb.get_user(uid) is None:
+            resp = 'Unknown uid'
+            return resp, 400
+        host = request.host
+        target = host.split(':')[0]
+        return render_template('accept.html', form=form, uid=uid, target=target)
     else:
         resp = 'Non-validated form submitted'
         return resp, 400
@@ -304,6 +313,10 @@ def make_pasta_token(uid, groups=''):
     private_key = pasta_crypto.import_key(Config.PRIVATE_KEY)
     auth_token = pasta_crypto.create_authtoken(private_key, token.to_string())
     return auth_token
+
+
+def make_target(host: str) -> str:
+    pass
 
 
 def make_target_url(target: str, auth_token: str, cname: str) -> str:
