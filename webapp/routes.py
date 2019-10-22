@@ -40,6 +40,7 @@ bootstrap = Bootstrap(app)
 @app.route('/auth/accept', methods=['GET', 'POST'])
 def accept():
     uid = request.args.get('uid')
+    target = request.args.get('target')
     form = AcceptForm()
     if form.validate_on_submit():
         accepted = form.accept.data
@@ -61,8 +62,9 @@ def accept():
         if udb.get_user(uid) is None:
             resp = 'Unknown uid'
             return resp, 400
-        host = request.host
-        target = host.split(':')[0]
+        if target is None:
+            host = request.host
+            target = host.split(':')[0]
         return render_template('accept.html', form=form, uid=uid, target=target)
     else:
         resp = 'Non-validated form submitted'
