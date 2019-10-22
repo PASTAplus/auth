@@ -57,14 +57,11 @@ def accept():
             redirect_url = make_target_url(target=target, auth_token=auth_token,
                                            cname=cname)
             return redirect(redirect_url)
-    elif uid is not None:
+    elif uid is not None and target is not None:
         udb = UserDb()
         if udb.get_user(uid) is None:
             resp = 'Unknown uid'
             return resp, 400
-        if target is None:
-            address = request.remote_addr
-            target = make_target(address=address)
         return render_template('accept.html', form=form, uid=uid, target=target)
     else:
         resp = 'Non-validated form submitted'
@@ -315,19 +312,6 @@ def make_pasta_token(uid, groups=''):
     private_key = pasta_crypto.import_key(Config.PRIVATE_KEY)
     auth_token = pasta_crypto.create_authtoken(private_key, token.to_string())
     return auth_token
-
-
-def make_target(address: str) -> str:
-    target = None
-    if address == Config.DEV_ADDR:
-        target = Config.DEVELOPMENT
-    elif address == Config.STAGE_ADDR:
-        target = Config.STAGING
-    elif address == Config.PROD_ADDR:
-        target = Config.PRODUCTION
-    elif address == Config.LOCAL_ADDR:
-        target = Config.LOCALHOST
-    return target
 
 
 def make_target_url(target: str, auth_token: str, cname: str) -> str:
