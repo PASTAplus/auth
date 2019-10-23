@@ -64,7 +64,7 @@ def accept():
             return resp, 400
         return render_template('accept.html', form=form, uid=uid, target=target)
     else:
-        resp = 'Non-validated form submitted'
+        resp = 'Form requires uid and target parameters to be valid'
         return resp, 400
 
 
