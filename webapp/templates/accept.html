@@ -2,21 +2,23 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1 align="center">Environmental Data Initiative</h1>
-    <h1 align="center">Privacy Policy Acceptance</h1>
-    <h4>
+    <h2 align="left">
+        <img src="{{ url_for('static', filename='images/EDI_logo.png') }}" alt="EDI Logo" style="width:70px;height:70px;">
+        Environmental Data Initiative - Privacy Policy Acceptance</h2>
+    <hr/>
+    <p>
         By checking the "Accept" box and submitting this acknowledgment to the
         Environmental Data Initiative, you willingly accept the Environmental
         Data Initiative <a href="https://environmentaldatainitiative.org/environmental-data-initiative-privacy-policy/">
         privacy policy</a> as stated on our project website. It is only
-        necessary to perform this acknowledgment only once. You may, however, be
+        necessary to perform this acknowledgment once. You may, however, be
         required to re-acknowledge your acceptance if we revise or modify our
         privacy policy. If you prefer not to accept the Environmental Data
         Initiative privacy policy, you may still browse our data repository as
         an anonymous "public" user, but you will not be able to perform any
         actions available to a registered user. Thank you for your support and
         use of the Environmental Data Initiative.
-    </h4>
+    </p>
     <div class="row">
         <div class="col-md-4">
             <form method="POST" action="/auth/accept" class="form" role="form">
