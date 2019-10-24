@@ -179,9 +179,8 @@ def github_callback(target):
         redirect_url = make_target_url(target, auth_token, cname)
         return redirect(redirect_url)
     else:
-        form = AcceptForm()
-        return render_template('accept.html', form=form, uid=uid,
-                               target=target)
+        redirect_url = f'/auth/accept?uid={uid}&target={target}'
+        return redirect(redirect_url)
 
 
 @app.route('/auth/login/google/callback/<target>', methods=['GET'])
@@ -229,9 +228,8 @@ def google_callback(target):
         redirect_url = make_target_url(target, auth_token, cname)
         return redirect(redirect_url)
     else:
-        form = AcceptForm()
-        return render_template('accept.html', form=form, uid=uid,
-                               target=target)
+        redirect_url = f'/auth/accept?uid={uid}&target={target}'
+        return redirect(redirect_url)
 
 
 @app.route('/auth/login/orcid/callback/<target>', methods=['GET'])
@@ -264,9 +262,8 @@ def orcid_callback(target):
         redirect_url = make_target_url(target, auth_token, cname)
         return redirect(redirect_url)
     else:
-        form = AcceptForm()
-        return render_template('accept.html', form=form, uid=uid,
-                               target=target)
+        redirect_url = f'/auth/accept?uid={uid}&target={target}'
+        return redirect(redirect_url)
 
 
 @app.route('/auth/show_me', methods=['GET'])
