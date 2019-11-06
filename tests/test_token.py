@@ -37,7 +37,7 @@ class TestToken(unittest.TestCase):
         token = PastaToken()
         token.uid = self._dn
         token.system = Config.SYSTEM
-        token.groups = Config.AUTH_GROUP
+        token.groups = Config.VETTED
         print(token.to_string())
         self.assertTrue(self._dn in token.to_string())
 
