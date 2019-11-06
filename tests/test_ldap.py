@@ -28,7 +28,8 @@ class TestPastaLdap(unittest.TestCase):
 
     def setUp(self):
         self._dn = Config.TEST_USER_DN
-        self._bad_dn = Config.TEST_USER_BAD_DN
+        self._bad_o = Config.TEST_USER_BAD_O
+        self._bad_uid = Config.TEST_USER_BAD_UID
         self._password = Config.TEST_USER_PW
 
     def tearDown(self):
@@ -36,7 +37,8 @@ class TestPastaLdap(unittest.TestCase):
 
     def test_bind(self):
         self.assertTrue(pasta_ldap.bind(self._dn, self._password))
-        self.assertFalse(pasta_ldap.bind(self._bad_dn, self._password))
+        self.assertFalse(pasta_ldap.bind(self._bad_o, self._password))
+        self.assertFalse(pasta_ldap.bind(self._bad_uid, self._password))
 
 
 if __name__ == '__main__':
