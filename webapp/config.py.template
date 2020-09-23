@@ -27,10 +27,13 @@ class Config(object):
     DB = 'user_db.sqlite'
 
     # Portal configuration
-    PORTAL_PATH = '/nis/login'
-    DEVELOPMENT = 'portal-d.edirepository.org'
-    STAGING = 'portal-s.edirepository.org'
-    PRODUCTION = 'portal.edirepository.org'
+    PORTAL_D = 'portal-d.edirepository.org'
+    PORTAL_S = 'portal-s.edirepository.org'
+    PORTAL = 'portal.edirepository.org'
+
+    # ezEML configuration
+    EZEML_D = "ezeml-d.edirepository.org"
+    EZEML = "ezeml.edirepository.org"
 
     # Google OAuth client
     GOOGLE = 'google'

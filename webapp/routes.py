@@ -47,7 +47,7 @@ def accept():
         target = form.target.data
         uid = form.uid.data
         if not accepted:
-            redirect_url = f'https://{target}/nis'
+            redirect_url = f'https://{target}'
             return redirect(redirect_url)
         else:
             udb = UserDb()
@@ -276,13 +276,13 @@ def get_github_client_info(target: str, request_base_url: str) -> tuple:
     if request_base_url.startswith('https://localhost:5000'):
         return Config.GITHUB_CLIENT_ID_LOCALHOST, \
                Config.GITHUB_CLIENT_SECRET_LOCALHOST
-    elif target == Config.DEVELOPMENT:
+    elif target == Config.PORTAL_D:
         return Config.GITHUB_CLIENT_ID_PORTAL_D, \
                Config.GITHUB_CLIENT_SECRET_PORTAL_D
-    elif target == Config.STAGING:
+    elif target == Config.PORTAL_S:
         return Config.GITHUB_CLIENT_ID_PORTAL_S, \
                Config.GITHUB_CLIENT_SECRET_PORTAL_S
-    elif target == Config.PRODUCTION:
+    elif target == Config.PORTAL:
         return Config.GITHUB_CLIENT_ID_PORTAL, \
                Config.GITHUB_CLIENT_SECRET_PORTAL
 
@@ -312,10 +312,13 @@ def make_pasta_token(uid, groups=''):
 
 
 def make_target_url(target: str, auth_token: str, cname: str) -> str:
-    path = Config.PORTAL_PATH
     _auth_token = urllib.parse.quote(auth_token)
     _cname = urllib.parse.quote(cname)
-    url = f'https://{target}{path}?token={_auth_token}&cname={_cname}'
+    if target in (Config.PORTAL, Config.PORTAL_S, Config.PORTAL_D):
+        path = Config.PORTAL_PATH
+        url = f'https://{target}/nis/login?token={_auth_token}&cname={_cname}'
+    elif target in (Config.EZEML, Config.EZEML_D):
+        url = f'https://{target}/eml/auth/login?token={_auth_token}&cname={_cname}'
     return url
 
 
