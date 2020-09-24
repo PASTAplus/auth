@@ -53,6 +53,10 @@ class Config(object):
     GITHUB_CLIENT_SECRET_PORTAL_S = 'Github client secret for portal-s.edirepository.org'
     GITHUB_CLIENT_ID_PORTAL = 'Github client id for portal.edirepository.org'
     GITHUB_CLIENT_SECRET_PORTAL = 'Github client secret for portal.edirepository.org'
+    GITHUB_CLIENT_ID_EZEML = 'Github client id for ezeml.edirepository.org'
+    GITHUB_CLIENT_SECRET_EZEML = 'Github client secret for ezeml.edirepository.org'
+    GITHUB_CLIENT_ID_EZEML_D = 'Github client id for ezeml-d.edirepository.org'
+    GITHUB_CLIENT_SECRET_EZEML_D = 'Github client secret for ezeml-d.edirepository.org'
     GITHUB_DISCOVERY_URL = ('https://api.github.com')
     GITHUB_AUTH_ENDPOINT = 'https://github.com/login/oauth/authorize'
     GITHUB_TOKEN_ENDPOINT = 'https://github.com/login/oauth/access_token'

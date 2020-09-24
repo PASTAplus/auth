@@ -285,6 +285,12 @@ def get_github_client_info(target: str, request_base_url: str) -> tuple:
     elif target == Config.PORTAL:
         return Config.GITHUB_CLIENT_ID_PORTAL, \
                Config.GITHUB_CLIENT_SECRET_PORTAL
+    elif target == Config.EZEML_D:
+        return Config.GITHUB_CLIENT_ID_EZEML_D, \
+                Config.GITHUB_CLIENT_SECRET_EZEML_D
+    elif target == Config.EZEML:
+        return Config.GITHUB_CLIENT_ID_EZEML, \
+                Config.GITHUB_CLIENT_SECRET_EZEML
 
 
 def get_dn_uid(dn: str) -> str:
