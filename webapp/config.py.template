@@ -21,8 +21,9 @@ class Config(object):
     # Webapp configuration
     CLIENT = None
     RESPONSE = None
-    DOMAINS = {'o=EDI,dc=edirepository,dc=org': 'ldap.edirepository.org',
-               'o=LTER,dc=ecoinformatics,dc=org': 'ldap.lternet.edu',}
+    DOMAINS = {
+        'o=EDI,dc=edirepository,dc=org': 'ldap.edirepository.org',
+    }
     STATIC = 'STATIC IMAGE DIRECTORY PATH'
     DB = 'user_db.sqlite'
 
