@@ -80,8 +80,7 @@ def login(idp):
             resp = f'No authorization header in request'
             return resp, 400
         else:
-            credentials = base64.b64decode(authorization.strip('Basic ')).\
-                decode('utf-8')
+            credentials = base64.b64decode(authorization[6:]).decode('utf-8')
             uid, password = credentials.split(':')
             if pasta_ldap.bind(uid, password):
                 cname = get_dn_uid(uid)
