@@ -164,10 +164,12 @@ def github_callback(target):
                         f'?access_token={access_token}'
     userinfo_response = requests.get(url=userinfo_endpoint).json()
     uid = userinfo_response['html_url']
-    if 'name' in userinfo_response:
+    if 'name' in userinfo_response and userinfo_response['name'] is not None:
         cname = userinfo_response['name']
-    else:
+    elif 'login' in userinfo_response and userinfo_response['login'] is not None:
         cname = userinfo_response['login']
+    else:
+        cname = uid
 
     auth_token = make_pasta_token(uid=uid, groups=Config.AUTHENTICATED)
 
