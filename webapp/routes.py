@@ -13,6 +13,8 @@
 """
 import base64
 import json
+import logging
+import sys
 
 import daiquiri
 from flask import (
@@ -35,6 +37,15 @@ from webapp import pasta_ldap
 from webapp import pasta_token
 from webapp.user_db import UserDb
 
+
+log_file = __file__.replace(".py", ".log")
+daiquiri.setup(
+    level=logging.INFO,
+    outputs=(
+        daiquiri.output.Stream(sys.stderr, level=logging.WARN),
+        daiquiri.output.File(filename=f"{log_file}", level=logging.WARN),
+    ),
+)
 
 logger = daiquiri.getLogger("routes: " + __name__)
 
