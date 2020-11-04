@@ -22,35 +22,30 @@ from sqlalchemy.orm import sessionmaker
 
 from webapp.config import Config
 
-log_file = __file__.replace('.py', '.log')
-daiquiri.setup(level=logging.INFO, outputs=(
-    daiquiri.output.Stream(sys.stderr, level=logging.WARN),
-    daiquiri.output.File(filename=f'{log_file}', level=logging.WARN)
-))
-logger = daiquiri.getLogger('user_db: ' + __name__)
+logger = daiquiri.getLogger("user_db: " + __name__)
 
 Base = declarative_base()
 
 
 class User(Base):
-    __tablename__ = 'user'
+    __tablename__ = "user"
 
     uid = Column(String(), primary_key=True)
     token = Column(String(), nullable=True)
     cname = Column(String(), nullable=True)
     first_auth = Column(DateTime(), nullable=False, default=datetime.now)
-    last_auth = Column(DateTime(), nullable=False, default=datetime.now,
-                       onupdate=datetime.now)
+    last_auth = Column(
+        DateTime(), nullable=False, default=datetime.now, onupdate=datetime.now
+    )
     email = Column(String(), nullable=True)
     privacy_acceptance = Column(Boolean(), nullable=False, default=False)
     date_accepted = Column(DateTime(), nullable=True)
 
 
 class UserDb(object):
-
     def __init__(self, db: str = Config.DB):
         self.db = db
-        engine = create_engine('sqlite:///' + self.db)
+        engine = create_engine("sqlite:///" + self.db)
         Base.metadata.create_all(engine)
         Session = sessionmaker(bind=engine)
         self.session = Session()

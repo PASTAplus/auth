@@ -91,6 +91,7 @@ def accept():
 @app.route("/auth/login/<idp>", methods=["GET"])
 def login(idp):
     target = request.args.get("target")
+    logger.info(target)
     if idp in ("github", "google", "orcid") and target is None:
         resp = f"Target parameter not set"
         return resp, 400
