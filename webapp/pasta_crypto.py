@@ -41,7 +41,7 @@ def verify_authtoken(public_key: RSA.RsaKey, auth_token: str):
         uid=EDI,o=EDI,dc=edirepository,dc=org*https://pasta.edirepository.org/
         authentication*1558090703946*authenticated
 
-    :param pub_key:
+    :param public_key:
     :param auth_token:
     :return:
     """
