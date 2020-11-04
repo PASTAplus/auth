@@ -17,7 +17,7 @@ from ldap3 import Server, Connection, ALL, HASHED_SALTED_SHA, MODIFY_REPLACE
 
 from webapp.config import Config
 
-logger = daiquiri.getLogger('ldap_user: ' + __name__)
+logger = daiquiri.getLogger("ldap_user: " + __name__)
 
 
 def bind(dn: str, password: str):
@@ -29,19 +29,24 @@ def bind(dn: str, password: str):
     if host is not None:
         try:
             server = Server(host, use_ssl=True, get_info=ALL)
-            conn = Connection(server=server, user=dn, password=password,
-                              auto_bind=True, receive_timeout=30)
-            found = conn.search(dn, '(objectclass=person)')
+            conn = Connection(
+                server=server,
+                user=dn,
+                password=password,
+                auto_bind=True,
+                receive_timeout=30,
+            )
+            found = conn.search(dn, "(objectclass=person)")
             if found:
                 for entry in conn.entries:
                     entry_dn = entry.entry_dn
                     if entry_dn == dn:
                         result = True
                     else:
-                        logger.error(f'Case mismatch for {dn} and {entry_dn}')
+                        logger.error(f"Case mismatch for {dn} and {entry_dn}")
             conn.unbind()
         except Exception as e:
             logger.error(e)
     else:
-        logger.error(f'Unknown LDAP host for dn: {dn}')
+        logger.error(f"Unknown LDAP host for dn: {dn}")
     return result

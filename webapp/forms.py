@@ -16,12 +16,11 @@ from flask_wtf import FlaskForm
 from wtforms import BooleanField, HiddenField, SubmitField, StringField
 from wtforms.validators import DataRequired
 
-logger = daiquiri.getLogger('forms: ' + __name__)
+logger = daiquiri.getLogger("forms: " + __name__)
 
 
 class AcceptForm(FlaskForm):
-    accept = BooleanField('Accept')
+    accept = BooleanField("Accept")
     target = HiddenField()
     uid = HiddenField()
-    submit = SubmitField('Submit')
-
+    submit = SubmitField("Submit")
