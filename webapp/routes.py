@@ -38,7 +38,7 @@ from webapp import pasta_token
 from webapp.user_db import UserDb
 
 
-log_file = __file__.replace(".py", ".log")
+log_file = "auth.log"
 daiquiri.setup(
     level=logging.INFO,
     outputs=(
