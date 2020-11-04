@@ -17,14 +17,7 @@ import logging
 import sys
 
 import daiquiri
-from flask import (
-    Flask,
-    make_response,
-    redirect,
-    render_template,
-    request,
-    url_for,
-)
+from flask import Flask, make_response, redirect, render_template, request, url_for
 from flask_bootstrap import Bootstrap
 from oauthlib.oauth2 import WebApplicationClient
 import requests
@@ -80,9 +73,7 @@ def accept():
         if udb.get_user(uid) is None:
             resp = "Unknown uid"
             return resp, 400
-        return render_template(
-            "accept.html", form=form, uid=uid, target=target
-        )
+        return render_template("accept.html", form=form, uid=uid, target=target)
     else:
         resp = "Form requires uid and target parameters to be valid"
         return resp, 400
@@ -139,7 +130,7 @@ def login(idp):
         authorization_endpoint = Config.GITHUB_AUTH_ENDPOINT
         redirect_uri = f"{request.base_url}/callback/{target}"
         request_uri = client.prepare_request_uri(
-            authorization_endpoint, redirect_uri=redirect_uri, scope=["user"],
+            authorization_endpoint, redirect_uri=redirect_uri, scope=["user"]
         )
         return redirect(request_uri)
 
@@ -181,16 +172,17 @@ def github_callback(target):
         auth=(github_client_id, github_client_secret),
     ).json()
     access_token = token_response["access_token"]
-    userinfo_endpoint = (
-        f"{Config.GITHUB_USER_ENDPOINT}" + f"?access_token={access_token}"
-    )
-    userinfo_response = requests.get(url=userinfo_endpoint).json()
+    # userinfo_endpoint = (
+    #     f"{Config.GITHUB_USER_ENDPOINT}" + f"?access_token={access_token}"
+    # )
+    headers = {"authorization": access_token}
+    userinfo_response = requests.get(
+        url=Config.GITHUB_USER_ENDPOINT, headers=headers
+    ).json()
     uid = userinfo_response["html_url"]
     if "name" in userinfo_response and userinfo_response["name"] is not None:
         cname = userinfo_response["name"]
-    elif (
-        "login" in userinfo_response and userinfo_response["login"] is not None
-    ):
+    elif "login" in userinfo_response and userinfo_response["login"] is not None:
         cname = userinfo_response["login"]
     else:
         cname = uid
@@ -272,9 +264,7 @@ def orcid_callback(target):
     headers = dict()
     headers["Content-Type"] = "application/x-www-form-urlencoded"
     headers["Accept"] = "application/json"
-    token_response = requests.post(
-        token_endpoint, headers=headers, data=body,
-    ).json()
+    token_response = requests.post(token_endpoint, headers=headers, data=body).json()
     cname = token_response["name"]
     uid = Config.ORCID_DNS + token_response["orcid"]
 
@@ -304,25 +294,13 @@ def get_github_client_info(target: str, request_base_url: str) -> tuple:
             Config.GITHUB_CLIENT_SECRET_LOCALHOST,
         )
     elif target == Config.PORTAL_D:
-        return (
-            Config.GITHUB_CLIENT_ID_PORTAL_D,
-            Config.GITHUB_CLIENT_SECRET_PORTAL_D,
-        )
+        return (Config.GITHUB_CLIENT_ID_PORTAL_D, Config.GITHUB_CLIENT_SECRET_PORTAL_D)
     elif target == Config.PORTAL_S:
-        return (
-            Config.GITHUB_CLIENT_ID_PORTAL_S,
-            Config.GITHUB_CLIENT_SECRET_PORTAL_S,
-        )
+        return (Config.GITHUB_CLIENT_ID_PORTAL_S, Config.GITHUB_CLIENT_SECRET_PORTAL_S)
     elif target == Config.PORTAL:
-        return (
-            Config.GITHUB_CLIENT_ID_PORTAL,
-            Config.GITHUB_CLIENT_SECRET_PORTAL,
-        )
+        return (Config.GITHUB_CLIENT_ID_PORTAL, Config.GITHUB_CLIENT_SECRET_PORTAL)
     elif target == Config.EZEML_D:
-        return (
-            Config.GITHUB_CLIENT_ID_EZEML_D,
-            Config.GITHUB_CLIENT_SECRET_EZEML_D,
-        )
+        return (Config.GITHUB_CLIENT_ID_EZEML_D, Config.GITHUB_CLIENT_SECRET_EZEML_D)
     elif target == Config.EZEML:
         return Config.GITHUB_CLIENT_ID_EZEML, Config.GITHUB_CLIENT_SECRET_EZEML
 
