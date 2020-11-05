@@ -172,10 +172,7 @@ def github_callback(target):
         auth=(github_client_id, github_client_secret),
     ).json()
     access_token = token_response["access_token"]
-    # userinfo_endpoint = (
-    #     f"{Config.GITHUB_USER_ENDPOINT}" + f"?access_token={access_token}"
-    # )
-    headers = {"authorization": access_token}
+    headers = {"authorization": "token " + access_token}
     userinfo_response = requests.get(
         url=Config.GITHUB_USER_ENDPOINT, headers=headers
     ).json()
