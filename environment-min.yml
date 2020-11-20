@@ -1,26 +1,24 @@
 name: auth
 channels:
-  - defaults
   - conda-forge
+  - defaults
 dependencies:
-  - python=3.8
-  - flask
-  - ldap3
-  - libiconv
-  - uwsgi
-  - pynacl
   - requests
-  - pytest
-  - pycryptodome
-  - oauthlib
-  - sqlalchemy
-  - flask-wtf
-  - flask-bootstrap
+  - pynacl
+  - python=3.8
   - flask-login
-  - pendulum
+  - libiconv
+  - flask-wtf
   - daiquiri
+  - oauthlib
   - sqlite
+  - pytest
+  - ldap3
+  - pycryptodome
   - sqlalchemy
   - click
-  - oauthlib
+  - flask
+  - flask-bootstrap
+  - uwsgi
+  - pendulum
 prefix: /home/servilla/anaconda3/envs/auth
