@@ -334,7 +334,7 @@ def make_target_url(target: str, auth_token: str, cname: str) -> str:
     elif target in (Config.EZEML, Config.EZEML_D):
         url = f"https://{target}/eml/auth/login?token={_auth_token}&cname={_cname}"
     elif target in (Config.WEB, Config.WEB_X):
-        url = f"https://{target}/eml/user/login?token={_auth_token}&cname={_cname}"
+        url = f"https://{target}/user/login?token={_auth_token}&cname={_cname}"
     return url
 
 
