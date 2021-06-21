@@ -300,6 +300,8 @@ def get_github_client_info(target: str, request_base_url: str) -> tuple:
         return (Config.GITHUB_CLIENT_ID_EZEML_D, Config.GITHUB_CLIENT_SECRET_EZEML_D)
     elif target == Config.EZEML:
         return Config.GITHUB_CLIENT_ID_EZEML, Config.GITHUB_CLIENT_SECRET_EZEML
+    elif target == Config.WEB_X:
+        return Config.GITHUB_CLIENT_ID_WEB_X, Config.GITHUB_CLIENT_SECRET_WEB_X
 
 
 def get_dn_uid(dn: str) -> str:
