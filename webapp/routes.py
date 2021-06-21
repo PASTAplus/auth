@@ -291,13 +291,13 @@ def get_github_client_info(target: str, request_base_url: str) -> tuple:
             Config.GITHUB_CLIENT_SECRET_LOCALHOST,
         )
     elif target == Config.PORTAL_D:
-        return (Config.GITHUB_CLIENT_ID_PORTAL_D, Config.GITHUB_CLIENT_SECRET_PORTAL_D)
+        return Config.GITHUB_CLIENT_ID_PORTAL_D, Config.GITHUB_CLIENT_SECRET_PORTAL_D
     elif target == Config.PORTAL_S:
-        return (Config.GITHUB_CLIENT_ID_PORTAL_S, Config.GITHUB_CLIENT_SECRET_PORTAL_S)
+        return Config.GITHUB_CLIENT_ID_PORTAL_S, Config.GITHUB_CLIENT_SECRET_PORTAL_S
     elif target == Config.PORTAL:
-        return (Config.GITHUB_CLIENT_ID_PORTAL, Config.GITHUB_CLIENT_SECRET_PORTAL)
+        return Config.GITHUB_CLIENT_ID_PORTAL, Config.GITHUB_CLIENT_SECRET_PORTAL
     elif target == Config.EZEML_D:
-        return (Config.GITHUB_CLIENT_ID_EZEML_D, Config.GITHUB_CLIENT_SECRET_EZEML_D)
+        return Config.GITHUB_CLIENT_ID_EZEML_D, Config.GITHUB_CLIENT_SECRET_EZEML_D
     elif target == Config.EZEML:
         return Config.GITHUB_CLIENT_ID_EZEML, Config.GITHUB_CLIENT_SECRET_EZEML
     elif target == Config.WEB_X:
