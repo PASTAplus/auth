@@ -22,7 +22,7 @@ import daiquiri
 logger = daiquiri.getLogger("pasta_crypto: " + __name__)
 
 
-def import_key(f: str) -> tuple:
+def import_key(f: str) -> RSA.RsaKey:
     with open(f, "r") as f:
         key_file = f.read()
     key = RSA.import_key(key_file)
