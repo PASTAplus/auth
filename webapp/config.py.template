@@ -39,7 +39,8 @@ class Config(object):
 
     # Website configuration
     WEB_X = "web-x.edirepository.org"
-    WEB = "wwww.edirepository.org"
+    WEB = "www.edirepository.org"
+    EDI = "edirepository.org"
 
     # Google OAuth client
     GOOGLE = "google"
