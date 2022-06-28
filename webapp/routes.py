@@ -130,7 +130,7 @@ def login(idp):
         authorization_endpoint = Config.GITHUB_AUTH_ENDPOINT
         redirect_uri = f"{request.base_url}/callback/{target}"
         request_uri = client.prepare_request_uri(
-            authorization_endpoint, redirect_uri=redirect_uri, scope=["user"]
+            authorization_endpoint, redirect_uri=redirect_uri, scope=["read:user"]
         )
         return redirect(request_uri)
 
