@@ -110,3 +110,4 @@ venv.bak/
 config.py
 lternet.*
 user_db.sqlite
+*.png
