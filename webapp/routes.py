@@ -298,10 +298,14 @@ def get_github_client_info(target: str, request_base_url: str) -> tuple:
         return Config.GITHUB_CLIENT_ID_PORTAL, Config.GITHUB_CLIENT_SECRET_PORTAL
     elif target == Config.EZEML_D:
         return Config.GITHUB_CLIENT_ID_EZEML_D, Config.GITHUB_CLIENT_SECRET_EZEML_D
+    elif target == Config.EZEML_S:
+        return Config.GITHUB_CLIENT_ID_EZEML_S, Config.GITHUB_CLIENT_SECRET_EZEML_S
     elif target == Config.EZEML:
         return Config.GITHUB_CLIENT_ID_EZEML, Config.GITHUB_CLIENT_SECRET_EZEML
     elif target == Config.WEB_X:
         return Config.GITHUB_CLIENT_ID_WEB_X, Config.GITHUB_CLIENT_SECRET_WEB_X
+    elif target == Config.WEB_D:
+        return Config.GITHUB_CLIENT_ID_WEB_D, Config.GITHUB_CLIENT_SECRET_WEB_D
 
 
 def get_dn_uid(dn: str) -> str:
@@ -334,9 +338,9 @@ def make_target_url(target: str, auth_token: str, cname: str) -> str:
     url = None
     if target in (Config.PORTAL, Config.PORTAL_S, Config.PORTAL_D):
         url = f"https://{target}/nis/login?token={_auth_token}&cname={_cname}"
-    elif target in (Config.EZEML, Config.EZEML_D):
+    elif target in (Config.EZEML, Config.EZEML_S, Config.EZEML_D):
         url = f"https://{target}/eml/auth/login?token={_auth_token}&cname={_cname}"
-    elif target in (Config.WEB, Config.WEB_X, Config.EDI):
+    elif target in (Config.WEB, Config.WEB_X, Config.WEB_D, Config.EDI):
         url = f"https://{target}/user/login?token={_auth_token}&cname={_cname}"
     return url
 

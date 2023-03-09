@@ -35,9 +35,11 @@ class Config(object):
 
     # ezEML configuration
     EZEML_D = "ezeml-d.edirepository.org"
+    EZEML_S = "ezeml-s.edirepository.org"
     EZEML = "ezeml.edirepository.org"
 
     # Website configuration
+    WEB_D = "web-d.edirepository.org"
     WEB_X = "web-x.edirepository.org"
     WEB = "www.edirepository.org"
     EDI = "edirepository.org"
@@ -78,9 +80,17 @@ class Config(object):
     GITHUB_CLIENT_SECRET_EZEML_D = (
         "Github client secret for ezeml-d.edirepository.org"
     )
+    GITHUB_CLIENT_ID_EZEML_S = "Github client id for ezeml-s.edirepository.org"
+    GITHUB_CLIENT_SECRET_EZEML_S = (
+        "Github client secret for ezeml-s.edirepository.org"
+    )
     GITHUB_CLIENT_ID_WEB_X = "Github client id for web-x.edirepository.org"
     GITHUB_CLIENT_SECRET_WEB_X = (
         "Github client secret for web-x.edirepository.org"
+    )
+    GITHUB_CLIENT_ID_WEB_D = "Github client id for web-d.edirepository.org"
+    GITHUB_CLIENT_SECRET_WEB_D = (
+        "Github client secret for web-d.edirepository.org"
     )
     GITHUB_DISCOVERY_URL = "https://api.github.com"
     GITHUB_AUTH_ENDPOINT = "https://github.com/login/oauth/authorize"
