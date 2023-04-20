@@ -5,7 +5,7 @@ channels:
 dependencies:
   - requests
   - pynacl
-  - python=3.8
+  - python=3.11
   - flask-login
   - libiconv
   - flask-wtf
@@ -15,7 +15,7 @@ dependencies:
   - pytest
   - ldap3
   - pycryptodome
-  - sqlalchemy
+  - sqlalchemy=1.4.46
   - click
   - flask
   - flask-bootstrap
