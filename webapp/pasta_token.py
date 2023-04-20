@@ -86,7 +86,7 @@ class PastaToken(object):
         self._token["uid"] = token[0]
         self._token["system"] = token[1]
         self._token["ttl"] = token[2]
-        self._token["groups"] = token[3]
+        self._token["groups"] = "*".join(token[3:])
 
     def is_valid_ttl(self) -> bool:
         now = int(pendulum.now().timestamp() * 1000)
