@@ -41,11 +41,13 @@ def accept():
     uid = request.args.get("uid")
     target = request.args.get("target")
     form = AcceptForm()
+    logger.debug(f"Data policy accept form: {uid} with target {target}")
     if form.validate_on_submit():
         accepted = form.accept.data
         target = form.target.data
         uid = form.uid.data
         if not accepted:
+            logger.warn(f"{uid} refuses data policy acceptance with target {target}")
             redirect_url = f"https://{target}"
             return redirect(redirect_url)
         else:
@@ -53,6 +55,7 @@ def accept():
             udb.set_accepted(uid=uid)
             auth_token = udb.get_token(uid=uid)
             cname = udb.get_cname(uid=uid)
+            logger.debug(f"{uid} accepts data policy with target {target}")
             redirect_url = make_target_url(
                 target=target, auth_token=auth_token, cname=cname
             )
@@ -71,6 +74,7 @@ def accept():
 @app.route("/auth/login/<idp>", methods=["GET"])
 def login(idp):
     target = request.args.get("target")
+    logger.info(f"Attempting login with target {target}")
     if idp in ("github", "google", "orcid") and target is None:
         resp = f"Target parameter not set"
         return resp, 400
