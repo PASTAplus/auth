@@ -13,8 +13,6 @@
 """
 import base64
 import json
-import logging
-import sys
 
 import daiquiri
 from flask import Flask, make_response, redirect, render_template, request, url_for
@@ -30,15 +28,6 @@ from webapp import pasta_ldap
 from webapp import pasta_token
 from webapp.user_db import UserDb
 
-
-log_file = "auth.log"
-daiquiri.setup(
-    level=logging.INFO,
-    outputs=(
-        daiquiri.output.Stream(sys.stderr, level=logging.WARN),
-        daiquiri.output.File(filename=f"{log_file}", level=logging.WARN),
-    ),
-)
 
 logger = daiquiri.getLogger("routes: " + __name__)
 
@@ -281,6 +270,7 @@ def orcid_callback(target):
 @app.route("/auth/show_me", methods=["GET"])
 def show_me():
     uid = request.args["uid"]
+    logger.info(uid)
     return uid
 
 
