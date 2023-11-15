@@ -278,6 +278,40 @@ def show_me():
     return uid
 
 
+@app.route("/auth/refresh", methods=["POST"])
+def refresh_token():
+    """Validate and refresh an authentication token.
+
+    A refreshed token is a token that matches the original token's uid and
+    groups but has a new TTL.
+    """
+    external_token = request.get_data(as_text=True)
+
+    # Verify the token signature
+    public_key = pasta_crypto.import_key(Config.PUBLIC_KEY)
+    try:
+        pasta_crypto.verify_authtoken(public_key, external_token)
+    except ValueError as e:
+        msg = f"Attempted to refresh invalid token: {e}"
+        logger.error(msg)
+        return msg, 401
+
+    # Verify the token TTL
+    token_obj = pasta_token.PastaToken()
+    token_obj.from_auth_token(external_token)
+    if not token_obj.is_valid_ttl():
+        msg = f"Attempted to refresh invalid token: Token has expired"
+        logger.error(msg)
+        return msg, 401
+
+    # Create the refreshed token
+    token_obj = pasta_token.PastaToken()
+    token_obj.from_auth_token(external_token)
+    token_obj.ttl = token_obj.new_ttl()
+    private_key = pasta_crypto.import_key(Config.PRIVATE_KEY)
+    return pasta_crypto.create_authtoken(private_key, token_obj.to_string())
+
+
 def get_github_client_info(target: str, request_base_url: str) -> tuple:
     if request_base_url.startswith("https://localhost:5000"):
         return (
@@ -340,4 +374,9 @@ def make_target_url(target: str, auth_token: str, cname: str) -> str:
 
 
 if __name__ == "__main__":
-    app.run(ssl_context="adhoc")
+    app.run(
+        # ssl_context="adhoc",
+        host='127.0.0.1',
+        port=5000,
+        debug=True
+    )
