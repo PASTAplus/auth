@@ -36,6 +36,10 @@ app.config.from_object(Config)
 bootstrap = Bootstrap(app)
 
 
+PUBLIC_KEY = pasta_crypto.import_key(Config.PUBLIC_KEY)
+PRIVATE_KEY = pasta_crypto.import_key(Config.PRIVATE_KEY)
+
+
 @app.route("/auth/accept", methods=["GET", "POST"])
 def accept():
     uid = request.args.get("uid")
@@ -288,9 +292,8 @@ def refresh_token():
     external_token = request.get_data(as_text=True)
 
     # Verify the token signature
-    public_key = pasta_crypto.import_key(Config.PUBLIC_KEY)
     try:
-        pasta_crypto.verify_authtoken(public_key, external_token)
+        pasta_crypto.verify_authtoken(PUBLIC_KEY, external_token)
     except ValueError as e:
         msg = f"Attempted to refresh invalid token: {e}"
         logger.error(msg)
@@ -308,8 +311,7 @@ def refresh_token():
     token_obj = pasta_token.PastaToken()
     token_obj.from_auth_token(external_token)
     token_obj.ttl = token_obj.new_ttl()
-    private_key = pasta_crypto.import_key(Config.PRIVATE_KEY)
-    return pasta_crypto.create_authtoken(private_key, token_obj.to_string())
+    return pasta_crypto.create_authtoken(PRIVATE_KEY, token_obj.to_string())
 
 
 def get_github_client_info(target: str, request_base_url: str) -> tuple:
