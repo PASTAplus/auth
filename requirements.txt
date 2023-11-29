@@ -5,7 +5,7 @@ cffi==1.16.0
 charset-normalizer==3.3.2
 click==8.1.7
 colorama==0.4.6
-cryptography==41.0.5
+cryptography==41.0.6
 daiquiri==3.0.0
 dominate==2.9.0
 exceptiongroup==1.2.0
