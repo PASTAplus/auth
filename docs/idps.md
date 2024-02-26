@@ -19,6 +19,7 @@ Self-registered users are considered "authenticated" but not "vetted".
 #### Configuration
  - User: edirepository@gmail.com
  - Path: https://console.cloud.google.com/apis/credentials/oauthclient
+ - Google API Services User Data Policy: https://developers.google.com/terms/api-services-user-data-policy
 
 
 ### ORCID
@@ -39,3 +40,9 @@ Self-registered users are considered "authenticated" but not "vetted".
 #### Configuration
 Oauth configuration for GitHub is maintained through the EDI organization: Settings / Developer Settings /
 Oauth Apps.
+
+### Microsoft
+
+#### Configuration
+ - User: edirepository@gmail.com
+ - Path: https://portal.azure.com/#home
