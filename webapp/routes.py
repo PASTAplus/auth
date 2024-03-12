@@ -315,11 +315,8 @@ def refresh_token():
 
 
 def get_github_client_info(target: str, request_base_url: str) -> tuple:
-    if request_base_url.startswith("https://localhost:5000"):
-        return (
-            Config.GITHUB_CLIENT_ID_LOCALHOST,
-            Config.GITHUB_CLIENT_SECRET_LOCALHOST,
-        )
+    if target == Config.TESTAPP:
+        return Config.GITHUB_CLIENT_ID_LOCALHOST, Config.GITHUB_CLIENT_SECRET_LOCALHOST
     elif target == Config.PORTAL_D:
         return Config.GITHUB_CLIENT_ID_PORTAL_D, Config.GITHUB_CLIENT_SECRET_PORTAL_D
     elif target == Config.PORTAL_S:
@@ -372,13 +369,6 @@ def make_target_url(target: str, auth_token: str, cname: str) -> str:
         url = f"https://{target}/eml/auth/login?token={_auth_token}&cname={_cname}"
     elif target in (Config.WEB, Config.WEB_X, Config.WEB_D, Config.EDI):
         url = f"https://{target}/user/login?token={_auth_token}&cname={_cname}"
+    elif target == Config.TESTAPP:
+        url = f"https://{target}/login?token={_auth_token}&cname={_cname}"
     return url
-
-
-if __name__ == "__main__":
-    app.run(
-        # ssl_context="adhoc",
-        host='127.0.0.1',
-        port=5000,
-        debug=True
-    )

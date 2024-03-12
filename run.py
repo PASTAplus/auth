@@ -24,7 +24,11 @@ daiquiri.setup(level=Config.LEVEL,
 logger = daiquiri.getLogger(__name__)
 
 if __name__ == '__main__':
+    ssl_keyfile = '/home/servilla/git/login/webapp/certs/localhost+1-key.pem'
+    ssl_certfile = '/home/servilla/git/login/webapp/certs/localhost+1.pem'
     app.run(
         host='0.0.0.0',
-        ssl_context="adhoc",
+        port=5443,
+        # ssl_context="adhoc",
+        ssl_context=(ssl_certfile, ssl_keyfile)
     )

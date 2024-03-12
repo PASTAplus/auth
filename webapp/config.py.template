@@ -32,6 +32,9 @@ class Config(object):
     STATIC = "STATIC IMAGE DIRECTORY PATH"
     DB = "user_db.sqlite"
 
+    # Localhost
+    TESTAPP = "localhost:8443"
+
     # Portal configuration
     PORTAL_D = "portal-d.edirepository.org"
     PORTAL_S = "portal-s.edirepository.org"
