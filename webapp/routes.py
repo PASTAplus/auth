@@ -14,6 +14,10 @@
 import base64
 import json
 
+import cryptography.hazmat.backends
+import cryptography.x509
+import jwt
+
 import daiquiri
 from flask import Flask, make_response, redirect, render_template, request, url_for
 from flask_bootstrap import Bootstrap
@@ -34,7 +38,6 @@ logger = daiquiri.getLogger("routes: " + __name__)
 app = Flask(__name__)
 app.config.from_object(Config)
 bootstrap = Bootstrap(app)
-
 
 PUBLIC_KEY = pasta_crypto.import_key(Config.PUBLIC_KEY)
 PRIVATE_KEY = pasta_crypto.import_key(Config.PRIVATE_KEY)
@@ -79,9 +82,11 @@ def accept():
 def login(idp):
     target = request.args.get("target")
     logger.info(f"Attempting login with target {target}")
-    if idp in ("github", "google", "orcid") and target is None:
+
+    if idp in ("github", "google", "orcid", "microsoft") and target is None:
         resp = f"Target parameter not set"
         return resp, 400
+
     if idp == "pasta":
         authorization = request.headers.get("Authorization")
         if authorization is None:
@@ -142,9 +147,90 @@ def login(idp):
         )
         return redirect(request_uri)
 
+    elif idp == "microsoft":
+        request_uri = (
+            Config.MICROSOFT_AUTH_ENDPOINT +
+            f'?client_id={urlenc(Config.MICROSOFT_CLIENT_ID)}'
+            f'&response_type=code'
+            f'&redirect_uri={urlenc(request.base_url)}/callback/{urlenc(target)}'
+            f'&scope={urlenc("openid profile email https://graph.microsoft.com/User.Read")}'
+            f'&response_mode=query'
+            f'&prompt=select_account'
+        )
+        return redirect(request_uri)
+
     else:
         resp = f"Unknown identity provider: {idp}"
         return resp, 400
+
+
+@app.route("/auth/login/microsoft/callback/<path:target>", methods=["GET"])
+def microsoft_callback(target):
+    """Redeem a code for an access token"""
+    token_dict = requests.post(
+        Config.MICROSOFT_TOKEN_ENDPOINT,
+        headers={
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept": "application/json",
+        },
+        data=(
+            f'client_id={urlenc(Config.MICROSOFT_CLIENT_ID)}'
+            f'&code={urlenc(request.args.get("code"))}'
+            f'&redirect_uri={urlenc(request.base_url)}'
+            f'&grant_type=authorization_code'
+            f'&client_secret={urlenc(Config.MICROSOFT_CLIENT_SECRET)}'
+        ),
+    ).json()
+
+    jwt_unverified_header_dict = jwt.get_unverified_header(token_dict['id_token'])
+    ms_pub_key = get_microsoft_public_key_by_kid(jwt_unverified_header_dict['kid'])
+    user_dict = jwt.decode(
+        token_dict['id_token'],
+        ms_pub_key,
+        algorithms=[jwt_unverified_header_dict['alg']],
+        audience=Config.MICROSOFT_CLIENT_ID,
+    )
+
+    # 'sub' (subject) is the unique identifier for the user
+    uid = user_dict['sub']
+    # 'name' is the user's display name
+    cname = user_dict['name']
+
+    auth_token = make_pasta_token(uid=uid, groups=Config.AUTHENTICATED)
+
+    udb = UserDb()
+    udb.set_user(uid=uid, token=auth_token, cname=cname)
+    privacy_accepted = udb.get_accepted(uid=uid)
+    if privacy_accepted:
+        redirect_url = make_target_url(target, auth_token, cname)
+        return redirect(redirect_url)
+    else:
+        redirect_url = f'/auth/accept?uid={uid}&target={target}'
+        return redirect(redirect_url)
+
+
+def get_microsoft_public_key_by_kid(kid):
+    """Return the public key for the given kid (key ID)"""
+    MICROSOFT_KEYS_URL = f'https://login.microsoftonline.com/common/discovery/v2.0/keys'
+    response = requests.get(MICROSOFT_KEYS_URL)
+    response_dict = response.json()
+
+    x5c_str = None
+
+    for key_dict in response_dict['keys']:
+        if key_dict['kid'] == kid:
+            x5c_str = key_dict['x5c'][0]
+
+    if x5c_str is None:
+        raise ValueError(f'No key found for kid "{kid}"')
+
+    cert_pem = f'-----BEGIN CERTIFICATE-----\n{x5c_str}\n-----END CERTIFICATE-----'
+
+    cert_obj = cryptography.x509.load_pem_x509_certificate(
+        cert_pem.encode('utf-8'), cryptography.hazmat.backends.default_backend()
+    )
+
+    return cert_obj.public_key()
 
 
 @app.route("/auth/login/github/callback/<target>", methods=["GET"])
@@ -365,20 +451,27 @@ def make_pasta_token(uid, groups=""):
 def make_target_url(target: str, auth_token: str, cname: str) -> str:
     _auth_token = urllib.parse.quote(auth_token)
     _cname = urllib.parse.quote(cname)
-    url = None
-    if target in (Config.PORTAL, Config.PORTAL_S, Config.PORTAL_D):
+    if target in (Config.PORTAL, Config.PORTAL_S, Config.PORTAL_D, Config.PORTAL_LOCALHOST):
         url = f"https://{target}/nis/login?token={_auth_token}&cname={_cname}"
     elif target in (Config.EZEML, Config.EZEML_S, Config.EZEML_D):
         url = f"https://{target}/eml/auth/login?token={_auth_token}&cname={_cname}"
     elif target in (Config.WEB, Config.WEB_X, Config.WEB_D, Config.EDI):
         url = f"https://{target}/user/login?token={_auth_token}&cname={_cname}"
+    else:
+        msg = f"Unknown target: {target}"
+        logger.error(msg)
+        raise ValueError(msg)
     return url
+
+
+def urlenc(url: str) -> str:
+    return urllib.parse.quote(url)
 
 
 if __name__ == "__main__":
     app.run(
-        # ssl_context="adhoc",
+        ssl_context="adhoc",
         host='127.0.0.1',
         port=5000,
-        debug=True
+        debug=True,
     )
