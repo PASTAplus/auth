@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """:Mod: test_token
 
 :Synopsis:
@@ -21,7 +18,7 @@ from webapp.config import Config
 from webapp.pasta_token import PastaToken
 
 sys.path.insert(0, os.path.abspath("../src"))
-logger = daiquiri.getLogger("test_token: " + __name__)
+log = daiquiri.getLogger(__name__)
 
 
 def test_create_token():

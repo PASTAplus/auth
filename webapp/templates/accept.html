@@ -25,6 +25,8 @@
                 {{ form.csrf_token }}
                 {{ form.target(value=target) }}
                 {{ form.uid(value=uid) }}
+                {{ form.idp(value=idp) }}
+                {{ form.idp_token(value=idp_token) }}
                 {{ wtf.form_field(form.accept) }}
                 <br/>
                 {{ wtf.form_field(form.submit) }}

@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """:Mod: bind
 
 :Synopsis:
@@ -13,11 +10,11 @@
     5/15/2019
 """
 import daiquiri
-from ldap3 import Server, Connection, ALL, HASHED_SALTED_SHA, MODIFY_REPLACE
+from ldap3 import Server, Connection, ALL
 
 from webapp.config import Config
 
-logger = daiquiri.getLogger("ldap_user: " + __name__)
+log = daiquiri.getLogger(__name__)
 
 
 def bind(dn: str, password: str):
@@ -43,10 +40,10 @@ def bind(dn: str, password: str):
                     if entry_dn == dn:
                         result = True
                     else:
-                        logger.error(f"Case mismatch for {dn} and {entry_dn}")
+                        log.error(f"Case mismatch for {dn} and {entry_dn}")
             conn.unbind()
         except Exception as e:
-            logger.error(e)
+            log.error(e)
     else:
-        logger.error(f"Unknown LDAP host for dn: {dn}")
+        log.error(f"Unknown LDAP host for dn: {dn}")
     return result

@@ -1,27 +1,24 @@
-# -*- coding: utf-8 -*-
+"""This is the main entry point for the web application, for production.
 
-""":Mod: wsgi
-
-:Synopsis:
-
-:Author:
-    servilla
-
-:Created:
-    2/15/18
+See run.py for the main entry point for development and testing.
 """
 import os
 
 import daiquiri
 
-from webapp.routes import app
+from webapp.main import app
 from webapp.config import Config
 
 cwd = os.path.dirname(os.path.realpath(__file__))
 logfile = cwd + '/auth.log'
-daiquiri.setup(level=Config.LEVEL,
-               outputs=(daiquiri.output.File(logfile), 'stdout',))
-logger = daiquiri.getLogger(__name__)
+daiquiri.setup(
+    level=Config.LEVEL,
+    outputs=(
+        daiquiri.output.File(logfile),
+        'stdout',
+    ),
+)
+log = daiquiri.getLogger(__name__)
 
 
 if __name__ == '__main__':

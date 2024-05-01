@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """:Mod: user_db
 
 :Synopsis:
@@ -12,8 +9,6 @@
     10/16/19
 """
 from datetime import datetime
-import logging
-import sys
 
 import daiquiri
 from sqlalchemy import Column, String, DateTime, Boolean, create_engine
@@ -22,7 +17,7 @@ from sqlalchemy.orm import sessionmaker
 
 from webapp.config import Config
 
-logger = daiquiri.getLogger("user_db: " + __name__)
+log = daiquiri.getLogger(__name__)
 
 Base = declarative_base()
 
@@ -57,7 +52,7 @@ class UserDb(object):
         user.date_accepted = datetime.now()
         self.session.commit()
 
-    def get_accepted(self, uid: str) -> bool:
+    def is_privacy_policy_accepted(self, uid: str) -> bool:
         query = self.session.query(User)
         user = query.filter(User.uid == uid).first()
         return user.privacy_acceptance

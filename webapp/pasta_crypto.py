@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """:Mod: pasta_crypto
 
 :Synopsis:
@@ -13,13 +10,12 @@
 """
 import base64
 
+import daiquiri
 from Crypto.Hash import MD5
-from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto.Signature import pkcs1_15
-import daiquiri
 
-logger = daiquiri.getLogger("pasta_crypto: " + __name__)
+log = daiquiri.getLogger(__name__)
 
 
 def import_key(f: str) -> RSA.RsaKey:
@@ -29,7 +25,7 @@ def import_key(f: str) -> RSA.RsaKey:
     return key
 
 
-def verify_authtoken(public_key: RSA.RsaKey, auth_token: str):
+def verify_auth_token(public_key: RSA.RsaKey, auth_token: str):
     """
     Verifies the PASTA+ authentication token, which is a two part string
     separate with a hyphen '-', and each part being base64 encoded:
@@ -51,17 +47,9 @@ def verify_authtoken(public_key: RSA.RsaKey, auth_token: str):
     pkcs1_15.new(public_key).verify(h, signature)
 
 
-def create_authtoken(private_key: RSA.RsaKey, token: str) -> str:
+def create_auth_token(private_key: RSA.RsaKey, token: str) -> str:
     token = base64.b64encode(token.encode("utf-8"))
     h = MD5.new(token)
     signature = base64.b64encode(pkcs1_15.new(private_key).sign(h))
-    authtoken = token.decode("utf-8") + "-" + signature.decode("utf-8")
-    return authtoken
-
-
-def main():
-    return 0
-
-
-if __name__ == "__main__":
-    main()
+    auth_token = token.decode("utf-8") + "-" + signature.decode("utf-8")
+    return auth_token

@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """:Mod: pasta_token
 
 :Synopsis:
@@ -16,9 +13,10 @@ import base64
 import daiquiri
 import pendulum
 
+from webapp import pasta_crypto
 from webapp.config import Config
 
-logger = daiquiri.getLogger("pasta_token: " + __name__)
+log = daiquiri.getLogger(__name__)
 
 
 class PastaToken(object):
@@ -104,9 +102,11 @@ class PastaToken(object):
         self.from_b64(t_b64)
 
 
-def main():
-    return 0
-
-
-if __name__ == "__main__":
-    main()
+def make_pasta_token(uid, groups=""):
+    token = PastaToken()
+    token.system = Config.SYSTEM
+    token.uid = uid
+    token.groups = groups
+    private_key = pasta_crypto.import_key(Config.PRIVATE_KEY)
+    auth_token = pasta_crypto.create_auth_token(private_key, token.to_string())
+    return auth_token

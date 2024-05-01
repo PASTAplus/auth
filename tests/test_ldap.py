@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """:Mod: test_ldap
 
 :Synopsis:
@@ -20,7 +17,7 @@ from webapp.config import Config
 from webapp import pasta_ldap
 
 sys.path.insert(0, os.path.abspath("../webapp"))
-logger = daiquiri.getLogger(__name__)
+log = daiquiri.getLogger(__name__)
 
 
 def test_bind():

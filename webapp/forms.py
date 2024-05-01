@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """:Mod: forms
 
 :Synopsis:
@@ -13,10 +10,9 @@
 """
 import daiquiri
 from flask_wtf import FlaskForm
-from wtforms import BooleanField, HiddenField, SubmitField, StringField
-from wtforms.validators import DataRequired
+from wtforms import BooleanField, HiddenField, SubmitField
 
-logger = daiquiri.getLogger("forms: " + __name__)
+log = daiquiri.getLogger(__name__)
 
 
 class AcceptForm(FlaskForm):
@@ -24,3 +20,5 @@ class AcceptForm(FlaskForm):
     target = HiddenField()
     uid = HiddenField()
     submit = SubmitField("Submit")
+    idp = HiddenField()
+    idp_token = HiddenField()
