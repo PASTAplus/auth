@@ -1,4 +1,84 @@
 # auth
+
 PASTA+ Authentication Service
 
 Multiverse authentication service for the PASTA+ Data Repository environment.
+
+
+## Authentication
+
+- EDI services support signing in via LDAP and via selected 3rd party identity providers (IdPs) using OAuth2 / OpenID Connect (OIDC)
+- LDAP accounts are managed by EDI and provide membership in the `vetted` group
+- All users that sign in (via LDAP or OAuth2) become members of the "authenticated" group
+
+
+### Supported Identity Providers (IdPs)
+
+
+### EDI LDAP (Lightweight Directory Access Protocol)
+
+- LDAP accounts are managed by EDI and provide membership in the `vetted` group, which provides elevated privileges for users publishing packages on EDI
+
+#### Configuration
+
+- TODO
+
+
+### Google
+
+- Google's OAuth2 service is part of Google Cloud and accessed via Google Cloud Console
+
+#### Configuration
+
+- User: edirepository@gmail.com
+
+- EDI app location:
+  - https://console.cloud.google.com > `APIs & Services` > `Credentials` > `OAuth 2.0 Client IDs` > `EDI Authentication`
+  - Currently: https://console.cloud.google.com/apis/credentials?authuser=2&project=edi-authentication
+
+#### Notes
+
+- Google API Services User Data Policy: https://developers.google.com/terms/api-services-user-data-policy
+
+### ORCID
+
+#### Configuration
+
+- User: mark.servilla@gmail.com
+- EDI app location:
+  - https://orcid.org > `User name (upper right)` > `Developer tools`
+  - Currently: https://orcid.org/developer-tools
+
+
+### GitHub
+
+#### Configuration
+
+- Oauth configuration for GitHub is maintained through the EDI organization (`EDIorg`)
+- EDI App location:
+  - https://github.com/EDIorg > `Settings` > `Developer settings` > `OAuth Apps`
+  - Currently: https://github.com/organizations/EDIorg/settings/applications
+
+
+### Microsoft
+
+- Microsoft's OAuth2 service is part of Microsoft Entra ID.
+
+#### Configuration
+
+- User: admin@edirepository.onmicrosoft.com
+- Email: edirepository@gmail.com
+- EDI app location:
+  - https://entra.microsoft.com/#home > `App registrations` > `View all applications` > `Select the EDI app`
+  - Currently: https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/Authentication/appId/9b0f517e-4766-4176-897c-0e39bcd1f662
+
+#### Notes
+
+  - To edit the Redirect URIs, select `Redirect URIs` under `Essentials`
+  - The EDI app is configured to support accounts in any organizational directory (any Microsoft Entra ID tenant or multitenant), and personal Microsoft accounts (e.g., Skype, Xbox)
+  - We do not currently use the Logout URI
+  - Select the tokens you would like to be issued by the authorization endpoint:
+    - Access tokens (used for implicit flows): Y
+    - ID tokens (used for implicit and hybrid flows): Y
+    - Live SDK support: N
+    - Allow public client flows: N
