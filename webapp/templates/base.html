@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang='en'>
+<head>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+
+  <title>{% block title %}
+    Environmental Data Initiative
+    {% endblock %}
+  </title>
+
+  <!-- Bootstrap CSS -->
+  <link href='/static/bootstrap/css/bootstrap.min.css' rel='stylesheet'>
+</head>
+<body>
+<nav class='navbar navbar-expand-lg navbar-light bg-light'>
+
+  <a href='/'>
+    <img id='edi-logo' class='' alt='Environmental Data Initiative logo' src='/static/images/edi-logo-111x109.png' title='EDI'>
+  </a>
+
+  <a class='navbar-brand' href='#'>Environmental Data Initiative</a>
+  <!-- More navigation items here -->
+</nav>
+
+<main role='main' class='container'>
+  {% block content %}
+  {% endblock %}
+</main>
+
+<!-- Bootstrap Bundle with Popper -->
+<script src='/static/bootstrap/js/bootstrap.bundle.js'></script>
+</body>
+</html>
