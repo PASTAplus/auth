@@ -1,23 +1,9 @@
-""":Mod: test_token
-
-:Synopsis:
-
-:Author:
-    servilla
-  
-:Created:
-    5/20/19
-"""
-import os
-import sys
-import unittest
-
 import daiquiri
 
 from webapp.config import Config
 from webapp.pasta_token import PastaToken
 
-sys.path.insert(0, os.path.abspath("../src"))
+# sys.path.insert(0, os.path.abspath("../src"))
 log = daiquiri.getLogger(__name__)
 
 

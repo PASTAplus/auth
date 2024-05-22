@@ -18,7 +18,6 @@ dependencies:
   - sqlalchemy=1.4.46
   - click
   - flask
-  - flask-bootstrap
   - uwsgi
   - pendulum
   - urllib3

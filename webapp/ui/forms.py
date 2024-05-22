@@ -1,13 +1,3 @@
-""":Mod: forms
-
-:Synopsis:
-
-:Author:
-    servilla
-
-:Created:
-    10/17/19
-"""
 import daiquiri
 from flask_wtf import FlaskForm
 from wtforms import BooleanField, HiddenField, SubmitField

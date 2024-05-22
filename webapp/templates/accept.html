@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
+<!--{% import 'bootstrap/wtf.html' as wtf %}-->
 
 {% block app_content %}
     <h2 align="left">
@@ -27,9 +27,9 @@
                 {{ form.uid(value=uid) }}
                 {{ form.idp(value=idp) }}
                 {{ form.idp_token(value=idp_token) }}
-                {{ wtf.form_field(form.accept) }}
+                <!--{{ wtf.form_field(form.accept) }}-->
                 <br/>
-                {{ wtf.form_field(form.submit) }}
+                <!--{{ wtf.form_field(form.submit) }}-->
            </form>
         </div>
     </div>

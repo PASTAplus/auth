@@ -1,14 +1,3 @@
-""":Mod: bind
-
-:Synopsis:
-    Perform a bind to the given LDAP host; otherwise return an error.
-
-:Author:
-    servilla
-
-:Created:
-    5/15/2019
-"""
 import daiquiri
 from ldap3 import Server, Connection, ALL
 

@@ -1,13 +1,3 @@
-""":Mod: pasta_crypto
-
-:Synopsis:
-
-:Author:
-    servilla
-
-:Created:
-    5/16/19
-"""
 import base64
 
 import daiquiri

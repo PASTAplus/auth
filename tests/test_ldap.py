@@ -1,13 +1,3 @@
-""":Mod: test_ldap
-
-:Synopsis:
-
-:Author:
-    servilla
-  
-:Created:
-    5/15/2019
-"""
 import os
 import sys
 
@@ -16,7 +6,7 @@ import daiquiri
 from webapp.config import Config
 from webapp import pasta_ldap
 
-sys.path.insert(0, os.path.abspath("../webapp"))
+# sys.path.insert(0, os.path.abspath("../webapp"))
 log = daiquiri.getLogger(__name__)
 
 

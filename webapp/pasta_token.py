@@ -1,13 +1,3 @@
-""":Mod: pasta_token
-
-:Synopsis:
-
-:Author:
-    servilla
-
-:Created:
-    5/20/19
-"""
 import base64
 
 import daiquiri
@@ -107,6 +97,6 @@ def make_pasta_token(uid, groups=""):
     token.system = Config.SYSTEM
     token.uid = uid
     token.groups = groups
-    private_key = pasta_crypto.import_key(Config.PRIVATE_KEY)
+    private_key = pasta_crypto.import_key(Config.PRIVATE_KEY_PATH)
     auth_token = pasta_crypto.create_auth_token(private_key, token.to_string())
     return auth_token

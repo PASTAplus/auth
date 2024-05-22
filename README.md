@@ -9,7 +9,7 @@ Multiverse authentication service for the PASTA+ Data Repository environment.
 
 - EDI services support signing in via LDAP and via selected 3rd party identity providers (IdPs) using OAuth2 / OpenID Connect (OIDC)
 - LDAP accounts are managed by EDI and provide membership in the `vetted` group
-- All users that sign in (via LDAP or OAuth2) become members of the "authenticated" group
+- All users that sign in (via LDAP or OAuth2) become members of the `authenticated` group
 
 
 ### Supported Identity Providers (IdPs)
