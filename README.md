@@ -82,3 +82,81 @@ Multiverse authentication service for the PASTA+ Data Repository environment.
     - ID tokens (used for implicit and hybrid flows): Y
     - Live SDK support: N
     - Allow public client flows: N
+
+## Conda
+
+### Managing the Conda environment in a production environment
+
+Start and stop the auth service as root:
+
+```shell
+# systemctl start auth.service
+# systemctl stop auth.service
+```
+
+Remove and rebuild the auth venv:
+
+```shell
+conda env remove --name auth
+conda env create --file environment-min.yml
+```
+
+Update the auth venv in place:
+
+```shell
+conda env update --file environment-min.yml --prune
+```
+
+Activate and deactivate the auth venv:
+
+```shell
+conda activate auth
+conda deactivate
+```
+
+### Managing the Conda environment in a development environment
+
+Update the environment-min.yml:
+
+```shell
+conda env export --no-builds > environment-min.yml
+```
+Update Conda itself:
+
+```shell
+conda update --name base conda
+```
+
+Update all packages in environment:
+
+```shell
+conda update --all
+```
+
+Create or update the `requirements.txt` file (for use by GitHub Dependabot, and for pip based manual installs):
+
+```shell
+pip list --format freeze > requirements.txt
+```
+
+### Procedure for updating the Conda environment and all dependencies
+
+```shell
+conda update -n base -c conda-forge conda
+conda activate auth
+conda update --all
+conda env export --no-builds > environment.yml
+pip list --format freeze > requirements.txt
+```
+
+### If Conda base won't update to latest version, try:
+
+```shell
+conda install conda==<version>
+``` 
+
+or
+
+```shell
+conda update -n base -c defaults conda --repodata-fn=repodata.json
+```

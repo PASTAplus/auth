@@ -46,13 +46,18 @@ class UserDb:
     def __init__(self, db_session: sqlalchemy.orm.Session = None):
         self.session = db_session or flask.g.session
 
+    def get_all_uids(self):
+        query = self.session.query(Identity.uid)
+        uids = [row[0] for row in query.all()]
+        return uids
+
     # def set_accepted(self, uid: str):
     #     query = self.session.query(User)
     #     user = query.filter(User.uid == uid).first()
     #     user.privacy_acceptance = True
     #     user.date_accepted = datetime.datetime.now()
     #     self.session.commit()
-    #
+
     # def is_privacy_policy_accepted(self, uid: str) -> bool:
     #     query = self.session.query(User)
     #     user = query.filter(User.uid == uid).first()

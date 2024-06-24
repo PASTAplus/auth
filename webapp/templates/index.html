@@ -1,9 +1,17 @@
 {% extends "base.html" %}
+{% set active_page = "index" %}
 
 {% block title %}
-  Index
+  Home
 {% endblock %}
 
 {% block content %}
-  <h1>auth</h1>
+  <h1>Home</h1>
+
+  <ul>
+    {% for uid in uids %}
+      <li>{{ uid }}</li>
+    {% endfor %}
+  </ul>
+
 {% endblock %}

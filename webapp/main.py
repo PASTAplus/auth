@@ -29,19 +29,17 @@ log = daiquiri.getLogger(__name__)
 app = flask.Flask(__name__)
 app.config.from_object(Config)
 
-log.debug('sqlite://' + Config.DB_PATH.as_posix())
+sqlite_uri = 'sqlite:///' + Config.DB_PATH.as_posix()
+log.debug(f'sqlite_uri: {sqlite_uri}')
 
-engine = sqlalchemy.create_engine(
-    'sqlite://' + Config.DB_PATH.as_posix(),
-    echo=Config.LOG_DB_QUERIES,
-)
+engine = sqlalchemy.create_engine(sqlite_uri, echo=Config.LOG_DB_QUERIES)
 # webapp.user_db.Base.metadata.create_all(engine)
 session_maker_fn = sqlalchemy.orm.sessionmaker(bind=engine)  # ()
 
 
-# with app.app_context():
-#     Base = sqlalchemy.orm.declarative_base()
-    # webapp.user_db.Base.metadata.create_all(engine)
+with app.app_context():
+    # Base = sqlalchemy.orm.declarative_base()
+    webapp.user_db.Base.metadata.create_all(engine)
 
 
 @app.before_request

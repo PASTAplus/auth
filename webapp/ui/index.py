@@ -16,10 +16,29 @@ from wtforms.validators import DataRequired
 log = daiquiri.getLogger(__name__)
 blueprint = flask.blueprints.Blueprint('index', __name__)
 
+
 @blueprint.route("/", methods=["GET"])
 def index():
     """The index page."""
-    return flask.render_template("index.html")
+    udb = webapp.user_db.UserDb()
+
+    return flask.render_template(
+        "index.html",
+        uids=udb.get_all_uids(),
+    )
+
+
+@blueprint.route("/profile", methods=["GET"])
+def profile():
+    return flask.render_template(
+        "profile.html",
+    )
+
+@blueprint.route("/identity", methods=["GET"])
+def identity():
+    return flask.render_template(
+        "identity.html",
+    )
 
 @blueprint.route("/test", methods=["GET"])
 def test():
