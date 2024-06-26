@@ -116,10 +116,10 @@ conda deactivate
 
 ### Managing the Conda environment in a development environment
 
-Update the environment-min.yml:
+Update the environment.yml:
 
 ```shell
-conda env export --no-builds > environment-min.yml
+conda env export --no-builds > environment.yml
 ```
 Update Conda itself:
 

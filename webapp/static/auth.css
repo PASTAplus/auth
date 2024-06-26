@@ -1,0 +1,19 @@
+/* Extra styles for auth */
+
+/* Navbar font size */
+.navbar .navbar-brand {
+    font-size: 1rem;
+}
+
+.navbar-brand-pad {
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+}
+
+/* Override the default navbar color for the 'brand' name */
+.navbar-brand {
+    /*color: #000000a6 !important;*/
+    /*pointer-events: none;*/
+    /*cursor: default;*/
+}
+

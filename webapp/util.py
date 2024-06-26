@@ -1,8 +1,9 @@
+import fastapi
 import typing
 import urllib.parse
+import starlette.responses
 
 import daiquiri
-import flask
 
 log = daiquiri.getLogger(__name__)
 
@@ -12,15 +13,15 @@ def urlenc(url: str) -> str:
 
 
 def get_dn_uid(dn: str) -> str:
-    dn_parts = dn.split(",")
-    uid = dn_parts[0].split("=")[1]
+    dn_parts = dn.split(',')
+    uid = dn_parts[0].split('=')[1]
     return uid
 
 
 def redirect(base_url: str, **kwargs):
     """Create a Flask response that redirects to the base_url with query parameters"""
     log_dict(log.debug, f'Redirecting to: {base_url}', kwargs)
-    return flask.redirect(
+    return starlette.responses.RedirectResponse(
         f'{base_url}{"?" if kwargs else ""}{build_query_string(**kwargs)}'
     )
 

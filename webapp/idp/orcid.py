@@ -1,29 +1,31 @@
 import re
 
 import daiquiri
-import flask
-import flask.blueprints
+import fastapi
 import requests
+import starlette.requests
 
-from webapp import pasta_token as pasta_token_
-from webapp import user_db
-from webapp import util
-from webapp.config import Config
+import pasta_token as pasta_token_
+import user_db
+import util
+from config import Config
 
 log = daiquiri.getLogger(__name__)
-blueprint = flask.blueprints.Blueprint('orcid', __name__)
+router = fastapi.APIRouter()
 
 #
 # Login
 #
 
 
-@blueprint.route('/auth/login/orcid', methods=['GET'])
-def login_orcid():
+@router.get('/auth/login/orcid')
+def login_orcid(
+    request: starlette.requests.Request,
+):
     """Accept the initial login request from an EDI service and redirect to the
     ORCID login endpoint.
     """
-    target = flask.request.args.get("target")
+    target = request.query_params.get('target')
     log.debug(f'login_orcid() target="{target}"')
     return util.redirect(
         Config.ORCID_AUTH_ENDPOINT,
@@ -35,8 +37,12 @@ def login_orcid():
     )
 
 
-@blueprint.route('/auth/login/orcid/callback/<path:target>', methods=['GET'])
-def login_orcid_callback(target):
+@router.get('/auth/login/orcid/callback/<path:target>')
+def login_orcid_callback(
+    target,
+    request: starlette.requests.Request,
+    udb: user_db.UserDb = fastapi.Depends(user_db.udb),
+):
     # Hack to work around ORCID collapsing multiple slashes in the URL path, which breaks the target
     # URL. This adds any missing slash after the protocol.
     # E.g., https:/host/path -> https://host/path
@@ -45,7 +51,7 @@ def login_orcid_callback(target):
 
     log.debug(f'login_orcid_callback() target="{target}"')
 
-    code_str = flask.request.args.get('code')
+    code_str = request.query_params.get('code')
     if code_str is None:
         return util.redirect(target, error='Login cancelled')
 
@@ -61,10 +67,10 @@ def login_orcid_callback(target):
                 client_secret=Config.ORCID_CLIENT_SECRET,
                 grant_type='authorization_code',
                 code=code_str,
-                # redirect_uri=flask.request.base_url,
+                # redirect_uri=request.base_url,
             ),
         )
-    except requests.RequestException as e:
+    except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
         return util.redirect(target, error='Login unsuccessful')
 
@@ -89,7 +95,6 @@ def login_orcid_callback(target):
     pasta_token = pasta_token_.make_pasta_token(uid=uid, groups=Config.AUTHENTICATED)
 
     # Update DB
-    udb = user_db.UserDb()
     udb.set_user(uid=uid, token=pasta_token, cname=cname)
 
     # Redirect to privacy policy accept page if user hasn't accepted it yet
@@ -117,11 +122,13 @@ def login_orcid_callback(target):
 #
 
 
-@blueprint.route('/auth/revoke/orcid', methods=['GET'])
-def revoke_orcid():
-    target = flask.request.args.get("target")
-    uid = flask.request.args.get('uid')
-    idp_token = flask.request.args.get('idp_token')
+@router.get('/auth/revoke/orcid')
+def revoke_orcid(
+    request: starlette.requests.Request,
+):
+    target = request.query_params.get('target')
+    uid = request.query_params.get('uid')
+    idp_token = request.query_params.get('idp_token')
     util.log_dict(
         log.debug,
         'revoke_orcid()',

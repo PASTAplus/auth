@@ -1,30 +1,32 @@
 import json
 
 import daiquiri
-import flask
-import flask.blueprints
+import fastapi
 import oauthlib.oauth2
 import requests
+import starlette.requests
 
-from webapp import pasta_token as pasta_token_
-from webapp import user_db
-from webapp import util
-from webapp.config import Config
+import pasta_token as pasta_token_
+import user_db
+import util
+from config import Config
 
 log = daiquiri.getLogger(__name__)
-blueprint = flask.blueprints.Blueprint('github', __name__)
+router = fastapi.APIRouter()
 
 #
 # Login
 #
 
 
-@blueprint.route('/auth/login/github', methods=['GET'])
-def login_github():
+@router.get('/auth/login/github')
+def login_github(
+    request: starlette.requests.Request,
+):
     """Accept the initial login request from an EDI service and redirect to the
     GitHub login endpoint.
     """
-    target = flask.request.args.get("target")
+    target = request.query_params.get('target')
     log.debug(f'login_github() target="{target}"')
 
     return util.redirect(
@@ -37,15 +39,19 @@ def login_github():
     )
 
 
-@blueprint.route('/auth/login/github/callback/<path:target>', methods=['GET'])
-def login_github_callback(target):
+@router.get('/auth/login/github/callback/<path:target>')
+def login_github_callback(
+    target,
+    request: starlette.requests.Request,
+    udb: user_db.UserDb = fastapi.Depends(user_db.udb),
+):
     log.debug(f'login_github_callback() target="{target}"')
 
     if is_error():
         log.error(get_error_message())
         return util.redirect(target, error='Login failed')
 
-    code_str = flask.request.args.get('code')
+    code_str = request.query_params.get('code')
     if code_str is None:
         return util.redirect(target, error='Login cancelled')
 
@@ -54,8 +60,8 @@ def login_github_callback(target):
 
     token_url, headers, body = client.prepare_token_request(
         Config.GITHUB_TOKEN_ENDPOINT,
-        authorization_response=flask.request.url,
-        # redirect_url=flask.request.base_url,
+        authorization_response=request.url,
+        # redirect_url=request.base_url,
         code=code_str,
     )
 
@@ -74,7 +80,7 @@ def login_github_callback(target):
 
     try:
         token_dict = token_response.json()
-    except requests.JSONDecodeError as e:
+    except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {token_response.text}', exc_info=True)
         return util.redirect(target, error=f'Login unsuccessful')
 
@@ -110,7 +116,6 @@ def login_github_callback(target):
     pasta_token = pasta_token_.make_pasta_token(uid=uid, groups=Config.AUTHENTICATED)
 
     # Update DB
-    udb = user_db.UserDb()
     udb.set_user(uid=uid, token=pasta_token, cname=cname)
 
     # Redirect to privacy policy accept page if user hasn't accepted it yet
@@ -138,13 +143,15 @@ def login_github_callback(target):
 #
 
 
-@blueprint.route('/auth/revoke/github', methods=['GET'])
-def revoke_github():
+@router.get('/auth/revoke/github')
+def revoke_github(
+    request: starlette.requests.Request,
+):
     """Receive the initial revoke request from an EDI service, delete the user's
     token, and redirect back to client.
     """
-    target = flask.request.args.get("target")
-    idp_token = flask.request.args.get('idp_token')
+    target = request.query_params.get('target')
+    idp_token = request.query_params.get('idp_token')
     log.debug(f'revoke_github() target="{target}" idp_token="{idp_token}"')
 
     try:
@@ -162,7 +169,6 @@ def revoke_app_token(target, idp_token):
     github_client_id, github_client_secret = get_github_client_info(target=target)
 
     revoke_response = requests.delete(
-        # f'https://api.github.com/applications/{github_client_id}/grant',
         f'https://api.github.com/applications/{github_client_id}/token',
         auth=(github_client_id, github_client_secret),
         headers={
@@ -182,14 +188,18 @@ def revoke_app_token(target, idp_token):
 #
 
 
-def is_error() -> bool:
-    return flask.request.args.get('error') is not None
+def is_error(
+    request: starlette.requests.Request = fastapi.Depends(starlette.requests.Request),
+) -> bool:
+    return request.query_params.get('error') is not None
 
 
-def get_error_message() -> str:
-    error_title = flask.request.args.get('error', 'Unknown error')
-    error_description = flask.request.args.get('error_description', 'No description')
-    error_uri = flask.request.args.get('error_uri', 'No URI')
+def get_error_message(
+    request: starlette.requests.Request = fastapi.Depends(starlette.requests.Request),
+) -> str:
+    error_title = request.query_params.get('error', 'Unknown error')
+    error_description = request.query_params.get('error_description', 'No description')
+    error_uri = request.query_params.get('error_uri', 'No URI')
     return f'{error_title}: {error_description} ({error_uri})'
 
 

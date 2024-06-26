@@ -1,16 +1,17 @@
 import daiquiri
-import flask
-import flask.blueprints
+import fastapi
 import oauthlib.oauth2
 import requests
 
-from webapp import pasta_token as pasta_token_
-from webapp import user_db
-from webapp import util
-from webapp.config import Config
+import pasta_token as pasta_token_
+import user_db
+import util
+from config import Config
+import starlette.responses
+import starlette.requests
 
 log = daiquiri.getLogger(__name__)
-blueprint = flask.blueprints.Blueprint('google', __name__)
+router = fastapi.APIRouter()
 
 # https://developers.google.com/identity/protocols/oauth2
 
@@ -19,12 +20,12 @@ blueprint = flask.blueprints.Blueprint('google', __name__)
 #
 
 
-@blueprint.route('/auth/login/google', methods=['GET'])
+@router.get('/auth/login/google')
 def login_google():
     """Accept the initial login request from an EDI service and redirect to the
     Google login endpoint.
     """
-    target = flask.request.args.get("target")
+    target = request.query_params.get('target')
     log.debug(f'login_google() target="{target}"')
 
     client = oauthlib.oauth2.WebApplicationClient(Config.GOOGLE_CLIENT_ID)
@@ -49,14 +50,20 @@ def login_google():
         prompt='login',
     )
     # noinspection PyTypeChecker
-    return flask.redirect(request_uri)
+    return starlette.responses.RedirectResponse(
+        request_uri,
+        # status_code=fastapi.starlette.status.HTTP_303_SEE_OTHER,
+    )
 
 
-@blueprint.route('/auth/login/google/callback/<path:target>', methods=['GET'])
-def login_google_callback(target):
+@router.get('/auth/login/google/callback/<path:target>')
+def login_google_callback(
+    target,
+    request: starlette.requests.Request,
+):
     log.debug(f'login_google_callback() target="{target}"')
 
-    code_str = flask.request.args.get('code')
+    code_str = request.query_params.get('code')
     if code_str is None:
         return util.redirect(target, error='Login cancelled')
 
@@ -66,8 +73,8 @@ def login_google_callback(target):
     client = oauthlib.oauth2.WebApplicationClient(Config.GOOGLE_CLIENT_ID)
     token_url, headers, body = client.prepare_token_request(
         token_endpoint,
-        authorization_response=flask.request.url,
-        redirect_url=flask.request.base_url,
+        authorization_response=request.url,
+        redirect_url=request.base_url,
         code=code_str,
     )
     try:
@@ -166,12 +173,12 @@ def get_google_provider_cfg():
 #
 
 
-@blueprint.route('/auth/revoke/google', methods=['GET'])
+@router.get('/auth/revoke/google')
 def revoke_google():
 
-    target = flask.request.args.get("target")
-    uid = flask.request.args.get('uid')
-    idp_token = flask.request.args.get('idp_token')
+    target = request.query_params.get('target')
+    uid = request.query_params.get('uid')
+    idp_token = request.query_params.get('idp_token')
 
     log.debug(f'revoke_google() target="{target}" uid="{uid}" idp_token="{idp_token}"')
 

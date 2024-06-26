@@ -1,46 +1,45 @@
-import daiquiri
-import flask.blueprints
-from flask import request
+import fastapi
+from fastapi import FastAPI, HTTPException
+from starlette.requests import Request
+from starlette.responses import Response
+from typing import Optional
+import requests
+import starlette.responses
+import starlette.requests
 
-import webapp.pasta_crypto
-from webapp import pasta_token as pasta_token_
-from webapp.config import Config
+import pasta_crypto
+import pasta_token as pasta_token_
+from config import Config
 
-log = daiquiri.getLogger(__name__)
-blueprint = flask.blueprints.Blueprint('refresh_token', __name__)
+router = fastapi.APIRouter()
 
-
-PUBLIC_KEY = webapp.pasta_crypto.import_key(Config.PUBLIC_KEY_PATH)
-PRIVATE_KEY = webapp.pasta_crypto.import_key(Config.PRIVATE_KEY_PATH)
+PUBLIC_KEY = pasta_crypto.import_key(Config.PUBLIC_KEY_PATH)
+PRIVATE_KEY = pasta_crypto.import_key(Config.PRIVATE_KEY_PATH)
 
 
-@blueprint.route("/auth/refresh", methods=["POST"])
-def refresh_token():
+@router.post('/auth/refresh')
+def refresh_token(external_token: str):
     """Validate and refresh an authentication token.
 
     A refreshed token is a token that matches the original token's uid and
     groups but has a new TTL.
     """
-    external_token = request.get_data(as_text=True)
-
     # Verify the token signature
     try:
-        webapp.pasta_crypto.verify_auth_token(PUBLIC_KEY, external_token)
+        pasta_crypto.verify_auth_token(PUBLIC_KEY, external_token)
     except ValueError as e:
-        msg = f"Attempted to refresh invalid token: {e}"
-        log.error(msg)
-        return msg, 401
+        msg = f'Attempted to refresh invalid token: {e}'
+        raise HTTPException(status_code=401, detail=msg)
 
     # Verify the token TTL
     token_obj = pasta_token_.PastaToken()
     token_obj.from_auth_token(external_token)
     if not token_obj.is_valid_ttl():
-        msg = f"Attempted to refresh invalid token: Token has expired"
-        log.error(msg)
-        return msg, 401
+        msg = f'Attempted to refresh invalid token: Token has expired'
+        raise HTTPException(status_code=401, detail=msg)
 
     # Create the refreshed token
     token_obj = pasta_token_.PastaToken()
     token_obj.from_auth_token(external_token)
     token_obj.ttl = token_obj.new_ttl()
-    return webapp.pasta_crypto.create_auth_token(PRIVATE_KEY, token_obj.to_string())
+    return pasta_crypto.create_auth_token(PRIVATE_KEY, token_obj.to_string())

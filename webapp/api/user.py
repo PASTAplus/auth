@@ -1,12 +1,11 @@
 import daiquiri
-import flask.blueprints
-from flask import request
+import fastapi
 
-import webapp.pasta_crypto
-from webapp import pasta_token as pasta_token_
-from webapp.config import Config
+import pasta_crypto
+import pasta_token as pasta_token_
+from config import Config
+import starlette.responses
+import starlette.requests
 
 log = daiquiri.getLogger(__name__)
-blueprint = flask.blueprints.Blueprint('user', __name__)
-
-
+router = fastapi.APIRouter()

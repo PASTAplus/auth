@@ -1,7 +1,7 @@
 import daiquiri
 from ldap3 import Server, Connection, ALL
 
-from webapp.config import Config
+from config import Config
 
 log = daiquiri.getLogger(__name__)
 
@@ -22,17 +22,17 @@ def bind(dn: str, password: str):
                 auto_bind=True,
                 receive_timeout=30,
             )
-            found = conn.search(dn, "(objectclass=person)")
+            found = conn.search(dn, '(objectclass=person)')
             if found:
                 for entry in conn.entries:
                     entry_dn = entry.entry_dn
                     if entry_dn == dn:
                         result = True
                     else:
-                        log.error(f"Case mismatch for {dn} and {entry_dn}")
+                        log.error(f'Case mismatch for {dn} and {entry_dn}')
             conn.unbind()
         except Exception as e:
             log.error(e)
     else:
-        log.error(f"Unknown LDAP host for dn: {dn}")
+        log.error(f'Unknown LDAP host for dn: {dn}')
     return result

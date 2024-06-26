@@ -3,22 +3,19 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - requests
-  - pynacl
   - python=3.11
-  - flask-login
-  - libiconv
-  - flask-wtf
-  - daiquiri
-  - oauthlib
-  - sqlite
-  - pytest
-  - ldap3
-  - pycryptodome
   - sqlalchemy=1.4.46
   - click
-  - flask
-  - uwsgi
+  - daiquiri
+  - fastapi
+  - ldap3
+  - libiconv
+  - oauthlib
   - pendulum
+  - pycryptodome
+  - pynacl
+  - pytest
+  - requests
+  - sqlite
   - urllib3
-prefix: /home/servilla/anaconda3/envs/auth
+  - uvicorn

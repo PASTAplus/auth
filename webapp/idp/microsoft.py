@@ -1,30 +1,32 @@
 import cryptography.hazmat.backends
 import cryptography.x509
 import daiquiri
-import flask
-import flask.blueprints
+import fastapi
 import jwt
 import requests
+import starlette.requests
 
-from webapp import pasta_token as pasta_token_
-from webapp import user_db
-from webapp import util
-from webapp.config import Config
+import pasta_token as pasta_token_
+import user_db
+import util
+from config import Config
 
 log = daiquiri.getLogger(__name__)
-blueprint = flask.blueprints.Blueprint('microsoft', __name__)
+router = fastapi.APIRouter()
 
 #
 # Login
 #
 
 
-@blueprint.route('/auth/login/microsoft', methods=['GET'])
-def login_microsoft():
+@router.get('/auth/login/microsoft')
+def login_microsoft(
+    request: starlette.requests.Request,
+):
     """Accept the initial login request from an EDI service and redirect to the
     Microsoft login endpoint.
     """
-    target = flask.request.args.get("target")
+    target = request.query_params.get('target')
     log.debug(f'login_microsoft() target="{target}"')
     return util.redirect(
         Config.MICROSOFT_AUTH_ENDPOINT,
@@ -37,8 +39,12 @@ def login_microsoft():
     )
 
 
-@blueprint.route('/auth/login/microsoft/callback/<path:target>', methods=['GET'])
-def login_microsoft_callback(target):
+@router.get('/auth/login/microsoft/callback/<path:target>')
+def login_microsoft_callback(
+    target,
+    request: starlette.requests.Request,
+    udb: user_db.UserDb = fastapi.Depends(user_db.udb),
+):
     """On successful login, redeem a code for an access token. Otherwise, just redirect to the
     target URL.
 
@@ -48,7 +54,7 @@ def login_microsoft_callback(target):
     The microsoft oauth service redirects to this endpoint with a code parameter after successful
     authentication.
     """
-    code_str = flask.request.args.get('code')
+    code_str = request.query_params.get('code')
     if code_str is None:
         return util.redirect(target, error='Login cancelled')
 
@@ -62,18 +68,18 @@ def login_microsoft_callback(target):
             data=util.build_query_string(
                 client_id=Config.MICROSOFT_CLIENT_ID,
                 code=code_str,
-                redirect_uri=flask.request.base_url,
+                redirect_uri=request.base_url,
                 grant_type='authorization_code',
                 client_secret=Config.MICROSOFT_CLIENT_SECRET,
             ),
         )
-    except requests.RequestException as e:
+    except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
         return util.redirect(target, error='Login unsuccessful')
 
     try:
         token_dict = token_response.json()
-    except requests.JSONDecodeError as e:
+    except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {token_response.text}', exc_info=True)
         return util.redirect(target, error='Login unsuccessful')
 
@@ -105,7 +111,6 @@ def login_microsoft_callback(target):
     pasta_token = pasta_token_.make_pasta_token(uid=uid, groups=Config.AUTHENTICATED)
 
     # Update DB
-    udb = user_db.UserDb()
     udb.set_user(uid=uid, token=pasta_token, cname=cname)
 
     # Redirect to privacy policy accept page if user hasn't accepted it yet
@@ -157,28 +162,30 @@ def get_microsoft_public_key_by_kid(kid):
 #
 
 
-@blueprint.route('/auth/logout/microsoft', methods=['GET'])
-def logout_microsoft():
+@router.get('/auth/logout/microsoft')
+def logout_microsoft(
+    request: starlette.requests.Request,
+):
     """Receive the initial logout request from an EDI service and redirect to the
     Microsoft logout endpoint. The Microsoft logout endpoint will redirect back to the
     callback URL with a `post_logout_redirect_uri` parameter.
     """
-    target = flask.request.args.get("target")
-    uid = flask.request.args.get('uid')
+    target = request.query_params.get('target')
+    uid = request.query_params.get('uid')
     log.debug(f'logout_microsoft() target="{target}" uid="{uid}"')
 
-    # flask.request.base_url matches the route that points to this handler, except for
+    # request.base_url matches the route that points to this handler, except for
     # query parameters. We built onto the base_url to reach the next handler, which
     # is the callback handler.
     return util.redirect(
         Config.MICROSOFT_LOGOUT_ENDPOINT,
         client_id=Config.MICROSOFT_CLIENT_ID,
         post_logout_redirect_uri=f'{Config.CALLBACK_BASE_URL}/microsoft/callback/{target}',
-        # post_logout_redirect_uri=f'{flask.request.base_url}/callback/{target}',
+        # post_logout_redirect_uri=f'{request.base_url}/callback/{target}',
     )
 
 
-@blueprint.route('/auth/logout/microsoft/callback/<path:target>', methods=['GET'])
+@router.get('/auth/logout/microsoft/callback/<path:target>')
 def logout_microsoft_callback(target):
     """Receive the callback from the Microsoft logout endpoint and redirect to the
     target URL.
@@ -193,8 +200,8 @@ def logout_microsoft_callback(target):
     return util.redirect(target)
 
 
-@blueprint.route('/auth/logout/microsoft/clear-session', methods=['GET'])
-def logout_microsoft_clear_session():
+@router.get('/auth/logout/microsoft/clear-session')
+def logout_microsoft_clear_session(request: starlette.requests.Request):
     """Receive the redirect from the Microsoft logout endpoint and redirect to the
     target URL.
 
@@ -215,5 +222,5 @@ def logout_microsoft_clear_session():
     sid = session ID
     iss = issuer (entity that created and signed the token)
     """
-    log.debug(f'logout_microsoft_clear_session() args={flask.request.args}')
+    log.debug(f'logout_microsoft_clear_session() args={request.query_params}')
     return 'OK', 200

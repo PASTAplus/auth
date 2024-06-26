@@ -1,3 +1,12 @@
+# EDI Auth
+
+config.py
+config.*.py
+db.sqlite
+__RD.md
+
+# General
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

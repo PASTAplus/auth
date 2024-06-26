@@ -1,21 +1,23 @@
 import daiquiri
-import flask
-import sqlalchemy.orm
+import fastapi
+import fastapi.staticfiles
 
-import webapp.api.refresh_token
-import webapp.api.user
-import webapp.idp.github
-import webapp.idp.google
-import webapp.idp.ldap
-import webapp.idp.microsoft
-import webapp.idp.orcid
-import webapp.ui.privacy_policy
-import webapp.ui.index
-import webapp.user_db
-from webapp.config import Config
+# import sqlalchemy.orm
+import starlette.requests
+import starlette.responses
+import starlette.responses
 
-# HERE_PATH = pathlib.Path(__file__).parent.resolve()
-#
+import api.refresh_token
+import api.user
+import idp.github
+import idp.google
+import idp.ldap
+import idp.microsoft
+import idp.orcid
+import ui.index
+import ui.privacy_policy
+from config import Config
+
 # daiquiri.setup(
 #     level=Config.LOG_LEVEL,
 #     outputs=(
@@ -23,43 +25,54 @@ from webapp.config import Config
 #         'stdout',
 #     ),
 # )
+# import user_db
 
 log = daiquiri.getLogger(__name__)
 
-app = flask.Flask(__name__)
-app.config.from_object(Config)
+app = fastapi.FastAPI()
 
-sqlite_uri = 'sqlite:///' + Config.DB_PATH.as_posix()
-log.debug(f'sqlite_uri: {sqlite_uri}')
-
-engine = sqlalchemy.create_engine(sqlite_uri, echo=Config.LOG_DB_QUERIES)
-# webapp.user_db.Base.metadata.create_all(engine)
-session_maker_fn = sqlalchemy.orm.sessionmaker(bind=engine)  # ()
-
-
-with app.app_context():
-    # Base = sqlalchemy.orm.declarative_base()
-    webapp.user_db.Base.metadata.create_all(engine)
+# Set up serving of static files
+app.mount(
+    '/static',
+    fastapi.staticfiles.StaticFiles(directory=Config.HERE_PATH / 'static'),
+    name='static',
+)
 
 
-@app.before_request
-def create_db_session():
-    flask.g.session = session_maker_fn()
+# Set up favicon and manifest routes, served from the root
+def create_icon_route(app, icon_path: str):
+    @app.get(icon_path)
+    async def serve_icon():
+        try:
+            return starlette.responses.FileResponse(f'webapp/static/favicon{icon_path}')
+        except FileNotFoundError:
+            raise fastapi.HTTPException(status_code=404, detail='File not found')
 
 
-@app.teardown_request
-def close_db_session(exception=None):
-    if exception:
-        log.exception('Exception:')
-    flask.g.session.close()
+for icon_path in [
+    '/favicon.ico',
+    '/edi-32x32.png',
+    '/edi-180x180.png',
+    '/edi-192x192.png',
+    '/edi-512x512.png',
+    '/site.webmanifest',
+]:
+    create_icon_route(app, icon_path)
+
+# @app.middleware('http')
+# async def create_db_session(request: starlette.requests.Request, call_next):
+#     request.state.session = session_maker_fn()
+#     response = await call_next(request)
+#     request.state.session.close()
+#     return response
 
 
-app.register_blueprint(webapp.idp.github.blueprint)
-app.register_blueprint(webapp.idp.google.blueprint)
-app.register_blueprint(webapp.idp.ldap.blueprint)
-app.register_blueprint(webapp.idp.microsoft.blueprint)
-app.register_blueprint(webapp.idp.orcid.blueprint)
-app.register_blueprint(webapp.api.refresh_token.blueprint)
-app.register_blueprint(webapp.api.user.blueprint)
-app.register_blueprint(webapp.ui.privacy_policy.blueprint)
-app.register_blueprint(webapp.ui.index.blueprint)
+app.include_router(api.refresh_token.router)
+app.include_router(api.user.router)
+app.include_router(idp.github.router)
+app.include_router(idp.google.router)
+app.include_router(idp.ldap.router)
+app.include_router(idp.microsoft.router)
+app.include_router(idp.orcid.router)
+app.include_router(ui.index.router)
+app.include_router(ui.privacy_policy.router)

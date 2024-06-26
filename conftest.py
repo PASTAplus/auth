@@ -16,7 +16,7 @@ daiquiri.setup(
     level=logging.DEBUG,
     outputs=(
         daiquiri.output.File(HERE_PATH / 'test.log'),
-        "stdout",
+        'stdout',
     ),
 )
 
