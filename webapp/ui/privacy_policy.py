@@ -16,7 +16,7 @@ templates = starlette.templating.Jinja2Templates(Config.HERE_PATH / 'templates')
 
 
 @router.get('/auth/accept')
-def accept_get(request: starlette.requests.Request):
+async def accept_get(request: starlette.requests.Request):
     """Require the user to accept the privacy policy.
 
     This only serves the form. The form submission is handled by accept_post().
@@ -44,7 +44,7 @@ def accept_get(request: starlette.requests.Request):
 
 
 @router.post('/auth/accept')
-def accept_post():
+async def accept_post():
     """Require the user to accept the privacy policy.
 
     If the policy is accepted, redirect back to the target with a new token.

@@ -19,7 +19,7 @@ router = fastapi.APIRouter()
 
 
 @router.get('/auth/login/orcid')
-def login_orcid(
+async def login_orcid(
     request: starlette.requests.Request,
 ):
     """Accept the initial login request from an EDI service and redirect to the
@@ -38,7 +38,7 @@ def login_orcid(
 
 
 @router.get('/auth/login/orcid/callback/<path:target>')
-def login_orcid_callback(
+async def login_orcid_callback(
     target,
     request: starlette.requests.Request,
     udb: user_db.UserDb = fastapi.Depends(user_db.udb),
@@ -123,7 +123,7 @@ def login_orcid_callback(
 
 
 @router.get('/auth/revoke/orcid')
-def revoke_orcid(
+async def revoke_orcid(
     request: starlette.requests.Request,
 ):
     target = request.query_params.get('target')

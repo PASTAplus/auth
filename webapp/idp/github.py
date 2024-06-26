@@ -20,7 +20,7 @@ router = fastapi.APIRouter()
 
 
 @router.get('/auth/login/github')
-def login_github(
+async def login_github(
     request: starlette.requests.Request,
 ):
     """Accept the initial login request from an EDI service and redirect to the
@@ -40,7 +40,7 @@ def login_github(
 
 
 @router.get('/auth/login/github/callback/<path:target>')
-def login_github_callback(
+async def login_github_callback(
     target,
     request: starlette.requests.Request,
     udb: user_db.UserDb = fastapi.Depends(user_db.udb),
@@ -144,7 +144,7 @@ def login_github_callback(
 
 
 @router.get('/auth/revoke/github')
-def revoke_github(
+async def revoke_github(
     request: starlette.requests.Request,
 ):
     """Receive the initial revoke request from an EDI service, delete the user's

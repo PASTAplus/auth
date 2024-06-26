@@ -20,7 +20,7 @@ router = fastapi.APIRouter()
 
 
 @router.get('/auth/login/microsoft')
-def login_microsoft(
+async def login_microsoft(
     request: starlette.requests.Request,
 ):
     """Accept the initial login request from an EDI service and redirect to the
@@ -40,7 +40,7 @@ def login_microsoft(
 
 
 @router.get('/auth/login/microsoft/callback/<path:target>')
-def login_microsoft_callback(
+async def login_microsoft_callback(
     target,
     request: starlette.requests.Request,
     udb: user_db.UserDb = fastapi.Depends(user_db.udb),
@@ -163,7 +163,7 @@ def get_microsoft_public_key_by_kid(kid):
 
 
 @router.get('/auth/logout/microsoft')
-def logout_microsoft(
+async def logout_microsoft(
     request: starlette.requests.Request,
 ):
     """Receive the initial logout request from an EDI service and redirect to the
@@ -186,7 +186,7 @@ def logout_microsoft(
 
 
 @router.get('/auth/logout/microsoft/callback/<path:target>')
-def logout_microsoft_callback(target):
+async def logout_microsoft_callback(target):
     """Receive the callback from the Microsoft logout endpoint and redirect to the
     target URL.
 
@@ -201,7 +201,7 @@ def logout_microsoft_callback(target):
 
 
 @router.get('/auth/logout/microsoft/clear-session')
-def logout_microsoft_clear_session(request: starlette.requests.Request):
+async def logout_microsoft_clear_session(request: starlette.requests.Request):
     """Receive the redirect from the Microsoft logout endpoint and redirect to the
     target URL.
 

@@ -22,7 +22,7 @@ router = fastapi.APIRouter()
 
 
 @router.get('/auth/login/pasta')
-def login_pasta(
+async def login_pasta(
     request: starlette.requests.Request,
     udb: user_db.UserDb = fastapi.Depends(user_db.udb),
 ):

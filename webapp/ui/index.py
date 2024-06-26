@@ -15,8 +15,8 @@ router = fastapi.APIRouter()
 templates = starlette.templating.Jinja2Templates(Config.HERE_PATH / 'templates')
 
 
-@router.get('/home')
-def index(
+@router.get('/')
+async def index(
     request: starlette.requests.Request,
     # db: sqlalchemy.orm.Session = Depends(user_db.get_db),
     udb: user_db.UserDb = fastapi.Depends(user_db.udb),
@@ -30,7 +30,7 @@ def index(
 
 
 @router.get('/profile')
-def profile(request: starlette.requests.Request):
+async def profile(request: starlette.requests.Request):
     return templates.TemplateResponse(
         'profile.html',
         {'request': request},
@@ -38,7 +38,7 @@ def profile(request: starlette.requests.Request):
 
 
 @router.get('/identity')
-def identity(request: starlette.requests.Request):
+async def identity(request: starlette.requests.Request):
     return templates.TemplateResponse(
         'identity.html',
         {'request': request},
@@ -46,7 +46,7 @@ def identity(request: starlette.requests.Request):
 
 
 @router.get('/test')
-def test(request: starlette.requests.Request):
+async def test(request: starlette.requests.Request):
     return templates.TemplateResponse(
         'accept.html',
         {

@@ -21,7 +21,7 @@ router = fastapi.APIRouter()
 
 
 @router.get('/auth/login/google')
-def login_google():
+async def login_google():
     """Accept the initial login request from an EDI service and redirect to the
     Google login endpoint.
     """
@@ -57,7 +57,7 @@ def login_google():
 
 
 @router.get('/auth/login/google/callback/<path:target>')
-def login_google_callback(
+async def login_google_callback(
     target,
     request: starlette.requests.Request,
 ):
@@ -174,7 +174,7 @@ def get_google_provider_cfg():
 
 
 @router.get('/auth/revoke/google')
-def revoke_google():
+async def revoke_google():
 
     target = request.query_params.get('target')
     uid = request.query_params.get('uid')

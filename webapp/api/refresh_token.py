@@ -18,7 +18,7 @@ PRIVATE_KEY = pasta_crypto.import_key(Config.PRIVATE_KEY_PATH)
 
 
 @router.post('/auth/refresh')
-def refresh_token(external_token: str):
+async def refresh_token(external_token: str):
     """Validate and refresh an authentication token.
 
     A refreshed token is a token that matches the original token's uid and
