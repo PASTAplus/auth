@@ -117,9 +117,7 @@ def login_google_callback(target):
     util.log_dict(log.debug, 'user_dict', user_dict)
     log.debug('-' * 80)
 
-    uid = user_dict['sub']
-    # uid = user_dict['email']
-    # picture = user_dict['picture']
+    uid = user_dict['email']
     cname = f'{user_dict["given_name"]} {user_dict["family_name"]}'
     groups = Config.AUTHENTICATED
 
@@ -128,6 +126,7 @@ def login_google_callback(target):
     # Update DB
     udb = user_db.UserDb()
     udb.set_user(uid=uid, token=pasta_token, cname=cname)
+    udb.set_subject(uid=uid, subject=user_dict['sub'])
 
     # Redirect to privacy policy accept page if user hasn't accepted it yet
     if not udb.is_privacy_policy_accepted(uid=uid):
@@ -137,6 +136,7 @@ def login_google_callback(target):
             target=target,
             idp='google',
             idp_token=token_dict['access_token'],
+            sub=user_dict['sub'],
         )
 
     # Finally, redirect to the target URL with the authentication token
@@ -146,6 +146,7 @@ def login_google_callback(target):
         cname=cname,
         idp='google',
         idp_token=token_dict['access_token'],
+        sub=user_dict['sub'],
     )
 
 

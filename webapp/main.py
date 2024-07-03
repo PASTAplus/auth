@@ -53,6 +53,7 @@ def accept_get():
         target=target,
         idp=(request.args.get("idp")),
         idp_token=(request.args.get("idp_token")),
+        sub=(request.args.get("sub")),
     )
 
 
@@ -89,6 +90,7 @@ def accept_post():
         cname=udb.get_cname(uid=uid),
         idp=request.args.get("idp"),
         idp_token=request.args.get("idp_token"),
+        sub=request.args.get("sub"),
     )
 
 

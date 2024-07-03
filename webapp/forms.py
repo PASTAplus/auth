@@ -22,3 +22,4 @@ class AcceptForm(FlaskForm):
     submit = SubmitField("Submit")
     idp = HiddenField()
     idp_token = HiddenField()
+    sub = HiddenField()

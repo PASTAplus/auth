@@ -35,6 +35,7 @@ class User(Base):
     email = Column(String(), nullable=True)
     privacy_acceptance = Column(Boolean(), nullable=False, default=False)
     date_accepted = Column(DateTime(), nullable=True)
+    subject = Column(String(), nullable=True)
 
 
 class UserDb(object):
@@ -107,4 +108,10 @@ class UserDb(object):
         query = self.session.query(User)
         user = query.filter(User.uid == uid).first()
         self.session.delete(user)
+        self.session.commit()
+
+    def set_subject(self, uid: str, subject: str):
+        query = self.session.query(User)
+        user = query.filter(User.uid == uid).first()
+        user.subject = subject
         self.session.commit()
