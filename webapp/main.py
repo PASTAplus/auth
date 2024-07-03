@@ -88,9 +88,9 @@ def accept_post():
         target,
         token=udb.get_token(uid=uid),
         cname=udb.get_cname(uid=uid),
-        idp=request.args.get("idp"),
-        idp_token=request.args.get("idp_token"),
-        sub=request.args.get("sub"),
+        idp=form.idp.data,
+        idp_token=form.idp_token.data,
+        sub=form.sub.data,
     )
 
 
