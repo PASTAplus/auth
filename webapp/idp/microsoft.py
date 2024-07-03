@@ -39,7 +39,7 @@ async def login_microsoft(
     )
 
 
-@router.get('/auth/login/microsoft/callback/<path:target>')
+@router.get('/auth/login/microsoft/callback/{target:path}')
 async def login_microsoft_callback(
     target,
     request: starlette.requests.Request,
@@ -185,7 +185,7 @@ async def logout_microsoft(
     )
 
 
-@router.get('/auth/logout/microsoft/callback/<path:target>')
+@router.get('/auth/logout/microsoft/callback/{target:path}')
 async def logout_microsoft_callback(target):
     """Receive the callback from the Microsoft logout endpoint and redirect to the
     target URL.

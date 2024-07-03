@@ -26,15 +26,15 @@ async def accept_get(request: starlette.requests.Request):
 
     log.debug(f'Privacy policy accept form (GET): uid="{uid}" target="{target}"')
 
-    udb = user_db.UserDb()
-
-    if udb.get_user(uid) is None:
-        return f'Unknown uid: {uid}', 400
+    # udb = user_db.UserDb()
+    #
+    # if udb.get_user(uid) is None:
+    #     return f'Unknown uid: {uid}', 400
 
     return templates.TemplateResponse(
         'accept.html',
         {
-            'form': ui.forms.AcceptForm(),
+            'request': request,
             'uid': uid,
             'target': target,
             'idp': request.query_params.get('idp'),
@@ -44,36 +44,37 @@ async def accept_get(request: starlette.requests.Request):
 
 
 @router.post('/auth/accept')
-async def accept_post():
+async def accept_post(
+    request: starlette.requests.Request,
+):
     """Require the user to accept the privacy policy.
 
     If the policy is accepted, redirect back to the target with a new token.
     If the policy is not accepted, redirect back to the target with an error.
     """
-
-    form = ui.forms.AcceptForm()
-    is_accepted = form.accept.data
-    uid = form.uid.data
-    target = form.target.data
+    form = await request.form()
+    uid = form.get('uid')
+    target = form.get('target')
+    is_accepted = form.get('action') == 'accept'
 
     log.debug(f'Privacy policy accept form (POST): uid="{uid}" target="{target}"')
 
     if not is_accepted:
-        log.warn(f'Refused privacy policy: uid="{uid}" target="{target}"')
+        log.warn(f'Privacy policy not accepted: uid="{uid}" target="{target}"')
         return util.redirect(
             target,
             error='Login unsuccessful: Privacy policy not accepted',
         )
 
-    log.debug(f'Accepted privacy policy: uid="{uid}" target="{target}"')
+    log.debug(f'Privacy policy accepted: uid="{uid}" target="{target}"')
 
-    udb = UserDb()
-    udb.set_accepted(uid=uid)
+    # udb = UserDb()
+    # udb.set_accepted(uid=uid)
 
     return util.redirect(
         target,
-        token=udb.get_token(uid=uid),
-        cname=udb.get_cname(uid=uid),
-        idp=request.query_params.get('idp'),
-        idp_token=request.query_params.get('idp_token'),
+        token=None, #udb.get_token(uid=uid),
+        cname=None, #udb.get_cname(uid=uid),
+        idp=form.get('idp'),
+        idp_token=form.get('idp_token'),
     )

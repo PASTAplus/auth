@@ -6,7 +6,7 @@
 
   <title>
     {% block title %}
-    Environmental Data Initiative
+      Environmental Data Initiative (EDI)
     {% endblock %}
   </title>
 
@@ -18,68 +18,74 @@
 </head>
 <body>
 
-
 <nav class='navbar navbar-expand-lg navbar-light bg-light'>
 
   <div class='container-fluid'>
 
     <a class='navbar-brand' href='/'>
-      <img src='/static/images/edi-logo-32x32.png' alt='Environmental Data Initiative Logo' width='32' height='32'>
-      <span class='navbar-brand-pad'>Environmental Data Initiative</span>
+      <img src='/static/images/edi-logo-32x32.png'
+           alt='Environmental Data Initiative Logo' width='32' height='32'>
+      <span class='navbar-brand-pad'>Environmental Data Initiative (EDI)</span>
     </a>
 
-    <button class='navbar-toggler' type='button' data-toggle='collapse' data-target='#navbarContent' aria-controls='navbarContent' aria-expanded='false'
-            aria-label='Toggle navigation'>
-      <span class='navbar-toggler-icon'></span>
-    </button>
+    {% block navbar_menu %}
 
-    <div class='collapse navbar-collapse' id='navbarContent'>
+      <button class='navbar-toggler' type='button' data-toggle='collapse'
+              data-target='#navbarContent' aria-controls='navbarContent'
+              aria-expanded='false'
+              aria-label='Toggle navigation'>
+        <span class='navbar-toggler-icon'></span>
+      </button>
 
-      <!-- Menu, left -->
+      <div class='collapse navbar-collapse' id='navbarContent'>
 
-      <ul class='navbar-nav mr-auto'>
+        <!-- Menu, left -->
 
-        <!--<li class='nav-item'>-->
-        <!--  <a class='nav-link' href='/'>Home</a>-->
-        <!--</li>-->
+        <ul class='navbar-nav mr-auto'>
+
+          <!--<li class='nav-item'>-->
+          <!--  <a class='nav-link' href='/'>Home</a>-->
+          <!--</li>-->
+          <li class='nav-item'>
+            <a class='nav-link' href='/profile'>Profile</a>
+          </li>
+          <li class='nav-item'>
+            <a class='nav-link' href='/identity'>Identity</a>
+          </li>
+          <li class='nav-item'>
+            <a class='nav-link' href='/groups'>Groups</a>
+          </li>
+
+          <!--<li class='nav-item dropdown'>-->
+          <!--  <a class='nav-link dropdown-toggle' href='#' id='navbarDropdown' role='button' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>-->
+          <!--    Dropdown-->
+          <!--  </a>-->
+          <!--  <div class='dropdown-menu' aria-labelledby='navbarDropdown'>-->
+          <!--    <a class='dropdown-item' href='#'>Action</a>-->
+          <!--    <a class='dropdown-item' href='#'>Another action</a>-->
+          <!--    <div class='dropdown-divider'></div>-->
+          <!--    <a class='dropdown-item' href='#'>Something else here</a>-->
+          <!--  </div>-->
+          <!--</li>-->
+
+          <!--<li class='nav-item'>-->
+          <!--  <a class='nav-link disabled' href='#'>Disabled</a>-->
+          <!--</li>-->
+        </ul>
+      </div>
+
+      <!--Menu, right-->
+
+      <ul class='navbar-nav mr-auto navbar-right'>
         <li class='nav-item'>
-          <a class='nav-link' href='/profile'>Profile</a>
+          <a class='nav-link active' href='/login'>Login</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link' href='/identity'>Identity</a>
+          <a class='nav-link disabled' href='/register'>Register</a>
         </li>
-        <li class='nav-item'>
-          <a class='nav-link' href='/groups'>Groups</a>
-        </li>
-
-        <!--<li class='nav-item dropdown'>-->
-        <!--  <a class='nav-link dropdown-toggle' href='#' id='navbarDropdown' role='button' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>-->
-        <!--    Dropdown-->
-        <!--  </a>-->
-        <!--  <div class='dropdown-menu' aria-labelledby='navbarDropdown'>-->
-        <!--    <a class='dropdown-item' href='#'>Action</a>-->
-        <!--    <a class='dropdown-item' href='#'>Another action</a>-->
-        <!--    <div class='dropdown-divider'></div>-->
-        <!--    <a class='dropdown-item' href='#'>Something else here</a>-->
-        <!--  </div>-->
-        <!--</li>-->
-
-        <!--<li class='nav-item'>-->
-        <!--  <a class='nav-link disabled' href='#'>Disabled</a>-->
-        <!--</li>-->
       </ul>
-    </div>
 
-    <!--Menu, right-->
-
-    <ul class='navbar-nav mr-auto navbar-right'>
-      <li class='nav-item'>
-        <a class='nav-link active' href='/login'>Login</a>
-      </li>
-      <li class='nav-item'>
-        <a class='nav-link disabled' href='/register'>Register</a>
-      </li>
-    </ul>
+    {% endblock %}
 
   </div>
 </nav>

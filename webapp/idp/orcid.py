@@ -37,7 +37,7 @@ async def login_orcid(
     )
 
 
-@router.get('/auth/login/orcid/callback/<path:target>')
+@router.get('/auth/login/orcid/callback/{target:path}')
 async def login_orcid_callback(
     target,
     request: starlette.requests.Request,

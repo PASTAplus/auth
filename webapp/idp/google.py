@@ -9,6 +9,8 @@ import util
 from config import Config
 import starlette.responses
 import starlette.requests
+import starlette.status
+
 
 log = daiquiri.getLogger(__name__)
 router = fastapi.APIRouter()
@@ -21,7 +23,9 @@ router = fastapi.APIRouter()
 
 
 @router.get('/auth/login/google')
-async def login_google():
+async def login_google(
+    request: starlette.requests.Request,
+):
     """Accept the initial login request from an EDI service and redirect to the
     Google login endpoint.
     """
@@ -45,18 +49,22 @@ async def login_google():
     # noinspection PyNoneFunctionAssignment
     request_uri = client.prepare_request_uri(
         authorization_endpoint,
-        redirect_uri=f'{Config.CALLBACK_BASE_URL}/google/callback/{target}',
+        redirect_uri=get_redirect_uri(target),
         scope=['openid', 'email', 'profile'],
         prompt='login',
     )
+
+    log.debug(f'login_google() request_uri="{request_uri}"')
+
     # noinspection PyTypeChecker
     return starlette.responses.RedirectResponse(
         request_uri,
-        # status_code=fastapi.starlette.status.HTTP_303_SEE_OTHER,
+        # RedirectResponse returns 307 temporary redirect by default
+        status_code=starlette.status.HTTP_302_FOUND,
     )
 
 
-@router.get('/auth/login/google/callback/<path:target>')
+@router.get('/auth/login/google/callback/{target:path}')
 async def login_google_callback(
     target,
     request: starlette.requests.Request,
@@ -73,8 +81,8 @@ async def login_google_callback(
     client = oauthlib.oauth2.WebApplicationClient(Config.GOOGLE_CLIENT_ID)
     token_url, headers, body = client.prepare_token_request(
         token_endpoint,
-        authorization_response=request.url,
-        redirect_url=request.base_url,
+        authorization_response=f'{get_redirect_uri(target)}?code={code_str}',
+        redirect_url=get_redirect_uri(target),
         code=code_str,
     )
     try:
@@ -96,8 +104,9 @@ async def login_google_callback(
 
     try:
         client.parse_request_body_response(token_response.text)
-    except Exception as e:
-        return util.redirect(target, error=f'Login unsuccessful: {e}')
+    except Exception:
+        log.error(f'Login unsuccessful: {token_response.text}', exc_info=True)
+        return util.redirect(target, error=f'Login unsuccessful')
 
     userinfo_endpoint = google_provider_cfg['userinfo_endpoint']
     uri, headers, body = client.add_token(userinfo_endpoint)
@@ -110,10 +119,9 @@ async def login_google_callback(
 
     try:
         user_dict = userinfo_response.json()
-    except requests.JSONDecodeError as e:
-        return util.redirect(
-            target, error=f'Login unsuccessful: {e}: {userinfo_response.text}'
-        )
+    except requests.JSONDecodeError:
+        log.error(f'Login unsuccessful: {userinfo_response.text}', exc_info=True)
+        return util.redirect(target, error=f'Login unsuccessful')
 
     if not user_dict.get('email_verified'):
         return util.redirect(target, error='Login unsuccessful: Email not verified')
@@ -156,6 +164,10 @@ async def login_google_callback(
     )
 
 
+def get_redirect_uri(target):
+    return f'{Config.CALLBACK_BASE_URL}/google/callback/{target}'
+
+
 def get_google_provider_cfg():
     try:
         discovery_response = requests.get(Config.GOOGLE_DISCOVERY_URL)
@@ -175,7 +187,6 @@ def get_google_provider_cfg():
 
 @router.get('/auth/revoke/google')
 async def revoke_google():
-
     target = request.query_params.get('target')
     uid = request.query_params.get('uid')
     idp_token = request.query_params.get('idp_token')

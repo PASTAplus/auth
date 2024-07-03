@@ -39,7 +39,7 @@ async def login_github(
     )
 
 
-@router.get('/auth/login/github/callback/<path:target>')
+@router.get('/auth/login/github/callback/{target:path}')
 async def login_github_callback(
     target,
     request: starlette.requests.Request,
