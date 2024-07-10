@@ -58,9 +58,9 @@ def db_session(db_engine):
 def user_db(db_session):
     return webapp.user_db.UserDb(db_session)
 
-
-@pytest.fixture
-def client():
-    with webapp.main.app.test_client() as client:
-        with webapp.main.app.app_context():
-            yield client
+#
+# @pytest.fixture
+# def client():
+#     with webapp.main.app.test_client() as client:
+#         with webapp.main.app.app_context():
+#             yield client

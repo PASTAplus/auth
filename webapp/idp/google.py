@@ -132,9 +132,8 @@ async def login_google_callback(
     util.log_dict(log.debug, 'user_dict', user_dict)
     log.debug('-' * 80)
 
-    uid = user_dict['sub']
-    # uid = user_dict['email']
-    # picture = user_dict['picture']
+    # TODO: Move from email to sub when clients are ready.
+    uid = user_dict['email']
     cname = f'{user_dict["given_name"]} {user_dict["family_name"]}'
     groups = Config.AUTHENTICATED
 
