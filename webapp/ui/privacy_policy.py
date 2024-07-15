@@ -46,6 +46,7 @@ async def accept_get(request: starlette.requests.Request):
 @router.post('/auth/accept')
 async def accept_post(
     request: starlette.requests.Request,
+    udb: user_db.UserDb = fastapi.Depends(user_db.udb),
 ):
     """Require the user to accept the privacy policy.
 
@@ -73,8 +74,8 @@ async def accept_post(
 
     return util.redirect(
         target,
-        token=None, #udb.get_token(uid=uid),
-        cname=None, #udb.get_cname(uid=uid),
+        token=udb.get_token(uid=uid),
+        cname=udb.get_common_name(urid=urid),
         idp=form.get('idp'),
         idp_token=form.get('idp_token'),
     )

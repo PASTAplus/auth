@@ -68,6 +68,7 @@ async def login_google(
 async def login_google_callback(
     target,
     request: starlette.requests.Request,
+    udb: user_db.UserDb = fastapi.Depends(user_db.udb),
 ):
     log.debug(f'login_google_callback() target="{target}"')
 
@@ -140,11 +141,28 @@ async def login_google_callback(
     pasta_token = pasta_token_.make_pasta_token(uid=uid, groups=groups)
 
     # Update DB
-    udb = user_db.UserDb()
-    udb.set_user(uid=uid, token=pasta_token, cname=cname)
+
+    identity = udb.get_identity(idp='google', uid=uid)
+    if identity is None:
+        urid = udb.get_new_urid()
+        udb.create_profile(
+            urid=urid,
+            given_name=user_dict['given_name'],
+            family_name=user_dict['family_name'],
+        )
+        udb.create_identity(
+            urid=urid,
+            idp='google',
+            uid=uid,
+            email=uid,
+        )
+    else:
+        urid = identity.urid
+
+    udb.set_token(urid=urid, token=pasta_token)
 
     # Redirect to privacy policy accept page if user hasn't accepted it yet
-    if not udb.is_privacy_policy_accepted(uid=uid):
+    if not udb.is_privacy_policy_accepted(urid=urid):
         return util.redirect(
             '/auth/accept',
             uid=uid,

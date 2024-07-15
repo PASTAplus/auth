@@ -5,6 +5,8 @@ import daiquiri
 import pytest
 import sqlalchemy
 import sqlalchemy.orm
+import sqlalchemy.exc
+import warnings
 
 import webapp.main
 import webapp.user_db
@@ -58,9 +60,18 @@ def db_session(db_engine):
 def user_db(db_session):
     return webapp.user_db.UserDb(db_session)
 
+
 #
 # @pytest.fixture
 # def client():
 #     with webapp.main.app.test_client() as client:
 #         with webapp.main.app.app_context():
 #             yield client
+
+@pytest.fixture(autouse=True)
+def disable_warnings():
+    """Disable: SAWarning: transaction already deassociated from connection"""
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=sqlalchemy.exc.SAWarning)
+        yield
+
