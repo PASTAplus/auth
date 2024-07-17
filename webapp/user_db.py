@@ -246,7 +246,9 @@ class UserDb:
         return self.get_profile(urid).privacy_policy_accepted
 
     def set_privacy_policy_accepted(self, urid: str):
-        self.get_profile(urid).privacy_policy_accepted = True
+        profile_row = self.get_profile(urid)
+        profile_row.privacy_policy_accepted = True
+        profile_row.privacy_policy_accepted_date = datetime.datetime.now()
         self.session.commit()
 
     #

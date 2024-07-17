@@ -104,6 +104,7 @@ async def login_google_callback(
         return util.redirect(target, error='Login unsuccessful')
 
     try:
+        # This also checks for errors. For IdPs where we don't use the
         client.parse_request_body_response(token_response.text)
     except Exception:
         log.error(f'Login unsuccessful: {token_response.text}', exc_info=True)

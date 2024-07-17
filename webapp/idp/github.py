@@ -61,8 +61,6 @@ async def login_github_callback(
     token_url, headers, body = client.prepare_token_request(
         Config.GITHUB_TOKEN_ENDPOINT,
         authorization_response=f'{util.get_redirect_uri("github", target)}?code={code_str}',
-        #authorization_response=request.url,
-        # redirect_url=request.base_url,
         code=code_str,
     )
 
@@ -83,6 +81,10 @@ async def login_github_callback(
         token_dict = token_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {token_response.text}', exc_info=True)
+        return util.redirect(target, error=f'Login unsuccessful')
+
+    if 'error' in token_dict:
+        log.error(f'Login unsuccessful: {token_dict["error"]}', exc_info=True)
         return util.redirect(target, error=f'Login unsuccessful')
 
     access_token = token_dict['access_token']

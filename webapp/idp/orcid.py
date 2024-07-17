@@ -94,28 +94,43 @@ async def login_orcid_callback(
 
     pasta_token = pasta_token_.make_pasta_token(uid=uid, groups=Config.AUTHENTICATED)
 
+    given_name, family_name = (
+        cname.split(' ', 1) if ' ' in cname else (cname, '')
+    )
+
     # Update DB
-    udb.set_user(uid=uid, token=pasta_token, cname=cname)
+    identity_row = udb.create_or_update_profile_and_identity(
+        given_name=given_name,
+        family_name=family_name,
+        idp_name='orcid',
+        uid=uid,
+        email=token_dict.get('email'),
+        pasta_token=pasta_token,
+    )
 
     # Redirect to privacy policy accept page if user hasn't accepted it yet
-    if not udb.is_privacy_policy_accepted(uid=uid):
+    if not identity_row.profile.privacy_policy_accepted:
         return util.redirect(
             '/auth/accept',
-            uid=uid,
             target=target,
-            idp_name='orcid',
+            pasta_token=identity_row.pasta_token,
+            full_name=identity_row.profile.full_name,
+            email=identity_row.profile.email,
+            uid=identity_row.uid,
+            idp_name=identity_row.idp_name,
             idp_token=token_dict['access_token'],
         )
 
     # Finally, redirect to the target URL with the authentication token
-    return util.redirect(
-        target,
-        token=pasta_token,
-        cname=cname,
-        idp_name='orcid',
+    return util.redirect_target(
+        target=target,
+        pasta_token=identity_row.pasta_token,
+        full_name=identity_row.profile.full_name,
+        email=identity_row.profile.email,
+        uid=identity_row.uid,
+        idp_name=identity_row.idp_name,
         idp_token=token_dict['access_token'],
     )
-
 
 #
 # Revoke application authorization
