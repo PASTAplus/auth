@@ -118,9 +118,7 @@ async def login_github_callback(
 
     pasta_token = pasta_token_.make_pasta_token(uid=uid, groups=Config.AUTHENTICATED)
 
-    given_name, family_name = (
-        full_name.split(' ', 1) if ' ' in full_name else (full_name, '')
-    )
+    given_name, family_name = await util.split_full_name(full_name)
 
     # Update DB
     identity_row = udb.create_or_update_profile_and_identity(
@@ -128,7 +126,7 @@ async def login_github_callback(
         family_name=family_name,
         idp_name='github',
         uid=uid,
-        email=user_dict.get('email'),  # TODO: Check if this is correct
+        email=user_dict.get('email'),
         pasta_token=pasta_token,
     )
 
@@ -138,6 +136,7 @@ async def login_github_callback(
             '/auth/accept',
             target=target,
             pasta_token=identity_row.pasta_token,
+            urid=identity_row.profile.urid,
             full_name=identity_row.profile.full_name,
             email=identity_row.profile.email,
             uid=identity_row.uid,
@@ -149,6 +148,7 @@ async def login_github_callback(
     return util.redirect_target(
         target=target,
         pasta_token=identity_row.pasta_token,
+        urid=identity_row.profile.urid,
         full_name=identity_row.profile.full_name,
         email=identity_row.profile.email,
         uid=identity_row.uid,

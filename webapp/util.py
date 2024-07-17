@@ -1,4 +1,3 @@
-import fastapi
 import typing
 import urllib.parse
 import starlette.responses
@@ -31,11 +30,12 @@ def redirect(base_url: str, **kwargs):
 def redirect_target(
     target: str,
     pasta_token: str,
+    urid: str,
     full_name: str,
     email: str,
     uid: str,
     idp_name: str,
-    idp_token: str,
+    idp_token: str | None,
 ):
     """Create a Flask response that redirects to the final target specified by the
     client.
@@ -49,6 +49,7 @@ def redirect_target(
     return redirect(
         target,
         token=pasta_token,
+        urid=urid,
         cname=full_name,
         email=email,
         uid=uid,
@@ -70,3 +71,11 @@ def log_dict(logger: typing.Callable, msg: str, d: dict):
 
 def get_redirect_uri(idp_name, target):
     return f'{Config.CALLBACK_BASE_URL}/{idp_name}/callback/{target}'
+
+
+async def split_full_name(full_name: str) -> typing.Tuple[str, str]:
+    """Split a full name into given name and family name.
+
+    :returns: A tuple of given_name, family_name
+    """
+    return full_name.split(' ', 1) if ' ' in full_name else full_name, ''

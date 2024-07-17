@@ -94,9 +94,7 @@ async def login_orcid_callback(
 
     pasta_token = pasta_token_.make_pasta_token(uid=uid, groups=Config.AUTHENTICATED)
 
-    given_name, family_name = (
-        cname.split(' ', 1) if ' ' in cname else (cname, '')
-    )
+    given_name, family_name = await util.split_full_name(cname)
 
     # Update DB
     identity_row = udb.create_or_update_profile_and_identity(
@@ -114,6 +112,7 @@ async def login_orcid_callback(
             '/auth/accept',
             target=target,
             pasta_token=identity_row.pasta_token,
+            urid=identity_row.profile.urid,
             full_name=identity_row.profile.full_name,
             email=identity_row.profile.email,
             uid=identity_row.uid,
@@ -125,12 +124,14 @@ async def login_orcid_callback(
     return util.redirect_target(
         target=target,
         pasta_token=identity_row.pasta_token,
+        urid=identity_row.profile.urid,
         full_name=identity_row.profile.full_name,
         email=identity_row.profile.email,
         uid=identity_row.uid,
         idp_name=identity_row.idp_name,
         idp_token=token_dict['access_token'],
     )
+
 
 #
 # Revoke application authorization

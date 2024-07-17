@@ -128,6 +128,7 @@ async def login_microsoft_callback(
             '/auth/accept',
             target=target,
             pasta_token=identity_row.pasta_token,
+            urid=identity_row.profile.urid,
             full_name=identity_row.profile.full_name,
             email=identity_row.profile.email,
             uid=identity_row.uid,
@@ -139,6 +140,7 @@ async def login_microsoft_callback(
     return util.redirect_target(
         target=target,
         pasta_token=identity_row.pasta_token,
+        urid=identity_row.profile.urid,
         full_name=identity_row.profile.full_name,
         email=identity_row.profile.email,
         uid=identity_row.uid,

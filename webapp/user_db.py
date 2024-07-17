@@ -17,7 +17,9 @@ log = daiquiri.getLogger(__name__)
 # Tables
 #
 
-Base = sqlalchemy.orm.declarative_base()
+
+mapper_registry = sqlalchemy.orm.registry()
+Base = mapper_registry.generate_base()
 
 
 class Profile(Base):
@@ -41,11 +43,16 @@ class Profile(Base):
     privacy_policy_accepted_date = sqlalchemy.Column(
         sqlalchemy.DateTime(), nullable=True
     )
-    identities = sqlalchemy.orm.relationship('Identity', back_populates='profile')
+    # cascade_backrefs=False:
+    # https://sqlalche.me/e/14/s9r1
+    # https://sqlalche.me/e/b8d9
+    identities = sqlalchemy.orm.relationship(
+        'Identity', back_populates='profile', cascade_backrefs=False
+    )
+
     @property
     def full_name(self):
         return f'{self.given_name} {self.family_name}'
-
 
 
 class Identity(Base):
@@ -107,6 +114,7 @@ class Identity(Base):
         ),
     )
 
+
 #
 # DB setup
 #
@@ -124,7 +132,7 @@ engine = sqlalchemy.create_engine(
 )
 
 # TODO: Add some sort of switch for this
-#Base.metadata.drop_all(engine)
+# Base.metadata.drop_all(engine)
 
 # Create the tables in the database
 Base.metadata.create_all(engine)
@@ -177,7 +185,7 @@ class UserDb:
         uid: str,
         # email is always updated in the identity but only set in the profile if a new
         # profile is created.
-        email: str,
+        email: str | None,
         # The pasta token is always updated after successful authentication with the IdP.
         pasta_token: str,
     ) -> Identity:
@@ -204,15 +212,15 @@ class UserDb:
             assert identity_row.profile is not None
             assert identity_row.idp_name == idp_name
             assert identity_row.uid == uid
-            # We do not update the profile if it exists, since the profile belongs to the
-            # user, and they may update their profile with their own information.
+            # We do not update the profile if it exists, since the profile belongs to
+            # the user, and they may update their profile with their own information.
             #
-            # TODO: Before we provide a way for users to update their profile, we need to
-            # make sure ezEML, and other clients, have moved to using the URID as the
+            # TODO: Before we provide a way for users to update their profile, we need
+            # to make sure ezEML, and other clients, have moved to using the URID as the
             # primary key for the user.
             #
-            # We update the email address in the identity row.
-            # profile if the profile is new. So if the user has changed their email
+            # We always update the email address in the identity row, but only update
+            # the profile if the profile is new. So if the user has changed their email
             # address with the IdP, the new email address will be stored in the identity
             # row, but the profile will retain the original email address.
             identity_row.email = email
@@ -255,13 +263,6 @@ class UserDb:
     # Identity
     #
 
-    # def get_or_create_identity(self, idp_name: str, uid: str, email: str = None):
-    #     identity = self.get_identity(idp_name, uid)
-    #     if identity is None:
-    #         urid = self.get_new_urid()
-    #         identity = self.create_identity(urid, idp_name, uid, email)
-    #     return identity.urid
-
     def create_identity(
         self,
         profile,
@@ -295,47 +296,4 @@ class UserDb:
 
     def get_all_profiles(self):
         query = self.session.query(Profile)
-        return query.all()
-
-    # def get_all_uids(self):
-    #     query = self.session.query(Identity.uid)
-    #     uids = [row[0] for row in query.all()]
-    #     return uids
-    #
-    # def get_all_profiles(self):
-    #     query = self.session.query(Profile.name)
-    #     return [row[0] for row in query.all()]
-
-    # def set_cname(self, urid: str, cname: str):
-    #     query = self.session.query(Profile)
-    #     profile = query.filter(Profile.urid == urid).first()
-    #     profile.name = cname
-    #     self.session.commit()
-
-    # def set_email(self, urid: str, email: str):
-    #     query = self.session.query(Identity)
-    #     identity = query.filter(Identity.urid == urid).first()
-    #     identity.email = email
-    #     self.session.commit()
-    #
-    # def set_token(self, urid: str, token: str):
-    #     query = self.session.query(Identity)
-    #     identity = query.filter(Identity.urid == urid).first()
-    #     identity.token = token
-    #     self.session.commit()
-    #
-    # def get_token(self, urid: str) -> str:
-    #     query = self.session.query(Identity)
-    #     identity = query.filter(Identity.urid == urid).first()
-    #     return identity.token
-
-    # def set_user(self, urid: str, token: str, cname: str):
-    #     if not self.has_profile(urid):
-    #         self.create_profile()
-    #     self.set_token(urid, token)
-    #     self.set_cname(urid, cname)
-    #
-    # def get_user(self, urid: str):
-    #     query = self.session.query(Identity)
-    #     identity = query.filter(Identity.urid == urid).first()
-    #     return identity
+        return query.order_by(sqlalchemy.asc(Profile.id)).all()

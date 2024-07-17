@@ -32,6 +32,7 @@ async def accept_get(request: starlette.requests.Request):
             'request': request,
             'target': request.query_params.get('target'),
             'pasta_token': request.query_params.get('pasta_token'),
+            'urid': request.query_params.get('urid'),
             'full_name': request.query_params.get('full_name'),
             'email': request.query_params.get('email'),
             'uid': request.query_params.get('uid'),
@@ -74,6 +75,7 @@ async def accept_post(
     return util.redirect_target(
         target=form.get('target'),
         pasta_token=form.get('pasta_token'),
+        urid=form.get('urid'),
         full_name=form.get('full_name'),
         email=form.get('email'),
         uid=form.get('uid'),
