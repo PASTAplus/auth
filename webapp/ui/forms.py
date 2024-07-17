@@ -14,5 +14,5 @@ class AcceptForm:
     # target = HiddenField()
     # uid = HiddenField()
     # submit = SubmitField('Submit')
-    # idp = HiddenField()
+    # idp_name = HiddenField()
     # idp_token = HiddenField()

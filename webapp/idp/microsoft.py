@@ -119,7 +119,7 @@ async def login_microsoft_callback(
             '/auth/accept',
             uid=uid,
             target=target,
-            idp='microsoft',
+            idp_name='microsoft',
             idp_token=token_dict['access_token'],
         )
 
@@ -128,7 +128,7 @@ async def login_microsoft_callback(
         target,
         token=pasta_token,
         cname=cname,
-        idp='microsoft',
+        idp_name='microsoft',
         idp_token=token_dict['access_token'],
     )
 

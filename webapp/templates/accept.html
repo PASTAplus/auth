@@ -27,10 +27,15 @@
   <div class="row">
     <div class="col-md-4">
       <form method="POST" action="/auth/accept" class="form" role="form">
-        <input type="hidden" name="uid" value="{{ uid }}">
-        <input type="hidden" name="target" value="{{ target }}">
-        <input type="hidden" name="idp" value="{{ idp }}">
-        <input type="hidden" name="idp_token" value="{{ idp_token }}">
+
+        <input type='hidden' name='target' value='{{ target }}'>
+        <input type='hidden' name='pasta_token' value='{{ pasta_token }}'>
+        <input type='hidden' name='full_name' value='{{ full_name }}'>
+        <input type='hidden' name='email' value='{{ email }}'>
+        <input type='hidden' name='uid' value='{{ uid }}'>
+        <input type='hidden' name='idp_name' value='{{ idp_name }}'>
+        <input type='hidden' name='idp_token' value='{{ idp_token }}'>
+
         <span>
           <button type="button" class="btn btn-secondary" name="action" value="cancel">Cancel</button>
           <span>&nbsp;</span>

@@ -49,7 +49,7 @@ async def login_google(
     # noinspection PyNoneFunctionAssignment
     request_uri = client.prepare_request_uri(
         authorization_endpoint,
-        redirect_uri=get_redirect_uri(target),
+        redirect_uri=util.get_redirect_uri('google', target),
         scope=['openid', 'email', 'profile'],
         prompt='login',
     )
@@ -82,8 +82,8 @@ async def login_google_callback(
     client = oauthlib.oauth2.WebApplicationClient(Config.GOOGLE_CLIENT_ID)
     token_url, headers, body = client.prepare_token_request(
         token_endpoint,
-        authorization_response=f'{get_redirect_uri(target)}?code={code_str}',
-        redirect_url=get_redirect_uri(target),
+        authorization_response=f'{util.get_redirect_uri("google", target)}?code={code_str}',
+        redirect_url=util.get_redirect_uri('google', target),
         code=code_str,
     )
     try:
@@ -135,54 +135,43 @@ async def login_google_callback(
 
     # TODO: Move from email to sub when clients are ready.
     uid = user_dict['email']
-    cname = f'{user_dict["given_name"]} {user_dict["family_name"]}'
     groups = Config.AUTHENTICATED
 
     pasta_token = pasta_token_.make_pasta_token(uid=uid, groups=groups)
 
     # Update DB
-
-    identity = udb.get_identity(idp='google', uid=uid)
-    if identity is None:
-        urid = udb.get_new_urid()
-        udb.create_profile(
-            urid=urid,
-            given_name=user_dict['given_name'],
-            family_name=user_dict['family_name'],
-        )
-        udb.create_identity(
-            urid=urid,
-            idp='google',
-            uid=uid,
-            email=uid,
-        )
-    else:
-        urid = identity.urid
-
-    udb.set_token(urid=urid, token=pasta_token)
+    identity_row = udb.create_or_update_profile_and_identity(
+        given_name=user_dict['given_name'],
+        family_name=user_dict['family_name'],
+        idp_name='google',
+        uid=user_dict['sub'],
+        email=user_dict['email'],
+        pasta_token=pasta_token,
+    )
 
     # Redirect to privacy policy accept page if user hasn't accepted it yet
-    if not udb.is_privacy_policy_accepted(urid=urid):
+    if not identity_row.profile.privacy_policy_accepted:
         return util.redirect(
             '/auth/accept',
-            uid=uid,
             target=target,
-            idp='google',
+            pasta_token=identity_row.pasta_token,
+            full_name=identity_row.profile.full_name,
+            email=identity_row.profile.email,
+            uid=identity_row.uid,
+            idp_name=identity_row.idp_name,
             idp_token=token_dict['access_token'],
         )
 
     # Finally, redirect to the target URL with the authentication token
-    return util.redirect(
-        target,
-        token=pasta_token,
-        cname=cname,
-        idp='google',
+    return util.redirect_target(
+        target=target,
+        pasta_token=identity_row.pasta_token,
+        full_name=identity_row.profile.full_name,
+        email=identity_row.profile.email,
+        uid=identity_row.uid,
+        idp_name=identity_row.idp_name,
         idp_token=token_dict['access_token'],
     )
-
-
-def get_redirect_uri(target):
-    return f'{Config.CALLBACK_BASE_URL}/google/callback/{target}'
 
 
 def get_google_provider_cfg():

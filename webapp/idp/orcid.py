@@ -103,7 +103,7 @@ async def login_orcid_callback(
             '/auth/accept',
             uid=uid,
             target=target,
-            idp='orcid',
+            idp_name='orcid',
             idp_token=token_dict['access_token'],
         )
 
@@ -112,7 +112,7 @@ async def login_orcid_callback(
         target,
         token=pasta_token,
         cname=cname,
-        idp='orcid',
+        idp_name='orcid',
         idp_token=token_dict['access_token'],
     )
 

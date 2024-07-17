@@ -32,7 +32,7 @@ async def login_github(
     return util.redirect(
         Config.GITHUB_AUTH_ENDPOINT,
         client_id=get_github_client_info(target=target)[0],
-        redirect_uri=f'{Config.CALLBACK_BASE_URL}/github/callback/{target}',
+        redirect_uri=util.get_redirect_uri('github', target),
         scope='read:user',
         # prompt='consent',
         prompt='login',
@@ -47,8 +47,8 @@ async def login_github_callback(
 ):
     log.debug(f'login_github_callback() target="{target}"')
 
-    if is_error():
-        log.error(get_error_message())
+    if is_error(request):
+        log.error(get_error_message(request))
         return util.redirect(target, error='Login failed')
 
     code_str = request.query_params.get('code')
@@ -60,7 +60,8 @@ async def login_github_callback(
 
     token_url, headers, body = client.prepare_token_request(
         Config.GITHUB_TOKEN_ENDPOINT,
-        authorization_response=request.url,
+        authorization_response=f'{util.get_redirect_uri("github", target)}?code={code_str}',
+        #authorization_response=request.url,
         # redirect_url=request.base_url,
         code=code_str,
     )
@@ -107,34 +108,50 @@ async def login_github_callback(
 
     uid = user_dict['html_url']
     if 'name' in user_dict and user_dict['name'] is not None:
-        cname = user_dict['name']
+        full_name = user_dict['name']
     elif 'login' in user_dict and user_dict['login'] is not None:
-        cname = user_dict['login']
+        full_name = user_dict['login']
     else:
-        cname = uid
+        full_name = uid
 
     pasta_token = pasta_token_.make_pasta_token(uid=uid, groups=Config.AUTHENTICATED)
 
+    given_name, family_name = (
+        full_name.split(' ', 1) if ' ' in full_name else (full_name, '')
+    )
+
     # Update DB
-    udb.set_user(uid=uid, token=pasta_token, cname=cname)
+    identity_row = udb.create_or_update_profile_and_identity(
+        given_name=given_name,
+        family_name=family_name,
+        idp_name='github',
+        uid=uid,
+        email=user_dict.get('email'),  # TODO: Check if this is correct
+        pasta_token=pasta_token,
+    )
 
     # Redirect to privacy policy accept page if user hasn't accepted it yet
-    if not udb.is_privacy_policy_accepted(uid=uid):
+    if not identity_row.profile.privacy_policy_accepted:
         return util.redirect(
             '/auth/accept',
-            uid=uid,
             target=target,
-            idp='github',
-            idp_token=access_token,
+            pasta_token=identity_row.pasta_token,
+            full_name=identity_row.profile.full_name,
+            email=identity_row.profile.email,
+            uid=identity_row.uid,
+            idp_name=identity_row.idp_name,
+            idp_token=token_dict['access_token'],
         )
 
     # Finally, redirect to the target URL with the authentication token
-    return util.redirect(
-        target,
-        token=pasta_token,
-        cname=cname,
-        idp='github',
-        idp_token=access_token,
+    return util.redirect_target(
+        target=target,
+        pasta_token=identity_row.pasta_token,
+        full_name=identity_row.profile.full_name,
+        email=identity_row.profile.email,
+        uid=identity_row.uid,
+        idp_name=identity_row.idp_name,
+        idp_token=token_dict['access_token'],
     )
 
 
@@ -189,13 +206,13 @@ def revoke_app_token(target, idp_token):
 
 
 def is_error(
-    request: starlette.requests.Request = fastapi.Depends(starlette.requests.Request),
+    request: starlette.requests.Request,
 ) -> bool:
     return request.query_params.get('error') is not None
 
 
 def get_error_message(
-    request: starlette.requests.Request = fastapi.Depends(starlette.requests.Request),
+    request: starlette.requests.Request,
 ) -> str:
     error_title = request.query_params.get('error', 'Unknown error')
     error_description = request.query_params.get('error_description', 'No description')

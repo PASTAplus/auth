@@ -26,18 +26,16 @@ async def accept_get(request: starlette.requests.Request):
 
     log.debug(f'Privacy policy accept form (GET): uid="{uid}" target="{target}"')
 
-    # udb = user_db.UserDb()
-    #
-    # if udb.get_user(uid) is None:
-    #     return f'Unknown uid: {uid}', 400
-
     return templates.TemplateResponse(
         'accept.html',
         {
             'request': request,
-            'uid': uid,
-            'target': target,
-            'idp': request.query_params.get('idp'),
+            'target': request.query_params.get('target'),
+            'pasta_token': request.query_params.get('pasta_token'),
+            'full_name': request.query_params.get('full_name'),
+            'email': request.query_params.get('email'),
+            'uid': request.query_params.get('uid'),
+            'idp_name': request.query_params.get('idp_name'),
             'idp_token': request.query_params.get('idp_token'),
         },
     )
@@ -67,15 +65,18 @@ async def accept_post(
             error='Login unsuccessful: Privacy policy not accepted',
         )
 
+    udb.set_privacy_policy_accepted(
+        udb.get_identity(form.get('idp_name'), uid=uid).profile.urid
+    )
+
     log.debug(f'Privacy policy accepted: uid="{uid}" target="{target}"')
 
-    # udb = UserDb()
-    # udb.set_accepted(uid=uid)
-
-    return util.redirect(
-        target,
-        token=udb.get_token(uid=uid),
-        cname=udb.get_common_name(urid=urid),
-        idp=form.get('idp'),
+    return util.redirect_target(
+        target=form.get('target'),
+        pasta_token=form.get('pasta_token'),
+        full_name=form.get('full_name'),
+        email=form.get('email'),
+        uid=form.get('uid'),
+        idp_name=form.get('idp_name'),
         idp_token=form.get('idp_token'),
     )

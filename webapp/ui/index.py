@@ -54,7 +54,7 @@ async def test(request: starlette.requests.Request):
             'form': ui.forms.AcceptForm(),
             "uid": 'test',
             "target": 'test',
-            "idp": 'test',
+            "idp_name": 'test',
             "idp_token": 'test',
         },
     )
