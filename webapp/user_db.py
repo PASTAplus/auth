@@ -293,6 +293,10 @@ class UserDb:
     def get_new_urid():
         return f'PASTA-{uuid.uuid4().hex}'
 
+    def get_all_profiles(self):
+        query = self.session.query(Profile)
+        return query.all()
+
     # def get_all_uids(self):
     #     query = self.session.query(Identity.uid)
     #     uids = [row[0] for row in query.all()]

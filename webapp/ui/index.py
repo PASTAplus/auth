@@ -22,7 +22,7 @@ async def index(
     udb: user_db.UserDb = fastapi.Depends(user_db.udb),
 ):
     """The index page."""
-    # profile_list = udb.get_all_profiles()
+    profile_list = udb.get_all_profiles()
     return templates.TemplateResponse(
         'index.html',
         {'request': request, 'profile_list': profile_list},

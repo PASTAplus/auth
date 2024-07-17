@@ -21,3 +21,9 @@ h1 {
     padding-top: 1rem;
 }
 
+table td, table th {
+    white-space: nowrap;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
