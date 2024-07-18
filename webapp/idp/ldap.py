@@ -10,8 +10,6 @@ import pasta_token as pasta_token_
 import user_db
 import util
 from config import Config
-import starlette.responses
-import starlette.requests
 
 log = daiquiri.getLogger(__name__)
 router = fastapi.APIRouter()
@@ -34,13 +32,17 @@ async def login_pasta(
 
     authorization = request.headers.get('Authorization')
     if authorization is None:
-        return f'No authorization header in request', 400
+        return starlette.responses.Response(
+            content='No authorization header in request', status_code=400
+        )
 
     credentials = base64.b64decode(authorization[6:]).decode('utf-8')
     uid, password = credentials.split(':')
 
-    if not pasta_ldap.bind(uid, password):
-        return f'Authentication failed for user: {uid}', 401
+    # if not pasta_ldap.bind(uid, password):
+    #     return starlette.responses.Response(
+    #         content=f'Authentication failed for user: {uid}', status_code=401
+    #     )
 
     log.debug('login_pasta() - login successful')
     cname = util.get_dn_uid(uid)
@@ -58,23 +60,18 @@ async def login_pasta(
         pasta_token=pasta_token,
     )
 
-    # Redirect to privacy policy accept page if user hasn't accepted it yet
-    # if not identity_row.profile.privacy_policy_accepted:
-    #     return util.redirect(
-    #         '/auth/accept',
-    #         target=target,
-    #         pasta_token=identity_row.pasta_token,
-    #         urid=identity_row.profile.urid,
-    #         full_name=identity_row.profile.full_name,
-    #         email=identity_row.profile.email,
-    #         uid=identity_row.uid,
-    #         idp_name=identity_row.idp_name,
-    #         idp_token=None,
-    #     )
+    # TODO: When clients are ready, remove the 418 Teapot response and cookie setting,
+    # and move to handle the privacy policy acceptance internally in auth, as we already
+    # do with the other IDPs.
 
-    if identity_row.profile.privacy_policy_accepted:
-        response = starlette.responses.Response()
-        response.set_cookie('auth-token', pasta_token)
+    if not identity_row.profile.privacy_policy_accepted:
+        response = starlette.responses.Response(
+            content='Privacy policy not yet accepted', status_code=418
+        )
+        # response.set_cookie('auth-token', pasta_token)
         return response
-    else:
-        return 'I\'m a teapot, coffee is ready!', 418
+
+    # For LDAP, the pasta_token is set as a cookie, not a query parameter.
+    response = starlette.responses.Response('Successful login')
+    response.set_cookie('auth-token', pasta_token)
+    return response

@@ -2,15 +2,14 @@ import daiquiri
 import fastapi
 import oauthlib.oauth2
 import requests
+import starlette.requests
+import starlette.responses
+import starlette.status
 
 import pasta_token as pasta_token_
 import user_db
 import util
 from config import Config
-import starlette.responses
-import starlette.requests
-import starlette.status
-
 
 log = daiquiri.getLogger(__name__)
 router = fastapi.APIRouter()

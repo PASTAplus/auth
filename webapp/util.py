@@ -78,4 +78,4 @@ async def split_full_name(full_name: str) -> typing.Tuple[str, str]:
 
     :returns: A tuple of given_name, family_name
     """
-    return full_name.split(' ', 1) if ' ' in full_name else full_name, ''
+    return full_name.split(' ', 1) if ' ' in full_name else (full_name, '')

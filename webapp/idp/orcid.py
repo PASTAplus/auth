@@ -32,7 +32,7 @@ async def login_orcid(
         client_id=Config.ORCID_CLIENT_ID,
         response_type='code',
         scope='/authenticate openid',
-        redirect_uri=f'{Config.CALLBACK_BASE_URL}/orcid/callback/{util.urlenc(target)}',
+        redirect_uri=util.get_redirect_uri('orcid', util.urlenc(target)),
         prompt='login',
     )
 
@@ -67,7 +67,6 @@ async def login_orcid_callback(
                 client_secret=Config.ORCID_CLIENT_SECRET,
                 grant_type='authorization_code',
                 code=code_str,
-                # redirect_uri=request.base_url,
             ),
         )
     except requests.RequestException:

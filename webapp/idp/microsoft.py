@@ -5,6 +5,7 @@ import fastapi
 import jwt
 import requests
 import starlette.requests
+import starlette.responses
 
 import pasta_token as pasta_token_
 import user_db
@@ -32,7 +33,7 @@ async def login_microsoft(
         Config.MICROSOFT_AUTH_ENDPOINT,
         client_id=Config.MICROSOFT_CLIENT_ID,
         response_type='code',
-        redirect_uri=f'{Config.CALLBACK_BASE_URL}/microsoft/callback/{target}',
+        redirect_uri=util.get_redirect_uri('microsoft', target),
         scope='openid profile email https://graph.microsoft.com/User.Read',
         response_mode='query',
         prompt='select_account',
@@ -196,8 +197,7 @@ async def logout_microsoft(
     return util.redirect(
         Config.MICROSOFT_LOGOUT_ENDPOINT,
         client_id=Config.MICROSOFT_CLIENT_ID,
-        post_logout_redirect_uri=f'{Config.CALLBACK_BASE_URL}/microsoft/callback/{target}',
-        # post_logout_redirect_uri=f'{request.base_url}/callback/{target}',
+        post_logout_redirect_uri=util.get_redirect_uri('microsoft', target),
     )
 
 
@@ -239,4 +239,4 @@ async def logout_microsoft_clear_session(request: starlette.requests.Request):
     iss = issuer (entity that created and signed the token)
     """
     log.debug(f'logout_microsoft_clear_session() args={request.query_params}')
-    return 'OK', 200
+    return starlette.responses.Response(content='OK')

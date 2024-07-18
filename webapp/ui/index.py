@@ -6,7 +6,6 @@ import starlette.requests
 
 from config import Config
 import user_db
-import ui.forms
 
 log = daiquiri.getLogger(__name__)
 
@@ -18,7 +17,6 @@ templates = starlette.templating.Jinja2Templates(Config.HERE_PATH / 'templates')
 @router.get('/')
 async def index(
     request: starlette.requests.Request,
-    # db: sqlalchemy.orm.Session = Depends(user_db.get_db),
     udb: user_db.UserDb = fastapi.Depends(user_db.udb),
 ):
     """The index page."""
@@ -42,19 +40,4 @@ async def identity(request: starlette.requests.Request):
     return templates.TemplateResponse(
         'identity.html',
         {'request': request},
-    )
-
-
-@router.get('/test')
-async def test(request: starlette.requests.Request):
-    return templates.TemplateResponse(
-        'accept.html',
-        {
-            'request': request,
-            'form': ui.forms.AcceptForm(),
-            "uid": 'test',
-            "target": 'test',
-            "idp_name": 'test',
-            "idp_token": 'test',
-        },
     )
