@@ -39,10 +39,10 @@ async def login_pasta(
     credentials = base64.b64decode(authorization[6:]).decode('utf-8')
     uid, password = credentials.split(':')
 
-    # if not pasta_ldap.bind(uid, password):
-    #     return starlette.responses.Response(
-    #         content=f'Authentication failed for user: {uid}', status_code=401
-    #     )
+    if not pasta_ldap.bind(uid, password):
+        return starlette.responses.Response(
+            content=f'Authentication failed for user: {uid}', status_code=401
+        )
 
     log.debug('login_pasta() - login successful')
     cname = util.get_dn_uid(uid)
