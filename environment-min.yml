@@ -8,6 +8,7 @@ dependencies:
   - click
   - daiquiri
   - fastapi
+  - gunicorn
   - ldap3
   - libiconv
   - oauthlib
