@@ -1,0 +1,30 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class identity {
+   profile_id: integer
+   idp_name: varchar
+   uid: varchar
+   email: varchar
+   pasta_token: varchar
+   first_auth: datetime
+   last_auth: datetime
+   id: integer
+}
+
+class profile {
+   urid: varchar
+   given_name: varchar
+   family_name: varchar
+   email: varchar
+   privacy_policy_accepted: boolean
+   privacy_policy_accepted_date: datetime
+   id: integer
+}
+
+identity  --^  profile  : "profile_id:id"
+
+@enduml
