@@ -98,5 +98,6 @@ def make_pasta_token(uid, groups=''):
     token.uid = uid
     token.groups = groups
     private_key = pasta_crypto.import_key(Config.PRIVATE_KEY_PATH)
+    log.debug(f'Creating token: {token.to_string()}')
     auth_token = pasta_crypto.create_auth_token(private_key, token.to_string())
     return auth_token

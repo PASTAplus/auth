@@ -1,10 +1,7 @@
-import daiquiri
+import daiquiri.formatter
 import fastapi
 import fastapi.staticfiles
-
-# import sqlalchemy.orm
 import starlette.requests
-import starlette.responses
 import starlette.responses
 
 import api.refresh_token
@@ -17,16 +14,22 @@ import ui.index
 import ui.privacy_policy
 from config import Config
 
-# daiquiri.setup(
-#     level=Config.LOG_LEVEL,
-#     outputs=(
-#         daiquiri.output.File(HERE_PATH / 'test.log'),
-#         'stdout',
-#     ),
-# )
-# import user_db
+daiquiri.setup(
+    level=Config.LOG_LEVEL,
+    outputs=[
+        # daiquiri.output.Journal(),
+        daiquiri.output.Stream(),
+        daiquiri.output.RotatingFile(
+            filename=Config.HERE_PATH / 'auth.log',
+            max_size_bytes=10 * 1024 ** 2,
+            backup_count=5,
+        ),
+    ]
+)
 
 log = daiquiri.getLogger(__name__)
+
+log.info("Application starting...")
 
 app = fastapi.FastAPI()
 
