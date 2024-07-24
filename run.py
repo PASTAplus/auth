@@ -2,9 +2,8 @@
 
 See wsgi.py for the main entry point for production.
 """
-import pathlib
-
 import daiquiri
+import uvicorn
 
 from webapp.config import Config
 from webapp.main import app
@@ -17,15 +16,10 @@ daiquiri.setup(
     ),
 )
 
-if __name__ == '__main__':
-    app.run(
-        # host='0.0.0.0',
-        host='127.0.0.1',
-        port=5000,
-        debug=True,
-        # ssl_context='adhoc',
-        # ssl_context=(
-        #     pathlib.Path('~/certificates/localhost.crt').expanduser(),
-        #     pathlib.Path('~/certificates/localhost.key').expanduser(),
-        # ),
-    )
+if __name__ == "__main__":
+    uvicorn.run(app,
+                host='127.0.0.1',
+                port=5443,
+                ssl_keyfile=Config.SERVER_KEY,
+                ssl_certfile=Config.SERVER_CERT
+                )

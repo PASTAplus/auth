@@ -8,6 +8,11 @@ class Config(object):
     # Flask app
     SECRET_KEY = 'Flask app secret key'
     DEBUG = False
+    
+    # Local development certificate paths
+    CA_CERT = "/usr/local/share/ca-certificates/mkcert_development_CA_250695153682725515066087792538635994738.crt"
+    SERVER_CERT = "/home/pasta/certificates/localhost+1.pem"
+    SERVER_KEY = "/home/pasta/certificates/localhost+1-key.pem"
 
     # Logging
     LOG_LEVEL = logging.DEBUG
