@@ -5,6 +5,7 @@ import starlette.requests
 import starlette.responses
 
 import api.refresh_token
+import api.ping
 import idp.github
 import idp.google
 import idp.ldap
@@ -70,6 +71,7 @@ for icon_path in [
 
 
 app.include_router(api.refresh_token.router)
+app.include_router(api.ping.router)
 # app.include_router(api.user.router)
 app.include_router(idp.github.router)
 app.include_router(idp.google.router)

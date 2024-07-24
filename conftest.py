@@ -2,6 +2,7 @@ import logging
 import pathlib
 
 import daiquiri
+import fastapi.testclient
 import pytest
 import sqlalchemy
 import sqlalchemy.orm
@@ -11,6 +12,8 @@ import warnings
 import webapp.main
 import webapp.user_db
 from webapp.config import Config
+
+app = fastapi.FastAPI()
 
 HERE_PATH = pathlib.Path(__file__).parent.resolve()
 
@@ -61,12 +64,10 @@ def user_db(db_session):
     return webapp.user_db.UserDb(db_session)
 
 
-#
-# @pytest.fixture
-# def client():
-#     with webapp.main.app.test_client() as client:
-#         with webapp.main.app.app_context():
-#             yield client
+@pytest.fixture
+def client():
+    with fastapi.testclient.TestClient(webapp.main.app) as client:
+        yield client
 
 @pytest.fixture(autouse=True)
 def disable_warnings():
