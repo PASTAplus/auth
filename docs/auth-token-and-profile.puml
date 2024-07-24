@@ -6,12 +6,12 @@ participant DB
 
 title Get PASTA token via OAuth2 IdP, with implicit profile creation
 
-== Client requesting a PASTA token ==
+== Client requests a PASTA token ==
 
 client -> Auth       : GET PASTA token
 client <- Auth       : 307 REDIRECT to IdP
 
-== Client interacting directly with the IdP ==
+== Client interacts directly with IdP ==
 
 client -> IdP        : GET authorization code
 client <- IdP        : 200 OK with login form
@@ -19,25 +19,26 @@ client -> IdP        : POST login form
 client <- IdP        : 307 REDIRECT with authorization code
 client -> Auth       : GET with authorization code
 
-== Login finalized by Auth ==
+== Auth connects to IdP to exchange authorization code for access token ==
 
 Auth -> IdP          : POST authorization code
 Auth <- IdP          : 200 OK with access token
+
+== Auth generates PASTA token, updates DB, creates or updates profile ==
+
 Auth <- Auth         : Generate PASTA token from access token
-
-== Update DB with token, create or update profile ==
-
 Auth -> DB           : Store PASTA token
 Auth -> DB           : Create or update profile
 
-== Accept Privacy Policy (if not already accepted) ==
+== User is prompted to accept the Privacy Policy (if not already accepted) ==
 
 client <- Auth       : 307 REDIRECT to Privacy Policy page
+client -> Auth       : GET Privacy Policy page
 client <- Auth       : 200 OK with Privacy Policy form
 client -> Auth       : POST Privacy Policy form
-client -> DB         : Update profile with Privacy Policy acceptance
+Auth -> DB         : Update profile with Privacy Policy acceptance
 
-== Final redirect to target specified by client ==
+== Client receives final redirect to target specified by the client ==
 
 Auth -> DB           : Retrieve PASTA token and all parameters to send to target
 client <- Auth       : 307 REDIRECT with PASTA token
