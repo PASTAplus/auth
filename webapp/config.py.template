@@ -1,135 +1,126 @@
-""":Mod: config.py
-
-:Synopsis:
-
-:Author:
-    servilla
-
-:Created:
-    5/14/2019
-"""
 import logging
+import pathlib
 
 
 class Config(object):
+    HERE_PATH = pathlib.Path(__file__).parent.resolve()
 
-    # Flask app configuration
-    SECRET_KEY = "SECRET_KEY"
+    # Flask app
+    SECRET_KEY = 'Flask app secret key'
     DEBUG = False
 
-    # Default logging level
-    LEVEL = logging.INFO
+    # Logging
+    LOG_LEVEL = logging.DEBUG
+    LOG_DB_QUERIES = LOG_LEVEL == logging.DEBUG
 
-    # Webapp configuration
-    CLIENT = None
-    RESPONSE = None
-    DOMAINS = {
-        "o=EDI,dc=edirepository,dc=org": "ldap.edirepository.org",
+    # Filesystem paths
+    STATIC_PATH = HERE_PATH / 'static'
+    DB_PATH = (HERE_PATH / '../db.sqlite').resolve()
+    LOG_PATH = HERE_PATH / '../auth.log'
+
+    # PASTA+ authentication token
+    PUBLIC = 'public'
+    SYSTEM = 'https://pasta.edirepository.org/authentication'
+    VETTED = 'vetted*authenticated'
+    AUTHENTICATED = 'authenticated'
+    TTL = 8 * 60 * 60 * 1000  # 8 hours
+
+    # Token signing certificate
+    PUBLIC_KEY_PATH = '/path/to/public_key.crt'
+    PRIVATE_KEY_PATH = '/path/to/private_key.key'
+
+    CALLBACK_BASE_URL = 'https://auth.edirepository.org/auth/login'
+
+    #
+    # Identity Providers
+    #
+
+    # LDAP
+
+    # LDAP service to use for each supported domain
+    LDAP_DOMAIN_DICT = {
+        'o=EDI,dc=edirepository,dc=org': 'ldap.edirepository.org',
     }
-    STATIC = "STATIC IMAGE DIRECTORY PATH"
-    DB = "user_db.sqlite"
 
-    # Portal configuration
-    PORTAL_D = "portal-d.edirepository.org"
-    PORTAL_S = "portal-s.edirepository.org"
-    PORTAL = "portal.edirepository.org"
-    PORTAL_LOCALHOST = "localhost:8080"
+    # GitHub OAuth client
 
-    # ezEML configuration
-    EZEML_D = "ezeml-d.edirepository.org"
-    EZEML_S = "ezeml-s.edirepository.org"
-    EZEML = "ezeml.edirepository.org"
-
-    # Website configuration
-    WEB_D = "web-d.edirepository.org"
-    WEB_X = "web-x.edirepository.org"
-    WEB = "www.edirepository.org"
-    EDI = "edirepository.org"
+    # Client ID and Secret to use for each supported target
+    GITHUB_CLIENT_DICT = {
+        'https://portal.edirepository.org': (
+            'portal-client-id',
+            'portal-client-secret',
+        ),
+        'https://portal-s.edirepository.org': (
+            'portal-s-client-id',
+            'portal-s-client-secret',
+        ),
+        'https://portal-d.edirepository.org': (
+            'portal-d-client-id',
+            'portal-d-client-secret',
+        ),
+        'https://ezeml.edirepository.org': (
+            'ezeml-client-id',
+            'ezeml-client-secret',
+        ),
+        'https://ezeml-s.edirepository.org': (
+            'ezeml-s-client-id',
+            'ezeml-s-client-secret',
+        ),
+        'https://ezeml-d.edirepository.org': (
+            'ezeml-d-client-id',
+            'ezeml-d-client-secret',
+        ),
+        'https://web-x.edirepository.org': (
+            'web-x-client-id',
+            'web-x-client-secret',
+        ),
+        'https://web-d.edirepository.org': (
+            'web-d-client-id',
+            'web-d-client-secret',
+        ),
+        'http://localhost:8080': (
+            'localhost-8080-client-id',
+            'localhost-8080-client-secret',
+        ),
+    }
+    # GITHUB_DISCOVERY_URL = 'https://api.github.com'
+    GITHUB_AUTH_ENDPOINT = 'https://github.com/login/oauth/authorize'
+    GITHUB_TOKEN_ENDPOINT = 'https://github.com/login/oauth/access_token'
+    GITHUB_USER_ENDPOINT = 'https://api.github.com/user'
+    # GITHUB_LOGOUT_ENDPOINT = 'https://github.com/login/oauth/logout'
 
     # Google OAuth client
-    GOOGLE = "google"
-    GOOGLE_CLIENT_ID = "Google client id"
-    GOOGLE_CLIENT_SECRET = "Google client secret"
+    GOOGLE_CLIENT_ID = 'google-client-id'
+    GOOGLE_CLIENT_SECRET = 'google-client-secret'
     GOOGLE_DISCOVERY_URL = (
-        "https://accounts.google.com/.well-known/openid-configuration"
+        'https://accounts.google.com/.well-known/openid-configuration'
     )
-
-    # Github OAuth client
-    GITHUB = "github"
-    GITHUB_CLIENT_ID_LOCALHOST = "Github client id for localhost"
-    GITHUB_CLIENT_SECRET_LOCALHOST = "Github client secret for localhost"
-    GITHUB_CLIENT_ID_PORTAL_D = (
-        "Github client id for portal-d.edirepository.org"
-    )
-    GITHUB_CLIENT_SECRET_PORTAL_D = (
-        "Github client secret for portal-d.edirepository.org"
-    )
-    GITHUB_CLIENT_ID_PORTAL_S = (
-        "Github client id for portal-s.edirepository.org"
-    )
-    GITHUB_CLIENT_SECRET_PORTAL_S = (
-        "Github client secret for portal-s.edirepository.org"
-    )
-    GITHUB_CLIENT_ID_PORTAL = "Github client id for portal.edirepository.org"
-    GITHUB_CLIENT_SECRET_PORTAL = (
-        "Github client secret for portal.edirepository.org"
-    )
-    GITHUB_CLIENT_ID_EZEML = "Github client id for ezeml.edirepository.org"
-    GITHUB_CLIENT_SECRET_EZEML = (
-        "Github client secret for ezeml.edirepository.org"
-    )
-    GITHUB_CLIENT_ID_EZEML_D = "Github client id for ezeml-d.edirepository.org"
-    GITHUB_CLIENT_SECRET_EZEML_D = (
-        "Github client secret for ezeml-d.edirepository.org"
-    )
-    GITHUB_CLIENT_ID_EZEML_S = "Github client id for ezeml-s.edirepository.org"
-    GITHUB_CLIENT_SECRET_EZEML_S = (
-        "Github client secret for ezeml-s.edirepository.org"
-    )
-    GITHUB_CLIENT_ID_WEB_X = "Github client id for web-x.edirepository.org"
-    GITHUB_CLIENT_SECRET_WEB_X = (
-        "Github client secret for web-x.edirepository.org"
-    )
-    GITHUB_CLIENT_ID_WEB_D = "Github client id for web-d.edirepository.org"
-    GITHUB_CLIENT_SECRET_WEB_D = (
-        "Github client secret for web-d.edirepository.org"
-    )
-    GITHUB_DISCOVERY_URL = "https://api.github.com"
-    GITHUB_AUTH_ENDPOINT = "https://github.com/login/oauth/authorize"
-    GITHUB_TOKEN_ENDPOINT = "https://github.com/login/oauth/access_token"
-    GITHUB_USER_ENDPOINT = "https://api.github.com/user"
+    # GOOGLE_LOGOUT_ENDPOINT = 'https://accounts.google.com/Logout'
 
     # Orcid OAuth client
-    ORCID = "orcid"
-    ORCID_CLIENT_ID = "Orcid client id"
-    ORCID_CLIENT_SECRET = "Orcid client secret"
-    ORCID_DNS = "https://orcid.org/"
-    ORCID_AUTH_ENDPOINT = "https://orcid.org/oauth/authorize"
-    ORCID_TOKEN_ENDPOINT = "https://orcid.org/oauth/token"
-    ORCID_IMPLICIT_ENDPOINT = "https://orcid.org/oauth/authorize"
+    ORCID_CLIENT_ID = 'orcid-client-id'
+    ORCID_CLIENT_SECRET = 'orcid-client-secret'
+    ORCID_DNS = 'https://orcid.org/'
+    ORCID_AUTH_ENDPOINT = 'https://orcid.org/oauth/authorize'
+    ORCID_TOKEN_ENDPOINT = 'https://orcid.org/oauth/token'
 
     # Microsoft OAuth client
-    # edirepository@gmail.com test acct
-    MICROSOFT_CLIENT_ID = "Microsoft client id"
-    MICROSOFT_CLIENT_SECRET = "Microsoft client secret"
-    MICROSOFT_AUTH_ENDPOINT = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
-    MICROSOFT_TOKEN_ENDPOINT = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+    MICROSOFT_CLIENT_ID = 'microsoft-client-id'
+    MICROSOFT_CLIENT_SECRET = 'microsoft-client-secret'
+    MICROSOFT_AUTH_ENDPOINT = (
+        'https://login.microsoftonline.com/common/oauth2/v2.0/authorize'
+    )
+    MICROSOFT_TOKEN_ENDPOINT = (
+        'https://login.microsoftonline.com/common/oauth2/v2.0/token'
+    )
+    MICROSOFT_LOGOUT_ENDPOINT = (
+        'https://login.microsoftonline.com/common/oauth2/v2.0/logout'
+    )
 
-    # PASTA+ authentication token attributes
-    PUBLIC = "public"
-    SYSTEM = "https://pasta.edirepository.org/authentication"
-    VETTED = "vetted*authenticated"
-    AUTHENTICATED = "authenticated"
-    TTL = 28800000
-
-    # Test attributes
-    TEST_USER_DN = "USER_DN"
-    TEST_USER_BAD_O = "USER_BAD_O"
-    TEST_USER_BAD_UID = "USER_BAD_UID"
-    TEST_USER_PW = "SECRET_PASSWORD"
-    TEST_TOKEN = "uid=EDI,o=EDI,dc=edirepository,dc=org*https://pasta.edirepository.org/authentication*1558090703946*authenticated"
-    TEST_AUTH_TOKEN = "dWlkPUVESSxvPUVESSxkYz1lZGlyZXBvc2l0b3J5LGRjPW9yZypodHRwczovL3Bhc3RhLmVkaXJlcG9zaXRvcnkub3JnL2F1dGhlbnRpY2F0aW9uKjE1NTgwOTA3MDM5NDYqYXV0aGVudGljYXRlZA==-yUoVTpyVityVkfqOpGSPosJYzndBMdwoUTGB0osuqyCNOouPxRllz/pRklaEWqi+faNLGHh8Dzh7qrtxTLLDs+MpBXudaJIIQep6PNnvEDgasrTvA9KV/vnKsyDnu4VaJnyuoKGRryP6PXlJs8UTXhtGpRf2vnTM/oifeRx0NB3y7aEv3Xn85ogxl0MaeyXJFeQMAAyN9ahYgJUC4jFgCqYlLj/x0PAlXwq2C/AwnjC/XJ2mxEQm1E/RMY9Z9EjHx+dSruXEs3wQiBbnus7BPvJR84zqEjl3EYpYwmYRkLViDHYoGdbegcDfuUfKv4y5Hun+r0ICNt09nBV4wci3TQ=="
-
-    # Key attributes
-    PUBLIC_KEY = "PUBLIC_KEY_FILE"
-    PRIVATE_KEY = "PRIVATE_KEY_FILE"
+    # Unit and integration test attributes
+    TEST_USER_DN = 'test-user-dn'
+    TEST_USER_BAD_O = 'test-user-bad-o'
+    TEST_USER_BAD_UID = 'test-user-bad-uid'
+    TEST_USER_PW = 'test-user-pw'
+    TEST_TOKEN = 'uid=EDI,o=EDI,dc=edirepository,dc=org*https://pasta.edirepository.org/authentication*1558090703946*authenticated'
+    TEST_AUTH_TOKEN = 'dWlkPUVESSxvPUVESSxkYz1lZGlyZXBvc2l0b3J5LGRjPW9yZypodHRwczovL3Bhc3RhLmVkaXJlcG9zaXRvcnkub3JnL2F1dGhlbnRpY2F0aW9uKjE1NTgwOTA3MDM5NDYqYXV0aGVudGljYXRlZA==-yUoVTpyVityVkfqOpGSPosJYzndBMdwoUTGB0osuqyCNOouPxRllz/pRklaEWqi+faNLGHh8Dzh7qrtxTLLDs+MpBXudaJIIQep6PNnvEDgasrTvA9KV/vnKsyDnu4VaJnyuoKGRryP6PXlJs8UTXhtGpRf2vnTM/oifeRx0NB3y7aEv3Xn85ogxl0MaeyXJFeQMAAyN9ahYgJUC4jFgCqYlLj/x0PAlXwq2C/AwnjC/XJ2mxEQm1E/RMY9Z9EjHx+dSruXEs3wQiBbnus7BPvJR84zqEjl3EYpYwmYRkLViDHYoGdbegcDfuUfKv4y5Hun+r0ICNt09nBV4wci3TQ=='

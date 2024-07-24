@@ -9,9 +9,9 @@ log = daiquiri.getLogger(__name__)
 def bind(dn: str, password: str):
     result = False
     host = None
-    for rdn in Config.DOMAINS:
+    for rdn in Config.LDAP_DOMAIN_DICT:
         if rdn in dn:
-            host = Config.DOMAINS[rdn]
+            host = Config.LDAP_DOMAIN_DICT[rdn]
     if host is not None:
         try:
             server = Server(host, use_ssl=True, get_info=ALL)

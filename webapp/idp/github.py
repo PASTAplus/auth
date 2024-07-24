@@ -223,56 +223,11 @@ def get_error_message(
 
 
 def get_github_client_info(target: str) -> tuple:
-    if target.startswith(Config.PORTAL_LOCALHOST):
-        client_id, client_secret = (
-            Config.GITHUB_CLIENT_ID_LOCALHOST,
-            Config.GITHUB_CLIENT_SECRET_LOCALHOST,
-        )
-    elif target.startswith(Config.PORTAL_D):
-        client_id, client_secret = (
-            Config.GITHUB_CLIENT_ID_PORTAL_D,
-            Config.GITHUB_CLIENT_SECRET_PORTAL_D,
-        )
-    elif target.startswith(Config.PORTAL_S):
-        client_id, client_secret = (
-            Config.GITHUB_CLIENT_ID_PORTAL_S,
-            Config.GITHUB_CLIENT_SECRET_PORTAL_S,
-        )
-    elif target.startswith(Config.PORTAL):
-        client_id, client_secret = (
-            Config.GITHUB_CLIENT_ID_PORTAL,
-            Config.GITHUB_CLIENT_SECRET_PORTAL,
-        )
-    elif target.startswith(Config.EZEML_D):
-        client_id, client_secret = (
-            Config.GITHUB_CLIENT_ID_EZEML_D,
-            Config.GITHUB_CLIENT_SECRET_EZEML_D,
-        )
-    elif target.startswith(Config.EZEML_S):
-        client_id, client_secret = (
-            Config.GITHUB_CLIENT_ID_EZEML_S,
-            Config.GITHUB_CLIENT_SECRET_EZEML_S,
-        )
-    elif target.startswith(Config.EZEML):
-        client_id, client_secret = (
-            Config.GITHUB_CLIENT_ID_EZEML,
-            Config.GITHUB_CLIENT_SECRET_EZEML,
-        )
-    elif target.startswith(Config.WEB_X):
-        client_id, client_secret = (
-            Config.GITHUB_CLIENT_ID_WEB_X,
-            Config.GITHUB_CLIENT_SECRET_WEB_X,
-        )
-    elif target.startswith(Config.WEB_D):
-        client_id, client_secret = (
-            Config.GITHUB_CLIENT_ID_WEB_D,
-            Config.GITHUB_CLIENT_SECRET_WEB_D,
-        )
-    else:
-        raise AssertionError(f'Unknown target: {target}')
-
-    log.debug(f'get_github_client_info():')
-    log.debug(
-        f'target="{target}" -> client_id="{client_id}" client_secret="{client_secret}"'
-    )
-    return client_id, client_secret
+    for target_base, (client_id, client_secret) in Config.GITHUB_CLIENT_DICT.items():
+        if target.startswith(target_base):
+            log.debug(
+                f'get_github_client_info(): target="{target}" -> '
+                f'client_id="{client_id}" client_secret="{client_secret}"'
+            )
+            return client_id, client_secret
+    raise AssertionError(f'Unknown target: {target}')
