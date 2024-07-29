@@ -9,11 +9,6 @@ class Config(object):
     SECRET_KEY = 'Flask app secret key'
     DEBUG = False
     
-    # Local development certificate paths
-    CA_CERT = "LOCAL_CA_CERT"
-    SERVER_CERT = "LOCAL_SERVER_CERT"
-    SERVER_KEY = "LOCAL_SERVER_KEY"
-
     # Logging
     LOG_LEVEL = logging.DEBUG
     LOG_DB_QUERIES = LOG_LEVEL == logging.DEBUG
