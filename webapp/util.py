@@ -1,6 +1,9 @@
+import pprint
 import typing
 import urllib.parse
 import starlette.responses
+import json
+import datetime
 
 import daiquiri
 
@@ -55,6 +58,8 @@ def redirect_target(
         uid=uid,
         idp=idp_name,
         idp_token=idp_token,
+        # For ezEML
+        sub=uid,
     )
 
 
@@ -79,3 +84,20 @@ async def split_full_name(full_name: str) -> typing.Tuple[str, str]:
     :returns: A tuple of given_name, family_name
     """
     return full_name.split(' ', 1) if ' ' in full_name else (full_name, '')
+
+
+class CustomJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return obj.isoformat()
+        return super().default(obj)
+
+
+async def to_pretty_json(obj: list | dict) -> str:
+    json_str = json.dumps(obj, indent=2, sort_keys=True, cls=CustomJSONEncoder)
+    # print(json_str)
+    return json_str
+
+
+def pp(obj: list | dict):
+    print(pprint.pformat(obj, indent=2, sort_dicts=True))
