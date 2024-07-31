@@ -92,12 +92,19 @@ class CustomJSONEncoder(json.JSONEncoder):
             return obj.isoformat()
         return super().default(obj)
 
+    # def decode(self, obj):
+    #     if isinstance(obj, datetime.datetime):
+    #         return obj.isoformat()
+    #     return super().default(obj)
 
-async def to_pretty_json(obj: list | dict) -> str:
+
+def to_pretty_json(obj: list | dict) -> str:
     json_str = json.dumps(obj, indent=2, sort_keys=True, cls=CustomJSONEncoder)
     # print(json_str)
     return json_str
 
+# def json_loads(json_str: str) -> list | dict:
+#     return json.loads(json_str, cls=CustomJSONEncoder)
 
 def pp(obj: list | dict):
     print(pprint.pformat(obj, indent=2, sort_dicts=True))

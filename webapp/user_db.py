@@ -50,10 +50,24 @@ class Profile(Base):
         'Identity', back_populates='profile', cascade_backrefs=False
     )
 
+    def __repr__(self):
+        return f'Profile(id={self.id}, urid={self.urid}, full_name={self.full_name})'
+
     @property
     def full_name(self):
         return f'{self.given_name} {self.family_name}'
 
+    def as_dict(self):
+        return {
+            'id': self.id,
+            'urid': self.urid,
+            'given_name': self.given_name,
+            'family_name': self.family_name,
+            'email': self.email,
+            'privacy_policy_accepted': self.privacy_policy_accepted,
+            'privacy_policy_accepted_date': self.privacy_policy_accepted_date,
+            'identities': [identity.as_dict() for identity in self.identities],
+        }
 
 class Identity(Base):
     __tablename__ = 'identity'
@@ -114,6 +128,19 @@ class Identity(Base):
         ),
     )
 
+    def as_dict(self):
+        return {
+            'id': self.id,
+            'profile_id': self.profile_id,
+            'idp_name': self.idp_name,
+            'uid': self.uid,
+            'email': self.email,
+            'pasta_token': self.pasta_token,
+            # Skip volatile fields
+            # 'first_auth': self.first_auth,
+            # 'last_auth': self.last_auth,
+        }
+
 
 #
 # DB setup
@@ -149,6 +176,7 @@ def _on_connect(dbapi_con, _connection_record):
 
 
 def get_db():
+    print('\n\nget_db\n\n')
     db = SessionLocal()
     try:
         yield db
@@ -297,3 +325,45 @@ class UserDb:
     def get_all_profiles(self):
         query = self.session.query(Profile)
         return query.order_by(sqlalchemy.asc(Profile.id)).all()
+
+    #
+    #
+    #
+
+    def map_profile(self, urid_src, urid_dst):
+        """Map profile from profile A to profile B.
+
+        All identities from profile_src are moved to profile_dst. The profile_src is then
+        deleted.
+        """
+        profile_src = self.get_profile(urid_src)
+        profile_dst = self.get_profile(urid_dst)
+        # noinspection PyTypeChecker
+        for identity in profile_src.identities:
+            identity.profile = profile_dst
+        self.session.delete(profile_src)
+        self.session.commit()
+
+    def drop_profile(self, urid):
+        profile = self.get_profile(urid)
+        self.session.delete(profile)
+        self.session.commit()
+
+    def disable_profile(self, urid):
+        profile_row = self.get_profile(urid)
+        # noinspection PyTypeChecker
+        for identity in profile_row.identities:
+            self.session.delete(identity)
+        self.session.commit()
+
+    def drop_identity(self, urid, idp_name, uid):
+        identity_row = self.get_identity(idp_name, uid)
+        # Make sure the identity belongs to the profile
+        if identity_row.profile.urid == urid:
+            self.session.delete(identity_row)
+            self.session.commit()
+
+    def get_identity_list(self, urid):
+        profile_row = self.get_profile(urid)
+        return profile_row.identities
+
