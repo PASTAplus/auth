@@ -21,7 +21,7 @@ daiquiri.setup(
         # daiquiri.output.Journal(),
         daiquiri.output.Stream(),
         daiquiri.output.RotatingFile(
-            filename=Config.HERE_PATH / 'auth.log',
+            filename=Config.LOG_PATH / 'auth.log',
             max_size_bytes=10 * 1024 ** 2,
             backup_count=5,
         ),
