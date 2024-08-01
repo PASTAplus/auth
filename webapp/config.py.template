@@ -17,7 +17,7 @@ class Config(object):
     # Filesystem paths
     STATIC_PATH = HERE_PATH / 'static'
     DB_PATH = (HERE_PATH / '../db.sqlite').resolve()
-    LOG_PATH = HERE_PATH / '../auth.log'
+    # LOG_PATH = HERE_PATH / '../auth.log'
 
     # PASTA+ authentication token
     PUBLIC = 'public'
