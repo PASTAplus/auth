@@ -74,5 +74,5 @@ async def login_pasta(
 
     # For LDAP, the pasta_token is set as a cookie, not a query parameter.
     response = starlette.responses.Response('Successful login')
-    response.set_cookie('auth-token', urllib.parse.quote_plus(pasta_token))
+    response.set_cookie('auth-token', pasta_token)
     return response
