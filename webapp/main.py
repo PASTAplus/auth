@@ -18,9 +18,9 @@ from config import Config
 daiquiri.setup(
     level=Config.LOG_LEVEL,
     outputs=[
-        # daiquiri.output.Journal(),
-        daiquiri.output.Stream(),
-    ]
+        daiquiri.output.File(Config.LOG_PATH / 'auth.log'),
+        'stdout',
+    ],
 )
 
 log = daiquiri.getLogger(__name__)
