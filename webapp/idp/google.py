@@ -1,9 +1,7 @@
 import daiquiri
 import fastapi
-import oauthlib.oauth2
 import requests
 import starlette.requests
-import starlette.responses
 import starlette.status
 
 import pasta_token as pasta_token_
@@ -31,7 +29,6 @@ async def login_google(
     target = request.query_params.get('target')
     log.debug(f'login_google() target="{target}"')
 
-    client = oauthlib.oauth2.WebApplicationClient(Config.GOOGLE_CLIENT_ID)
     google_provider_cfg = get_google_provider_cfg()
 
     if google_provider_cfg is None:
@@ -45,31 +42,26 @@ async def login_google(
 
     authorization_endpoint = google_provider_cfg['authorization_endpoint']
 
-    # noinspection PyNoneFunctionAssignment
-    request_uri = client.prepare_request_uri(
+    return util.redirect_to_idp(
         authorization_endpoint,
-        redirect_uri=util.get_redirect_uri('google', target),
-        scope=['openid', 'email', 'profile'],
+        'google',
+        target,
+        client_id=Config.GOOGLE_CLIENT_ID,
+        scope='openid email profile',
+        # scope='read:user',
+        # prompt='consent',
         prompt='login',
-    )
-
-    log.debug(f'login_google() request_uri="{request_uri}"')
-
-    # noinspection PyTypeChecker
-    return starlette.responses.RedirectResponse(
-        request_uri,
-        # RedirectResponse returns 307 temporary redirect by default
-        status_code=starlette.status.HTTP_302_FOUND,
+        response_type='code',
     )
 
 
-@router.get('/auth/login/google/callback/{target:path}')
-async def login_google_callback(
-    target,
+@router.get('/auth/callback/google')
+async def callback_google(
     request: starlette.requests.Request,
     udb: user_db.UserDb = fastapi.Depends(user_db.udb),
 ):
-    log.debug(f'login_google_callback() target="{target}"')
+    target = request.cookies.get('target')
+    log.debug(f'callback_google() target="{target}"')
 
     code_str = request.query_params.get('code')
     if code_str is None:
@@ -194,7 +186,9 @@ def get_google_provider_cfg():
 
 
 @router.get('/auth/revoke/google')
-async def revoke_google():
+async def revoke_google(
+    request: starlette.requests.Request,
+):
     target = request.query_params.get('target')
     uid = request.query_params.get('uid')
     idp_token = request.query_params.get('idp_token')
@@ -206,7 +200,7 @@ async def revoke_google():
             get_google_provider_cfg()['revocation_endpoint'],
             params={'token': idp_token},
         )
-    except requests.RequestException as e:
+    except requests.RequestException:
         log.error('Revoke unsuccessful', exc_info=True)
         return util.redirect(target, error='Revoke unsuccessful')
     else:

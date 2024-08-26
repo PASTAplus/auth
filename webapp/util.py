@@ -1,7 +1,9 @@
 import pprint
 import typing
 import urllib.parse
+import starlette.datastructures
 import starlette.responses
+import starlette.status
 import json
 import datetime
 
@@ -22,8 +24,31 @@ def get_dn_uid(dn: str) -> str:
     return uid
 
 
+def redirect_to_idp(
+    idp_auth_url: str,
+    idp_name: str,
+    target_url: str,
+    **kwargs,
+):
+    """Create a RedirectResponse with location set to the IdP with which we will be
+    authenticating, and include a cookie with the client's final target."""
+    url_obj = starlette.datastructures.URL(idp_auth_url)
+    url_obj = url_obj.replace_query_params(
+        redirect_uri=get_redirect_uri(idp_name),
+        **kwargs,
+    )
+    log.debug(f'redirect_to_idp(): {url_obj}')
+    response = starlette.responses.RedirectResponse(
+        url_obj,
+        # RedirectResponse returns 307 temporary redirect by default
+        status_code=starlette.status.HTTP_302_FOUND,
+    )
+    response.set_cookie(key='target', value=target_url)
+    return response
+
+
 def redirect(base_url: str, **kwargs):
-    """Create a Flask response that redirects to the base_url with query parameters"""
+    """Create a Starlette response that redirects to the base_url with query parameters"""
     log_dict(log.debug, f'Redirecting to: {base_url}', kwargs)
     return starlette.responses.RedirectResponse(
         f'{base_url}{"?" if kwargs else ""}{build_query_string(**kwargs)}'
@@ -40,7 +65,7 @@ def redirect_target(
     idp_name: str,
     idp_token: str | None,
 ):
-    """Create a Flask response that redirects to the final target specified by the
+    """Create a Starlette response that redirects to the final target specified by the
     client.
 
     This is a wrapper around the general redirect function that ensures a uniform
@@ -74,8 +99,9 @@ def log_dict(logger: typing.Callable, msg: str, d: dict):
         logger(f'  {k}: {v}')
 
 
-def get_redirect_uri(idp_name, target):
-    return f'{Config.CALLBACK_BASE_URL}/{idp_name}/callback/{target}'
+def get_redirect_uri(idp_name):
+    url_obj = starlette.datastructures.URL(Config.SERVICE_BASE_URL)
+    return url_obj.replace(path=f'{url_obj.path}/callback/{idp_name}')
 
 
 async def split_full_name(full_name: str) -> typing.Tuple[str, str]:

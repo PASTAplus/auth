@@ -2,7 +2,6 @@ import json
 
 import daiquiri
 import fastapi
-import oauthlib.oauth2
 import requests
 import starlette.requests
 
@@ -29,23 +28,24 @@ async def login_github(
     target = request.query_params.get('target')
     log.debug(f'login_github() target="{target}"')
 
-    return util.redirect(
+    return util.redirect_to_idp(
         Config.GITHUB_AUTH_ENDPOINT,
-        client_id=get_github_client_info(target=target)[0],
-        redirect_uri=util.get_redirect_uri('github', target),
+        'github',
+        target,
+        client_id=Config.GITHUB_CLIENT_ID,
         scope='read:user',
-        # prompt='consent',
-        prompt='login',
+        prompt='consent',
+        # prompt='login',
     )
 
 
-@router.get('/auth/login/github/callback/{target:path}')
-async def login_github_callback(
-    target,
+@router.get('/auth/callback/github')
+async def callback_github(
     request: starlette.requests.Request,
     udb: user_db.UserDb = fastapi.Depends(user_db.udb),
 ):
-    log.debug(f'login_github_callback() target="{target}"')
+    target = request.cookies.get('target')
+    log.debug(f'callback_github() target="{target}"')
 
     if is_error(request):
         log.error(get_error_message(request))
@@ -54,17 +54,6 @@ async def login_github_callback(
     code_str = request.query_params.get('code')
     if code_str is None:
         return util.redirect(target, error='Login cancelled')
-
-    github_client_id, github_client_secret = get_github_client_info(target=target)
-    client = oauthlib.oauth2.WebApplicationClient(github_client_id)
-
-    token_url, headers, body = client.prepare_token_request(
-        Config.GITHUB_TOKEN_ENDPOINT,
-        authorization_response=f'{util.get_redirect_uri("github", target)}?code={code_str}',
-        code=code_str,
-    )
-
-    headers['Accept'] = 'application/json'
 
     try:
         token_response = requests.post(
@@ -185,11 +174,9 @@ async def revoke_github(
 
 
 def revoke_app_token(target, idp_token):
-    github_client_id, github_client_secret = get_github_client_info(target=target)
-
     revoke_response = requests.delete(
-        f'https://api.github.com/applications/{github_client_id}/token',
-        auth=(github_client_id, github_client_secret),
+        f'https://api.github.com/applications/{Config.GITHUB_CLIENT_ID}/token',
+        auth=(Config.GITHUB_CLIENT_ID, Config.GITHUB_CLIENT_SECRET),
         headers={
             'Accept': 'application/vnd.github+json',
             # 'Authorization': f'Bearer {github_client_secret}',
@@ -220,14 +207,3 @@ def get_error_message(
     error_description = request.query_params.get('error_description', 'No description')
     error_uri = request.query_params.get('error_uri', 'No URI')
     return f'{error_title}: {error_description} ({error_uri})'
-
-
-def get_github_client_info(target: str) -> tuple:
-    for target_base, (client_id, client_secret) in Config.GITHUB_CLIENT_DICT.items():
-        if target.startswith(target_base):
-            log.debug(
-                f'get_github_client_info(): target="{target}" -> '
-                f'client_id="{client_id}" client_secret="{client_secret}"'
-            )
-            return client_id, client_secret
-    raise AssertionError(f'Unknown target: {target}')

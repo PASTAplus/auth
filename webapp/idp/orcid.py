@@ -32,7 +32,7 @@ async def login_orcid(
         client_id=Config.ORCID_CLIENT_ID,
         response_type='code',
         scope='/authenticate openid',
-        redirect_uri=util.get_redirect_uri('orcid', util.urlenc(target)),
+        redirect_uri=util.get_redirect_uri('orcid'),
         prompt='login',
     )
 
