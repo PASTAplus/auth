@@ -70,21 +70,25 @@ async def callback_google(
     google_provider_cfg = get_google_provider_cfg()
     token_endpoint = google_provider_cfg['token_endpoint']
 
-    client = oauthlib.oauth2.WebApplicationClient(Config.GOOGLE_CLIENT_ID)
-    token_url, headers, body = client.prepare_token_request(
-        token_endpoint,
-        authorization_response=f'{util.get_redirect_uri("google", target)}?code={code_str}',
-        redirect_url=util.get_redirect_uri('google', target),
-        code=code_str,
-    )
     try:
         token_response = requests.post(
-            token_url,
-            headers=headers,
-            data=body,
-            auth=(Config.GOOGLE_CLIENT_ID, Config.GOOGLE_CLIENT_SECRET),
+            token_endpoint,
+            headers={
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept': 'application/json',
+            },
+            data=util.build_query_string(
+                client_id=Config.GOOGLE_CLIENT_ID,
+                client_secret=Config.GOOGLE_CLIENT_SECRET,
+                code=code_str,
+                authorization_response=str(
+                    util.get_redirect_uri("google").replace_query_params(code=code_str)
+                ),
+                redirect_uri=util.get_redirect_uri('google'),
+                grant_type='authorization_code',
+            ),
         )
-    except requests.RequestException as e:
+    except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
         return util.redirect(target, error='Login unsuccessful')
 
@@ -94,18 +98,17 @@ async def callback_google(
         log.error(f'Login unsuccessful: {token_response.text}', exc_info=True)
         return util.redirect(target, error='Login unsuccessful')
 
-    try:
-        # This also checks for errors. For IdPs where we don't use the
-        client.parse_request_body_response(token_response.text)
-    except Exception:
-        log.error(f'Login unsuccessful: {token_response.text}', exc_info=True)
-        return util.redirect(target, error=f'Login unsuccessful')
-
-    userinfo_endpoint = google_provider_cfg['userinfo_endpoint']
-    uri, headers, body = client.add_token(userinfo_endpoint)
+    if 'error' in token_dict:
+        log.error(f'Login unsuccessful: {token_dict["error"]}', exc_info=True)
+        return util.redirect(target, error='Login unsuccessful')
 
     try:
-        userinfo_response = requests.get(uri, headers=headers, data=body)
+        userinfo_response = requests.get(
+            google_provider_cfg['userinfo_endpoint'],
+            headers={
+                'Authorization': f'Bearer {token_dict["access_token"]}',
+            },
+        )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
         return util.redirect(target, error='Login unsuccessful')
@@ -114,7 +117,7 @@ async def callback_google(
         user_dict = userinfo_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {userinfo_response.text}', exc_info=True)
-        return util.redirect(target, error=f'Login unsuccessful')
+        return util.redirect(target, error='Login unsuccessful')
 
     if not user_dict.get('email_verified'):
         return util.redirect(target, error='Login unsuccessful: Email not verified')

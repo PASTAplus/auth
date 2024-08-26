@@ -68,10 +68,10 @@ async def login_microsoft_callback(
             },
             data=util.build_query_string(
                 client_id=Config.MICROSOFT_CLIENT_ID,
-                code=code_str,
-                redirect_uri=util.get_redirect_uri('microsoft', target),
-                grant_type='authorization_code',
                 client_secret=Config.MICROSOFT_CLIENT_SECRET,
+                code=code_str,
+                redirect_uri=util.get_redirect_uri('microsoft'),
+                grant_type='authorization_code',
             ),
         )
     except requests.RequestException:
@@ -197,7 +197,7 @@ async def logout_microsoft(
     return util.redirect(
         Config.MICROSOFT_LOGOUT_ENDPOINT,
         client_id=Config.MICROSOFT_CLIENT_ID,
-        post_logout_redirect_uri=util.get_redirect_uri('microsoft', target),
+        post_logout_redirect_uri=util.get_redirect_uri('microsoft'),
     )
 
 

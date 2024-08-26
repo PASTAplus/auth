@@ -57,39 +57,52 @@ async def callback_github(
 
     try:
         token_response = requests.post(
-            token_url,
-            headers=headers,
-            data=body,
-            auth=(github_client_id, github_client_secret),
+            Config.GITHUB_TOKEN_ENDPOINT,
+            headers={
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept': 'application/json',
+            },
+            data=util.build_query_string(
+                client_id=Config.GITHUB_CLIENT_ID,
+                client_secret=Config.GITHUB_CLIENT_SECRET,
+                code=code_str,
+                authorization_response=str(
+                    util.get_redirect_uri("github").replace_query_params(code=code_str)
+                ),
+                redirect_uri=util.get_redirect_uri('github'),
+                grant_type='authorization_code',
+            ),
         )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.redirect(target, error=f'Login unsuccessful')
+        return util.redirect(target, error='Login unsuccessful')
 
     try:
         token_dict = token_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {token_response.text}', exc_info=True)
-        return util.redirect(target, error=f'Login unsuccessful')
+        return util.redirect(target, error='Login unsuccessful')
 
     if 'error' in token_dict:
         log.error(f'Login unsuccessful: {token_dict["error"]}', exc_info=True)
-        return util.redirect(target, error=f'Login unsuccessful')
-
-    access_token = token_dict['access_token']
-    headers['Authorization'] = f'token {access_token}'
+        return util.redirect(target, error='Login unsuccessful')
 
     try:
-        user_response = requests.get(url=Config.GITHUB_USER_ENDPOINT, headers=headers)
+        userinfo_response = requests.get(
+            Config.GITHUB_USER_ENDPOINT,
+            headers={
+                'Authorization': f'Bearer {token_dict["access_token"]}',
+            },
+        )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.redirect(target, error=f'Login unsuccessful')
+        return util.redirect(target, error='Login unsuccessful')
 
     try:
-        user_dict = user_response.json()
+        user_dict = userinfo_response.json()
     except requests.JSONDecodeError:
-        log.error(f'Login unsuccessful: {token_response.text}', exc_info=True)
-        return util.redirect(target, error=f'Login unsuccessful')
+        log.error(f'Login unsuccessful: {userinfo_response.text}', exc_info=True)
+        return util.redirect(target, error='Login unsuccessful')
 
     log.debug('-' * 80)
     log.debug('github_callback() - login successful')
