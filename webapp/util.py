@@ -10,6 +10,7 @@ import datetime
 import daiquiri
 
 from config import Config
+import filesystem
 
 log = daiquiri.getLogger(__name__)
 
@@ -127,3 +128,23 @@ async def to_pretty_json(obj: list | dict) -> str:
 
 def pp(obj: list | dict):
     print(pprint.pformat(obj, indent=2, sort_dicts=True))
+
+
+def save_avatar(avatar_img: bytes, idp_name: str, uid: str):
+    """Save the avatar image to the filesystem and return the path to the file."""
+    avatar_path = Config.AVATARS_PATH / idp_name
+    avatar_path.mkdir(parents=True, exist_ok=True)
+    avatar_path = avatar_path / filesystem.get_safe_reversible_path_element(uid)
+    avatar_path.write_bytes(avatar_img)
+    return avatar_path
+
+
+def get_avatar_url(idp_name: str, uid: str):
+    """Return the URL to the avatar image for the given IdP and UID."""
+    return '/'.join(
+        (
+            Config.AVATARS_URL,
+            idp_name,
+            filesystem.get_safe_reversible_path_element(uid),
+        )
+    )

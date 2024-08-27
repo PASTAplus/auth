@@ -122,6 +122,14 @@ async def callback_google(
     if not user_dict.get('email_verified'):
         return util.redirect(target, error='Login unsuccessful: Email not verified')
 
+    # Fetch the avatar
+    try:
+        avatar = get_user_avatar(token_dict['access_token'])
+    except fastapi.HTTPException as e:
+        log.error(f'Failed to fetch user avatar: {e.detail}')
+    else:
+        util.save_avatar(avatar, 'google', user_dict['sub'])
+
     log.debug('-' * 80)
     log.debug('login_google_callback() - login successful')
     util.log_dict(log.debug, 'token_dict', token_dict)
@@ -212,3 +220,50 @@ async def revoke_google(
             return util.redirect(target, error='Revoke unsuccessful')
 
     return util.redirect(target)
+
+
+#
+# Util
+#
+
+
+def get_user_avatar(access_token):
+    response_url = requests.get(
+        'https://people.googleapis.com/v1/people/me?personFields=photos',
+        headers={'Authorization': f'Bearer {access_token}'},
+    )
+
+    try:
+        response_dict = response_url.json()
+    except requests.JSONDecodeError:
+        raise fastapi.HTTPException(
+            status_code=starlette.status.HTTP_404_NOT_FOUND,
+            detail=response_url.text,
+        )
+
+    util.log_dict(log.debug, 'google: get_user_avatar()', response_dict)
+
+    photos = response_dict.get('photos')
+    if not photos:
+        raise fastapi.HTTPException(
+            status_code=starlette.status.HTTP_404_NOT_FOUND,
+            detail='No photos found',
+        )
+
+    # Assuming the first photo is the highest resolution available
+    avatar_url = photos[0].get('url')
+    if avatar_url is None:
+        raise fastapi.HTTPException(
+            status_code=starlette.status.HTTP_404_NOT_FOUND,
+            detail='No avatar URL found',
+        )
+
+    # Fetch higher resolution avatar
+    hirez_avatar_url = re.sub(r'=s\d+$', '=s500', avatar_url)
+    response_img = requests.get(hirez_avatar_url)
+    if not response_img.ok:
+        raise fastapi.HTTPException(
+            status_code=starlette.status.HTTP_404_NOT_FOUND,
+            detail=response_img.text,
+        )
+    return response_img.content

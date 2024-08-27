@@ -97,6 +97,14 @@ async def login_microsoft_callback(
         audience=Config.MICROSOFT_CLIENT_ID,
     )
 
+    # Fetch the avatar
+    try:
+        avatar = get_user_avatar(token_dict['access_token'])
+    except fastapi.HTTPException as e:
+        log.error(f'Failed to fetch user avatar: {e.detail}')
+    else:
+        util.save_avatar(avatar, 'microsoft', user_dict['sub'])
+
     log.debug('-' * 80)
     log.debug('login_microsoft_callback() - login successful')
     util.log_dict(log.debug, 'jwt_unverified_header_dict', jwt_unverified_header_dict)
@@ -240,3 +248,21 @@ async def logout_microsoft_clear_session(request: starlette.requests.Request):
     """
     log.debug(f'logout_microsoft_clear_session() args={request.query_params}')
     return starlette.responses.Response(content='OK')
+
+
+#
+# Util
+#
+
+
+def get_user_avatar(access_token):
+    """Fetch the user's avatar from Microsoft Graph API."""
+    response = requests.get(
+        'https://graph.microsoft.com/v1.0/me/photo/$value',
+        headers={'Authorization': f'Bearer {access_token}', 'Accept': 'image/*'},
+    )
+    if not response.ok:
+        raise fastapi.HTTPException(
+            status_code=response.status_code, detail=response.text
+        )
+    return response.content

@@ -104,6 +104,14 @@ async def callback_github(
         log.error(f'Login unsuccessful: {userinfo_response.text}', exc_info=True)
         return util.redirect(target, error='Login unsuccessful')
 
+    # Fetch the avatar
+    try:
+        avatar = get_user_avatar(user_dict['avatar_url'])
+    except fastapi.HTTPException as e:
+        log.error(f'Failed to fetch user avatar: {e.detail}')
+    else:
+        util.save_avatar(avatar, 'github', user_dict['html_url'])
+
     log.debug('-' * 80)
     log.debug('github_callback() - login successful')
     util.log_dict(log.debug, 'token_dict', token_dict)
@@ -220,3 +228,14 @@ def get_error_message(
     error_description = request.query_params.get('error_description', 'No description')
     error_uri = request.query_params.get('error_uri', 'No URI')
     return f'{error_title}: {error_description} ({error_uri})'
+
+
+def get_user_avatar(avatar_url):
+    response = requests.get(
+        avatar_url,
+    )
+    if not response.ok:
+        raise fastapi.HTTPException(
+            status_code=response.status_code, detail=response.text
+        )
+    return response.content
