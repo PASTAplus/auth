@@ -18,7 +18,7 @@ router = fastapi.APIRouter()
 #
 
 
-@router.get('/auth/login/orcid')
+@router.get('/login/orcid')
 async def login_orcid(
     request: starlette.requests.Request,
 ):
@@ -37,7 +37,7 @@ async def login_orcid(
     )
 
 
-@router.get('/auth/login/orcid/callback/{target:path}')
+@router.get('/login/orcid/callback/{target:path}')
 async def login_orcid_callback(
     target,
     request: starlette.requests.Request,
@@ -108,7 +108,7 @@ async def login_orcid_callback(
     # Redirect to privacy policy accept page if user hasn't accepted it yet
     if not identity_row.profile.privacy_policy_accepted:
         return util.redirect(
-            '/auth/accept',
+            '/login/accept',
             target=target,
             pasta_token=identity_row.pasta_token,
             urid=identity_row.profile.urid,
@@ -137,7 +137,7 @@ async def login_orcid_callback(
 #
 
 
-@router.get('/auth/revoke/orcid')
+@router.get('/revoke/orcid')
 async def revoke_orcid(
     request: starlette.requests.Request,
 ):

@@ -19,7 +19,7 @@ router = fastapi.APIRouter()
 #
 
 
-@router.get('/auth/login/google')
+@router.get('/login/google')
 async def login_google(
     request: starlette.requests.Request,
 ):
@@ -55,7 +55,7 @@ async def login_google(
     )
 
 
-@router.get('/auth/callback/google')
+@router.get('/callback/google')
 async def callback_google(
     request: starlette.requests.Request,
     udb: user_db.UserDb = fastapi.Depends(user_db.udb),
@@ -147,7 +147,7 @@ async def callback_google(
     # Redirect to privacy policy accept page if user hasn't accepted it yet
     if not identity_row.profile.privacy_policy_accepted:
         return util.redirect(
-            '/auth/accept',
+            '/login/accept',
             target=target,
             pasta_token=identity_row.pasta_token,
             urid=identity_row.profile.urid,
@@ -188,7 +188,7 @@ def get_google_provider_cfg():
 #
 
 
-@router.get('/auth/revoke/google')
+@router.get('/revoke/google')
 async def revoke_google(
     request: starlette.requests.Request,
 ):

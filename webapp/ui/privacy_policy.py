@@ -12,7 +12,7 @@ router = fastapi.APIRouter()
 templates = starlette.templating.Jinja2Templates(Config.HERE_PATH / 'templates')
 
 
-@router.get('/auth/accept')
+@router.get('/login/accept')
 async def accept_get(request: starlette.requests.Request):
     """Require the user to accept the privacy policy.
 
@@ -39,7 +39,7 @@ async def accept_get(request: starlette.requests.Request):
     )
 
 
-@router.post('/auth/accept')
+@router.post('/login/accept')
 async def accept_post(
     request: starlette.requests.Request,
     udb: user_db.UserDb = fastapi.Depends(user_db.udb),

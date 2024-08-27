@@ -5,7 +5,7 @@ import starlette.responses
 router = fastapi.APIRouter()
 
 
-@router.get('/auth/ping')
+@router.get('/v1/ping')
 async def ping():
     return starlette.responses.Response(
         content='pong',

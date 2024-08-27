@@ -20,7 +20,7 @@ router = fastapi.APIRouter()
 #
 
 
-@router.get('/auth/login/microsoft')
+@router.get('/login/microsoft')
 async def login_microsoft(
     request: starlette.requests.Request,
 ):
@@ -40,7 +40,7 @@ async def login_microsoft(
     )
 
 
-@router.get('/auth/login/microsoft/callback/{target:path}')
+@router.get('/callback/microsoft')
 async def login_microsoft_callback(
     target,
     request: starlette.requests.Request,
@@ -126,7 +126,7 @@ async def login_microsoft_callback(
     # Redirect to privacy policy accept page if user hasn't accepted it yet
     if not identity_row.profile.privacy_policy_accepted:
         return util.redirect(
-            '/auth/accept',
+            '/login/accept',
             target=target,
             pasta_token=identity_row.pasta_token,
             urid=identity_row.profile.urid,
@@ -179,7 +179,7 @@ def get_microsoft_public_key_by_kid(kid):
 #
 
 
-@router.get('/auth/logout/microsoft')
+@router.get('/logout/microsoft')
 async def logout_microsoft(
     request: starlette.requests.Request,
 ):
@@ -201,7 +201,7 @@ async def logout_microsoft(
     )
 
 
-@router.get('/auth/logout/microsoft/callback/{target:path}')
+@router.get('/logout/microsoft/callback/{target:path}')
 async def logout_microsoft_callback(target):
     """Receive the callback from the Microsoft logout endpoint and redirect to the
     target URL.
@@ -216,7 +216,7 @@ async def logout_microsoft_callback(target):
     return util.redirect(target)
 
 
-@router.get('/auth/logout/microsoft/clear-session')
+@router.get('/logout/microsoft/clear-session')
 async def logout_microsoft_clear_session(request: starlette.requests.Request):
     """Receive the redirect from the Microsoft logout endpoint and redirect to the
     target URL.

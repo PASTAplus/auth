@@ -12,7 +12,7 @@ PUBLIC_KEY = pasta_crypto.import_key(Config.PUBLIC_KEY_PATH)
 PRIVATE_KEY = pasta_crypto.import_key(Config.PRIVATE_KEY_PATH)
 
 
-@router.post('/auth/refresh')
+@router.post('/v1/refresh')
 async def refresh_token(
     request: starlette.requests.Request,
 ):

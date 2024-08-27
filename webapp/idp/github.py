@@ -18,7 +18,7 @@ router = fastapi.APIRouter()
 #
 
 
-@router.get('/auth/login/github')
+@router.get('/login/github')
 async def login_github(
     request: starlette.requests.Request,
 ):
@@ -135,7 +135,7 @@ async def callback_github(
     # Redirect to privacy policy accept page if user hasn't accepted it yet
     if not identity_row.profile.privacy_policy_accepted:
         return util.redirect(
-            '/auth/accept',
+            '/login/accept',
             target=target,
             pasta_token=identity_row.pasta_token,
             urid=identity_row.profile.urid,
@@ -164,7 +164,7 @@ async def callback_github(
 #
 
 
-@router.get('/auth/revoke/github')
+@router.get('/revoke/github')
 async def revoke_github(
     request: starlette.requests.Request,
 ):
