@@ -96,25 +96,25 @@ Since we currently have public production and test instances of Auth, and also r
 
 - https://auth.edirepository.org/auth/callback/github
 - https://auth-d.edirepository.org/auth/callback/github
-- https://localhost:5443/auth/callback/github
+- https://localhost:5443/callback/github
 
 #### Google
 
 - https://auth.edirepository.org/auth/callback/google
 - https://auth-d.edirepository.org/auth/callback/google
-- https://localhost:5443/auth/callback/google
+- https://localhost:5443/callback/google
 
 #### Microsoft
 
 - https://auth.edirepository.org/auth/callback/microsoft
 - https://auth-d.edirepository.org/auth/callback/microsoft
-- https://localhost:5443/auth/callback/microsoft
+- https://localhost:5443/callback/microsoft
 
 #### ORCID
 
 - https://auth.edirepository.org/auth/callback/orcid
 - https://auth-d.edirepository.org/auth/callback/orcid
-- https://localhost:5443/auth/callback/orcid
+- https://localhost:5443/callback/orcid
 
 
 ## Conda
