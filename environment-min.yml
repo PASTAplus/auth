@@ -6,6 +6,7 @@ dependencies:
   - python=3.11
   - sqlalchemy=1.4.46
   - click
+  - cryptography
   - daiquiri
   - fastapi
   - gunicorn
@@ -13,6 +14,7 @@ dependencies:
   - libiconv
   - pendulum
   - pycryptodome
+  - pyjwt
   - pynacl
   - pytest
   - requests
