@@ -39,7 +39,7 @@ async def login_github(
     )
 
 
-@router.get('/auth/callback/github')
+@router.get('/callback/github')
 async def callback_github(
     request: starlette.requests.Request,
     udb: user_db.UserDb = fastapi.Depends(user_db.udb),
