@@ -13,12 +13,16 @@ PRIVATE_KEY = pasta_crypto.import_key(Config.PRIVATE_KEY_PATH)
 
 
 @router.post('/auth/refresh')
-async def refresh_token(external_token: str):
+async def refresh_token(
+    request: starlette.requests.Request,
+):
     """Validate and refresh an authentication token.
 
     A refreshed token is a token that matches the original token's uid and
     groups but has a new TTL.
     """
+    external_token = (await request.body()).decode('utf-8')
+
     # Verify the token signature
     try:
         pasta_crypto.verify_auth_token(PUBLIC_KEY, external_token)
