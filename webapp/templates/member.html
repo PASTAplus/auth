@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% set active_page = "identity" %}
+
+{% block title %}
+  Group Members
+{% endblock %}
+
+{% block head %}
+  <link rel='stylesheet' href='/static/css/member.css'>
+{% endblock %}
+
+{% block scripts %}
+  <script src='/static/js/member.js'></script>
+{% endblock %}
+
+{% block content %}
+
+  <div class='header-container' data-group-id='{{ group_row.id }}'>
+    <h1 aria-label>Group Members</h1>
+  </div>
+
+  <div class='indent'>
+    <p>
+      Group members are users who have been added to the group and have access to the resources
+      the group has access to.
+    </p>
+    <p>
+      Adding a member to this group grants them immediate access to all resources the group has access to,
+      while removing them revokes that access.
+    </p>
+
+    <p>
+      <button class='icon-text-button'>
+        <a href='/group'>
+          <span><img src="/static/svg/back.svg" alt="Back to groups"></span>
+          <span>Back to Groups</span>
+        </a>
+      </button>
+    </p>
+
+    <div class='indent'>
+      <div class='details-grid'>
+        <div class='details-grid-child label'>Name</div>
+        <div class='details-grid-child label'>{{ group_row.name }}</div>
+
+        <div class='details-grid-child label'>Description</div>
+        <div class='details-grid-child'>{{ group_row.description or '' }}</div>
+
+        <div class='details-grid-child label'>Group ID</div>
+        <div class='details-grid-child'>
+          <div class="pasta-id-parent">
+            <div class="pasta-id-child-text">
+              {{ group_row.grid }}
+            </div>
+            <div class="pasta-id-child-icon">
+              <img src="/static/svg/copy.svg" alt="Copy Group Identifier">
+            </div>
+          </div>
+        </div>
+
+        <div class='details-grid-child label'>Created date</div>
+        <div class='details-grid-child'>{{ group_row.created }}</div>
+
+        <div class='details-grid-child label'>Updated date</div>
+        <div class='details-grid-child'>{{ group_row.updated }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class='indent'>
+    <p>Group members:</p>
+
+    <div class='indent'>
+      <div id='memberListMsg'></div>
+      <div class='profile-list-grid' id='memberList'>
+        {% for p in member_list %}
+          <div class='profile-flex profile-root' data-profile-id='{{ p.id }}'>
+            <div class='profile-flex-row'>
+              <div class='profile-flex-child profile-flex-avatar'>
+                <img src='{{ p.avatar_url }}' alt='Avatar' class='avatar avatar-small'>
+              </div>
+              <div class='profile-flex-child profile-flex-name'>{{ p.full_name }}</div>
+              <div class='profile-flex-child'>{{ p.email }}</div>
+              <div class='profile-flex-child'>{{ p.organization or '' }}</div>
+              <div class='profile-flex-child'>{{ p.association or '' }}</div>
+              <div class='profile-flex-child profile-flex-button'>
+                <button type='submit' class='icon-text-button' id='removeButton'>
+                  <span><img src='/static/svg/arrow-down-from-line.svg' alt='Remove'></span>
+                  <span>Remove</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class='indent'>
+    <p>Add members:</p>
+
+    <div class='indent'>
+
+      <label for='searchMember' class='screen-reader-only'>Search for member to add</label>
+      <input type='text' class='form-control' id='searchMember'
+             placeholder='Type a few letters from name, email, organization and/or association'>
+
+    </div>
+
+    <div class='indent profile-list-grid' id='candidateList'>
+    </div>
+
+
+  </div>
+
+
+{% endblock %}
