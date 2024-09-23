@@ -1,14 +1,12 @@
 import base64
-import urllib.parse
 
 import daiquiri
 import fastapi
 import starlette.requests
 import starlette.responses
 
-import pasta_ldap
+import db.iface
 import pasta_token as pasta_token_
-import user_db
 import util
 from config import Config
 
@@ -23,7 +21,7 @@ router = fastapi.APIRouter()
 @router.get('/login/pasta')
 async def login_pasta(
     request: starlette.requests.Request,
-    udb: user_db.UserDb = fastapi.Depends(user_db.udb),
+    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
 ):
     """Accept the initial login request from an EDI service and redirect to the
     LDAP login endpoint.
@@ -58,6 +56,7 @@ async def login_pasta(
         idp_name='ldap',
         uid=uid,
         email=None,
+        has_avatar=False,
         pasta_token=pasta_token,
     )
 

@@ -7,8 +7,8 @@ import requests
 import starlette.requests
 import starlette.responses
 
+import db.iface
 import pasta_token as pasta_token_
-import user_db
 import util
 from config import Config
 
@@ -29,22 +29,25 @@ async def login_microsoft(
     """
     target = request.query_params.get('target')
     log.debug(f'login_microsoft() target="{target}"')
-    return util.redirect(
+    return util.redirect_to_idp(
         Config.MICROSOFT_AUTH_ENDPOINT,
+        'microsoft',
+        target,
         client_id=Config.MICROSOFT_CLIENT_ID,
-        response_type='code',
-        redirect_uri=util.get_redirect_uri('microsoft', target),
-        scope='openid profile email https://graph.microsoft.com/User.Read',
-        response_mode='query',
+        scope='openid profile email https://graph.microsoft.com/User.Read https://graph.microsoft.com/User.ReadBasic.All',
+        # scope='read:user',
+        # prompt='consent',
+        # prompt='login',
         prompt='select_account',
+        response_type='code',
+        response_mode='query',
     )
 
 
 @router.get('/callback/microsoft')
 async def login_microsoft_callback(
-    target,
     request: starlette.requests.Request,
-    udb: user_db.UserDb = fastapi.Depends(user_db.udb),
+    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
 ):
     """On successful login, redeem a code for an access token. Otherwise, just redirect to the
     target URL.
@@ -55,6 +58,8 @@ async def login_microsoft_callback(
     The microsoft oauth service redirects to this endpoint with a code parameter after successful
     authentication.
     """
+    target = request.cookies.get('target')
+
     code_str = request.query_params.get('code')
     if code_str is None:
         return util.redirect(target, error='Login cancelled')
@@ -98,12 +103,14 @@ async def login_microsoft_callback(
     )
 
     # Fetch the avatar
+    has_avatar = False
     try:
         avatar = get_user_avatar(token_dict['access_token'])
     except fastapi.HTTPException as e:
         log.error(f'Failed to fetch user avatar: {e.detail}')
     else:
         util.save_avatar(avatar, 'microsoft', user_dict['sub'])
+        has_avatar = True
 
     log.debug('-' * 80)
     log.debug('login_microsoft_callback() - login successful')
@@ -128,6 +135,7 @@ async def login_microsoft_callback(
         idp_name='microsoft',
         uid=uid,
         email=user_dict['email'],
+        has_avatar=has_avatar,
         pasta_token=pasta_token,
     )
 

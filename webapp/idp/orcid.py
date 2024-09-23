@@ -1,12 +1,10 @@
-import re
-
 import daiquiri
 import fastapi
 import requests
 import starlette.requests
 
+import db.iface
 import pasta_token as pasta_token_
-import user_db
 import util
 from config import Config
 
@@ -27,29 +25,25 @@ async def login_orcid(
     """
     target = request.query_params.get('target')
     log.debug(f'login_orcid() target="{target}"')
-    return util.redirect(
+
+    return util.redirect_to_idp(
         Config.ORCID_AUTH_ENDPOINT,
+        'orcid',
+        target,
         client_id=Config.ORCID_CLIENT_ID,
-        response_type='code',
         scope='/authenticate openid',
-        redirect_uri=util.get_redirect_uri('orcid'),
         prompt='login',
+        response_type='code',
     )
 
 
-@router.get('/login/orcid/callback/{target:path}')
-async def login_orcid_callback(
-    target,
+@router.get('/callback/orcid')
+async def callback_orcid(
     request: starlette.requests.Request,
-    udb: user_db.UserDb = fastapi.Depends(user_db.udb),
+    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
 ):
-    # Hack to work around ORCID collapsing multiple slashes in the URL path, which breaks the target
-    # URL. This adds any missing slash after the protocol.
-    # E.g., https:/host/path -> https://host/path
-    if m := re.match(r'(https?:/)([^/].*)', target, re.IGNORECASE):
-        target = f'{m.group(1)}/{m.group(2)}'
-
-    log.debug(f'login_orcid_callback() target="{target}"')
+    target = request.cookies.get('target')
+    log.debug(f'callback_orcid() target="{target}"')
 
     code_str = request.query_params.get('code')
     if code_str is None:
@@ -102,6 +96,7 @@ async def login_orcid_callback(
         idp_name='orcid',
         uid=uid,
         email=token_dict.get('email'),
+        has_avatar=False,
         pasta_token=pasta_token,
     )
 

@@ -5,8 +5,8 @@ import fastapi
 import requests
 import starlette.requests
 
+import db.iface
 import pasta_token as pasta_token_
-import user_db
 import util
 from config import Config
 
@@ -42,7 +42,7 @@ async def login_github(
 @router.get('/callback/github')
 async def callback_github(
     request: starlette.requests.Request,
-    udb: user_db.UserDb = fastapi.Depends(user_db.udb),
+    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
 ):
     target = request.cookies.get('target')
     log.debug(f'callback_github() target="{target}"')
@@ -105,12 +105,14 @@ async def callback_github(
         return util.redirect(target, error='Login unsuccessful')
 
     # Fetch the avatar
+    has_avatar = False
     try:
         avatar = get_user_avatar(user_dict['avatar_url'])
     except fastapi.HTTPException as e:
         log.error(f'Failed to fetch user avatar: {e.detail}')
     else:
         util.save_avatar(avatar, 'github', user_dict['html_url'])
+        has_avatar = True
 
     log.debug('-' * 80)
     log.debug('github_callback() - login successful')
@@ -137,6 +139,7 @@ async def callback_github(
         idp_name='github',
         uid=uid,
         email=user_dict.get('email'),
+        has_avatar=has_avatar,
         pasta_token=pasta_token,
     )
 

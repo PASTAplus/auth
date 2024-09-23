@@ -1,11 +1,13 @@
+import re
+
 import daiquiri
 import fastapi
 import requests
 import starlette.requests
 import starlette.status
 
+import db.iface
 import pasta_token as pasta_token_
-import user_db
 import util
 from config import Config
 
@@ -58,7 +60,7 @@ async def login_google(
 @router.get('/callback/google')
 async def callback_google(
     request: starlette.requests.Request,
-    udb: user_db.UserDb = fastapi.Depends(user_db.udb),
+    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
 ):
     target = request.cookies.get('target')
     log.debug(f'callback_google() target="{target}"')
@@ -123,12 +125,14 @@ async def callback_google(
         return util.redirect(target, error='Login unsuccessful: Email not verified')
 
     # Fetch the avatar
+    has_avatar = False
     try:
         avatar = get_user_avatar(token_dict['access_token'])
     except fastapi.HTTPException as e:
         log.error(f'Failed to fetch user avatar: {e.detail}')
     else:
         util.save_avatar(avatar, 'google', user_dict['sub'])
+        has_avatar = True
 
     log.debug('-' * 80)
     log.debug('login_google_callback() - login successful')
@@ -149,6 +153,7 @@ async def callback_google(
         idp_name='google',
         uid=user_dict['sub'],
         email=user_dict['email'],
+        has_avatar=has_avatar,
         pasta_token=pasta_token,
     )
 
