@@ -12,13 +12,16 @@ import sqlalchemy
 import sqlalchemy.exc
 import sqlalchemy.orm
 
+import db.iface
+import db.user
 import webapp.main
-import webapp.user_db
+import webapp.db.iface
+import webapp.db.base
 import webapp.util
-
+import webapp.db
 # from webapp.config import Config
 
-# app = fastapi.FastAPI()
+app = fastapi.FastAPI()
 
 HERE_PATH = pathlib.Path(__file__).parent.resolve()
 PROFILE_PATH = HERE_PATH / 'tests/test_files/profile.json'
@@ -51,7 +54,7 @@ def db_engine():
         },
     )
     # Create all tables
-    webapp.user_db.Base.metadata.create_all(engine)
+    webapp.db.base.Base.metadata.create_all(engine)
     return engine
 
 
@@ -87,7 +90,7 @@ def db_session_populated(db_session):
     for profile_dict in profile_list:
         # webapp.util.pp(profile_dict)
         accepted_date = profile_dict['privacy_policy_accepted_date']
-        profile_row = webapp.user_db.Profile(
+        profile_row = db.user.Profile(
             urid=profile_dict['urid'],
             given_name=profile_dict['given_name'],
             family_name=profile_dict['family_name'],
@@ -98,7 +101,7 @@ def db_session_populated(db_session):
         db_session.add(profile_row)
 
     for identity_dict in identity_list:
-        identity_row = webapp.user_db.Identity(
+        identity_row = db.user.Identity(
             profile_id=identity_dict['profile_id'],
             idp_name=identity_dict['idp_name'],
             uid=identity_dict['uid'],
@@ -114,19 +117,16 @@ def db_session_populated(db_session):
     yield db_session
 
 
-@pytest.fixture
-def user_db(db_session):
-    return webapp.user_db.UserDb(db_session)
 
 
 @pytest.fixture
 def user_db_populated(db_session_populated):
-    return webapp.user_db.UserDb(db_session_populated)
+    return db.iface.UserDb(db_session_populated)
 
 
 def udb_override(session: sqlalchemy.orm.Session):
     try:
-        yield webapp.user_db.UserDb(session)
+        yield db.iface.UserDb(session)
     finally:
         session.close()
 
