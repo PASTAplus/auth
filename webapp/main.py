@@ -4,16 +4,17 @@ import fastapi.staticfiles
 import starlette.requests
 import starlette.responses
 
-import api.refresh_token
-import api.ping
-import idp.github
-import idp.google
-import idp.ldap
-import idp.microsoft
-import idp.orcid
-import ui.index
-import ui.privacy_policy
-from config import Config
+import webapp.api.refresh_token
+import webapp.api.ping
+import webapp.api.profile
+import webapp.idp.github
+import webapp.idp.google
+import webapp.idp.ldap
+import webapp.idp.microsoft
+import webapp.idp.orcid
+import webapp.ui.index
+import webapp.ui.privacy_policy
+from webapp.config import Config
 
 daiquiri.setup(
     level=Config.LOG_LEVEL,
@@ -65,13 +66,13 @@ for icon_path in [
 #     return response
 
 
-app.include_router(api.refresh_token.router)
-app.include_router(api.ping.router)
-# app.include_router(api.user.router)
-app.include_router(idp.github.router)
-app.include_router(idp.google.router)
-app.include_router(idp.ldap.router)
-app.include_router(idp.microsoft.router)
-app.include_router(idp.orcid.router)
-app.include_router(ui.index.router)
-app.include_router(ui.privacy_policy.router)
+app.include_router(webapp.api.refresh_token.router)
+app.include_router(webapp.api.ping.router)
+app.include_router(webapp.api.profile.router)
+app.include_router(webapp.idp.github.router)
+app.include_router(webapp.idp.google.router)
+app.include_router(webapp.idp.ldap.router)
+app.include_router(webapp.idp.microsoft.router)
+app.include_router(webapp.idp.orcid.router)
+app.include_router(webapp.ui.index.router)
+app.include_router(webapp.ui.privacy_policy.router)
