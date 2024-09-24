@@ -65,19 +65,3 @@ def token(
         yield None
     else:
         yield NewToken().from_json(token_json)
-
-
-# # Attempt at middleware to redirect to signin page if no token is present. The issue is to get this
-# # to kick in only for pages that take a token as a dependency injection.
-# # Dependency to set the token in request state
-# async def set_token(
-#     request: starlette.requests.Request,
-#     token: NewToken = fastapi.Depends(token),
-# ):
-#     request.state.token = token
-#     return token
-
-# async def has_token(
-#     request: starlette.requests.Request,
-# ):
-#     if request.cookies.get('token') is None:

@@ -22,9 +22,6 @@
         <span class='row-low-child icon-button'>
           <img src='/static/svg/edit-pencil.svg' alt='Edit profile' id='editProfile'>
         </span>
-        {#<button type='submit' class='icon-text-button' data-bs-toggle='modal' data-bs-target='#deleteGroupModal' id='editProfile'>#}
-        {#  <span><img src="/static/svg/edit-pencil.svg" alt="Edit profile"></span>#}
-        {#</button>#}
       </span>
     </h1>
   </div>
@@ -48,21 +45,15 @@
   <div class='indent'>
 
     <div class='grid-parent'>
+      {# Email #}
       <div class='grid-child label'>Email:</div>
       <div class='grid-child' id='profileEmail'>{{ profile.email or '' }}</div>
-
-      <div class='grid-child label'>Send notifications:</div>
-      <div class='grid-child'>
-        <input class="form-check-input" type="checkbox" value=""
-               id="profileNotifications"
-            {% if profile.email_notifications %}
-               checked
-            {% endif %}
-               disabled
-        >
-        <label class="form-check-label" for="profileNotifications">
-        </label>
-
+      {# Email notifications #}
+      <div class='grid-child label'>Email notifications:</div>
+      <div class='grid-child' id='profileNotifications'
+           data-notifications='{{ profile.email_notifications | lower }}'
+      >
+        {{ 'Yes' if profile.email_notifications else 'No' }}
       </div>
 
       <div class='grid-child label'>Organization:</div>
@@ -86,23 +77,26 @@
       <div class='modal-content'>
         <div class='modal-header'>
           <h5 class='modal-title'>Edit Profile</h5>
-          <button type='button' class='btn-close' data-bs-dismiss='modal'
-                  aria-label='Close'></button>
+          <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
         </div>
         <div class='modal-body'>
-          <form id='editProfileForm'>
+          <form id='editProfileForm' class='needs-validation' novalidate>
             <div class='form-group'>
               <label for='modalName'>Name</label>
-              <input type='text' class='form-control' id="modalName" name='name'>
+              <input type='text' class='form-control' id="modalName" name='name' required pattern='.{3,}'>
+              <div class='invalid-feedback'>
+                Name must be at least 3 characters long.
+              </div>
             </div>
             <div class='form-group'>
               <p>
-              <label for='modalEmail'>Email</label>
-              <input type='email' class='form-control' id="modalEmail" name='email'>
-                </p>
+                <label for='modalEmail'>Email</label>
+                {# type='email' is validated by the browser #}
+                <input type='email' class='form-control' id="modalEmail" name='email'>
+              </p>
               <p>
-              <label for='modalNotifications'>Send notifications</label>
-              <input type='checkbox' class='form-check-input' id="modalNotifications" name='email_notifications'>
+                <label for='modalNotifications'>Email notifications</label>
+                <input type='checkbox' class='form-check-input' id="modalNotifications" name="email-notifications">
               </p>
             </div>
             <div class='form-group'>
@@ -116,10 +110,8 @@
           </form>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close
-          </button>
-          <button type="button" class="btn btn-primary" id="saveProfileButton">Save
-            Changes
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="saveProfileButton">Save Changes
           </button>
         </div>
       </div>

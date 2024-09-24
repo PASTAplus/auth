@@ -19,7 +19,7 @@ saveButton.addEventListener('click', function () {
   // formData.forEach((value, key) => {
   //   profileData[key] = value;
   // });
-  // profileData['send-notifications'] = false;
+  // profileData['email-notifications'] = false;
   // // Example: Log the profile data to the console
   console.log(modalMap);
   setProfileFields(modalMap);
@@ -60,7 +60,7 @@ function getProfileFields()
     email: document.getElementById('profileEmail').textContent,
     organization: document.getElementById('profileOrganization').textContent,
     association: document.getElementById('profileAssociation').textContent,
-    email_notifications: document.getElementById('profileNotifications').checked,
+    email_notifications: document.getElementById('profileNotifications').dataset.notifications,
   };
 }
 
@@ -70,7 +70,9 @@ function setProfileFields(profileMap)
   document.getElementById('profileEmail').textContent = profileMap.email;
   document.getElementById('profileOrganization').textContent = profileMap.organization;
   document.getElementById('profileAssociation').textContent = profileMap.association;
-  document.getElementById('profileNotifications').checked = profileMap.email_notifications;
+  let notificationsEl = document.getElementById('profileNotifications');
+  notificationsEl.dataset.notifications = profileMap.email_notifications;
+  notificationsEl.textContent = profileMap.email_notifications ? 'Yes' : 'No';
 }
 
 function getModalFields()
@@ -90,7 +92,9 @@ function setModalFields(profileMap)
   document.getElementById('modalEmail').value = profileMap.email;
   document.getElementById('modalOrganization').value = profileMap.organization;
   document.getElementById('modalAssociation').value = profileMap.association;
-  document.getElementById('modalNotifications').checked = profileMap.email_notifications;
+  let notificationsEl = document.getElementById('profileNotifications');
+  document.getElementById('modalNotifications').checked =
+      notificationsEl.dataset.notifications === 'true';
 }
 
 // Form validation
@@ -103,13 +107,13 @@ $(document).on('show.bs.modal', '.modal', function () {
   validateForm();
 });
 
-$('.form-control').on('keyup', function (_event) {
+$('.form-control').on('input', function (_event) {
   validateForm();
 });
 
 function validateForm()
 {
-  const isNameValid = updateValidationClasses($('#modalName'), VALID_NAME_RX);
+  const isNameValid = updateValidationClasses($('#modalName'), VALID_NAME_RX, false);
   const isEmailValid = updateValidationClasses($('#modalEmail'), VALID_EMAIL_RX, false);
   let isFormValid = isNameValid && isEmailValid;
   $('#saveProfileButton').prop('disabled', !isFormValid);
@@ -117,7 +121,7 @@ function validateForm()
 
 function updateValidationClasses(inputEl, validationRx, emptyIsValid = true)
 {
-  // let el = $(inputEl).closest('.form-group');
+  let el = $(inputEl).closest('.form-group');
   const val = inputEl.val();
 
   if (val === '' && emptyIsValid) {
