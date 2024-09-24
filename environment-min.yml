@@ -13,11 +13,13 @@ dependencies:
   - ldap3
   - libiconv
   - pendulum
+  - pillow
   - pycryptodome
   - pyjwt
   - pynacl
   - pytest
   - requests
   - sqlite
+  - thefuzz
   - urllib3
   - uvicorn
