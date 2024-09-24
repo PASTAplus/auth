@@ -37,7 +37,7 @@ class NewToken:
         return f'urid={self.urid}, groups={"|".join(self.groups)}'
 
     async def as_json(self) -> str:
-        return await util.to_pretty_json(self.as_dict())
+        return util.to_pretty_json(self.as_dict())
 
     def as_dict(self) -> dict:
         return {
