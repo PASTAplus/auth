@@ -10,11 +10,12 @@
     {% endblock %}
   </title>
 
-
   <!-- Bootstrap CSS -->
-  <link href='/static/bootstrap/css/bootstrap.css' rel='stylesheet'>
+  <link href='/static/lib/bootstrap/css/bootstrap.css' rel='stylesheet'>
   <!-- Extra styles for auth -->
-  <link href='/static/auth.css' rel='stylesheet'>
+  <link href='/static/css/base.css' rel='stylesheet'>
+  {% block head %}
+  {% endblock %}
 </head>
 <body>
 
@@ -23,8 +24,8 @@
   <div class='container-fluid'>
 
     <a class='navbar-brand' href='/'>
-      <img src='/static/images/edi-logo-32x32.png'
-           alt='Environmental Data Initiative Logo' width='32' height='32'>
+      <img src='/static/svg/EDI-logo-no-padding.svg'
+           alt='Environmental Data Initiative Logo'>
       <span class='navbar-brand-pad'>Environmental Data Initiative (EDI)</span>
     </a>
 
@@ -37,52 +38,50 @@
         <span class='navbar-toggler-icon'></span>
       </button>
 
-      <div class='collapse navbar-collapse' id='navbarContent'>
+      <!-- Menu, left -->
 
-        <!-- Menu, left -->
+      <ul class='navbar-nav mr-auto'>
 
-        <ul class='navbar-nav mr-auto'>
-
-          <!--<li class='nav-item'>-->
-          <!--  <a class='nav-link' href='/'>Home</a>-->
-          <!--</li>-->
-          <li class='nav-item'>
-            <a class='nav-link' href='/profile'>Profile</a>
-          </li>
-          <li class='nav-item'>
-            <a class='nav-link' href='/identity'>Identity</a>
-          </li>
-          <li class='nav-item'>
-            <a class='nav-link' href='/groups'>Groups</a>
-          </li>
-
-          <!--<li class='nav-item dropdown'>-->
-          <!--  <a class='nav-link dropdown-toggle' href='#' id='navbarDropdown' role='button' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>-->
-          <!--    Dropdown-->
-          <!--  </a>-->
-          <!--  <div class='dropdown-menu' aria-labelledby='navbarDropdown'>-->
-          <!--    <a class='dropdown-item' href='#'>Action</a>-->
-          <!--    <a class='dropdown-item' href='#'>Another action</a>-->
-          <!--    <div class='dropdown-divider'></div>-->
-          <!--    <a class='dropdown-item' href='#'>Something else here</a>-->
-          <!--  </div>-->
-          <!--</li>-->
-
-          <!--<li class='nav-item'>-->
-          <!--  <a class='nav-link disabled' href='#'>Disabled</a>-->
-          <!--</li>-->
-        </ul>
-      </div>
+        <li class='nav-item'>
+          <a class='nav-link {% if not token %}disabled{% endif %}' href='/profile'>Profile</a>
+        </li>
+        <li class='nav-item'>
+          <a class='nav-link {% if not token %}disabled{% endif %}' href='/identity'>Accounts</a>
+        </li>
+        <li class='nav-item'>
+          <a class='nav-link {% if not token %}disabled{% endif %}' href='/group'>Groups</a>
+        </li>
+      </ul>
 
       <!--Menu, right-->
 
       <ul class='navbar-nav mr-auto navbar-right'>
+        {% if not token %}
+          <li class='nav-item'>
+            <a class='nav-link active' href='/signin'>Sign in</a>
+          </li>
+        {% endif %}
+
+        {% if token %}
+          <li class='nav-item'>
+            <div class='row-center-parent'>
+              <div class='row-center-child'>
+                <img src='{{ avatar_url }}' alt='Avatar' class='avatar'>
+              </div>
+              <div class='row-center-child'>
+                <a class='nav-link' href='/signout'>
+                  <img src="/static/svg/sign-out.svg" alt="Sign out" class='icon-link'>
+                  Sign out
+                </a>
+              </div>
+            </div>
+          </li>
+        {% endif %}
+
         <li class='nav-item'>
-          <a class='nav-link active' href='/login'>Login</a>
+          <a class='nav-link' href='/dev'> </a>
         </li>
-        <li class='nav-item'>
-          <a class='nav-link disabled' href='/register'>Register</a>
-        </li>
+
       </ul>
 
     {% endblock %}
@@ -91,16 +90,20 @@
 </nav>
 
 
-<main role='main' class='container '>
+<main role='main' class='container'>
   {% block content %}
   {% endblock %}
 </main>
 
 <!-- Bootstrap Bundle with Popper -->
-<script src='/static/bootstrap/js/bootstrap.bundle.js'></script>
+<script src='/static/lib/bootstrap/js/bootstrap.bundle.js'></script>
 <!-- Bootstrap 5 does not use jQuery, but we do -->
-<script src='/static/jquery-3.7.1.js'></script>
+<script src='/static/lib/jquery-3.7.1.js'></script>
 <!-- js that runs on all pages -->
-<script src='/static/base.js'></script>
+<script src='/static/js/base.js'></script>
+{% block scripts %}
+  {# By importing scripts just before the /body tag, we don't have to wrap scripts
+  in checks for fully loaded DOM #}
+{% endblock %}
 </body>
 </html>

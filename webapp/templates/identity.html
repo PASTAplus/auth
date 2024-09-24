@@ -36,14 +36,14 @@
             <div class='grid-child'>
               <div class='idp-logo'>
                 {% if identity.idp_name == 'google' %}
-                  <img class='idp-logo-google' src='/static/images/buttons-new/google-text.svg' alt='Google'>
+                  <img class='idp-logo-google' src='/static/svg/idp/google-text.svg' alt='Google'>
                 {% elif identity.idp_name == 'microsoft' %}
-                  <img class='idp-logo-microsoft' src='/static/images/buttons-new/microsoft.svg' alt='Microsoft'>
+                  <img class='idp-logo-microsoft' src='/static/svg/idp/microsoft.svg' alt='Microsoft'>
                 {% elif identity.idp_name == 'github' %}
-                  <img class='idp-logo-github-symbol' src='/static/images/buttons-new/github-symbol.svg' alt='GitHub'>
-                  <img class='idp-logo-github-text' src='/static/images/buttons-new/github-text.svg' alt='GitHub'>
+                  <img class='idp-logo-github-symbol' src='/static/svg/idp/github-symbol.svg' alt='GitHub'>
+                  <img class='idp-logo-github-text' src='/static/svg/idp/github-text.svg' alt='GitHub'>
                 {% elif identity.idp_name == 'orcid' %}
-                  <img class='idp-logo-orcid' src='/static/images/buttons-new/orcid.svg' alt='ORCID'>
+                  <img class='idp-logo-orcid' src='/static/svg/idp/orcid.svg' alt='ORCID'>
                 {% else %}
                   {{ identity.idp_name }}
                 {% endif %}

@@ -1,20 +1,29 @@
+import contextlib
+
 import daiquiri.formatter
 import fastapi
 import fastapi.staticfiles
+import starlette.middleware.base
 import starlette.requests
 import starlette.responses
+import starlette.status
 
-import webapp.api.refresh_token
-import webapp.api.ping
-import webapp.api.profile
-import webapp.idp.github
-import webapp.idp.google
-import webapp.idp.ldap
-import webapp.idp.microsoft
-import webapp.idp.orcid
-import webapp.ui.index
-import webapp.ui.privacy_policy
-from webapp.config import Config
+import api.ping
+import api.refresh_token
+import db.iface
+import fuzz
+import idp.github
+import idp.google
+import idp.ldap
+import idp.microsoft
+import idp.orcid
+import ui.group
+import ui.identity
+import ui.index
+import ui.privacy_policy
+import ui.profile
+import ui.signin
+from config import Config
 
 daiquiri.setup(
     level=Config.LOG_LEVEL,
@@ -22,19 +31,39 @@ daiquiri.setup(
         daiquiri.output.File(Config.LOG_PATH / 'auth.log'),
         'stdout',
     ],
+    # formatter=daiquiri.formatter.ColorExtrasFormatter(
+    #     # fmt=(Config.LOG_FORMAT),
+    #     # datefmt=Config.LOG_DATE_FORMAT,
+    # ),
 )
 
 log = daiquiri.getLogger(__name__)
 
-log.info("Application starting...")
 
-app = fastapi.FastAPI()
+
+@contextlib.asynccontextmanager
+async def lifespan(
+    _app: fastapi.FastAPI,
+):
+    log.info("Application starting...")
+    await fuzz.init_cache()
+    yield
+    log.info("Application stopping...")
+
+app = fastapi.FastAPI(lifespan=lifespan)
 
 # Set up serving of static files
 app.mount(
-    '/static',
-    fastapi.staticfiles.StaticFiles(directory=Config.HERE_PATH / 'static'),
+    Config.STATIC_URL,
+    fastapi.staticfiles.StaticFiles(directory=Config.STATIC_PATH),
     name='static',
+)
+
+# Set up serving of avatars
+app.mount(
+    Config.AVATARS_URL,
+    fastapi.staticfiles.StaticFiles(directory=Config.AVATARS_PATH),
+    name='avatars',
 )
 
 
@@ -66,13 +95,32 @@ for icon_path in [
 #     return response
 
 
-app.include_router(webapp.api.refresh_token.router)
-app.include_router(webapp.api.ping.router)
-app.include_router(webapp.api.profile.router)
-app.include_router(webapp.idp.github.router)
-app.include_router(webapp.idp.google.router)
-app.include_router(webapp.idp.ldap.router)
-app.include_router(webapp.idp.microsoft.router)
-app.include_router(webapp.idp.orcid.router)
-app.include_router(webapp.ui.index.router)
-app.include_router(webapp.ui.privacy_policy.router)
+# Middleware to redirect to signin page if no token is present.
+class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        if hasattr(request.state, 'redirect_to_signin'):
+            return starlette.responses.RedirectResponse(
+                url=Config.SERVICE_BASE_URL + '/signin',
+                status_code=starlette.status.HTTP_303_SEE_OTHER,
+            )
+        response = await call_next(request)
+        return response
+
+
+# noinspection PyTypeChecker
+app.add_middleware(RedirectToSigninMiddleware)
+
+app.include_router(api.refresh_token.router)
+app.include_router(api.ping.router)
+# app.include_router(api.user.router)
+app.include_router(idp.github.router)
+app.include_router(idp.google.router)
+app.include_router(idp.ldap.router)
+app.include_router(idp.microsoft.router)
+app.include_router(idp.orcid.router)
+app.include_router(ui.index.router)
+app.include_router(ui.group.router)
+app.include_router(ui.identity.router)
+app.include_router(ui.profile.router)
+app.include_router(ui.signin.router)
+app.include_router(ui.privacy_policy.router)

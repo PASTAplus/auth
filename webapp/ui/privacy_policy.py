@@ -3,7 +3,7 @@ import fastapi
 import starlette.requests
 import starlette.templating
 
-import user_db
+import db.iface
 import util
 from config import Config
 
@@ -42,7 +42,7 @@ async def accept_get(request: starlette.requests.Request):
 @router.post('/login/accept')
 async def accept_post(
     request: starlette.requests.Request,
-    udb: user_db.UserDb = fastapi.Depends(user_db.udb),
+    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
 ):
     """Require the user to accept the privacy policy.
 
