@@ -1,0 +1,81 @@
+#loginForm {
+    display: grid;
+    grid-template-columns: repeat(2, max-content);
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#loginForm .form-control {
+    max-width: 12rem;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    row-gap: 1rem;
+}
+
+.grid-child {
+    /*padding: 0;*/
+    /* padding: .5rem 0 .5rem 0; */
+    /* Ensure no negative margins or absolute positioning */
+    /* margin: 0; */
+    /* position: relative; */
+}
+
+.grid-child-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    width: 10.5rem;
+    height: 2.3rem;
+    border: 1px solid #a0a0a0;
+    box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
+}
+
+.grid-child-button:active {
+    background-color: #f0f0f0;
+    transform: scale(0.95);
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.grid-logo-google {
+    height: 1.85rem;
+    padding-top: 0.2rem;
+}
+
+.grid-logo-microsoft {
+    height: 1.6rem;
+}
+
+.grid-logo-github-symbol {
+    padding-right: 0.3rem;
+    height: 1.6rem;
+}
+
+.grid-logo-github-text {
+    height: 1.3rem;
+}
+
+.grid-logo-orcid {
+    height: 1.6rem;
+    padding-bottom: 0.15rem;
+}
+
+/* Indicate selection (hover and click) */
+
+/*.grid-row > .grid-child {*/
+/*    transition: background-color .3s ease-in-out;*/
+/*}*/
+
+/*.grid-row:hover > .grid-child {*/
+/*    background-color: #b5ceff;*/
+/*    !*border-radius: 10px;*!*/
+/*}*/
+
+/*.grid-row:active > .grid-child {*/
+/*    transform: scale(0.90);*/
+/*    box-shadow: 0 0 .4rem rgba(0, 0, 0, 0.2);*/
+/*}*/
+
