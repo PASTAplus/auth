@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--COLLECTION: Majesticons Line Interface Icons-->
+<!--LICENSE: MIT License-->
+<!--AUTHOR: halfmage-->
+<svg width="800px" height="800px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <path stroke="#a0a0a0" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M9 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H9m6-9-4-4m4 4-4 4m4-4H5"/>
+</svg>
