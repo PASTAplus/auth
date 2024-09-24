@@ -2,10 +2,115 @@
 {% set active_page = "identity" %}
 
 {% block title %}
-  Identity
+  Identities
+{% endblock %}
+
+{% block head %}
+  <link rel='stylesheet' href='/static/css/identity.css'>
+{% endblock %}
+
+{% block scripts %}
+  <script src='/static/js/identity.js'></script>
 {% endblock %}
 
 {% block content %}
-  <h2 aria-label>Identity</h2>
-{% endblock %}
+  <div class='header-container'>
+    <h1 aria-label>Accounts</h1>
+  </div>
 
+  <div class='indent'>
+    <p>
+      Accounts that are currently linked to your profile.
+    </p>
+
+    <div class='indent'>
+
+      <div class='grid'>
+
+        {% for identity in identity_list %}
+
+          <div class='grid-row'>
+            <div class='grid-child'>
+              <img src="{{ identity.avatar_url }}" alt="Avatar" class='avatar avatar-small'>
+            </div>
+            <div class='grid-child'>
+              <div class='idp-logo'>
+                {% if identity.idp_name == 'google' %}
+                  <img class='idp-logo-google' src='/static/images/buttons-new/google-text.svg' alt='Google'>
+                {% elif identity.idp_name == 'microsoft' %}
+                  <img class='idp-logo-microsoft' src='/static/images/buttons-new/microsoft.svg' alt='Microsoft'>
+                {% elif identity.idp_name == 'github' %}
+                  <img class='idp-logo-github-symbol' src='/static/images/buttons-new/github-symbol.svg' alt='GitHub'>
+                  <img class='idp-logo-github-text' src='/static/images/buttons-new/github-text.svg' alt='GitHub'>
+                {% elif identity.idp_name == 'orcid' %}
+                  <img class='idp-logo-orcid' src='/static/images/buttons-new/orcid.svg' alt='ORCID'>
+                {% else %}
+                  {{ identity.idp_name }}
+                {% endif %}
+              </div>
+            </div>
+            <div class='grid-child'>
+              {{ identity.full_name }}
+            </div>
+            <div class='grid-child'>
+              {% if identity_list|length > 1 %}
+                <button class='icon-text-button' data-bs-toggle='modal'
+                        data-bs-target='#unlinkIdentityModal'
+                        data-idp-name='{{ identity.idp_name }}'
+                        data-uid='{{ identity.uid }}'
+                >
+                  <span><img src="/static/svg/trash.svg" alt="Unlink"></span>
+                  <span>Unlink</span>
+                </button>
+              {% endif %}
+            </div>
+          </div>
+
+        {% endfor %}
+
+      </div>
+    </div>
+
+    {% if identity_list|length == 1 %}
+      <p class="alert alert-info">
+        If you have multiple accounts linked to your profile, you can unlink accounts here. If you wish to unlink
+        this account, link a new account from the Profile page first, to ensure your profile remains accessible.
+      </p>
+    {% endif %}
+
+  </div>
+
+  {# Modal unlink confirmation dialog #}
+
+  <div class='modal fade' id='unlinkIdentityModal' tabindex='-1' data-bs-backdrop='static'>
+    <div class='modal-dialog modal-dialog-centered'>
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <h5 class='modal-title'>Unlink this account</h5>
+          <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
+        </div>
+        <div class='modal-body'>
+          <form action='/identity/unlink' method='post' id='unlinkIdentityForm'>
+            <input type='hidden' name='idp_name' id='unlinkIdentityIdpName'>
+            <input type='hidden' name='uid' id='unlinkIdentityUid'>
+            <div class='form-group'>
+              <p>
+                Click 'Unlink' to remove this account from your profile.
+              </p>
+              <p>
+                Unlinking your account will not affect your account at the identity provider. You can link this account
+                again at any time by using the 'Link Account' button on the Profile page. Signing in with this account
+                again will create a new separate profile.
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Unlink</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
