@@ -8,6 +8,7 @@ lternet.*
 user_db.sqlite
 __RD.md
 webapp/lib/
+webapp/avatars/
 
 # General
 
