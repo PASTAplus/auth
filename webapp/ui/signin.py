@@ -6,7 +6,7 @@ import starlette.status
 import starlette.templating
 
 import db.iface
-import new_token
+import jwt_token
 import util
 from config import Config
 
@@ -20,7 +20,7 @@ templates = starlette.templating.Jinja2Templates(Config.TEMPLATES_PATH)
 @router.get('/signin')
 async def signin(
     request: starlette.requests.Request,
-    token: new_token.NewToken | None = fastapi.Depends(new_token.token),
+    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
 ):
     return templates.TemplateResponse(
         'signin.html',
@@ -39,7 +39,7 @@ async def signin(
 @router.api_route('/signin/token', methods=['GET', 'POST'])
 async def signin_token(request: starlette.requests.Request):
     urid = request.query_params.get('urid')
-    token = new_token.NewToken(urid=urid)
+    token = jwt_token.NewToken(urid=urid)
     response = starlette.responses.RedirectResponse(
         Config.SERVICE_BASE_URL + '/profile',
         status_code=starlette.status.HTTP_303_SEE_OTHER,
@@ -51,7 +51,7 @@ async def signin_token(request: starlette.requests.Request):
 async def signin_token(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: new_token.NewToken | None = fastapi.Depends(new_token.token),
+    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
 ):
     profile_row = udb.get_profile(token.urid)
     # urid = request.query_params.get('urid')
@@ -63,7 +63,7 @@ async def signin_token(
     # avatar_url = request.query_params.get('avatar_url')
     # pasta_token = request.query_params.get('pasta_token')
 
-    # token = new_token.NewToken(urid=urid)
+    # token = jwt_token.NewToken(urid=urid)
     udb.move_identity(idp_name, uid, profile_row)
 
     response = starlette.responses.RedirectResponse(
@@ -77,7 +77,7 @@ async def signin_token(
 async def signin_link(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: new_token.NewToken | None = fastapi.Depends(new_token.token),
+    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
 ):
     profile_row = udb.get_profile(token.urid)
     return templates.TemplateResponse(
@@ -110,7 +110,7 @@ async def signin_link(
 async def signin_reset(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: new_token.NewToken | None = fastapi.Depends(new_token.token),
+    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
 ):
     return templates.TemplateResponse(
         'signin-reset-pw.html',

@@ -10,7 +10,7 @@ import starlette.templating
 import thefuzz.process
 
 import db.iface
-import new_token
+import jwt_token
 from config import Config
 
 log = daiquiri.getLogger(__name__)

@@ -10,7 +10,7 @@ import json
 
 import db.group
 import db.iface
-import new_token
+import jwt_token
 import util
 from config import Config
 import fuzz
@@ -26,7 +26,7 @@ templates = starlette.templating.Jinja2Templates(Config.TEMPLATES_PATH)
 async def group(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: new_token.NewToken | None = fastapi.Depends(new_token.token),
+    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
 ):
     profile_row = udb.get_profile(token.urid)
 
@@ -65,7 +65,7 @@ async def group(
 async def group_new(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: new_token.NewToken | None = fastapi.Depends(new_token.token),
+    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
 ):
     form_data = await request.form()
     name = form_data.get('name')
@@ -82,7 +82,7 @@ async def group_new(
 async def group_edit(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: new_token.NewToken | None = fastapi.Depends(new_token.token),
+    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
 ):
     form_data = await request.form()
     group_id = form_data.get('group-id')
@@ -100,7 +100,7 @@ async def group_edit(
 async def group_delete(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: new_token.NewToken | None = fastapi.Depends(new_token.token),
+    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
 ):
     form_data = await request.form()
     group_id = form_data.get('group-id')
@@ -117,7 +117,7 @@ async def group_member(
     group_id: str,
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: new_token.NewToken | None = fastapi.Depends(new_token.token),
+    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
 ):
     # form_data = await request.form()
     # form_data.get('group-id')
@@ -148,7 +148,7 @@ async def group_member_search(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
     # Prevent this from being called by anyone not logged in
-    _token: new_token.NewToken | None = fastapi.Depends(new_token.token),
+    _token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
 ):
     query_dict = await request.json()
     # profile_row = udb.get_profile(token.urid)
@@ -183,7 +183,7 @@ async def group_member_search(
 async def group_member_add_remove(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: new_token.NewToken | None = fastapi.Depends(new_token.token),
+    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
 ):
     request_dict = await request.json()
     profile_row = udb.get_profile(token.urid)

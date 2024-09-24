@@ -7,7 +7,7 @@ import starlette.status
 import starlette.templating
 
 import db.iface
-import new_token
+import jwt_token
 import util
 from config import Config
 
@@ -25,7 +25,7 @@ templates = starlette.templating.Jinja2Templates(Config.TEMPLATES_PATH)
 async def profile(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: new_token.NewToken | None = fastapi.Depends(new_token.token),
+    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
 ):
     profile_row = udb.get_profile(token.urid)
 
@@ -49,7 +49,7 @@ async def profile(
 async def profile_update(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: new_token.NewToken | None = fastapi.Depends(new_token.token),
+    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
 ):
     profile_dict = await request.json()
     log.info(profile_dict)
@@ -60,7 +60,7 @@ async def profile_update(
 async def avatar(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: new_token.NewToken | None = fastapi.Depends(new_token.token),
+    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
 ):
     profile_row = udb.get_profile(token.urid)
 
@@ -98,7 +98,7 @@ async def avatar(
 async def avatar_update(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: new_token.NewToken | None = fastapi.Depends(new_token.token),
+    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
 ):
     form_data = await request.form()
     idp_name = form_data.get('idp_name')

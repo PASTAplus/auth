@@ -6,7 +6,7 @@ import starlette.status
 import starlette.templating
 
 import db.iface
-import new_token
+import jwt_token
 import util
 from config import Config
 
@@ -21,7 +21,7 @@ templates = starlette.templating.Jinja2Templates(Config.TEMPLATES_PATH)
 async def identity(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: new_token.NewToken | None = fastapi.Depends(new_token.token),
+    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
 ):
     profile_row = udb.get_profile(token.urid)
 
@@ -55,7 +55,7 @@ async def identity(
 async def identity_unlink(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: new_token.NewToken | None = fastapi.Depends(new_token.token),
+    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
 ):
     profile_row = udb.get_profile(token.urid)
 
