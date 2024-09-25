@@ -127,8 +127,6 @@ async def group_member(
     # group_row.updated = group_row.updated.strftime('%Y-%m-%d %H:%M')
     group_row.created = group_row.created.strftime('%m/%d/%Y %I:%M %p')
     group_row.updated = group_row.updated.strftime('%m/%d/%Y %I:%M %p')
-    member_list = udb.get_group_member_list(profile_row, group_row.id)
-    member_list = sorted(member_list, key=lambda x: x.profile.full_name)
     return templates.TemplateResponse(
         'member.html',
         {
@@ -138,10 +136,27 @@ async def group_member(
             #
             'request': request,
             'group_row': group_row,
-            'member_list': [m.profile for m in member_list],
         },
     )
 
+
+@router.get('/group/member/list/{group_id}')
+async def group_member(
+    group_id: str,
+    request: starlette.requests.Request,
+    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
+):
+    profile_row = udb.get_profile(token.urid)
+    group_row = udb.get_group(profile_row, int(group_id))
+    member_list = udb.get_group_member_list(profile_row, group_row.id)
+    member_list = sorted(member_list, key=lambda x: x.profile.full_name)
+    return starlette.responses.JSONResponse(
+        {
+            'status': 'ok',
+            'member_list': await get_client_profile_list([m.profile for m in member_list]),
+        }
+    )
 
 @router.post('/group/member/search')
 async def group_member_search(
@@ -153,30 +168,31 @@ async def group_member_search(
     query_dict = await request.json()
     # profile_row = udb.get_profile(token.urid)
     # group_row = udb.get_group(profile_row, form_data.get('group-id'))
-
     query_str = query_dict.get('query')
-    log.info(f'query_str: {query_str}')
-
     match_list = await fuzz.search(query_str)
-
-    profile_list = udb.get_profiles_by_ids(match_list)
-
+    candidate_list = udb.get_profiles_by_ids(match_list)
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',
-            'candidate_list': [
-                {
-                    'profile_id': profile_row.id,
-                    'full_name': profile_row.full_name,
-                    'email': profile_row.email,
-                    'organization': profile_row.organization,
-                    'association': profile_row.association,
-                    'avatar_url': str(profile_row.avatar_url),
-                }
-                for profile_row in profile_list
-            ],
+            'candidate_list': await get_client_profile_list(candidate_list),
         }
     )
+
+
+async def get_client_profile_list(profile_list):
+    """Create a set of plain key/value dicts with limited profile values for exposing
+    client side."""
+    return [
+        {
+            'profile_id': p.id,
+            'full_name': p.full_name,
+            'email': p.email,
+            'organization': p.organization,
+            'association': p.association,
+            'avatar_url': p.avatar_url,
+        }
+        for p in profile_list
+    ]
 
 
 @router.post('/group/member/add-remove')

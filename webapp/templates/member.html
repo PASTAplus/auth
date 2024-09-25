@@ -30,12 +30,10 @@
     </p>
 
     <p>
-      <button class='icon-text-button'>
-        <a href='/group'>
-          <span><img src="/static/svg/back.svg" alt="Back to groups"></span>
-          <span>Back to Groups</span>
-        </a>
-      </button>
+      <a href='/group' class='icon-text-button'>
+        <span><img src="/static/svg/back.svg" alt="Back to groups"></span>
+        <span>Back to Groups</span>
+      </a>
     </p>
 
     <div class='indent'>
@@ -69,51 +67,21 @@
 
   <div class='indent'>
     <p>Group members:</p>
-
-    <div class='indent'>
-      <div id='memberListMsg'></div>
-      <div class='profile-list-grid' id='memberList'>
-        {% for p in member_list %}
-          <div class='profile-flex profile-root' data-profile-id='{{ p.id }}'>
-            <div class='profile-flex-row'>
-              <div class='profile-flex-child profile-flex-avatar'>
-                <img src='{{ p.avatar_url }}' alt='Avatar' class='avatar avatar-small'>
-              </div>
-              <div class='profile-flex-child profile-flex-name'>{{ p.full_name }}</div>
-              <div class='profile-flex-child'>{{ p.email }}</div>
-              <div class='profile-flex-child'>{{ p.organization or '' }}</div>
-              <div class='profile-flex-child'>{{ p.association or '' }}</div>
-              <div class='profile-flex-child profile-flex-button'>
-                <button type='submit' class='icon-text-button' id='removeButton'>
-                  <span><img src='/static/svg/arrow-down-from-line.svg' alt='Remove'></span>
-                  <span>Remove</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-
+    <div class='indent profile-list-grid' id='memberList'>
+      <div class='grid-msg'>Loading members...</div>
     </div>
-
   </div>
 
   <div class='indent'>
     <p>Add members:</p>
-
     <div class='indent'>
-
       <label for='searchMember' class='screen-reader-only'>Search for member to add</label>
       <input type='text' class='form-control' id='searchMember'
              placeholder='Type a few letters from name, email, organization and/or association'>
-
     </div>
 
     <div class='indent profile-list-grid' id='candidateList'>
     </div>
-
-
   </div>
-
 
 {% endblock %}

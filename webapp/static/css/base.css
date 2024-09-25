@@ -158,9 +158,16 @@ table td, table th {
 .grid-child {
 }
 
+/* Prevent single line message inside grid from wrapping */
+.grid-msg {
+    white-space: nowrap;
+}
+
 .label {
     font-weight: bold;
 }
+
+
 
 /*
     Tooltip
@@ -242,7 +249,7 @@ table td, table th {
 }
 
 .icon-link:active {
-    transform: scale(0.90);
+    transform: scale(0.95);
 }
 
 /* IdP logos */
@@ -304,14 +311,14 @@ table td, table th {
 }
 
 .icon-button:active {
-    transform: scale(0.80);
+    transform: scale(0.95);
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Icon + text button */
 
 .icon-text-button {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     border: none;
@@ -322,11 +329,20 @@ table td, table th {
     /*margin: 0 1rem 0 0;*/
     transition: background-color .3s ease-in-out;
     box-shadow: 1px 1px 1.5px rgba(0, 0, 0, 0.5);
+    text-decoration: none;
+    color: inherit;
 }
 
 .icon-text-button a {
-    text-decoration: none;
-    color: inherit;
+  /* position: absolute; */
+  /* top: 0; */
+  /* left: 0; */
+  /* width: 100%; */
+  /* height: 100%; */
+  /* display: flex; */
+  /* align-items: center; */
+  /* justify-content: center; */
+  /* z-index: 1; */
 }
 
 .icon-text-button:hover {
@@ -335,7 +351,10 @@ table td, table th {
 }
 
 .icon-text-button:active {
-    transform: scale(0.90);
+    /* Scaling the button down causes it to move out from under the cursor when clicking right at the edge, so we limit
+     * how much we scale it down.
+     */
+    transform: scale(0.95);
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
 }
 
@@ -400,7 +419,7 @@ table td, table th {
 }
 
 .pasta-id-child-icon:active {
-    transform: scale(0.90);
+    transform: scale(0.95);
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
 }
 

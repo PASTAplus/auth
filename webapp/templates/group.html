@@ -62,32 +62,16 @@
 
             <div class='row-center-parent button-row'>
               {# Members #}
-              <button class='icon-text-button'>
-                <a href='/group/member/{{ group.id }}'>
-                  <span><img src="/static/svg/group.svg" alt="Edit Members"></span>
-                  <span>{{ group.member_count }}</span>
-                  {% if group.member_count == 1 %}
-                    <span>member</span>
-                  {% else %}
-                    <span>members</span>
-                  {% endif %}
-                </a>
-              </button>
-              {#<form action='/group/member' method='post'>#}
-              {#  <input type='hidden' name='group-id' value='{{ group.id }}'>#}
-              {#  <div class='row-center-child'>#}
-              {#    <button type='submit' class='icon-text-button'>#}
-              {#      <span><img src="/static/svg/group.svg" alt="Edit Members"></span>#}
-              {#      <span>{{ group.member_count }}</span>#}
-              {#      {% if group.member_count == 1 %}#}
-              {#      <span>member</span>#}
-              {#      {% else %}#}
-              {#      <span>members</span>#}
-              {#      {% endif %}#}
-              {#    </button>#}
-              {#  </div>#}
-              {#</form>#}
-
+              {#<button >#}
+              <a href='/group/member/{{ group.id }}' class='icon-text-button'>
+                <span><img src="/static/svg/group.svg" alt="Edit Members"></span>
+                <span>{{ group.member_count }}</span>
+                {% if group.member_count == 1 %}
+                  <span>member</span>
+                {% else %}
+                  <span>members</span>
+                {% endif %}
+              </a>
               {# Copy ID #}
               <div class='row-center-child'>
                 <div class="pasta-id-parent">

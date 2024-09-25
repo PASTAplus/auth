@@ -76,7 +76,7 @@ class Profile(db.base.Base):
 
     @property
     def avatar_url(self):
-        return util.get_profile_avatar_url(self)
+        return str(util.get_profile_avatar_url(self))
 
 
 class Identity(db.base.Base):
