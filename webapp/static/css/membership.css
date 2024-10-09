@@ -1,0 +1,70 @@
+/*
+    Group grid
+*/
+.group-grid {
+    display: grid;
+    grid-template-columns: repeat(3, max-content);
+    gap: 2rem;
+    align-items: center;
+}
+
+.group-grid-child {
+}
+
+.label {
+    font-weight: bold;
+}
+
+/*
+    Group details (1st column)
+*/
+
+.group-flex {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.group-flex-child {
+    max-width: 13rem;
+}
+
+.group-flex-name {
+    font-weight: bold;
+}
+
+/*
+    Single profile vertical flex (2nd column)
+*/
+
+.profile-flex {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-flex-name {
+    font-weight: bold;
+}
+
+.profile-flex-child {
+    max-width: 13rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    align-self: center;
+}
+
+.profile-flex-avatar {
+    padding: 0 0 .5rem 0;
+}
+
+.profile-flex-button {
+    padding: 2px;
+}
+
+/* Modals */
+
+#leaveGroupModal .highlight {
+    font-weight: bold;
+}

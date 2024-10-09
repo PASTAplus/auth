@@ -467,3 +467,40 @@ class UserDb:
         group_row = self.get_group(profile_row, group_id)
         query = self.session.query(db.group.GroupMember)
         return query.filter(db.group.GroupMember.group == group_row).all()
+
+    def get_group_membership_list(self, profile_row):
+        """Get the groups that the profile is a member of."""
+        query = (
+            self.session.query(db.group.Group)
+            .join(db.group.GroupMember)
+            .filter(db.group.GroupMember.profile == profile_row)
+        )
+        return query.all()
+
+    def get_group_membership_grid_set(self, profile_row):
+        return {
+            group.grid for group in self.get_group_membership_list(profile_row)
+        }
+
+    def leave_group_membership(self, profile_row, group_id):
+        """Leave a group.
+        Raises ValueError if the member who is leaving does match the profile.
+
+        Note: While this method ultimately performs the same action as delete_group_member,
+        it performs different checks.
+        """
+        member_row = (
+            self.session.query(db.group.GroupMember)
+            .filter(
+                db.group.GroupMember.group_id == group_id,
+                db.group.GroupMember.profile_id == profile_row.id,
+            )
+            .first()
+        )
+        if member_row is None:
+            raise ValueError(
+                f'Member {profile_row.id} not found in group {group_id}'
+            )
+        member_row.group.updated = datetime.datetime.now()
+        self.session.delete(member_row)
+        self.session.commit()
