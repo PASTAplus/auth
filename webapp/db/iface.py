@@ -8,9 +8,8 @@ import sqlalchemy.pool
 
 import config
 import db.base
-import db.user
 import db.group
-
+import db.user
 
 """Database interface.
 """

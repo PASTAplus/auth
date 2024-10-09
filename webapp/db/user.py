@@ -6,9 +6,9 @@ import sqlalchemy.event
 import sqlalchemy.orm
 import sqlalchemy.pool
 
+import db.base
 import db.group
 import util
-import db.base
 
 log = daiquiri.getLogger(__name__)
 
@@ -54,7 +54,9 @@ class Profile(db.base.Base):
     )
     has_avatar = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False, default=False)
 
-    groups = sqlalchemy.orm.relationship('Group', back_populates='profile', cascade_backrefs=False)
+    groups = sqlalchemy.orm.relationship(
+        'Group', back_populates='profile', cascade_backrefs=False
+    )
     group_members = sqlalchemy.orm.relationship('GroupMember', back_populates='profile')
 
     @property
@@ -451,7 +453,9 @@ class UserDb:
             .first()
         )
         if member_row is None:
-            raise ValueError(f'Member {member_profile_id} not found in group {group_id}')
+            raise ValueError(
+                f'Member {member_profile_id} not found in group {group_id}'
+            )
         self.session.delete(member_row)
         group_row.updated = datetime.datetime.now()
         self.session.commit()
