@@ -149,7 +149,10 @@ def from_json(json_str: str) -> list | dict:
 
 
 def pp(obj: list | dict):
-    print(pprint.pformat(obj, indent=2, sort_dicts=True))
+    print(pformat(obj))
+
+def pformat(obj: list | dict):
+    return pprint.pformat(obj, indent=2, sort_dicts=True)
 
 
 # Avatars
@@ -218,7 +221,7 @@ def get_identity_avatar_url(identity_row, refresh=False):
 
 def get_anon_avatar_url():
     """Return the URL to the avatar image with the given initials."""
-    return starlette.datastructures.URL(f'{Config.STATIC_URL}/svg/edi-anon-avatar.svg')
+    return starlette.datastructures.URL(f'/static/svg/edi-anon-avatar.svg')
 
 
 def get_initials_avatar_url(initials: str):
@@ -271,4 +274,4 @@ def generate_initials_avatar(initials: str):
 
 def get_idp_logo_url(idp_name: str):
     """Return the URL to the logo image for the given IdP."""
-    return f'{Config.STATIC_URL}/idp-logos/{idp_name}.svg'
+    return f'/static/idp-logos/{idp_name}.svg'

@@ -10,16 +10,19 @@ import starlette.status
 
 import api.ping
 import api.refresh_token
-import db.iface
 import fuzz
 import idp.github
 import idp.google
 import idp.ldap
 import idp.microsoft
 import idp.orcid
+import pasta_jwt
+import ui.avatar
+import ui.dev
 import ui.group
 import ui.identity
 import ui.index
+import ui.membership
 import ui.privacy_policy
 import ui.profile
 import ui.signin
@@ -40,7 +43,6 @@ daiquiri.setup(
 log = daiquiri.getLogger(__name__)
 
 
-
 @contextlib.asynccontextmanager
 async def lifespan(
     _app: fastapi.FastAPI,
@@ -50,11 +52,12 @@ async def lifespan(
     yield
     log.info("Application stopping...")
 
+
 app = fastapi.FastAPI(lifespan=lifespan)
 
 # Set up serving of static files
 app.mount(
-    Config.STATIC_URL,
+    '/static',
     fastapi.staticfiles.StaticFiles(directory=Config.STATIC_PATH),
     name='static',
 )
@@ -95,16 +98,19 @@ for icon_path in [
 #     return response
 
 
-# Middleware to redirect to signin page if no token is present.
 class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
-        if hasattr(request.state, 'redirect_to_signin'):
+        # If the request is for a /ui path, redirect to signin if the token is invalid
+        if (
+            request.url.path.startswith('/ui')
+            and not request.url.path.startswith('/ui/signin')
+            and not pasta_jwt.PastaJwt.is_valid(request.cookies.get('token'))
+        ):
             return starlette.responses.RedirectResponse(
-                url=Config.SERVICE_BASE_URL + '/signin',
+                url='/ui/signin',
                 status_code=starlette.status.HTTP_303_SEE_OTHER,
             )
-        response = await call_next(request)
-        return response
+        return await call_next(request)
 
 
 # noinspection PyTypeChecker
@@ -118,9 +124,12 @@ app.include_router(idp.google.router)
 app.include_router(idp.ldap.router)
 app.include_router(idp.microsoft.router)
 app.include_router(idp.orcid.router)
-app.include_router(ui.index.router)
+app.include_router(ui.avatar.router)
+app.include_router(ui.dev.router)
 app.include_router(ui.group.router)
 app.include_router(ui.identity.router)
+app.include_router(ui.index.router)
+app.include_router(ui.membership.router)
+app.include_router(ui.privacy_policy.router)
 app.include_router(ui.profile.router)
 app.include_router(ui.signin.router)
-app.include_router(ui.privacy_policy.router)
