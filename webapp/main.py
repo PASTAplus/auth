@@ -1,4 +1,5 @@
 import contextlib
+import pathlib
 
 import daiquiri.formatter
 import fastapi
@@ -69,33 +70,18 @@ app.mount(
     name='avatars',
 )
 
-
 # Set up favicon and manifest routes, served from the root
-def create_icon_route(app, icon_path: str):
-    @app.get(icon_path)
-    async def serve_icon():
+def create_route(file_path: pathlib.Path):
+    @app.get(f'/{file_path.name}')
+    async def serve_file():
         try:
-            return starlette.responses.FileResponse(f'webapp/static/favicon{icon_path}')
+            return starlette.responses.FileResponse(file_path)
         except FileNotFoundError:
             raise fastapi.HTTPException(status_code=404, detail='File not found')
 
 
-for icon_path in [
-    '/favicon.ico',
-    '/edi-32x32.png',
-    '/edi-180x180.png',
-    '/edi-192x192.png',
-    '/edi-512x512.png',
-    '/site.webmanifest',
-]:
-    create_icon_route(app, icon_path)
-
-# @app.middleware('http')
-# async def create_db_session(request: starlette.requests.Request, call_next):
-#     request.state.session = session_maker_fn()
-#     response = await call_next(request)
-#     request.state.session.close()
-#     return response
+for file_path in (Config.STATIC_PATH / 'site').iterdir():
+    create_route(file_path)
 
 
 class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
