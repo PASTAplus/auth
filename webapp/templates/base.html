@@ -24,6 +24,7 @@
   {% block head %}
   {% endblock %}
 </head>
+
 <body>
 
 <nav class='navbar navbar-expand-lg navbar-light bg-light'>
@@ -119,7 +120,6 @@
   </div>
 </nav>
 
-
 <main role='main' class='container'>
   {% block content %}
   {% endblock %}
@@ -127,9 +127,7 @@
 
 <!-- Bootstrap Bundle with Popper -->
 <script src='/static/lib/bootstrap/js/bootstrap.bundle.js'></script>
-<!-- Bootstrap 5 does not use jQuery, but we do -->
-<script src='/static/lib/jquery-3.7.1.js'></script>
-<!-- js that runs on all pages -->
+<!-- JS that runs on all pages -->
 <script src='/static/js/base.js'></script>
 {% block scripts %}
   {# By importing scripts just before the /body tag, we don't have to wrap scripts
