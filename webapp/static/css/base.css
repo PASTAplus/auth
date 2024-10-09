@@ -102,7 +102,7 @@ h1 {
 }
 
 h1, h2, h3, h4, h5, h6 {
-    /*margin: 0;*/
+    /* margin: 0; */
     /* margin-top: 1rem; */
     /* margin-bottom: 1rem; */
 }
@@ -129,14 +129,8 @@ table td, table th {
     height: 5rem;
 }
 
-.profile-name {
-    text-align: center;
-    font-size: 2.5rem;
-    margin-top: 1rem;
-}
-
 .indent {
-    margin: 1.5rem 0 1.5rem 2rem;
+    margin: 1.0rem 0 2.5rem 2rem;
 }
 
 .space {
@@ -146,28 +140,6 @@ table td, table th {
 .space-below {
     margin-bottom: 2rem;
 }
-
-.grid-parent {
-    display: grid;
-    grid-template-columns: max-content max-content;
-    gap: .5rem;
-    align-items: center;
-    justify-items: left;
-}
-
-.grid-child {
-}
-
-/* Prevent single line message inside grid from wrapping */
-.grid-msg {
-    white-space: nowrap;
-}
-
-.label {
-    font-weight: bold;
-}
-
-
 
 /*
     Tooltip
