@@ -1,19 +1,15 @@
-import uuid
-
 import daiquiri
 import fastapi
 import starlette.requests
 import starlette.responses
 import starlette.status
 import starlette.templating
-import json
 
-import db.group
 import db.iface
-import jwt_token
+import fuzz
+import pasta_jwt
 import util
 from config import Config
-import fuzz
 
 log = daiquiri.getLogger(__name__)
 
@@ -21,12 +17,14 @@ log = daiquiri.getLogger(__name__)
 router = fastapi.APIRouter()
 templates = starlette.templating.Jinja2Templates(Config.TEMPLATES_PATH)
 
+# UI routes
 
-@router.get('/group')
+
+@router.get('/ui/group')
 async def group(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
+    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
     profile_row = udb.get_profile(token.urid)
 
@@ -61,63 +59,12 @@ async def group(
     )
 
 
-@router.post('/group/new')
-async def group_new(
-    request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
-):
-    form_data = await request.form()
-    name = form_data.get('name')
-    description = form_data.get('description')
-    profile_row = udb.get_profile(token.urid)
-    udb.create_group(profile_row, name, description)
-    return starlette.responses.RedirectResponse(
-        Config.SERVICE_BASE_URL + '/group',
-        status_code=starlette.status.HTTP_303_SEE_OTHER,
-    )
-
-
-@router.post('/group/edit')
-async def group_edit(
-    request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
-):
-    form_data = await request.form()
-    group_id = form_data.get('group-id')
-    name = form_data.get('name')
-    description = form_data.get('description')
-    profile_row = udb.get_profile(token.urid)
-    udb.update_group(profile_row, group_id, name, description)
-    return starlette.responses.RedirectResponse(
-        Config.SERVICE_BASE_URL + '/group',
-        status_code=starlette.status.HTTP_303_SEE_OTHER,
-    )
-
-
-@router.post('/group/delete')
-async def group_delete(
-    request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
-):
-    form_data = await request.form()
-    group_id = form_data.get('group-id')
-    profile_row = udb.get_profile(token.urid)
-    udb.delete_group(profile_row, group_id)
-    return starlette.responses.RedirectResponse(
-        Config.SERVICE_BASE_URL + '/group',
-        status_code=starlette.status.HTTP_303_SEE_OTHER,
-    )
-
-
-@router.get('/group/member/{group_id}')
+@router.get('/ui/group/member/{group_id}')
 async def group_member(
     group_id: str,
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
+    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
     # form_data = await request.form()
     # form_data.get('group-id')
@@ -140,12 +87,66 @@ async def group_member(
     )
 
 
+# Internal routes
+
+
+@router.post('/group/new')
+async def group_new(
+    request: starlette.requests.Request,
+    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+):
+    form_data = await request.form()
+    name = form_data.get('name')
+    description = form_data.get('description')
+    profile_row = udb.get_profile(token.urid)
+    udb.create_group(profile_row, name, description)
+    return starlette.responses.RedirectResponse(
+        '/ui/group',
+        status_code=starlette.status.HTTP_303_SEE_OTHER,
+    )
+
+
+@router.post('/group/edit')
+async def group_edit(
+    request: starlette.requests.Request,
+    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+):
+    form_data = await request.form()
+    group_id = form_data.get('group-id')
+    name = form_data.get('name')
+    description = form_data.get('description')
+    profile_row = udb.get_profile(token.urid)
+    udb.update_group(profile_row, group_id, name, description)
+    return starlette.responses.RedirectResponse(
+        '/ui/group',
+        status_code=starlette.status.HTTP_303_SEE_OTHER,
+    )
+
+
+@router.post('/group/delete')
+async def group_delete(
+    request: starlette.requests.Request,
+    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+):
+    form_data = await request.form()
+    group_id = form_data.get('group-id')
+    profile_row = udb.get_profile(token.urid)
+    udb.delete_group(profile_row, group_id)
+    return starlette.responses.RedirectResponse(
+        '/ui/group',
+        status_code=starlette.status.HTTP_303_SEE_OTHER,
+    )
+
+
 @router.get('/group/member/list/{group_id}')
 async def group_member(
     group_id: str,
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
+    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
     profile_row = udb.get_profile(token.urid)
     group_row = udb.get_group(profile_row, int(group_id))
@@ -154,16 +155,19 @@ async def group_member(
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',
-            'member_list': await get_client_profile_list([m.profile for m in member_list]),
+            'member_list': await get_client_profile_list(
+                [m.profile for m in member_list]
+            ),
         }
     )
+
 
 @router.post('/group/member/search')
 async def group_member_search(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
     # Prevent this from being called by anyone not logged in
-    _token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
+    _token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
     query_dict = await request.json()
     # profile_row = udb.get_profile(token.urid)
@@ -199,7 +203,7 @@ async def get_client_profile_list(profile_list):
 async def group_member_add_remove(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
+    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
     request_dict = await request.json()
     profile_row = udb.get_profile(token.urid)

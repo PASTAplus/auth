@@ -6,7 +6,7 @@ import starlette.status
 import starlette.templating
 
 import db.iface
-import jwt_token
+import pasta_jwt
 import util
 from config import Config
 
@@ -16,12 +16,13 @@ log = daiquiri.getLogger(__name__)
 router = fastapi.APIRouter()
 templates = starlette.templating.Jinja2Templates(Config.TEMPLATES_PATH)
 
+# UI routes
 
-@router.get('/identity')
+@router.get('/ui/identity')
 async def identity(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
+    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
     profile_row = udb.get_profile(token.urid)
 
@@ -51,11 +52,13 @@ async def identity(
         },
     )
 
+# Internal routes
+
 @router.post('/identity/unlink')
 async def identity_unlink(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
+    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
     profile_row = udb.get_profile(token.urid)
 
@@ -68,6 +71,6 @@ async def identity_unlink(
     udb.delete_identity(profile_row, idp_name, uid)
 
     return starlette.responses.RedirectResponse(
-        Config.SERVICE_BASE_URL + '/identity',
+        '/ui/identity',
         status_code=starlette.status.HTTP_303_SEE_OTHER,
     )

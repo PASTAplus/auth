@@ -24,14 +24,13 @@
       one by one, you can add them to a group and manage access collectively. Adding a member to an existing group
       grants them immediate access to all resources the group has access to, while removing them revokes that access.
     </p>
-  </div>
-
-  <div class='indent'>
-    {% if not group_list %}
-      <p>You have not created any groups yet.</p>
-    {% else %}
-      <p>Your groups:</p>
-    {% endif %}
+    <p>
+      {% if not group_list %}
+        You have not created any groups yet.
+      {% else %}
+        Your groups:
+      {% endif %}
+    </p>
 
     <div class='indent'>
       <div class='main-grid'>
@@ -63,7 +62,7 @@
             <div class='row-center-parent button-row'>
               {# Members #}
               {#<button >#}
-              <a href='/group/member/{{ group.id }}' class='icon-text-button'>
+              <a href='/ui/group/member/{{ group.id }}' class='icon-text-button'>
                 <span><img src="/static/svg/group.svg" alt="Edit Members"></span>
                 <span>{{ group.member_count }}</span>
                 {% if group.member_count == 1 %}
@@ -164,9 +163,10 @@
             <input type='hidden' id='deleteGroupId' name='group-id'>
             <div class='form-group'>
               <p>
-                <span>Are you sure you want to remove </span>
-                <span id='deleteGroupName'></span>?
-                <span>This action cannot be undone.</span>
+                <span>Are you sure you want to remove group </span>
+                "<span id='deleteGroupName' class='highlight'></span>"?
+                <span>
+                </span>
               </p>
               <p>
                 <strong>Note:</strong> This will remove all members from the group and revoke their access to all

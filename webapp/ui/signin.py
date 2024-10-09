@@ -6,7 +6,7 @@ import starlette.status
 import starlette.templating
 
 import db.iface
-import jwt_token
+import pasta_jwt
 import util
 from config import Config
 
@@ -17,10 +17,13 @@ router = fastapi.APIRouter()
 templates = starlette.templating.Jinja2Templates(Config.TEMPLATES_PATH)
 
 
-@router.get('/signin')
+# UI routes
+
+
+@router.get('/ui/signin')
 async def signin(
     request: starlette.requests.Request,
-    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
+    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
     return templates.TemplateResponse(
         'signin.html',
@@ -36,48 +39,11 @@ async def signin(
     )
 
 
-@router.api_route('/signin/token', methods=['GET', 'POST'])
-async def signin_token(request: starlette.requests.Request):
-    urid = request.query_params.get('urid')
-    token = jwt_token.NewToken(urid=urid)
-    response = starlette.responses.RedirectResponse(
-        Config.SERVICE_BASE_URL + '/profile',
-        status_code=starlette.status.HTTP_303_SEE_OTHER,
-    )
-    response.set_cookie(key='token', value=await token.as_json())
-    return response
-
-@router.api_route('/signin/link/token', methods=['GET', 'POST'])
-async def signin_token(
-    request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
-):
-    profile_row = udb.get_profile(token.urid)
-    # urid = request.query_params.get('urid')
-    # idp_token = request.query_params.get('idp_token')
-    idp_name = request.query_params.get('idp')
-    uid = request.query_params.get('uid')
-    # email = request.query_params.get('email')
-    # full_name = request.query_params.get('full_name')
-    # avatar_url = request.query_params.get('avatar_url')
-    # pasta_token = request.query_params.get('pasta_token')
-
-    # token = jwt_token.NewToken(urid=urid)
-    udb.move_identity(idp_name, uid, profile_row)
-
-    response = starlette.responses.RedirectResponse(
-        Config.SERVICE_BASE_URL + '/profile',
-        status_code=starlette.status.HTTP_303_SEE_OTHER,
-    )
-    return response
-
-
-@router.get('/signin/link')
+@router.get('/ui/signin/link')
 async def signin_link(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
+    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
     profile_row = udb.get_profile(token.urid)
     return templates.TemplateResponse(
@@ -106,11 +72,11 @@ async def signin_link(
     )
 
 
-@router.get('/signin/reset')
+@router.get('/ui/signin/reset')
 async def signin_reset(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: jwt_token.NewToken | None = fastapi.Depends(jwt_token.token),
+    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
     return templates.TemplateResponse(
         'signin-reset-pw.html',
@@ -124,10 +90,80 @@ async def signin_reset(
     )
 
 
+# Internal routes
+
+
+@router.api_route('/signin/token', methods=['GET', 'POST'])
+async def signin_token(
+    request: starlette.requests.Request,
+    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+):
+    # Example query parameters for Google login:
+    # {
+    #     'cname': 'Roger M',
+    #     'email': 'roger.dahl.unm@gmail.com',
+    #     'idp': 'google',
+    #     'idp_token': 'ya29.a0AcM612y-....',
+    #     'sub': '106181686037612928633',
+    #     'token': 'cm9nZXIuZGFobC51bm1...',
+    #     'uid': '106181686037612928633',
+    #     'urid': 'PASTA-ea1877bbdf1e49cea9761c09923fc738',
+    # }
+    urid = request.query_params.get('urid')
+    profile_row = udb.get_profile(urid)
+    token = pasta_jwt.PastaJwt(
+        {
+            'sub': urid,
+            'groups': udb.get_group_membership_grid_set(profile_row),
+            'cn': profile_row.full_name,
+            'gn': profile_row.given_name,
+            'sn': profile_row.family_name,
+            'email': profile_row.email,
+            # We don't have an email verification procedure yet
+            # 'email_verified': True,
+            'email_notifications': profile_row.email_notifications,
+            'idp': request.query_params.get('idp'),
+            'uid': request.query_params.get('uid'),
+        }
+    )
+    response = starlette.responses.RedirectResponse(
+        '/ui/profile',
+        status_code=starlette.status.HTTP_303_SEE_OTHER,
+    )
+    response.set_cookie(key='token', value=token.encode())
+    return response
+
+
+@router.api_route('/signin/link/token', methods=['GET', 'POST'])
+async def signin_token(
+    request: starlette.requests.Request,
+    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+):
+    profile_row = udb.get_profile(token.urid)
+    # urid = request.query_params.get('urid')
+    # idp_token = request.query_params.get('idp_token')
+    idp_name = request.query_params.get('idp')
+    uid = request.query_params.get('uid')
+    # email = request.query_params.get('email')
+    # full_name = request.query_params.get('full_name')
+    # avatar_url = request.query_params.get('avatar_url')
+    # pasta_token = request.query_params.get('pasta_token')
+
+    # token = pasta_jwt.PastaJwt(urid=urid)
+    udb.move_identity(idp_name, uid, profile_row)
+
+    response = starlette.responses.RedirectResponse(
+        '/ui/profile',
+        status_code=starlette.status.HTTP_303_SEE_OTHER,
+    )
+    return response
+
+
 @router.get('/signout')
 async def signout(request: starlette.requests.Request):
     response = starlette.responses.RedirectResponse(
-        Config.SERVICE_BASE_URL + '/signin',
+        '/ui/signin',
         status_code=starlette.status.HTTP_303_SEE_OTHER,
     )
     response.delete_cookie('token')

@@ -1,14 +1,15 @@
 # EDI Auth
 
 .idea
-config.py
-config.*.py
-db.sqlite
-lternet.*
-user_db.sqlite
+*.crt
+*.key
+*.pem
+*.sqlite
 __RD.md
-webapp/lib/
+auth.log
+config.py
 webapp/avatars/
+webapp/static/lib/
 
 # General
 

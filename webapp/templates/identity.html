@@ -20,7 +20,11 @@
 
   <div class='indent'>
     <p>
-      Accounts that are currently linked to your profile.
+      Linked accounts are external accounts that you have connected to your profile. These accounts allow you to sign in
+      using different identity providers.
+    </p>
+    <p>
+      Accounts that are currently linked to your profile:
     </p>
 
     <div class='indent'>
@@ -59,7 +63,7 @@
                         data-idp-name='{{ identity.idp_name }}'
                         data-uid='{{ identity.uid }}'
                 >
-                  <span><img src="/static/svg/trash.svg" alt="Unlink"></span>
+                  <span><img src="/static/svg/unlink.svg" alt="Unlink"></span>
                   <span>Unlink</span>
                 </button>
               {% endif %}
@@ -73,11 +77,15 @@
 
     {% if identity_list|length == 1 %}
       <p class="alert alert-info">
-        If you have multiple accounts linked to your profile, you can unlink accounts here. If you wish to unlink
-        this account, link a new account from the Profile page first, to ensure your profile remains accessible.
+        If you have multiple accounts linked to your profile, you can unlink accounts here. If you wish to unlink this
+        account, link a new account first, to ensure your profile remains accessible.
       </p>
     {% endif %}
 
+  </div>
+
+  <div class='indent'>
+    <a href="/ui/signin/link" class="btn btn-primary">Link Account</a>
   </div>
 
   {# Modal unlink confirmation dialog #}
@@ -99,8 +107,8 @@
               </p>
               <p>
                 Unlinking your account will not affect your account at the identity provider. You can link this account
-                again at any time by using the 'Link Account' button on the Profile page. Signing in with this account
-                again will create a new separate profile.
+                again at any time by using the 'Link Account' button, or you can create a new profile by first signing
+                out of your current account, then back in with unlinked account.
               </p>
             </div>
             <div class="modal-footer">

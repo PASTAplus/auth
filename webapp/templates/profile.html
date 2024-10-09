@@ -6,6 +6,7 @@
 {% endblock %}
 
 {% block head %}
+  <link rel='stylesheet' href='/static/css/profile.css'>
 {% endblock %}
 
 {% block scripts %}
@@ -32,7 +33,7 @@
         <img src='{{ avatar_url }}' alt='Avatar' class='img-thumbnail avatar' id='avatarImg'>
       </div>
       <div class='row-low-child icon-button'>
-        <a href='/avatar'>
+        <a href='/ui/avatar'>
           <img src='/static/svg/edit-pencil.svg' alt='Select avatar' id='selectAvatar'>
         </a>
       </div>
@@ -62,12 +63,6 @@
       <div class='grid-child' id='profileAssociation'>{{ profile.association or '' }}</div>
     </div>
 
-  </div>
-
-  <h1 aria-label>Accounts</h1>
-
-  <div class='indent'>
-    <a href="/signin/link" class="btn btn-primary">Link Account</a>
   </div>
 
   {# Modal edit dialog #}
@@ -117,5 +112,6 @@
       </div>
     </div>
   </div>
+
 
 {% endblock %}

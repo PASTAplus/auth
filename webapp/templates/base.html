@@ -26,7 +26,7 @@
     <a class='navbar-brand' href='/'>
       <img src='/static/svg/EDI-logo-no-padding.svg'
            alt='Environmental Data Initiative Logo'>
-      <span class='navbar-brand-pad'>Environmental Data Initiative (EDI)</span>
+      <span class='navbar-brand-pad'>Environmental Data Initiative</span>
     </a>
 
     {% block navbar_menu %}
@@ -43,22 +43,49 @@
       <ul class='navbar-nav mr-auto'>
 
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='/profile'>Profile</a>
+          <a class='nav-link {% if not token %}disabled{% endif %}' href='/ui/profile'>Profile</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='/identity'>Accounts</a>
+          <a class='nav-link {% if not token %}disabled{% endif %}' href='/ui/identity'>Accounts</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='/group'>Groups</a>
+          <a class='nav-link {% if not token %}disabled{% endif %}' href='/ui/group'>Groups</a>
+        </li>
+        <li class='nav-item'>
+          <a class='nav-link {% if not token %}disabled{% endif %}' href='/ui/membership'>Memberships</a>
         </li>
       </ul>
 
-      <!--Menu, right-->
+      <!-- Dev dropdown -->
+
+      <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1"
+                data-bs-toggle="dropdown" aria-expanded="false">
+          Dev
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+          <li><a class='dropdown-item' href='/dev/token'>View Token</a></li>
+          <li><a class='dropdown-item' href='/dev/profiles'>View Profiles</a></li>
+          <li><div class='dropdown-divider'></div></li>
+          <li><a class='dropdown-item' href='/dev/signin/PASTA-ea1877bbdf1e49cea9761c09923fc738'>Roger 1</a></li>
+          <li><a class='dropdown-item' href='/dev/signin/PASTA-484f832adcc5473e9f56f96a97f8048e'>Roger 2</a></li>
+          <li><a class='dropdown-item' href='/dev/signin/PASTA-8d7698eaa977401991e9ae4e79768167'>Roger 3</a></li>
+          <li><a class='dropdown-item' href='/dev/signin/PASTA-206b8bf7d1b64b75b2c297d2574563f8'>Roger 4</a></li>
+          <li><a class='dropdown-item' href='/dev/signin/PASTA-869290df1b644a28b55cf75e3803c246'>Roger 5</a></li>
+          <li><a class='dropdown-item' href='/dev/signin/PASTA-93869f5e5b8348709c7ed9c4cb66b55d'>Tyler Wallace</a></li>
+          <li><a class='dropdown-item' href='/dev/signin/PASTA-5f96173f86fb4643bdbf53a3df431f2c'>Julie Sullivan</a></li>
+          <li><a class='dropdown-item' href='/dev/signin/PASTA-e079a8461be74db9a22e625cc2f4101b'>Jerry Graham</a></li>
+          <li><a class='dropdown-item' href='/dev/signin/PASTA-b1c6a876459e47b0b13175e98717aa3c'>Alice Hamilton</a></li>
+          <li><a class='dropdown-item' href='/dev/signin/PASTA-eae7265bbdc246be96d2b7ffb8e062ea'>Dennis Ford</a></li>
+        </ul>
+      </div>
+
+      <!-- Menu, right -->
 
       <ul class='navbar-nav mr-auto navbar-right'>
         {% if not token %}
           <li class='nav-item'>
-            <a class='nav-link active' href='/signin'>Sign in</a>
+            <a class='nav-link active' href='/ui/signin'>Sign in</a>
           </li>
         {% endif %}
 
@@ -77,10 +104,6 @@
             </div>
           </li>
         {% endif %}
-
-        <li class='nav-item'>
-          <a class='nav-link' href='/dev'> </a>
-        </li>
 
       </ul>
 
