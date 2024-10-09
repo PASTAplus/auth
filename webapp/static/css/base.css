@@ -3,43 +3,23 @@
 :root {
     /* Set the size of 1rem */
     font-size: 18px;
-    --font-color: #a0a000;
+    /*--font-color: #a0a000;*/
 }
-
-/*main {*/
-/*    margin-left: 0 !important;*/
-/*}*/
-
-/*body {*/
-/*    color: var(--font-color); !* Use the font color variable for text *!*/
-/*}*/
-
-/*.header-container h1,*/
-/*.grid-child,*/
-/*.label {*/
-/*    color: var(--font-color); !* Apply the font color variable to other elements *!*/
-/*}*/
-
 
 .container {
     margin-top: 2rem;
     margin-bottom: 2rem;
 }
 
-/*.container-left-margin {*/
-/*    margin-left: 0 !important;*/
-/*}*/
-
 .header-container {
     display: flex;
     align-items: center;
-    /*justify-content: center; !* Horizontally align items *!*/
 }
 
 .header-container h1 {
 }
 
-/* 
+/*
     Navbar Menu
 */
 
@@ -49,7 +29,7 @@
 
 .navbar .navbar-brand img {
     width: 2rem;
-    height: 2rem;    
+    height: 2rem;
 }
 
 .navbar-brand-pad {
@@ -173,7 +153,7 @@ table td, table th {
     visibility: visible;
     opacity: 1;
     z-index: 1;
-    transition: opacity 1s;
+    transition: opacity .3s;
 }
 
 /*
@@ -271,7 +251,6 @@ table td, table th {
     border-radius: .3rem;
     padding: 0.2rem;
     margin: 0 .5rem 0 0;
-    transition: background-color .3s ease-in-out;
 }
 
 .icon-button img {
@@ -279,6 +258,7 @@ table td, table th {
 }
 
 .icon-button:hover {
+    transition: background-color .3s ease-in-out;
     background-color: rgba(0, 0, 0, 0.15);
 }
 
@@ -299,7 +279,6 @@ table td, table th {
     border-radius: .3rem;
     padding: 0.2rem 1rem 0.2rem 1rem;
     /*margin: 0 1rem 0 0;*/
-    transition: background-color .3s ease-in-out;
     box-shadow: 1px 1px 1.5px rgba(0, 0, 0, 0.5);
     text-decoration: none;
     color: inherit;
@@ -320,6 +299,8 @@ table td, table th {
 .icon-text-button:hover {
     /* box-shadow: 0 0 .2rem rgba(0, 0, 0, 0.5); */
     background-color: rgba(0, 0, 0, 0.15);
+    /* Setting the transition on hover prevents button animation from triggering and causing flashing when the page is loaded */
+    transition: background-color .3s ease-in-out;
 }
 
 .icon-text-button:active {
@@ -376,7 +357,6 @@ table td, table th {
 .pasta-id-child-icon {
     cursor: pointer;
     border-radius: .3rem;
-    transition: background-color .3s ease-in-out;
     padding: 0 .5rem 0 .5rem;
     /* height: 1.5rem; */
     /* width: 1.2rem; */
@@ -387,6 +367,7 @@ table td, table th {
 }
 
 .pasta-id-child-icon:hover {
+    transition: background-color .3s ease-in-out;
     background-color: rgba(0, 0, 0, 0.15);
 }
 
