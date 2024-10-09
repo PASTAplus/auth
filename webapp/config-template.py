@@ -1,3 +1,4 @@
+import datetime
 import logging
 import pathlib
 
@@ -6,18 +7,41 @@ class Config(object):
     HERE_PATH = pathlib.Path(__file__).parent.resolve()
 
     # Flask app
-    SECRET_KEY = 'Flask app secret key'
-    DEBUG = False
-    
+    SECRET_KEY = 'flask-app-secret-key'
+    DEBUG = True
+
     # Logging
     LOG_PATH = pathlib.Path('/var/log/pasta')
     LOG_LEVEL = logging.DEBUG
-    LOG_DB_QUERIES = LOG_LEVEL == logging.DEBUG
+    LOG_DB_QUERIES = False
+
+    # JWT
+    JWT_SECRET_KEY = 'jwt-secret-key'
+    JWT_ALGORITHM = 'HS256'
+    JWT_EXPIRATION_DELTA = datetime.timedelta(hours=8)
+    JWT_ISSUER = 'https://auth.edirepository.org'
+    JWT_AUDIENCE = 'https://auth.edirepository.org'
+    JWT_HOSTED_DOMAIN = 'edirepository.org'
 
     # Filesystem paths
     STATIC_PATH = HERE_PATH / 'static'
     DB_PATH = (HERE_PATH / '../db.sqlite').resolve()
-    # LOG_PATH = HERE_PATH / '../auth.log'
+    AVATARS_PATH = HERE_PATH / 'avatars'
+    TEMPLATES_PATH = HERE_PATH / 'templates'
+
+    # URLs
+    SERVICE_BASE_URL = 'https://localhost:5443'
+    # For testing ORCID, the entire app must be running from 127.0.0.1. This is because
+    # ORCID does not allow localhost as a redirect URI, and because the base URL must
+    # match the redirect URI in order for the target cookie to be assigned to the
+    # correct domain.
+    # SERVICE_BASE_URL = 'https://127.0.0.1:5443'
+
+    API_HOST_URL = 'https://localhost'
+    API_PORT = 5443
+    API_BASE_URL = f'{API_HOST_URL}:{API_PORT}/api'
+
+    AVATARS_URL = '/avatars'
 
     # PASTA+ authentication token
     PUBLIC = 'public'
@@ -30,7 +54,21 @@ class Config(object):
     PUBLIC_KEY_PATH = '/path/to/public_key.crt'
     PRIVATE_KEY_PATH = '/path/to/private_key.key'
 
-    CALLBACK_BASE_URL = 'https://auth.edirepository.org/auth/login'
+    #
+    # UI
+    #
+
+    AVATAR_WIDTH, AVATAR_HEIGHT = 200, 200
+    AVATAR_FONT_PATH = HERE_PATH / 'assets/NimbusRoman-BoldItalic.otf'
+    AVATAR_FONT_HEIGHT = 0.5
+    AVATAR_BG_COLOR = (197, 197, 197, 255)
+    AVATAR_TEXT_COLOR = (0, 0, 0, 255)
+
+    # Fuzzy search for group member candidates.
+    # Maximum number of results that can be returned.
+    FUZZ_LIMIT = 100
+    # Lowest match score that can be returned (0 is any match, 100 is only exact match).
+    FUZZ_CUTOFF = 60
 
     #
     # Identity Providers
@@ -44,8 +82,7 @@ class Config(object):
     }
 
     # GitHub OAuth client
-
-    GITHUB_CLIENT_ID = 'github-client_id'
+    GITHUB_CLIENT_ID = 'github-client-id'
     GITHUB_CLIENT_SECRET = 'github-client-secret'
     # GITHUB_DISCOVERY_URL = 'https://api.github.com'
     GITHUB_AUTH_ENDPOINT = 'https://github.com/login/oauth/authorize'
@@ -81,6 +118,7 @@ class Config(object):
         'https://login.microsoftonline.com/common/oauth2/v2.0/logout'
     )
 
+    # Unit and integration test attributes
     # Unit and integration test attributes
     TEST_USER_DN = 'test-user-dn'
     TEST_USER_BAD_O = 'test-user-bad-o'
