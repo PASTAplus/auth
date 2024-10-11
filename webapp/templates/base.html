@@ -17,9 +17,11 @@
     {% endblock %}
   </title>
 
-  <!-- Bootstrap CSS -->
+  <!-- Preload Bootstrap CSS -->
+  <link rel="preload" href='/static/lib/bootstrap/css/bootstrap.css' as="style">
   <link href='/static/lib/bootstrap/css/bootstrap.css' rel='stylesheet'>
   <!-- Extra styles for auth -->
+  <link rel="preload" href='/static/css/base.css' as="style">
   <link href='/static/css/base.css' rel='stylesheet'>
   {% block head %}
   {% endblock %}

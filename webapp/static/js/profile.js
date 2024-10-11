@@ -5,27 +5,21 @@ editButton.addEventListener('click', function () {
   const profileMap = getProfileFields();
   console.log(profileMap);
   setModalFields(profileMap);
-  // Show the modal
-  $('#editProfileModal').modal('show');
+  // Show the modal using Bootstrap's JavaScript API
+  const modal = new bootstrap.Modal(document.getElementById('editProfileModal'));
+  modal.show();
 });
 
 saveButton.addEventListener('click', function () {
   const profileMap = getProfileFields();
   const modalMap = getModalFields();
 
-  // // Handle form submission
-  // const formData = new FormData(profileForm);
-  // const profileData = {};
-  // formData.forEach((value, key) => {
-  //   profileData[key] = value;
-  // });
-  // profileData['email-notifications'] = false;
-  // // Example: Log the profile data to the console
   console.log(modalMap);
   setProfileFields(modalMap);
 
-  // Close the modal
-  $('#editProfileModal').modal('hide');
+  // Close the modal using Bootstrap's JavaScript API
+  const modal = bootstrap.Modal.getInstance(document.getElementById('editProfileModal'));
+  modal.hide();
 
   // Post the data to the server
   fetch('/profile/update', {
@@ -46,12 +40,6 @@ saveButton.addEventListener('click', function () {
     }
   });
 });
-
-
-// closeButton.addEventListener('click', function () {
-//   // Close the modal
-//   $('#editProfileModal').modal('hide');
-// });
 
 function getProfileFields()
 {
@@ -102,42 +90,48 @@ function setModalFields(profileMap)
 const VALID_NAME_RX = /^.{3,}$/;
 const VALID_EMAIL_RX = /^[\w.%+-]+@[\w.-]+\.[a-zA-Z]{2,}$/;
 
-$(document).on('show.bs.modal', '.modal', function () {
+document.getElementById('editProfileModal').addEventListener('show.bs.modal', function () {
   console.debug('show.bs.modal');
   validateForm();
 });
 
-$('.form-control').on('input', function (_event) {
-  validateForm();
+document.querySelectorAll('.form-control').forEach(function (element) {
+  element.addEventListener('input', function (_event) {
+    validateForm();
+  });
 });
 
 function validateForm()
 {
-  const isNameValid = updateValidationClasses($('#modalName'), VALID_NAME_RX, false);
-  const isEmailValid = updateValidationClasses($('#modalEmail'), VALID_EMAIL_RX, false);
+  const isNameValid = updateValidationClasses(
+      document.getElementById('modalName'), VALID_NAME_RX, false
+  );
+  const isEmailValid = updateValidationClasses(
+      document.getElementById('modalEmail'), VALID_EMAIL_RX, false
+  );
   let isFormValid = isNameValid && isEmailValid;
-  $('#saveProfileButton').prop('disabled', !isFormValid);
+  document.getElementById('saveProfileButton').disabled = !isFormValid;
 }
 
 function updateValidationClasses(inputEl, validationRx, emptyIsValid = true)
 {
-  let el = $(inputEl).closest('.form-group');
-  const val = inputEl.val();
+  let el = inputEl.closest('.form-group');
+  const val = inputEl.value;
 
   if (val === '' && emptyIsValid) {
-    el.removeClass('success error');
+    el.classList.remove('success', 'error');
     return true;
   }
 
   const isValid = validationRx.test(val);
 
   if (isValid) {
-    inputEl.removeClass('is-invalid');
-    inputEl.addClass('is-valid');
+    inputEl.classList.remove('is-invalid');
+    inputEl.classList.add('is-valid');
   }
   else {
-    inputEl.removeClass('is-valid');
-    inputEl.addClass('is-invalid');
+    inputEl.classList.remove('is-valid');
+    inputEl.classList.add('is-invalid');
   }
 
   return isValid;
