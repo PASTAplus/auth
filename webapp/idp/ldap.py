@@ -1,5 +1,4 @@
 import base64
-import urllib.parse
 
 import daiquiri
 import fastapi
@@ -7,6 +6,7 @@ import starlette.requests
 import starlette.responses
 
 import db.iface
+import pasta_ldap
 import pasta_token as pasta_token_
 import util
 from config import Config
@@ -66,13 +66,17 @@ async def login_pasta(
     # do with the other IDPs.
 
     if not identity_row.profile.privacy_policy_accepted:
-        response = starlette.responses.Response(
+        # The 418 response is used to signal to the client that the privacy policy has
+        # not yet been accepted. The client should redirect to the privacy policy
+        # acceptance page, which will then redirect back to the target with the
+        # pasta_token.
+        return starlette.responses.Response(
             content='Privacy policy not yet accepted', status_code=418
         )
-        # response.set_cookie('auth-token', pasta_token)
-        return response
 
+    # Redirect to the target URL with the authentication token
+    # This is the normal flow when the privacy policy has already been accepted.
     # For LDAP, the pasta_token is set as a cookie, not a query parameter.
     response = starlette.responses.Response('Successful login')
-    response.set_cookie('auth-token', urllib.parse.quote_plus(pasta_token))
+    response.set_cookie('auth-token', pasta_token)
     return response

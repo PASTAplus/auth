@@ -2,6 +2,7 @@ import daiquiri
 import fastapi
 import starlette.requests
 import starlette.templating
+import starlette.responses
 
 import db.iface
 import util
@@ -55,10 +56,14 @@ async def accept_post(
     uid = form.get('uid')
     is_accepted = form.get('action') == 'accept'
 
-    log.debug(f'Privacy policy accept form (POST): target="{target}" idp_name="{idp_name}" uid="{uid}"')
+    log.debug(
+        f'Privacy policy accept form (POST): target="{target}" idp_name="{idp_name}" uid="{uid}"'
+    )
 
     if not is_accepted:
-        log.warn(f'Privacy policy not accepted: target="{target}" idp_name="{idp_name}" uid="{uid}"')
+        log.warn(
+            f'Privacy policy not accepted: target="{target}" idp_name="{idp_name}" uid="{uid}"'
+        )
         return util.redirect(
             target,
             error='Login unsuccessful: Privacy policy not accepted',
@@ -68,13 +73,19 @@ async def accept_post(
 
     udb.set_privacy_policy_accepted(identity_row.profile.urid)
 
-    log.debug(f'Privacy policy accepted: target="{target}" idp_name="{idp_name} "uid="{uid}"')
+    log.debug(
+        f'Privacy policy accepted: target="{target}" idp_name="{idp_name} "uid="{uid}"'
+    )
 
-    # TODO: Make sure that this cookie is no longer required.
-    # if form.get('idp_name') == 'ldap':
-    #     response = starlette.responses.RedirectResponse(target)
-    #     response.set_cookie('auth-token', identity_row.pasta_token)
-    #     return response
+    if form.get('idp_name') == 'ldap':
+        redirect_url = (
+            f'{target}?token={identity_row.pasta_token}'
+            f'?cname={identity_row.profile.full_name.strip()}'
+        )
+        log.debug(f'Redirecting to LDAP login: redirect_url="{redirect_url}"')
+        response = starlette.responses.RedirectResponse(redirect_url)
+        # response.set_cookie('auth-token', identity_row.pasta_token)
+        return response
 
     return util.redirect_target(
         target=form.get('target'),
