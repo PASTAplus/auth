@@ -9,13 +9,11 @@ import starlette.templating
 import db.iface
 import pasta_jwt
 import util
-from config import Config
 
 log = daiquiri.getLogger(__name__)
 
 
 router = fastapi.APIRouter()
-templates = starlette.templating.Jinja2Templates(Config.TEMPLATES_PATH)
 
 
 @router.get('/dev/token')
@@ -25,7 +23,7 @@ async def dev_token(
     token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
     if token is None:
-        return templates.TemplateResponse(
+        return util.templates.TemplateResponse(
             'token.html',
             {
                 # Base
@@ -37,7 +35,7 @@ async def dev_token(
             },
         )
     profile_row = udb.get_profile(token.urid)
-    return templates.TemplateResponse(
+    return util.templates.TemplateResponse(
         'token.html',
         {
             # Base
@@ -56,7 +54,7 @@ async def index(
     token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
     profile_list = udb.get_all_profiles()
-    return templates.TemplateResponse(
+    return util.templates.TemplateResponse(
         'index.html',
         {
             # Base
@@ -74,7 +72,7 @@ async def dev_signin_urid(
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
 ):
     response = starlette.responses.RedirectResponse(
-        '/ui/profile',
+        url=util.url('/ui/profile'),
         status_code=starlette.status.HTTP_303_SEE_OTHER,
     )
     profile_row = udb.get_profile(urid)

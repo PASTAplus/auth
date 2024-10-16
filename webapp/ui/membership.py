@@ -9,13 +9,11 @@ import starlette.templating
 import db.iface
 import pasta_jwt
 import util
-from config import Config
 
 log = daiquiri.getLogger(__name__)
 
 
 router = fastapi.APIRouter()
-templates = starlette.templating.Jinja2Templates(Config.TEMPLATES_PATH)
 
 # UI routes
 
@@ -26,7 +24,7 @@ async def membership(
     token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
     profile_row = udb.get_profile(token.urid)
-    return templates.TemplateResponse(
+    return util.templates.TemplateResponse(
         'membership.html',
         {
             # Base
@@ -54,6 +52,6 @@ async def membership_leave(
     profile_row = udb.get_profile(token.urid)
     udb.leave_group_membership(profile_row, group_id)
     return starlette.responses.RedirectResponse(
-        starlette.datastructures.URL('/ui/membership'),
+        url=util.url('/ui/membership'),
         status_code=starlette.status.HTTP_303_SEE_OTHER,
     )

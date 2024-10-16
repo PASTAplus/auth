@@ -1,9 +1,9 @@
 import daiquiri
 import fastapi
 import starlette.responses
+import webapp.user_db
 
 import webapp.pasta_token
-import webapp.user_db
 import webapp.util
 
 log = daiquiri.getLogger(__name__)

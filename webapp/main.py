@@ -27,6 +27,7 @@ import ui.membership
 import ui.privacy_policy
 import ui.profile
 import ui.signin
+import util
 from config import Config
 
 daiquiri.setup(
@@ -48,10 +49,10 @@ log = daiquiri.getLogger(__name__)
 async def lifespan(
     _app: fastapi.FastAPI,
 ):
-    log.info("Application starting...")
+    log.info('Application starting...')
     await fuzz.init_cache()
     yield
-    log.info("Application stopping...")
+    log.info('Application stopping...')
 
 
 app = fastapi.FastAPI(lifespan=lifespan)
@@ -70,6 +71,7 @@ app.mount(
     name='avatars',
 )
 
+
 # Set up favicon and manifest routes, served from the root
 def create_route(file_path: pathlib.Path):
     @app.get(f'/{file_path.name}')
@@ -84,21 +86,29 @@ for file_path in (Config.STATIC_PATH / 'site').iterdir():
     create_route(file_path)
 
 
+class RootPathMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
+    async def dispatch(self, request: starlette.requests.Request, call_next):
+        request.scope['root_path'] = Config.ROOT_PATH
+        return await call_next(request)
+
+
 class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
-    async def dispatch(self, request, call_next):
+    async def dispatch(self, request: starlette.requests.Request, call_next):
         # If the request is for a /ui path, redirect to signin if the token is invalid
         if (
-            request.url.path.startswith('/ui')
-            and not request.url.path.startswith('/ui/signin')
+            request.url.path.startswith(str(util.url('/ui')))
+            and not request.url.path.startswith(str(util.url('/ui/signin')))
             and not pasta_jwt.PastaJwt.is_valid(request.cookies.get('token'))
         ):
             return starlette.responses.RedirectResponse(
-                url='/ui/signin',
+                url=util.url('/ui/signin'),
                 status_code=starlette.status.HTTP_303_SEE_OTHER,
             )
         return await call_next(request)
 
 
+# noinspection PyTypeChecker
+app.add_middleware(RootPathMiddleware)
 # noinspection PyTypeChecker
 app.add_middleware(RedirectToSigninMiddleware)
 

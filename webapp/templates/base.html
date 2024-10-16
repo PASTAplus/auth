@@ -4,12 +4,12 @@
   <meta charset='utf-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1'>
 
-  <meta name="theme-color" content="#ffffff">
-  <link rel="icon" href="/favicon.svg">
-  <link rel="manifest" href="/manifest.json">
+  <meta name='theme-color' content='#ffffff'>
+  <link rel='icon' href='{{ url('/favicon.svg') }}'>
+  <link rel='manifest' href='{{ url('/manifest.json') }}'>
   {# TODO #}
-  {#<link rel="mask-icon" href="mask-icon.svg" color="#000000">#}
-  {#<link rel="apple-touch-icon" href="apple-touch-icon.png">#}
+  {#<link rel='mask-icon' href='mask-icon.svg' color='#000000'>#}
+  {#<link rel='apple-touch-icon' href='apple-touch-icon.png'>#}
 
   <title>
     {% block title %}
@@ -18,11 +18,11 @@
   </title>
 
   <!-- Preload Bootstrap CSS -->
-  <link rel="preload" href='/static/lib/bootstrap/css/bootstrap.css' as="style">
-  <link href='/static/lib/bootstrap/css/bootstrap.css' rel='stylesheet'>
+  <link rel='preload' href='{{ url('/static/lib/bootstrap/css/bootstrap.css') }}' as='style'>
+  <link href='{{ url('/static/lib/bootstrap/css/bootstrap.css') }}' rel='stylesheet'>
   <!-- Extra styles for auth -->
-  <link rel="preload" href='/static/css/base.css' as="style">
-  <link href='/static/css/base.css' rel='stylesheet'>
+  <link rel='preload' href='{{ url('/static/css/base.css') }}' as='style'>
+  <link href='{{ url('/static/css/base.css') }}' rel='stylesheet'>
   {% block head %}
   {% endblock %}
 </head>
@@ -33,8 +33,8 @@
 
   <div class='container-fluid'>
 
-    <a class='navbar-brand' href='/'>
-      <img src='/static/svg/EDI-logo-no-padding.svg'
+    <a class='navbar-brand' href='{{ url('/') }}'>
+      <img src='{{ url('/static/svg/EDI-logo-no-padding.svg') }}'
            alt='Environmental Data Initiative Logo'>
       <span class='navbar-brand-pad'>Environmental Data Initiative</span>
     </a>
@@ -53,40 +53,52 @@
       <ul class='navbar-nav mr-auto'>
 
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='/ui/profile'>Profile</a>
+          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/profile') }}'>Profile</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='/ui/identity'>Accounts</a>
+          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/identity') }}'>Accounts</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='/ui/group'>Groups</a>
+          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/group') }}'>Groups</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='/ui/membership'>Memberships</a>
+          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/membership') }}'>Memberships</a>
         </li>
       </ul>
 
       <!-- Dev dropdown -->
 
-      <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1"
-                data-bs-toggle="dropdown" aria-expanded="false">
+      <div class='dropdown'>
+        <button class='btn btn-secondary dropdown-toggle' type='button' id='dropdownMenuButton1'
+                data-bs-toggle='dropdown' aria-expanded='false'>
           Dev
         </button>
-        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-          <li><a class='dropdown-item' href='/dev/token'>View Token</a></li>
-          <li><a class='dropdown-item' href='/dev/profiles'>View Profiles</a></li>
-          <li><div class='dropdown-divider'></div></li>
-          <li><a class='dropdown-item' href='/dev/signin/PASTA-ea1877bbdf1e49cea9761c09923fc738'>Roger 1</a></li>
-          <li><a class='dropdown-item' href='/dev/signin/PASTA-484f832adcc5473e9f56f96a97f8048e'>Roger 2</a></li>
-          <li><a class='dropdown-item' href='/dev/signin/PASTA-8d7698eaa977401991e9ae4e79768167'>Roger 3</a></li>
-          <li><a class='dropdown-item' href='/dev/signin/PASTA-206b8bf7d1b64b75b2c297d2574563f8'>Roger 4</a></li>
-          <li><a class='dropdown-item' href='/dev/signin/PASTA-869290df1b644a28b55cf75e3803c246'>Roger 5</a></li>
-          <li><a class='dropdown-item' href='/dev/signin/PASTA-93869f5e5b8348709c7ed9c4cb66b55d'>Tyler Wallace</a></li>
-          <li><a class='dropdown-item' href='/dev/signin/PASTA-5f96173f86fb4643bdbf53a3df431f2c'>Julie Sullivan</a></li>
-          <li><a class='dropdown-item' href='/dev/signin/PASTA-e079a8461be74db9a22e625cc2f4101b'>Jerry Graham</a></li>
-          <li><a class='dropdown-item' href='/dev/signin/PASTA-b1c6a876459e47b0b13175e98717aa3c'>Alice Hamilton</a></li>
-          <li><a class='dropdown-item' href='/dev/signin/PASTA-eae7265bbdc246be96d2b7ffb8e062ea'>Dennis Ford</a></li>
+        <ul class='dropdown-menu' aria-labelledby='dropdownMenuButton1'>
+          <li><a class='dropdown-item' href='{{ url('/dev/token') }}'>View Token</a></li>
+          <li><a class='dropdown-item' href='{{ url('/dev/profiles') }}'>View Profiles</a></li>
+          <li>
+            <div class='dropdown-divider'></div>
+          </li>
+          <li><a class='dropdown-item' href='{{ url('/dev/signin/PASTA-ea1877bbdf1e49cea9761c09923fc738') }}'>Roger
+            1</a></li>
+          <li><a class='dropdown-item' href='{{ url('/dev/signin/PASTA-484f832adcc5473e9f56f96a97f8048e') }}'>Roger
+            2</a></li>
+          <li><a class='dropdown-item' href='{{ url('/dev/signin/PASTA-8d7698eaa977401991e9ae4e79768167') }}'>Roger
+            3</a></li>
+          <li><a class='dropdown-item' href='{{ url('/dev/signin/PASTA-206b8bf7d1b64b75b2c297d2574563f8') }}'>Roger
+            4</a></li>
+          <li><a class='dropdown-item' href='{{ url('/dev/signin/PASTA-869290df1b644a28b55cf75e3803c246') }}'>Roger
+            5</a></li>
+          <li><a class='dropdown-item' href='{{ url('/dev/signin/PASTA-93869f5e5b8348709c7ed9c4cb66b55d') }}'>Tyler
+            Wallace</a></li>
+          <li><a class='dropdown-item' href='{{ url('/dev/signin/PASTA-5f96173f86fb4643bdbf53a3df431f2c') }}'>Julie
+            Sullivan</a></li>
+          <li><a class='dropdown-item' href='{{ url('/dev/signin/PASTA-e079a8461be74db9a22e625cc2f4101b') }}'>Jerry
+            Graham</a></li>
+          <li><a class='dropdown-item' href='{{ url('/dev/signin/PASTA-b1c6a876459e47b0b13175e98717aa3c') }}'>Alice
+            Hamilton</a></li>
+          <li><a class='dropdown-item' href='{{ url('/dev/signin/PASTA-eae7265bbdc246be96d2b7ffb8e062ea') }}'>Dennis
+            Ford</a></li>
         </ul>
       </div>
 
@@ -95,7 +107,7 @@
       <ul class='navbar-nav mr-auto navbar-right'>
         {% if not token %}
           <li class='nav-item'>
-            <a class='nav-link active' href='/ui/signin'>Sign in</a>
+            <a class='nav-link active' href='{{ url('/ui/signin') }}'>Sign in</a>
           </li>
         {% endif %}
 
@@ -106,8 +118,8 @@
                 <img src='{{ avatar_url }}' alt='Avatar' class='avatar'>
               </div>
               <div class='row-center-child'>
-                <a class='nav-link' href='/signout'>
-                  <img src="/static/svg/sign-out.svg" alt="Sign out" class='icon-link'>
+                <a class='nav-link' href='{{ url('/signout') }}'>
+                  <img src='{{ url('/static/svg/sign-out.svg') }}' alt='Sign out' class='icon-link'>
                   Sign out
                 </a>
               </div>
@@ -128,9 +140,9 @@
 </main>
 
 <!-- Bootstrap Bundle with Popper -->
-<script src='/static/lib/bootstrap/js/bootstrap.bundle.js'></script>
+<script src='{{ url('/static/lib/bootstrap/js/bootstrap.bundle.js') }}'></script>
 <!-- JS that runs on all pages -->
-<script src='/static/js/base.js'></script>
+<script src='{{ url('/static/js/base.js') }}'></script>
 {% block scripts %}
   {# By importing scripts just before the /body tag, we don't have to wrap scripts
   in checks for fully loaded DOM #}

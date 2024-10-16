@@ -8,13 +8,11 @@ import starlette.templating
 import db.iface
 import pasta_jwt
 import util
-from config import Config
 
 log = daiquiri.getLogger(__name__)
 
 
 router = fastapi.APIRouter()
-templates = starlette.templating.Jinja2Templates(Config.TEMPLATES_PATH)
 
 # UI routes
 
@@ -40,7 +38,7 @@ async def identity(
 
     identity_list.sort(key=lambda x: (x['idp_name'], x['full_name']))
 
-    return templates.TemplateResponse(
+    return util.templates.TemplateResponse(
         'identity.html',
         {
             # Base
@@ -71,6 +69,6 @@ async def identity_unlink(
     udb.delete_identity(profile_row, idp_name, uid)
 
     return starlette.responses.RedirectResponse(
-        '/ui/identity',
+        url=util.url('/ui/identity'),
         status_code=starlette.status.HTTP_303_SEE_OTHER,
     )

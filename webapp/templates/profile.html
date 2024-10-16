@@ -1,16 +1,16 @@
-{% extends "base.html" %}
-{% set active_page = "profile" %}
+{% extends 'base.html' %}
+{% set active_page = 'profile' %}
 
 {% block title %}
   Profile
 {% endblock %}
 
 {% block head %}
-  <link rel='stylesheet' href='/static/css/profile.css'>
+  <link rel='stylesheet' href='{{ url('/static/css/profile.css') }}'>
 {% endblock %}
 
 {% block scripts %}
-  <script src='/static/js/profile.js'></script>
+  <script src='{{ url('/static/js/profile.js') }}'></script>
 {% endblock %}
 
 {% block content %}
@@ -21,7 +21,7 @@
           Profile
         </span>
         <span class='row-low-child icon-button'>
-          <img src='/static/svg/edit-pencil.svg' alt='Edit profile' id='editProfile'>
+          <img src='{{ url('/static/svg/edit-pencil.svg') }}' alt='Edit profile' id='editProfile'>
         </span>
       </span>
     </h1>
@@ -33,8 +33,8 @@
         <img src='{{ avatar_url }}' alt='Avatar' class='img-thumbnail avatar' id='avatarImg'>
       </div>
       <div class='row-low-child icon-button'>
-        <a href='/ui/avatar'>
-          <img src='/static/svg/edit-pencil.svg' alt='Select avatar' id='selectAvatar'>
+        <a href='{{ url('/ui/avatar') }}'>
+          <img src='{{ url('/static/svg/edit-pencil.svg') }}' alt='Select avatar' id='selectAvatar'>
         </a>
       </div>
     </div>
@@ -78,7 +78,7 @@
           <form id='editProfileForm' class='needs-validation' novalidate>
             <div class='form-group'>
               <label for='modalName'>Name</label>
-              <input type='text' class='form-control' id="modalName" name='name' required pattern='.{3,}'>
+              <input type='text' class='form-control' id='modalName' name='name' required pattern='.{3,}'>
               <div class='invalid-feedback'>
                 Name must be at least 3 characters long.
               </div>
@@ -87,26 +87,26 @@
               <p>
                 <label for='modalEmail'>Email</label>
                 {# type='email' is validated by the browser #}
-                <input type='email' class='form-control' id="modalEmail" name='email'>
+                <input type='email' class='form-control' id='modalEmail' name='email'>
               </p>
               <p>
                 <label for='modalNotifications'>Email notifications</label>
-                <input type='checkbox' class='form-check-input' id="modalNotifications" name="email-notifications">
+                <input type='checkbox' class='form-check-input' id='modalNotifications' name='email-notifications'>
               </p>
             </div>
             <div class='form-group'>
               <label for='modalOrganization'>Organization</label>
-              <input type='text' class='form-control' id="modalOrganization" name='organization'>
+              <input type='text' class='form-control' id='modalOrganization' name='organization'>
             </div>
             <div class='form-group'>
               <label for='modalAssociation'>Association</label>
-              <input type='text' class='form-control' id="modalAssociation" name='association'>
+              <input type='text' class='form-control' id='modalAssociation' name='association'>
             </div>
           </form>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" id="saveProfileButton">Save Changes
+        <div class='modal-footer'>
+          <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Close</button>
+          <button type='button' class='btn btn-primary' id='saveProfileButton'>Save Changes
           </button>
         </div>
       </div>

@@ -1,16 +1,16 @@
-{% extends "base.html" %}
-{% set active_page = "identity" %}
+{% extends 'base.html' %}
+{% set active_page = 'identity' %}
 
 {% block title %}
   Groups
 {% endblock %}
 
 {% block head %}
-  <link rel='stylesheet' href='/static/css/group.css'>
+  <link rel='stylesheet' href='{{ url('/static/css/group.css') }}'>
 {% endblock %}
 
 {% block scripts %}
-  <script src='/static/js/group.js'></script>
+  <script src='{{ url('/static/js/group.js') }}'></script>
 {% endblock %}
 
 {% block content %}
@@ -42,14 +42,14 @@
                 <button class='icon-button'
                         data-bs-toggle='modal'
                         data-bs-target='#groupModal'
-                        data-form-target='/group/edit'
+                        data-form-target='{{ url('/group/edit') }}'
                         data-title='Edit group'
                         data-group-id='{{ group.id }}'
                         data-group-name='{{ group.name }}'
                         data-group-description='{{ group.description or '' }}'
                         data-submit-text='Save'
                 >
-                  <img src="/static/svg/edit-pencil.svg" alt="Edit">
+                  <img src='{{ url('/static/svg/edit-pencil.svg') }}' alt='Edit'>
                 </button>
               </div>
               {# Name #}
@@ -62,8 +62,8 @@
             <div class='row-center-parent button-row'>
               {# Members #}
               {#<button >#}
-              <a href='/ui/group/member/{{ group.id }}' class='icon-text-button'>
-                <span><img src="/static/svg/group.svg" alt="Edit Members"></span>
+              <a href='{{ url('/ui/group/member/') }}{{ group.id }}' class='icon-text-button'>
+                <span><img src='{{ url('/static/svg/group.svg') }}' alt='Edit Members'></span>
                 <span>{{ group.member_count }}</span>
                 {% if group.member_count == 1 %}
                   <span>member</span>
@@ -73,12 +73,12 @@
               </a>
               {# Copy ID #}
               <div class='row-center-child'>
-                <div class="pasta-id-parent">
-                  <div class="pasta-id-child-text">
+                <div class='pasta-id-parent'>
+                  <div class='pasta-id-child-text'>
                     {{ group.grid }}
                   </div>
-                  <div class="pasta-id-child-icon">
-                    <img src="/static/svg/copy.svg" alt="Copy Group Identifier">
+                  <div class='pasta-id-child-icon'>
+                    <img src='{{ url('/static/svg/copy.svg') }}' alt='Copy Group Identifier'>
                   </div>
                 </div>
               </div>
@@ -90,7 +90,7 @@
                         data-group-id='{{ group.id }}'
                         data-group-name='{{ group.name }}'
                 >
-                  <span><img src="/static/svg/trash.svg" alt="Unlink"></span>
+                  <span><img src='{{ url('/static/svg/trash.svg') }}' alt='Unlink'></span>
                   <span>Remove</span>
                 </button>
               </div>
@@ -104,7 +104,7 @@
   <div class='indent'>
     <button type='button' class='btn btn-primary' data-bs-toggle='modal'
             data-bs-target='#groupModal'
-            data-form-target='/group/new'
+            data-form-target='{{ url('/group/new') }}'
             data-title='Create a new group'
             data-group-id=''
             data-group-name=''
@@ -159,12 +159,12 @@
           <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
         </div>
         <div class='modal-body'>
-          <form action='/group/delete' method='post' id='deleteGroupForm'>
+          <form action='{{ url('/group/delete') }}' method='post' id='deleteGroupForm'>
             <input type='hidden' id='deleteGroupId' name='group-id'>
             <div class='form-group'>
               <p>
                 <span>Are you sure you want to remove group </span>
-                "<span id='deleteGroupName' class='highlight'></span>"?
+                '<span id='deleteGroupName' class='highlight'></span>'?
                 <span>
                 </span>
               </p>

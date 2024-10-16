@@ -84,7 +84,7 @@ async def callback_google(
                 client_secret=Config.GOOGLE_CLIENT_SECRET,
                 code=code_str,
                 authorization_response=str(
-                    util.get_redirect_uri("google").replace_query_params(code=code_str)
+                    util.get_redirect_uri('google').replace_query_params(code=code_str)
                 ),
                 redirect_uri=util.get_redirect_uri('google'),
                 grant_type='authorization_code',

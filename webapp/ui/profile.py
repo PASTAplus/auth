@@ -6,13 +6,11 @@ import starlette.templating
 import db.iface
 import pasta_jwt
 import util
-from config import Config
 
 log = daiquiri.getLogger(__name__)
 
 
 router = fastapi.APIRouter()
-templates = starlette.templating.Jinja2Templates(Config.TEMPLATES_PATH)
 
 
 # UI routes
@@ -28,7 +26,7 @@ async def profile(
 ):
     profile_row = udb.get_profile(token.urid)
 
-    return templates.TemplateResponse(
+    return util.templates.TemplateResponse(
         'profile.html',
         {
             # Base

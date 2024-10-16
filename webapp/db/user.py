@@ -361,7 +361,12 @@ class UserDb:
 
     def move_identity(self, idp_name: str, uid: str, new_profile: Profile):
         identity_row = self.get_identity(idp_name, uid)
+        old_profile = identity_row.profile
         identity_row.profile = new_profile
+        # If this was the only identity that referenced the previous profile, delete the
+        # orphaned profile.
+        if not old_profile.identities:
+            self.session.delete(old_profile)
         self.session.commit()
 
     @staticmethod

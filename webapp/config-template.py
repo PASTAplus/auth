@@ -30,7 +30,10 @@ class Config(object):
     TEMPLATES_PATH = HERE_PATH / 'templates'
 
     # URLs
-    SERVICE_BASE_URL = 'https://localhost:5443'
+    SERVICE_BASE_URL = 'https://localhost:5443/auth'
+    # The path under which the auth service is available. Must match settings in the
+    # reverse proxy.
+    ROOT_PATH = '/auth'
     # For testing ORCID, the entire app must be running from 127.0.0.1. This is because
     # ORCID does not allow localhost as a redirect URI, and because the base URL must
     # match the redirect URI in order for the target cookie to be assigned to the

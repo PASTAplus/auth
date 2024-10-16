@@ -6,11 +6,11 @@
 {% endblock %}
 
 {% block head %}
-  <link rel='stylesheet' href='/static/css/signin.css'>
+  <link rel='stylesheet' href='{{ url('/static/css/signin.css') }}'>
 {% endblock %}
 
 {% block scripts %}
-  <script src='/static/js/signin.js'></script>
+  <script src='{{ url('/static/js/signin.js') }}'></script>
 {% endblock %}
 
 {% block content %}
@@ -21,7 +21,7 @@
   <div class='indent'>
     <p>NOT IMPLEMENTED</p>
 
-    <a href='/signin'>Back to Sign in</a>
+    <a href='{{ url('/signin') }}'>Back to Sign in</a>
 
     <div class='indent'>
       <div id='resetModal' aria-labelledby='resetModalLabel' aria-hidden='true'>

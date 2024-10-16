@@ -9,13 +9,11 @@ import db.iface
 import fuzz
 import pasta_jwt
 import util
-from config import Config
 
 log = daiquiri.getLogger(__name__)
 
 
 router = fastapi.APIRouter()
-templates = starlette.templating.Jinja2Templates(Config.TEMPLATES_PATH)
 
 # UI routes
 
@@ -46,7 +44,7 @@ async def group(
     # group_list.sort(key=lambda x: x['name'])
     group_list.sort(key=lambda x: x['updated'])
 
-    return templates.TemplateResponse(
+    return util.templates.TemplateResponse(
         'group.html',
         {
             # Base
@@ -74,7 +72,7 @@ async def group_member(
     # group_row.updated = group_row.updated.strftime('%Y-%m-%d %H:%M')
     group_row.created = group_row.created.strftime('%m/%d/%Y %I:%M %p')
     group_row.updated = group_row.updated.strftime('%m/%d/%Y %I:%M %p')
-    return templates.TemplateResponse(
+    return util.templates.TemplateResponse(
         'member.html',
         {
             # Base
@@ -102,7 +100,7 @@ async def group_new(
     profile_row = udb.get_profile(token.urid)
     udb.create_group(profile_row, name, description)
     return starlette.responses.RedirectResponse(
-        '/ui/group',
+        url=util.url('/ui/group'),
         status_code=starlette.status.HTTP_303_SEE_OTHER,
     )
 
@@ -120,7 +118,7 @@ async def group_edit(
     profile_row = udb.get_profile(token.urid)
     udb.update_group(profile_row, group_id, name, description)
     return starlette.responses.RedirectResponse(
-        '/ui/group',
+        url=util.url('/ui/group'),
         status_code=starlette.status.HTTP_303_SEE_OTHER,
     )
 
@@ -136,7 +134,7 @@ async def group_delete(
     profile_row = udb.get_profile(token.urid)
     udb.delete_group(profile_row, group_id)
     return starlette.responses.RedirectResponse(
-        '/ui/group',
+        url=util.url('/ui/group'),
         status_code=starlette.status.HTTP_303_SEE_OTHER,
     )
 

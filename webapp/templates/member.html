@@ -1,21 +1,24 @@
-{% extends "base.html" %}
-{% set active_page = "identity" %}
+{% extends 'base.html' %}
+{% set active_page = 'identity' %}
 
 {% block title %}
   Group Members
 {% endblock %}
 
 {% block head %}
-  <link rel='stylesheet' href='/static/css/member.css'>
+  <link rel='stylesheet' href='{{ url('/static/css/member.css') }}'>
 {% endblock %}
 
 {% block scripts %}
-  <script src='/static/js/member.js'></script>
+  <script src='{{ url('/static/js/member.js') }}'></script>
 {% endblock %}
 
 {% block content %}
 
-  <div class='header-container' data-group-id='{{ group_row.id }}'>
+  <div class='header-container'
+       data-root-path='{{ url('') }}'
+       data-group-id='{{ group_row.id }}'
+  >
     <h1 aria-label>Group Members</h1>
   </div>
 
@@ -30,8 +33,8 @@
     </p>
 
     <p>
-      <a href='/ui/group' class='icon-text-button'>
-        <span><img src="/static/svg/back.svg" alt="Back to Groups"></span>
+      <a href='{{ url('/ui/group') }}' class='icon-text-button'>
+        <span><img src='{{ url('/static/svg/back.svg') }}' alt='Back to Groups'></span>
         <span>Back to Groups</span>
       </a>
     </p>
@@ -46,12 +49,12 @@
 
         <div class='details-grid-child label'>Group ID</div>
         <div class='details-grid-child'>
-          <div class="pasta-id-parent">
-            <div class="pasta-id-child-text">
+          <div class='pasta-id-parent'>
+            <div class='pasta-id-child-text'>
               {{ group_row.grid }}
             </div>
-            <div class="pasta-id-child-icon">
-              <img src="/static/svg/copy.svg" alt="Copy Group Identifier">
+            <div class='pasta-id-child-icon'>
+              <img src='{{ url('/static/svg/copy.svg') }}' alt='Copy Group Identifier'>
             </div>
           </div>
         </div>

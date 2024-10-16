@@ -14,7 +14,6 @@ log = daiquiri.getLogger(__name__)
 
 
 router = fastapi.APIRouter()
-templates = starlette.templating.Jinja2Templates(Config.TEMPLATES_PATH)
 
 
 # UI routes
@@ -25,7 +24,7 @@ async def signin(
     request: starlette.requests.Request,
     token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
-    return templates.TemplateResponse(
+    return util.templates.TemplateResponse(
         'signin.html',
         {
             # Base
@@ -46,7 +45,7 @@ async def signin_link(
     token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
     profile_row = udb.get_profile(token.urid)
-    return templates.TemplateResponse(
+    return util.templates.TemplateResponse(
         'signin.html',
         {
             # Base
@@ -78,7 +77,7 @@ async def signin_reset(
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
     token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
-    return templates.TemplateResponse(
+    return util.templates.TemplateResponse(
         'signin-reset-pw.html',
         {
             # Base
@@ -127,7 +126,7 @@ async def signin_token(
         }
     )
     response = starlette.responses.RedirectResponse(
-        '/ui/profile',
+        url=util.url('/ui/profile'),
         status_code=starlette.status.HTTP_303_SEE_OTHER,
     )
     response.set_cookie(key='token', value=token.encode())
@@ -141,20 +140,14 @@ async def signin_token(
     token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
     profile_row = udb.get_profile(token.urid)
-    # urid = request.query_params.get('urid')
-    # idp_token = request.query_params.get('idp_token')
+    # As with the signin_token route, we receive all of the IdP details as query params. But
+    # since we're already logged in, we're not creating a new token. So we ignore all but
+    # params we need for linking the account.
     idp_name = request.query_params.get('idp')
     uid = request.query_params.get('uid')
-    # email = request.query_params.get('email')
-    # full_name = request.query_params.get('full_name')
-    # avatar_url = request.query_params.get('avatar_url')
-    # pasta_token = request.query_params.get('pasta_token')
-
-    # token = pasta_jwt.PastaJwt(urid=urid)
     udb.move_identity(idp_name, uid, profile_row)
-
     response = starlette.responses.RedirectResponse(
-        '/ui/profile',
+        url=util.url('/ui/profile'),
         status_code=starlette.status.HTTP_303_SEE_OTHER,
     )
     return response
@@ -163,7 +156,7 @@ async def signin_token(
 @router.get('/signout')
 async def signout(request: starlette.requests.Request):
     response = starlette.responses.RedirectResponse(
-        '/ui/signin',
+        url=util.url('/ui/signin'),
         status_code=starlette.status.HTTP_303_SEE_OTHER,
     )
     response.delete_cookie('token')

@@ -61,7 +61,7 @@ class Group(db.base.Base):
         return (
             sqlalchemy.select([sqlalchemy.func.count(GroupMember.id)])
             .where(GroupMember.group_id == cls.id)
-            .label("member_count")
+            .label('member_count')
         )
 
 

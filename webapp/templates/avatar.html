@@ -1,16 +1,16 @@
-{% extends "base.html" %}
-{% set active_page = "identity" %}
+{% extends 'base.html' %}
+{% set active_page = 'identity' %}
 
 {% block title %}
   Avatars
 {% endblock %}
 
 {% block head %}
-  <link rel='stylesheet' href='/static/css/avatar.css'>
+  <link rel='stylesheet' href='{{ url('/static/css/avatar.css') }}'>
 {% endblock %}
 
 {% block scripts %}
-  <script src='/static/js/avatar.js'></script>
+  <script src='{{ url('/static/js/avatar.js') }}'></script>
 {% endblock %}
 
 {% block content %}
@@ -30,8 +30,8 @@
     </p>
 
     <p>
-      <a href='/ui/profile' class='icon-text-button'>
-        <span><img src="/static/svg/back.svg" alt="Back to Profile"></span>
+      <a href='{{ url('/ui/profile') }}' class='icon-text-button'>
+        <span><img src='{{ url('/static/svg/back.svg') }}' alt='Back to Profile'></span>
         <span>Back to Profile</span>
       </a>
     </p>
@@ -40,11 +40,11 @@
 
       {% for avatar in avatar_list %}
         <div class='grid-child'>
-          <form action='/avatar/update' method='post'>
+          <form action='{{ url('/avatar/update') }}' method='post'>
             <input type='hidden' name='idp_name' value='{{ avatar.idp_name }}'>
             <input type='hidden' name='uid' value='{{ avatar.uid }}'>
             <button type='submit' class='avatar-button'>
-              <img src="{{ avatar.url }}" alt="Avatar" class='avatar'>
+              <img src='{{ avatar.url }}' alt='Avatar' class='avatar'>
             </button>
           </form>
         </div>

@@ -13,6 +13,7 @@ import daiquiri
 import starlette.datastructures
 import starlette.responses
 import starlette.status
+import starlette.templating
 
 import filesystem
 from config import Config
@@ -23,6 +24,12 @@ AVATAR_FONT = PIL.ImageFont.truetype(
 )
 
 log = daiquiri.getLogger(__name__)
+
+
+def url(path_str: str, **query_param_dict) -> starlette.datastructures.URL:
+    return starlette.datastructures.URL(
+        f'{Config.ROOT_PATH}{path_str}'
+    ).include_query_params(**query_param_dict)
 
 
 def urlenc(url: str) -> str:
@@ -141,8 +148,10 @@ def to_pretty_json(obj: list | dict) -> str:
     # print(json_str)
     return json_str
 
+
 # def json_loads(json_str: str) -> list | dict:
 #     return json.loads(json_str, cls=CustomJSONEncoder)
+
 
 def from_json(json_str: str) -> list | dict:
     return json.loads(json_str)
@@ -150,6 +159,7 @@ def from_json(json_str: str) -> list | dict:
 
 def pp(obj: list | dict):
     print(pformat(obj))
+
 
 def pformat(obj: list | dict):
     return pprint.pformat(obj, indent=2, sort_dicts=True)
@@ -181,7 +191,7 @@ def get_profile_avatar_url(profile_row, refresh=False):
     """Return the URL to the avatar image for the given IdP and UID."""
     if not profile_row.has_avatar:
         return get_initials_avatar_url(profile_row.initials)
-    url = starlette.datastructures.URL(
+    avatar_url = url(
         '/'.join(
             (
                 Config.AVATARS_URL,
@@ -194,15 +204,15 @@ def get_profile_avatar_url(profile_row, refresh=False):
     )
     if refresh:
         timestamp = int(datetime.datetime.now().timestamp())
-        url = url.include_query_params(refresh=timestamp)
-    return url
+        avatar_url = avatar_url.include_query_params(refresh=timestamp)
+    return avatar_url
 
 
 def get_identity_avatar_url(identity_row, refresh=False):
     """Return the URL to the avatar image for the given IdP and UID."""
     if not identity_row.has_avatar:
         return get_anon_avatar_url()
-    url = starlette.datastructures.URL(
+    avatar_url = url(
         '/'.join(
             (
                 Config.AVATARS_URL,
@@ -215,18 +225,18 @@ def get_identity_avatar_url(identity_row, refresh=False):
     )
     if refresh:
         timestamp = int(datetime.datetime.now().timestamp())
-        url = url.include_query_params(refresh=timestamp)
-    return url
+        avatar_url = avatar_url.include_query_params(refresh=timestamp)
+    return avatar_url
 
 
 def get_anon_avatar_url():
     """Return the URL to the avatar image with the given initials."""
-    return starlette.datastructures.URL(f'/static/svg/edi-anon-avatar.svg')
+    return url(f'/static/svg/edi-anon-avatar.svg')
 
 
 def get_initials_avatar_url(initials: str):
     """Return the URL to the avatar image with the given initials."""
-    return starlette.datastructures.URL(f'/avatar/gen/{initials}')
+    return url(f'/avatar/gen/{initials}')
 
 
 def get_initials_avatar_path(initials: str):
@@ -275,3 +285,10 @@ def generate_initials_avatar(initials: str):
 def get_idp_logo_url(idp_name: str):
     """Return the URL to the logo image for the given IdP."""
     return f'/static/idp-logos/{idp_name}.svg'
+
+# Templates
+
+templates = starlette.templating.Jinja2Templates(Config.TEMPLATES_PATH)
+# Make the url() function available in the templates
+templates.env.globals['url'] = url
+

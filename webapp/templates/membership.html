@@ -1,16 +1,16 @@
-{% extends "base.html" %}
-{% set active_page = "profile" %}
+{% extends 'base.html' %}
+{% set active_page = 'profile' %}
 
 {% block title %}
   Group Memberships
 {% endblock %}
 
 {% block head %}
-  <link rel='stylesheet' href='/static/css/membership.css'>
+  <link rel='stylesheet' href='{{ url('/static/css/membership.css') }}'>
 {% endblock %}
 
 {% block scripts %}
-  <script src='/static/js/membership.js'></script>
+  <script src='{{ url('/static/js/membership.js') }}'></script>
 {% endblock %}
 
 {% block content %}
@@ -63,7 +63,7 @@
                     data-group-owner='{{ group_row.profile.full_name }}'
                     data-group-owner-email='{{ group_row.profile.email }}'
             >
-              <span><img src='/static/svg/leave-group.svg' alt='Leave Group'></span>
+              <span><img src='{{ url('/static/svg/leave-group.svg') }}' alt='Leave Group'></span>
               <span>Leave</span>
             </button>
           </div>
@@ -86,12 +86,12 @@
           <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
         </div>
         <div class='modal-body'>
-          <form action='/membership/leave' method='post' id='leaveGroupForm'>
+          <form action='{{ url('/membership/leave') }}' method='post' id='leaveGroupForm'>
             <input type='hidden' id='leaveGroupId' name='group-id'>
             <div class='form-group'>
               <p>
                 <span>Are you sure you want to leave group </span>
-                "<span id='leaveGroupName' class='highlight'></span>"?
+                '<span id='leaveGroupName' class='highlight'></span>'?
                 <span>
                 </span>
               </p>

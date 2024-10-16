@@ -5,13 +5,12 @@ import starlette.responses
 import starlette.status
 import starlette.templating
 
-from config import Config
+import util
 
 log = daiquiri.getLogger(__name__)
 
 
 router = fastapi.APIRouter()
-templates = starlette.templating.Jinja2Templates(Config.TEMPLATES_PATH)
 
 
 @router.get('/')
@@ -21,6 +20,6 @@ async def index(
     # token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
     return starlette.responses.RedirectResponse(
-        '/ui/profile',
+        url=util.url('/ui/profile'),
         status_code=starlette.status.HTTP_303_SEE_OTHER,
     )

@@ -9,13 +9,11 @@ import starlette.templating
 import db.iface
 import pasta_jwt
 import util
-from config import Config
 
 log = daiquiri.getLogger(__name__)
 
 
 router = fastapi.APIRouter()
-templates = starlette.templating.Jinja2Templates(Config.TEMPLATES_PATH)
 
 # UI routes
 
@@ -44,7 +42,7 @@ async def avatar(
                 }
             )
 
-    return templates.TemplateResponse(
+    return util.templates.TemplateResponse(
         'avatar.html',
         {
             # Base
@@ -84,7 +82,7 @@ async def avatar_update(
     udb.update_profile(token.urid, has_avatar=uid != '')
 
     return starlette.responses.RedirectResponse(
-        starlette.datastructures.URL('/ui/profile').include_query_params(refresh='true'),
+        util.url('/ui/profile', refresh='true'),
         status_code=starlette.status.HTTP_303_SEE_OTHER,
     )
 

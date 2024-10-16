@@ -10,7 +10,6 @@ from config import Config
 
 log = daiquiri.getLogger(__name__)
 router = fastapi.APIRouter()
-templates = starlette.templating.Jinja2Templates(Config.HERE_PATH / 'templates')
 
 
 @router.get('/login/accept')
@@ -28,7 +27,7 @@ async def accept_get(request: starlette.requests.Request):
 
     log.debug(f'Privacy policy accept form (GET): target="{target}" uid="{uid}"')
 
-    return templates.TemplateResponse(
+    return util.templates.TemplateResponse(
         'accept.html',
         {
             'request': request,

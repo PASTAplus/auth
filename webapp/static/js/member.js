@@ -3,8 +3,9 @@ const searchMemberEl = document.getElementById('searchMember');
 const memberListEl = document.getElementById('memberList');
 const candidateListEl = document.getElementById('candidateList');
 
-const GROUP_ID = parseInt(
-    document.getElementsByClassName('header-container')[0].dataset.groupId);
+let headerContainerEl = document.getElementsByClassName('header-container')[0];
+const GROUP_ID = parseInt(headerContainerEl.dataset.groupId);
+const ROOT_PATH = headerContainerEl.dataset.rootPath;
 
 let fetchDelay = null;
 // const memberProfileIdSet = new Set();
@@ -114,12 +115,12 @@ function createProfileHtml(profileMap, isAdd)
   const p = profileMap;
   let buttonHtml = isAdd ? `
       <button type='submit' class='icon-text-button' id='addButton'>
-          <span><img src='/static/svg/arrow-up-from-line.svg' alt='Add'></span>
+          <span><img src='${ROOT_PATH}/static/svg/arrow-up-from-line.svg' alt='Add'></span>
           <span>Add</span>
         </button>
     ` : `
       <button type='submit' class='icon-text-button' id='removeButton'>
-          <span><img src='/static/svg/arrow-down-from-line.svg' alt='Remove'></span>
+          <span><img src='${ROOT_PATH}/static/svg/arrow-down-from-line.svg' alt='Remove'></span>
           <span>Remove</span>
         </button>
     `;
@@ -173,7 +174,7 @@ function fetchSearch()
   const searchStr = searchMemberEl.value;
   console.log('searchStr:', searchStr);
 
-  fetch('/group/member/search', {
+  fetch(`${ROOT_PATH}/group/member/search`, {
     method: 'POST', headers: {
       'Content-Type': 'application/json',
     }, body: JSON.stringify({query: searchStr}),
@@ -199,7 +200,7 @@ function fetchSearch()
 
 function fetchAddRemoveMember(memberProfileId, isAdd)
 {
-  fetch('/group/member/add-remove', {
+  fetch(`${ROOT_PATH}/group/member/add-remove`, {
     method: 'POST', headers: {
       'Content-Type': 'application/json',
     },

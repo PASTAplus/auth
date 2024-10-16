@@ -1,5 +1,5 @@
-{% extends "base-no-menu.html" %}
-{% set active_page = "accept" %}
+{% extends 'base-no-menu.html' %}
+{% set active_page = 'accept' %}
 
 {% block title %}
   Environmental Data Initiative Privacy Policy
@@ -9,8 +9,8 @@
   <h1>Environmental Data Initiative - Privacy Policy</h1>
 
   <p>
-    By clicking the "Accept" button, you acknowledge and agree to our
-    <a href="https://edirepository.org/about/edi-policy#privacy-policy">Privacy
+    By clicking the 'Accept' button, you acknowledge and agree to our
+    <a href='https://edirepository.org/about/edi-policy#privacy-policy'>Privacy
       Policy</a>.
     This policy explains how we collect, use, and protect your personal information.
   </p>
@@ -24,9 +24,9 @@
     Thank you for your support and use of the Environmental Data Initiative.
   </p>
 
-  <div class="row">
-    <div class="col-md-4">
-      <form method="POST" action="/login/accept" class="form" role="form">
+  <div class='row'>
+    <div class='col-md-4'>
+      <form method='POST' action='{{ url('/login/accept') }}' class='form' role='form'>
 
         <input type='hidden' name='target' value='{{ target }}'>
         <input type='hidden' name='pasta_token' value='{{ pasta_token }}'>
@@ -38,9 +38,9 @@
         <input type='hidden' name='idp_token' value='{{ idp_token }}'>
 
         <span>
-          <button type="submit" class="btn btn-secondary" name="action" value="cancel">I Do Not Accept</button>
+          <button type='submit' class='btn btn-secondary' name='action' value='cancel'>I Do Not Accept</button>
           <span>&nbsp;</span>
-          <button type="submit" class="btn btn-primary" name="action" value="accept">I Accept</button>
+          <button type='submit' class='btn btn-primary' name='action' value='accept'>I Accept</button>
         </span>
       </form>
     </div>

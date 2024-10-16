@@ -46,7 +46,7 @@ SessionLocal = sqlalchemy.orm.sessionmaker(
 
 
 # Enable foreign key checking in SQlite
-@sqlalchemy.event.listens_for(sqlalchemy.pool.Pool, "connect")
+@sqlalchemy.event.listens_for(sqlalchemy.pool.Pool, 'connect')
 def _on_connect(dbapi_con, _connection_record):
     if isinstance(dbapi_con, sqlite3.Connection):
         dbapi_con.execute('PRAGMA foreign_keys=ON')
