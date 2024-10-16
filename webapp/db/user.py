@@ -314,10 +314,24 @@ class UserDb:
     def move_identity(self, idp_name: str, uid: str, new_profile: Profile):
         identity_row = self.get_identity(idp_name, uid)
         old_profile = identity_row.profile
+        # Reassign the identity to the new profile
         identity_row.profile = new_profile
-        # If this was the only identity that referenced the previous profile, delete the
-        # orphaned profile.
+        # If this was the only identity that referenced the previous profile...
         if not old_profile.identities:
+            for group_member in old_profile.group_members:
+                # Reassign any group memberships to the new profile
+                # group_member.profile = new_profile
+                # Delete any group memberships assigned to the old profile
+                self.session.delete(group_member)
+            for group in old_profile.groups:
+                # Reassign any groups to the new profile
+                # group.profile = new_profile
+                # Delete any groups assigned to the old profile
+                for group_member in group.members:
+                    # Delete any group memberships assigned to the old profile
+                    self.session.delete(group_member)
+                self.session.delete(group)
+            # Delete the now orphaned profile
             self.session.delete(old_profile)
         self.session.commit()
 
