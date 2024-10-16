@@ -146,7 +146,7 @@ async def callback_github(
     # Redirect to privacy policy accept page if user hasn't accepted it yet
     if not identity_row.profile.privacy_policy_accepted:
         return util.redirect(
-            '/login/accept',
+            '/accept',
             target=target,
             pasta_token=identity_row.pasta_token,
             urid=identity_row.profile.urid,

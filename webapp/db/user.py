@@ -147,54 +147,6 @@ class Identity(db.base.Base):
     )
 
 
-# #
-# # DB setup
-# #
-#
-# engine = sqlalchemy.create_engine(
-#     'sqlite:///' + config.Config.DB_PATH.as_posix(),
-#     echo=config.Config.LOG_DB_QUERIES,
-#     connect_args={
-#         # Allow multiple threads to access the database
-#         # This setup allows the SQLAlchemy engine to manage SQLite connections that can
-#         # safely be shared across threads, mitigating the "SQLite objects created in a
-#         # thread can only be used in that same thread" limitation.
-#         'check_same_thread': False,
-#     },
-# )
-#
-# # TODO: Add some sort of switch for this
-# # Base.metadata.drop_all(engine)
-#
-# # Create the tables in the database
-# Base.metadata.create_all(engine)
-#
-# SessionLocal = sqlalchemy.orm.sessionmaker(
-#     autocommit=False, autoflush=False, bind=engine
-# )
-#
-# # Enable foreign key checking in SQlite
-# @sqlalchemy.event.listens_for(sqlalchemy.pool.Pool, "connect")
-# def _on_connect(dbapi_con, _connection_record):
-#     if isinstance(dbapi_con, sqlite3.Connection):
-#         dbapi_con.execute('PRAGMA foreign_keys=ON')
-#
-#
-# def get_db():
-#     db = SessionLocal()
-#     try:
-#         yield db
-#     finally:
-#         db.close()
-#
-#
-# def udb(session: sqlalchemy.orm.Session = fastapi.Depends(get_db)):
-#     try:
-#         yield UserDb(session)
-#     finally:
-#         session.close()
-
-
 #
 # Interface
 #

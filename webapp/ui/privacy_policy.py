@@ -12,7 +12,7 @@ log = daiquiri.getLogger(__name__)
 router = fastapi.APIRouter()
 
 
-@router.get('/login/accept')
+@router.get('/accept')
 async def accept_get(request: starlette.requests.Request):
     """Require the user to accept the privacy policy.
 
@@ -39,7 +39,7 @@ async def accept_get(request: starlette.requests.Request):
     )
 
 
-@router.post('/login/accept')
+@router.post('/accept')
 async def accept_post(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
@@ -79,7 +79,7 @@ async def accept_post(
     if form.get('idp_name') == 'ldap':
         redirect_url = (
             f'{target}?token={identity_row.pasta_token}'
-            f'?cname={identity_row.profile.full_name.strip()}'
+            f'&cname={identity_row.profile.full_name.strip()}'
         )
         log.debug(f'Redirecting to LDAP login: redirect_url="{redirect_url}"')
         response = starlette.responses.RedirectResponse(redirect_url)
