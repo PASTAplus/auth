@@ -1,6 +1,9 @@
+import functools
+
 import daiquiri
 import fastapi
 import starlette.datastructures
+import starlette.exceptions
 import starlette.requests
 import starlette.responses
 import starlette.status
@@ -9,6 +12,7 @@ import starlette.templating
 import db.iface
 import pasta_jwt
 import util
+from config import Config
 
 log = daiquiri.getLogger(__name__)
 
@@ -16,7 +20,19 @@ log = daiquiri.getLogger(__name__)
 router = fastapi.APIRouter()
 
 
+def assert_dev_enabled(func):
+    @functools.wraps(func)
+    async def wrapper(*args, **kwargs):
+        if not Config.ENABLE_DEV_MENU:
+            raise starlette.exceptions.HTTPException(
+                status_code=403,
+                detail='Dev menu is disabled'
+            )
+        return await func(*args, **kwargs)
+    return wrapper
+
 @router.get('/dev/token')
+@assert_dev_enabled
 async def dev_token(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
@@ -48,6 +64,7 @@ async def dev_token(
     )
 
 @router.get('/dev/profiles')
+@assert_dev_enabled
 async def index(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
@@ -67,6 +84,7 @@ async def index(
 
 
 @router.get('/dev/signin/{urid}')
+@assert_dev_enabled
 async def dev_signin_urid(
     urid: str,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),

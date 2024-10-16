@@ -72,6 +72,8 @@ class Config(object):
     FUZZ_LIMIT = 100
     # Lowest match score that can be returned (0 is any match, 100 is only exact match).
     FUZZ_CUTOFF = 60
+    # The Dev menu allows switching profiles and other development features.
+    ENABLE_DEV_MENU = False
 
     #
     # Identity Providers

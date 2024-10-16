@@ -286,9 +286,15 @@ def get_idp_logo_url(idp_name: str):
     """Return the URL to the logo image for the given IdP."""
     return f'/static/idp-logos/{idp_name}.svg'
 
+
 # Templates
 
 templates = starlette.templating.Jinja2Templates(Config.TEMPLATES_PATH)
-# Make the url() function available in the templates
-templates.env.globals['url'] = url
-
+templates.env.globals.update(
+    {
+        # Make the url() function available in all templates
+        'url': url,
+        # Parameters for base.html
+        'dev_menu': Config.ENABLE_DEV_MENU,
+    }
+)
