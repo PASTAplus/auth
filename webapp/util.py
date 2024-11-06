@@ -1,7 +1,10 @@
+import base64
+import binascii
 import datetime
 import io
 import json
 import pprint
+import re
 import typing
 import urllib.parse
 
@@ -16,6 +19,8 @@ import starlette.status
 import starlette.templating
 
 import filesystem
+import old_token
+import pasta_jwt
 from config import Config
 
 AVATAR_FONT = PIL.ImageFont.truetype(
@@ -36,79 +41,172 @@ def urlenc(url: str) -> str:
     return urllib.parse.quote(url, safe='')
 
 
-def get_dn_uid(dn: str) -> str:
-    dn_parts = dn.split(',')
-    uid = dn_parts[0].split('=')[1]
-    return uid
+# Redirects
+
+
+def redirect_internal(
+    path_str: str,
+    **query_param_dict,
+):
+    """Create a Response that redirects to the Auth service root path plus a relative
+    URL. Mainly for use after handling a POST request.
+
+    This uses a 303 See Other status code, which causes the client to always follow
+    the redirect using a GET request.
+    """
+    url_str = f'{Config.ROOT_PATH}{path_str}'
+    log_dict(log.debug, f'Redirecting (303) to: {url_str}', query_param_dict)
+    return starlette.responses.RedirectResponse(
+        starlette.datastructures.URL(url_str).replace_query_params(**query_param_dict),
+        status_code=starlette.status.HTTP_303_SEE_OTHER,
+    )
 
 
 def redirect_to_idp(
     idp_auth_url: str,
     idp_name: str,
     target_url: str,
-    **kwargs,
+    **query_param_dict,
 ):
-    """Create a RedirectResponse with location set to the IdP with which we will be
-    authenticating, and include a cookie with the client's final target."""
+    """Create a Response that redirects to the IdP with which we will be authenticating,
+    and include a cookie with the client's final target.
+    """
     url_obj = starlette.datastructures.URL(idp_auth_url)
     url_obj = url_obj.replace_query_params(
         redirect_uri=get_redirect_uri(idp_name),
-        **kwargs,
+        **query_param_dict,
     )
     log.debug(f'redirect_to_idp(): {url_obj}')
     response = starlette.responses.RedirectResponse(
         url_obj,
-        # RedirectResponse returns 307 temporary redirect by default
+        # RedirectResponse returns 307 Temporary Redirect by default
         status_code=starlette.status.HTTP_302_FOUND,
     )
     response.set_cookie(key='target', value=target_url)
     return response
 
 
-def redirect(base_url: str, **kwargs):
-    """Create a Starlette response that redirects to the base_url with query parameters"""
-    log_dict(log.debug, f'Redirecting to: {base_url}', kwargs)
-    return starlette.responses.RedirectResponse(
-        f'{base_url}{"?" if kwargs else ""}{build_query_string(**kwargs)}'
+def handle_successful_login(
+    udb,  # db.iface.UserDb
+    target_url: str,
+    full_name,
+    idp_name,
+    uid,
+    email,
+    has_avatar,
+    is_vetted,
+):
+    """After user has successfully authenticated:
+
+    - Create or update user's Profile and Identity in the database
+    - Create old style and new style tokens
+    - Redirect to the final target URL, providing the tokens and other information
+    """
+    identity_row = udb.create_or_update_profile_and_identity(
+        full_name, idp_name, uid, email, has_avatar
+    )
+    old_token_ = old_token.make_old_token(
+        uid=uid, groups=Config.VETTED if is_vetted else Config.AUTHENTICATED
+    )
+    pasta_token = pasta_jwt.make_jwt(udb, identity_row.profile, is_vetted=is_vetted)
+
+    return redirect_final(
+        target_url,
+        token=old_token_,
+        pasta_token=pasta_token,
+        urid=identity_row.profile.urid,
+        full_name=identity_row.profile.full_name,
+        email=identity_row.profile.email,
+        uid=identity_row.uid,
+        idp_name=identity_row.idp_name,
+        sub=identity_row.uid,
     )
 
 
-def redirect_target(
-    target: str,
+def redirect_final(
+    target_url: str,
+    token: str,
     pasta_token: str,
+    # TODO: All the following query parameters should be removed from the redirect
+    # URI when the transition to the new authentication system is complete, since
+    # they are effectively unsigned claims.
     urid: str,
     full_name: str,
     email: str,
     uid: str,
     idp_name: str,
-    idp_token: str | None,
+    sub: str,
 ):
-    """Create a Starlette response that redirects to the final target specified by the
-    client.
+    """Create Response that redirects to the final target URL after successful
+    authentication. This is the final step in the authentication process, and creates a
+    uniform set of query parameters and cookies returned to all clients for all
+    authentication flows.
 
-    This is a wrapper around the general redirect function that ensures a uniform
-    set of query parameters returned to the client regardless of which IdP is used.
+    target_url: The URL to which the client originally requested to be redirected.
+    """
+    response = redirect(
+        target_url,
+        # The old token is passed in 'token'
+        token=token,
+        # The new token is passed in 'pasta_token'
+        pasta_token=pasta_token,
+        # TODO: All the following query parameters should be removed from the redirect
+        # URI when the transition to the new authentication system is complete, since
+        # they are effectively unsigned claims.
+        urid=urid,
+        full_name=full_name,
+        email=email,
+        uid=uid,
+        idp_name=idp_name,
+        # For ezEML
+        sub=sub,
+    )
+    # auth-token is the location of the old proprietary token
+    response.set_cookie('auth-token', token)
+    # pasta_token is the location of the new JWT token
+    response.set_cookie('pasta_token', pasta_token)
+    return response
+
+
+def redirect_to_client_error(
+    target_url: str,
+    error_msg: str,
+):
+    """Create a Response that redirects to the final target specified by the client
+    after an error occurs during authentication.
     """
     # TODO: The query parameters other than the token should be removed from the
     # redirect URI when the transition to the new authentication system is complete,
     # since they are effectively unsigned claims.
+    log.warn(f'Authentication failed: {error_msg}')
     return redirect(
-        target,
-        token=pasta_token,
-        urid=urid,
-        cname=full_name,
-        email=email,
-        uid=uid,
-        idp=idp_name,
-        idp_token=idp_token,
-        # For ezEML
-        sub=uid,
+        target_url,
+        error=error_msg,
     )
 
 
-def build_query_string(**kwargs) -> str:
+def redirect(url_str: str, **query_param_dict):
+    """Create a Response that redirects to the redirect_url with query parameters.
+
+    This uses a 307 Temporary Redirect status code, which prevents the client from
+    caching the redirect, and guarantees that the client will not change the request
+    method and body when the redirected request is made.
+    """
+    log_dict(log.debug, f'Redirecting (307) to: {url_str}', query_param_dict)
+    url_obj = starlette.datastructures.URL(url_str)
+    url_obj = url_obj.replace_query_params(**query_param_dict)
+    # f'{base_url}{"?" if query_param_dict else ""}{build_query_string(**query_param_dict)}'
+    return starlette.responses.RedirectResponse(url_obj)
+
+
+#
+
+
+def build_query_string(**query_param_dict) -> str:
     """Build a query string from keyword arguments"""
-    return urllib.parse.urlencode(kwargs)
+    # url_obj = starlette.datastructures.URL(Config.ROOT_PATH).join(rel_url)
+    # url_obj = url_obj.replace_query_params(**query_param_dict)
+    return urllib.parse.urlencode(query_param_dict)
 
 
 def log_dict(logger: typing.Callable, msg: str, d: dict):
@@ -120,15 +218,6 @@ def log_dict(logger: typing.Callable, msg: str, d: dict):
 def get_redirect_uri(idp_name):
     url_obj = starlette.datastructures.URL(Config.SERVICE_BASE_URL)
     return url_obj.replace(path=f'{url_obj.path}/callback/{idp_name}')
-
-
-async def split_full_name(full_name: str) -> typing.Tuple[str, str | None]:
-    """Split a full name into given name and family name.
-
-    :returns: A tuple of given_name, family_name. If the full name is a single word,
-        family_name will be None.
-    """
-    return full_name.split(' ', 1) if ' ' in full_name else (full_name, None)
 
 
 class CustomJSONEncoder(json.JSONEncoder):
@@ -298,3 +387,46 @@ templates.env.globals.update(
         'dev_menu': Config.ENABLE_DEV_MENU,
     }
 )
+
+
+# LDAP
+
+
+def get_ldap_uid(ldap_dn: str) -> str:
+    dn_dict = {
+        k.strip(): v.strip()
+        for (k, v) in (part.split('=') for part in ldap_dn.split(','))
+    }
+    return dn_dict['uid']
+
+
+def get_ldap_dn(uid: str) -> str:
+    return f'uid={uid},o=EDI,dc=edirepository,dc=org'
+
+
+def parse_authorization_header(
+    request,
+) -> tuple[str, str] | starlette.responses.Response:
+    """Parse the Authorization header from a request and return (uid, pw). Raise
+    ValueError on errors.
+    """
+    auth_str = request.headers.get('Authorization')
+    if auth_str is None:
+        raise ValueError('No authorization header in request')
+    if not (m := re.match(r'Basic\s+(.*)', auth_str)):
+        raise ValueError(
+            f'Invalid authorization scheme. Only Basic is supported: {auth_str}'
+        )
+    encoded_credentials = m.group(1)
+    try:
+        decoded_credentials = base64.b64decode(
+            encoded_credentials, validate=True
+        ).decode('utf-8')
+        uid, password = decoded_credentials.split(':', 1)
+        return uid, password
+    except (ValueError, IndexError, binascii.Error) as e:
+        raise ValueError(f'Malformed authorization header: {e}')
+
+
+def format_authorization_header(uid: str, password: str) -> str:
+    return f'Basic {base64.b64encode(f"{uid}:{password}".encode()).decode()}'
