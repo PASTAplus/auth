@@ -4,9 +4,9 @@ import daiquiri
 import fastapi
 import requests
 import starlette.requests
+import starlette.status
 
 import db.iface
-import pasta_token as pasta_token_
 import util
 from config import Config
 
@@ -49,11 +49,11 @@ async def callback_github(
 
     if is_error(request):
         log.error(get_error_message(request))
-        return util.redirect(target, error='Login failed')
+        return util.redirect_to_client_error(target, 'Login failed')
 
     code_str = request.query_params.get('code')
     if code_str is None:
-        return util.redirect(target, error='Login cancelled')
+        return util.redirect_to_client_error(target, 'Login cancelled')
 
     try:
         token_response = requests.post(
@@ -75,17 +75,17 @@ async def callback_github(
         )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.redirect(target, error='Login unsuccessful')
+        return util.redirect_to_client_error(target, 'Login unsuccessful')
 
     try:
         token_dict = token_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {token_response.text}', exc_info=True)
-        return util.redirect(target, error='Login unsuccessful')
+        return util.redirect_to_client_error(target, 'Login unsuccessful')
 
     if 'error' in token_dict:
         log.error(f'Login unsuccessful: {token_dict["error"]}', exc_info=True)
-        return util.redirect(target, error='Login unsuccessful')
+        return util.redirect_to_client_error(target, 'Login unsuccessful')
 
     try:
         userinfo_response = requests.get(
@@ -96,13 +96,13 @@ async def callback_github(
         )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.redirect(target, error='Login unsuccessful')
+        return util.redirect_to_client_error(target, 'Login unsuccessful')
 
     try:
         user_dict = userinfo_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {userinfo_response.text}', exc_info=True)
-        return util.redirect(target, error='Login unsuccessful')
+        return util.redirect_to_client_error(target, 'Login unsuccessful')
 
     # Fetch the avatar
     has_avatar = False
@@ -128,45 +128,15 @@ async def callback_github(
     else:
         full_name = uid
 
-    pasta_token = pasta_token_.make_pasta_token(uid=uid, groups=Config.AUTHENTICATED)
-
-    given_name, family_name = await util.split_full_name(full_name)
-
-    # Update DB
-    identity_row = udb.create_or_update_profile_and_identity(
-        given_name=given_name,
-        family_name=family_name,
+    return util.handle_successful_login(
+        udb=udb,
+        target_url=target,
+        full_name=full_name,
         idp_name='github',
         uid=uid,
         email=user_dict.get('email'),
         has_avatar=has_avatar,
-        pasta_token=pasta_token,
-    )
-
-    # Redirect to privacy policy accept page if user hasn't accepted it yet
-    if not identity_row.profile.privacy_policy_accepted:
-        return util.redirect(
-            '/accept',
-            target=target,
-            pasta_token=identity_row.pasta_token,
-            urid=identity_row.profile.urid,
-            full_name=identity_row.profile.full_name,
-            email=identity_row.profile.email,
-            uid=identity_row.uid,
-            idp_name=identity_row.idp_name,
-            idp_token=token_dict['access_token'],
-        )
-
-    # Finally, redirect to the target URL with the authentication token
-    return util.redirect_target(
-        target=target,
-        pasta_token=identity_row.pasta_token,
-        urid=identity_row.profile.urid,
-        full_name=identity_row.profile.full_name,
-        email=identity_row.profile.email,
-        uid=identity_row.uid,
-        idp_name=identity_row.idp_name,
-        idp_token=token_dict['access_token'],
+        is_vetted=False,
     )
 
 
@@ -192,7 +162,7 @@ async def revoke_github(
         # revoke_app_token(target, idp_token)
     except requests.RequestException:
         log.error('Revoke unsuccessful', exc_info=True)
-        return util.redirect(target, error='Revoke unsuccessful')
+        return util.redirect_to_client_error(target, 'Revoke unsuccessful')
 
     return util.redirect(target)
 
@@ -209,7 +179,7 @@ def revoke_app_token(target, idp_token):
         data=json.dumps({'access_token': idp_token}),
     )
 
-    if revoke_response.status_code != 204:
+    if revoke_response.status_code != starlette.status.HTTP_204_NO_CONTENT:
         raise requests.RequestException(revoke_response.text)
 
 
@@ -234,9 +204,7 @@ def get_error_message(
 
 
 def get_user_avatar(avatar_url):
-    response = requests.get(
-        avatar_url,
-    )
+    response = requests.get(avatar_url)
     if not response.ok:
         raise fastapi.HTTPException(
             status_code=response.status_code, detail=response.text

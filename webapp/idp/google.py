@@ -7,7 +7,6 @@ import starlette.requests
 import starlette.status
 
 import db.iface
-import pasta_token as pasta_token_
 import util
 from config import Config
 
@@ -38,7 +37,7 @@ async def login_google(
             'Login unsuccessful: Cannot download Google provider configuration',
             exc_info=True,
         )
-        return util.redirect(target, error='Login unsuccessful')
+        return util.redirect_to_client_error(target, 'Login unsuccessful')
 
     util.log_dict(log.debug, 'google_provider_cfg', google_provider_cfg)
 
@@ -67,7 +66,7 @@ async def callback_google(
 
     code_str = request.query_params.get('code')
     if code_str is None:
-        return util.redirect(target, error='Login cancelled')
+        return util.redirect_to_client_error(target, 'Login cancelled')
 
     google_provider_cfg = get_google_provider_cfg()
     token_endpoint = google_provider_cfg['token_endpoint']
@@ -92,17 +91,17 @@ async def callback_google(
         )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.redirect(target, error='Login unsuccessful')
+        return util.redirect_to_client_error(target, 'Login unsuccessful')
 
     try:
         token_dict = token_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {token_response.text}', exc_info=True)
-        return util.redirect(target, error='Login unsuccessful')
+        return util.redirect_to_client_error(target, 'Login unsuccessful')
 
     if 'error' in token_dict:
         log.error(f'Login unsuccessful: {token_dict["error"]}', exc_info=True)
-        return util.redirect(target, error='Login unsuccessful')
+        return util.redirect_to_client_error(target, 'Login unsuccessful')
 
     try:
         userinfo_response = requests.get(
@@ -113,16 +112,18 @@ async def callback_google(
         )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.redirect(target, error='Login unsuccessful')
+        return util.redirect_to_client_error(target, 'Login unsuccessful')
 
     try:
         user_dict = userinfo_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {userinfo_response.text}', exc_info=True)
-        return util.redirect(target, error='Login unsuccessful')
+        return util.redirect_to_client_error(target, 'Login unsuccessful')
 
     if not user_dict.get('email_verified'):
-        return util.redirect(target, error='Login unsuccessful: Email not verified')
+        return util.redirect_to_client_error(
+            target, 'Login unsuccessful: Email not verified'
+        )
 
     # Fetch the avatar
     has_avatar = False
@@ -140,47 +141,15 @@ async def callback_google(
     util.log_dict(log.debug, 'user_dict', user_dict)
     log.debug('-' * 80)
 
-    # TODO: Move from email to sub when clients are ready.
-    uid = user_dict['email']
-    groups = Config.AUTHENTICATED
-
-    pasta_token = pasta_token_.make_pasta_token(uid=uid, groups=groups)
-
-    # Update DB
-    identity_row = udb.create_or_update_profile_and_identity(
-        given_name=user_dict['given_name'],
-        family_name=user_dict['family_name'],
+    return util.handle_successful_login(
+        udb,
+        target_url=target,
+        full_name=user_dict["name"],
         idp_name='google',
         uid=user_dict['sub'],
         email=user_dict['email'],
         has_avatar=has_avatar,
-        pasta_token=pasta_token,
-    )
-
-    # Redirect to privacy policy accept page if user hasn't accepted it yet
-    if not identity_row.profile.privacy_policy_accepted:
-        return util.redirect(
-            '/accept',
-            target=target,
-            pasta_token=identity_row.pasta_token,
-            urid=identity_row.profile.urid,
-            full_name=identity_row.profile.full_name,
-            email=identity_row.profile.email,
-            uid=identity_row.uid,
-            idp_name=identity_row.idp_name,
-            idp_token=token_dict['access_token'],
-        )
-
-    # Finally, redirect to the target URL with the authentication token
-    return util.redirect_target(
-        target=target,
-        pasta_token=identity_row.pasta_token,
-        urid=identity_row.profile.urid,
-        full_name=identity_row.profile.full_name,
-        email=identity_row.profile.email,
-        uid=identity_row.uid,
-        idp_name=identity_row.idp_name,
-        idp_token=token_dict['access_token'],
+        is_vetted=False,
     )
 
 
@@ -218,11 +187,11 @@ async def revoke_google(
         )
     except requests.RequestException:
         log.error('Revoke unsuccessful', exc_info=True)
-        return util.redirect(target, error='Revoke unsuccessful')
+        return util.redirect_to_client_error(target, 'Revoke unsuccessful')
     else:
-        if response.status_code != 200:
+        if response.status_code != starlette.status.HTTP_200_OK:
             log.error(f'Revoke unsuccessful: {response.text}', exc_info=True)
-            return util.redirect(target, error='Revoke unsuccessful')
+            return util.redirect_to_client_error(target, 'Revoke unsuccessful')
 
     return util.redirect(target)
 

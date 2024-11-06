@@ -1,13 +1,13 @@
-import base64
-
 import daiquiri
 import fastapi
+import starlette.datastructures
 import starlette.requests
 import starlette.responses
+import starlette.status
 
 import db.iface
+import old_token
 import pasta_ldap
-import pasta_token as pasta_token_
 import util
 from config import Config
 
@@ -24,59 +24,54 @@ async def login_pasta(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
 ):
-    """Accept the initial login request from an EDI service and redirect to the
-    LDAP login endpoint.
+    """Accept LDAP credentials, validate them against an external LDAP service, and
+    return a response with cookie containing the old style token.
+
+    NOTES:
+
+    - This endpoint is not called by a browser. It is called from the server side of the
+    web app (Portal and ezEML), so any information added to the response here will not
+    make it to the client, and will not be acted on by the web app.
+
+    - The server side checks for 200 response code and then pulls the token from the
+    Set-Cookie header with key 'auth-token'. For the Portal, the token is then added
+    to the Java Session.
+
+    - Since calls to this endpoint is not initiated by browser, there's no opportunity
+    to redirect back to Auth in order set a cookie in the browser.
     """
+
     target = request.query_params.get('target')
     log.debug(f'login_pasta() target="{target}"')
 
-    authorization = request.headers.get('Authorization')
-    if authorization is None:
+    try:
+        ldap_dn, password = util.parse_authorization_header(request)
+    except ValueError as e:
         return starlette.responses.Response(
-            content='No authorization header in request', status_code=400
+            content=str(e), status_code=starlette.status.HTTP_400_BAD_REQUEST
         )
 
-    credentials = base64.b64decode(authorization[6:]).decode('utf-8')
-    uid, password = credentials.split(':')
+    uid = util.get_ldap_uid(ldap_dn)
 
-    if not pasta_ldap.bind(uid, password):
+    if not pasta_ldap.bind(ldap_dn, password):
         return starlette.responses.Response(
-            content=f'Authentication failed for user: {uid}', status_code=401
+            content=f'Authentication failed for user: {uid}',
+            status_code=starlette.status.HTTP_401_UNAUTHORIZED,
         )
 
-    log.debug('login_pasta() - login successful')
-    cname = util.get_dn_uid(uid)
-    pasta_token = pasta_token_.make_pasta_token(uid=uid, groups=Config.VETTED)
+    log.debug(f'login_pasta() - login successful: {ldap_dn}')
 
-    given_name, family_name = await util.split_full_name(cname)
-
-    # Update DB
-    identity_row = udb.create_or_update_profile_and_identity(
-        given_name=given_name,
-        family_name=family_name,
+    udb.create_or_update_profile_and_identity(
+        full_name=uid,
         idp_name='ldap',
-        uid=uid,
+        uid=ldap_dn,
         email=None,
         has_avatar=False,
-        pasta_token=pasta_token,
     )
 
-    # TODO: When clients are ready, remove the 418 Teapot response and cookie setting,
-    # and move to handle the privacy policy acceptance internally in auth, as we already
-    # do with the other IDPs.
-
-    if not identity_row.profile.privacy_policy_accepted:
-        # The 418 response is used to signal to the client that the privacy policy has
-        # not yet been accepted. The client should redirect to the privacy policy
-        # acceptance page, which will then redirect back to the target with the
-        # pasta_token.
-        return starlette.responses.Response(
-            content='Privacy policy not yet accepted', status_code=418
-        )
-
-    # Redirect to the target URL with the authentication token
-    # This is the normal flow when the privacy policy has already been accepted.
-    # For LDAP, the pasta_token is set as a cookie, not a query parameter.
-    response = starlette.responses.Response('Successful login')
-    response.set_cookie('auth-token', pasta_token)
+    # As mentioned in the docstr, this response goes to the server side web app, so we
+    # create a limited response that contains only the items checked for by the server.
+    old_token_ = old_token.make_old_token(uid=ldap_dn, groups=Config.VETTED)
+    response = starlette.responses.Response('Login successful')
+    response.set_cookie('auth-token', old_token_)
     return response
