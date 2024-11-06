@@ -141,13 +141,14 @@ async def signin_token(
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
     token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
+    # The profile is created from the pasta_token cookie, and represents the profile in
+    # which we are already logged in.
     profile_row = udb.get_profile(token.urid)
-    # As with the signin_token route, we receive all of the IdP details as query params.
-    # But since we're already logged in, we're not creating a new token. So we ignore
-    # all but params we need for linking the account.
-    idp_name = request.query_params.get('idp')
-    uid = request.query_params.get('uid')
-    udb.move_identity(idp_name, uid, profile_row)
+    #
+    token_str = request.query_params.get('token')
+    token_obj = pasta_jwt.PastaJwt.decode(token_str)
+    link_urid = token_obj.urid
+    udb.move_identity(profile_row, link_urid)
     return util.redirect_internal('/ui/profile')
 
 

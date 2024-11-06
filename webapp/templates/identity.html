@@ -48,13 +48,15 @@
                   <img class='idp-logo-github-text' src='{{ url('/static/svg/idp/github-text.svg') }}' alt='GitHub'>
                 {% elif identity.idp_name == 'orcid' %}
                   <img class='idp-logo-orcid' src='{{ url('/static/svg/idp/orcid.svg') }}' alt='ORCID'>
+                {% elif identity.idp_name == 'ldap' %}
+                  <img class='idp-logo-edi-ldap' src='{{ url('/static/svg/idp/edi-logo.svg') }}' alt='EDI LDAP'>
                 {% else %}
-                  {{ identity.idp_name }}
+                  {{ identity.idp_name | upper }}
                 {% endif %}
               </div>
             </div>
             <div class='grid-child'>
-              {{ identity.full_name }}
+              {{ identity.full_name or identity.email or '' }}
             </div>
             <div class='grid-child'>
               {% if identity_list|length > 1 %}

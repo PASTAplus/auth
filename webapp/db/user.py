@@ -298,11 +298,16 @@ class UserDb:
         self.session.delete(identity_row)
         self.session.commit()
 
-    def move_identity(self, idp_name: str, uid: str, new_profile: Profile):
+    def move_identity(self, profile_row: Profile, link_urid: str):
+        """Move an identity to a new profile.
+
+        Link the profile represented by the link_urid to the profile represented by
+        profile_row.
+        """
         identity_row = self.get_identity(idp_name, uid)
         old_profile = identity_row.profile
         # Reassign the identity to the new profile
-        identity_row.profile = new_profile
+        identity_row.profile = profile_row
         # If this was the only identity that referenced the previous profile...
         if not old_profile.identities:
             for group_member in old_profile.group_members:

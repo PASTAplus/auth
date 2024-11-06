@@ -2,7 +2,7 @@
 
 :root {
     /* Set the size of 1rem */
-    font-size: 18px;
+    font-size: 17px;
     /*--font-color: #a0a000;*/
 }
 
@@ -240,6 +240,10 @@ table td, table th {
 .idp-logo-orcid {
     height: 1.6rem;
     padding-bottom: 0.15rem;
+}
+
+.idp-logo-edi-ldap {
+    height: 3.0rem;
 }
 
 /* Icon button */
