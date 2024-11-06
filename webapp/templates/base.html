@@ -141,6 +141,57 @@
   {% endblock %}
 </main>
 
+
+{# Modal Privacy Policy accept dialog #}
+
+<div class='modal fade' id='privacyPolicyModal' tabindex='-1' data-bs-backdrop='static'
+    {% if profile is not none %}
+     data-profile-id='{{ profile.id }}'
+     data-policy-accepted='{{ profile.privacy_policy_accepted | lower }}'
+    {% endif %}
+>
+  <div class='modal-dialog modal-dialog-centered'>
+    <div class='modal-content'>
+      <form action='{{ url('/policy/accept') }}' method='post' id='privacyPolicyForm'>
+        <div class='modal-header'>
+          <h5 class='modal-title'>Environmental Data Initiative Privacy Policy</h5>
+          <button type='submit' class='btn-close' data-bs-dismiss='modal' aria-label='Close' name='action'
+                  value='decline'>
+          </button>
+        </div>
+        <div class='modal-body'>
+          {#<input type='hidden' name='profile-id' value='{% if profile is not none %}{{ profile.id }}{% endif %}'>#}
+          <div class='form-group'>
+            <p>
+              By clicking the 'Accept' button, you acknowledge and agree to our
+              <a href='https://edirepository.org/about/edi-policy#privacy-policy'>Privacy Policy</a>.
+              This policy explains how we collect, use, and protect your personal information.
+            </p>
+            <p>
+              If you do not agree to our Privacy Policy, you can still browse our data repository
+              as a guest, but features that require you to be logged in, will not be available to
+              you. If we make any significant changes to this policy, we may ask for your consent
+              again. We appreciate your understanding and cooperation.
+            </p>
+            <p>
+              Thank you for your support and use of the Environmental Data Initiative.
+            </p>
+          </div>
+          <div class='modal-footer'>
+            <button type='submit' class='btn btn-secondary' data-bs-dismiss='modal' name='action' value='decline'>
+              I Decline
+            </button>
+            <button type='submit' class='btn btn-primary' name='action' value='accept'>
+              I Accept
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
 <!-- Bootstrap Bundle with Popper -->
 <script src='{{ url('/static/lib/bootstrap/js/bootstrap.bundle.js') }}'></script>
 <!-- JS that runs on all pages -->
