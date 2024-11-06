@@ -50,6 +50,7 @@ async def group(
             # Base
             'token': token,
             'avatar_url': util.get_profile_avatar_url(profile_row),
+            'profile': profile_row,
             #
             'request': request,
             'group_list': group_list,
@@ -78,6 +79,7 @@ async def group_member(
             # Base
             'token': token,
             'avatar_url': util.get_profile_avatar_url(profile_row),
+            'profile': profile_row,
             #
             'request': request,
             'group_row': group_row,
@@ -99,10 +101,7 @@ async def group_new(
     description = form_data.get('description')
     profile_row = udb.get_profile(token.urid)
     udb.create_group(profile_row, name, description)
-    return starlette.responses.RedirectResponse(
-        url=util.url('/ui/group'),
-        status_code=starlette.status.HTTP_303_SEE_OTHER,
-    )
+    return util.redirect_internal('/ui/group')
 
 
 @router.post('/group/edit')
@@ -117,10 +116,7 @@ async def group_edit(
     description = form_data.get('description')
     profile_row = udb.get_profile(token.urid)
     udb.update_group(profile_row, group_id, name, description)
-    return starlette.responses.RedirectResponse(
-        url=util.url('/ui/group'),
-        status_code=starlette.status.HTTP_303_SEE_OTHER,
-    )
+    return util.redirect_internal('/ui/group')
 
 
 @router.post('/group/delete')
@@ -133,10 +129,7 @@ async def group_delete(
     group_id = form_data.get('group-id')
     profile_row = udb.get_profile(token.urid)
     udb.delete_group(profile_row, group_id)
-    return starlette.responses.RedirectResponse(
-        url=util.url('/ui/group'),
-        status_code=starlette.status.HTTP_303_SEE_OTHER,
-    )
+    util.redirect_internal('/ui/group')
 
 
 @router.get('/group/member/list/{group_id}')

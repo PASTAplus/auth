@@ -11,6 +11,12 @@ log = daiquiri.getLogger(__name__)
 
 
 class PastaJwt:
+    """Encode, decode and hold the claims of a JWT.
+
+    A JSON Web Token (JWT) is JSON string in a specific format. This class encodes,
+    decodes and represents the claims of a PASTA JWT, but is not itself a JWT.
+    """
+
     def __init__(
         self,
         claims_dict: dict,
@@ -98,16 +104,41 @@ class PastaJwt:
             )
             return True
         except (jwt.ExpiredSignatureError, jwt.InvalidTokenError) as e:
-            # log.error(f'Invalid token: {e}: {token_str}')
+            log.error(f'Invalid token: {e}: {token_str}')
             return False
 
 
 async def token(
     request: starlette.requests.Request,
 ):
-    token_str = request.cookies.get('token')
+    """Get token from the request cookie."""
+    token_str = request.cookies.get('pasta_token')
     token_obj = PastaJwt.decode(token_str) if token_str else None
     yield token_obj
+
+
+def make_jwt(udb, profile_row, is_vetted):
+    """Create a JWT for the given profile."""
+    groups_set = udb.get_group_membership_grid_set(profile_row)
+    groups_set.add(Config.AUTHENTICATED)
+    if is_vetted:
+        groups_set.add('vetted')  # Can't use Config.VETTED here
+    pasta_jwt = PastaJwt(
+        {
+            'sub': profile_row.urid,
+            'groups': groups_set,
+            'cn': profile_row.full_name,
+            'gn': profile_row.given_name,
+            'sn': profile_row.family_name,
+            'email': profile_row.email,
+            # We don't have an email verification procedure yet
+            'email_verified': False,
+            'email_notifications': profile_row.email_notifications,
+        }
+    )
+    log.info('Created PASTA JWT:')
+    log.info(pasta_jwt.claims_pp)
+    return pasta_jwt.encode()
 
 
 # def refresh_token(

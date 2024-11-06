@@ -36,3 +36,17 @@ function copyTextToClipboard(text)
     console.error('Could not copy text: ', err);
   });
 }
+
+// Privacy Policy Modal
+
+let privacyPolicyModal = document.getElementById('privacyPolicyModal');
+if (privacyPolicyModal.dataset.profileId !== undefined && privacyPolicyModal.dataset.policyAccepted !== 'true') {
+  let modal = new bootstrap.Modal(privacyPolicyModal);
+  modal.show();
+  // privacyPolicyModal.addEventListener('hidden.bs.modal', function() {
+  //   let profileId = privacyPolicyModal.dataset.profileId;
+  //   let url = `/profile/${profileId}/privacy_policy`;
+  //   window.location.href = url;
+  // });
+}
+

@@ -3,7 +3,7 @@ import fastapi
 import starlette.responses
 import webapp.user_db
 
-import webapp.pasta_token
+import webapp.old_token
 import webapp.util
 
 log = daiquiri.getLogger(__name__)
@@ -30,7 +30,7 @@ async def profile_get(
     udb: webapp.user_db.UserDb = fastapi.Depends(webapp.user_db.udb),
 ):
     """Get a profile."""
-    token = webapp.pasta_token.PastaToken()
+    token = webapp.old_token.OldToken()
     token.from_auth_token(token_str)
     profile_row = udb.get_profile(token.uid)
     return starlette.responses.Response(
@@ -51,9 +51,9 @@ async def profile_map(
     All identities from profile_src are moved to profile_dst. profile_src is then
     deleted.
     """
-    token_src = webapp.pasta_token.PastaToken()
+    token_src = webapp.old_token.OldToken()
     token_src.from_auth_token(token_src_str)
-    token_dst = webapp.pasta_token.PastaToken()
+    token_dst = webapp.old_token.OldToken()
     token_dst.from_auth_token(token_dst_str)
     udb.map_profile(token_src.uid, token_dst.uid)
 
@@ -70,7 +70,7 @@ async def profile_disable(
     Disabling a profile removes all identities associated with the profile, making it
     impossible to sign in to the profile.
     """
-    token = webapp.pasta_token.PastaToken()
+    token = webapp.old_token.OldToken()
     token.from_auth_token(token_str)
     udb.disable_profile(token.uid)
 
@@ -92,7 +92,7 @@ async def identity_drop(
     If the identity is used again, it will be mapped to a new profile. The user is then free to
     map the new profile to an existing profile if they wish.
     """
-    token = webapp.pasta_token.PastaToken()
+    token = webapp.old_token.OldToken()
     token.from_auth_token(token_str)
     udb.drop_identity(token.uid, idp_name, uid)
 
@@ -105,7 +105,7 @@ async def identity_list(
     udb: webapp.user_db.UserDb = fastapi.Depends(webapp.user_db.udb),
 ):
     """List all identities associated with a profile."""
-    token = webapp.pasta_token.PastaToken()
+    token = webapp.old_token.OldToken()
     token.from_auth_token(token_str)
     identity_list = []
     for identity_row in udb.get_identity_list(token.uid):

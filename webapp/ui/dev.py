@@ -25,11 +25,12 @@ def assert_dev_enabled(func):
     async def wrapper(*args, **kwargs):
         if not Config.ENABLE_DEV_MENU:
             raise starlette.exceptions.HTTPException(
-                status_code=403,
-                detail='Dev menu is disabled'
+                status_code=403, detail='Dev menu is disabled'
             )
         return await func(*args, **kwargs)
+
     return wrapper
+
 
 @router.get('/dev/token')
 @assert_dev_enabled
@@ -45,6 +46,7 @@ async def dev_token(
                 # Base
                 'token': token,
                 'avatar_url': util.get_anon_avatar_url(),
+                'profile': None,
                 #
                 'request': request,
                 'token_pp': 'NO TOKEN',
@@ -57,11 +59,13 @@ async def dev_token(
             # Base
             'token': token,
             'avatar_url': util.get_profile_avatar_url(profile_row),
+            'profile': profile_row,
             #
             'request': request,
             'token_pp': token.claims_pp,
         },
     )
+
 
 @router.get('/dev/profiles')
 @assert_dev_enabled
@@ -76,6 +80,7 @@ async def index(
         {
             # Base
             'token': token,
+            'profile': None,
             #
             'request': request,
             'profile_list': profile_list,
@@ -89,12 +94,13 @@ async def dev_signin_urid(
     urid: str,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
 ):
-    response = starlette.responses.RedirectResponse(
-        url=util.url('/ui/profile'),
-        status_code=starlette.status.HTTP_303_SEE_OTHER,
-    )
+    response = util.redirect_internal('/ui/profile')
     profile_row = udb.get_profile(urid)
-    group_set = udb.get_group_membership_grid_set(profile_row)
-    token = pasta_jwt.PastaJwt({'sub': urid, 'groups': group_set})
-    response.set_cookie(key='token', value=token.encode())
+    pasta_token = pasta_jwt.PastaJwt(
+        {
+            'sub': urid,
+            'groups': udb.get_group_membership_grid_set(profile_row),
+        }
+    )
+    response.set_cookie(key='pasta_token', value=pasta_token)
     return response

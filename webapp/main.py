@@ -79,7 +79,9 @@ def create_route(file_path: pathlib.Path):
         try:
             return starlette.responses.FileResponse(file_path)
         except FileNotFoundError:
-            raise fastapi.HTTPException(status_code=404, detail='File not found')
+            raise fastapi.HTTPException(
+                status_code=starlette.status.HTTP_404_NOT_FOUND, detail='File not found'
+            )
 
 
 for file_path in (Config.STATIC_PATH / 'site').iterdir():
@@ -98,12 +100,10 @@ class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
         if (
             request.url.path.startswith(str(util.url('/ui')))
             and not request.url.path.startswith(str(util.url('/ui/signin')))
-            and not pasta_jwt.PastaJwt.is_valid(request.cookies.get('token'))
+            and not pasta_jwt.PastaJwt.is_valid(request.cookies.get('pasta_token'))
         ):
-            return starlette.responses.RedirectResponse(
-                url=util.url('/ui/signin'),
-                status_code=starlette.status.HTTP_303_SEE_OTHER,
-            )
+            log.debug('Redirecting to /ui/signin: UI page requested without valid token')
+            return util.redirect_internal('/ui/signin')
         return await call_next(request)
 
 

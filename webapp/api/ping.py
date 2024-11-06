@@ -10,4 +10,3 @@ async def ping():
     return starlette.responses.Response(
         content='pong',
     )
-

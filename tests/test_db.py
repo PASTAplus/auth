@@ -42,11 +42,7 @@ def test_create_identity_invalid_idp(db):
 def test_create_identity(db):
     profile_row = db.create_profile(given_name='Given', family_name='Family')
     identity = db.create_identity(
-        profile_row,
-        idp_name='google',
-        uid='test_uid',
-        email='test@test.com',
-        pasta_token='test_token',
+        profile_row, idp_name='google', uid='test_uid', email='test@test.com'
     )
     assert identity is not None
     assert identity.uid == 'test_uid'
@@ -77,7 +73,6 @@ def test_create_or_update_profile_and_identity(db):
         uid='test_uid',
         email='test@test.test',
         has_avatar=False,
-        pasta_token='test_token',
     )
     assert identity_row is not None
     assert identity_row.uid == 'test_uid'
@@ -93,8 +88,8 @@ def test_get_all_profiles_with_identity_mapping(db):
             idp_name='google',
             uid=f'test_uid_{i}',
             email='test@test.test',
-            pasta_token=f'test_token_{i}',
             has_avatar=False,
+            old_token=None,
         )
     for i, profile in enumerate(db.get_all_profiles()):
         assert profile is not None

@@ -17,6 +17,7 @@ router = fastapi.APIRouter()
 
 # UI routes
 
+
 @router.get('/ui/avatar')
 async def avatar(
     request: starlette.requests.Request,
@@ -48,13 +49,16 @@ async def avatar(
             # Base
             'token': token,
             'avatar_url': util.get_profile_avatar_url(profile_row),
+            'profile': profile_row,
             #
             'request': request,
             'avatar_list': avatar_list,
         },
     )
 
+
 # Internal routes
+
 
 @router.post('/avatar/update')
 async def avatar_update(
@@ -81,10 +85,7 @@ async def avatar_update(
 
     udb.update_profile(token.urid, has_avatar=uid != '')
 
-    return starlette.responses.RedirectResponse(
-        util.url('/ui/profile', refresh='true'),
-        status_code=starlette.status.HTTP_303_SEE_OTHER,
-    )
+    return util.redirect_internal('/ui/profile', refresh='true')
 
 
 @router.get('/avatar/gen/{initials}')

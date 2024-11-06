@@ -107,14 +107,7 @@ class Identity(db.base.Base):
     # The email address provided by the IdP. This will change if the user updates their
     # email address with the IdP.
     email = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    # The PASTA token that was issued to the client in the most recent successful
-    # authentication with this identity. The token is always updated here after
-    # successfully authenticating with the IdP, but is not issued to the user unless
-    # they have also accepted the privacy policy.
-    pasta_token = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     # The date and time of the first successful authentication with this identity.
-    # The authentication is successful if # successfully authenticated by the IdP, even
-    # if the user then does not accept the # privacy policy.
     first_auth = sqlalchemy.Column(
         sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now
     )
@@ -161,13 +154,11 @@ class UserDb:
     #
     def create_or_update_profile_and_identity(
         self,
-        given_name: str,
-        family_name: str,
+        full_name: str,
         idp_name: str,
         uid: str,
         email: str | None,
         has_avatar: bool,
-        pasta_token: str,
     ) -> Identity:
         """Create or update a profile and identity.
 
@@ -175,6 +166,12 @@ class UserDb:
         fields.
         """
         identity_row = self.get_identity(idp_name=idp_name, uid=uid)
+        # Split a full name into given name and family name. If full_name is a single
+        # word, family_name will be None. If full_name is multiple words, the first word
+        # will be given_name and the remaining words will be family_name.
+        given_name, family_name = (
+            full_name.split(' ', 1) if ' ' in full_name else (full_name, None)
+        )
         if identity_row is None:
             profile_row = self.create_profile(
                 given_name=given_name,
@@ -187,7 +184,6 @@ class UserDb:
                 idp_name=idp_name,
                 uid=uid,
                 email=email,
-                pasta_token=pasta_token,
                 has_avatar=has_avatar,
             )
             # Set the avatar for the profile to the avatar for the identity
@@ -202,16 +198,11 @@ class UserDb:
             # We do not update the profile if it exists, since the profile belongs to
             # the user, and they may update their profile with their own information.
             #
-            # TODO: Before we provide a way for users to update their profile, we need
-            # to make sure ezEML, and other clients, have moved to using the URID as the
-            # primary key for the user.
-            #
             # We always update the email address in the identity row, but only update
             # the profile if the profile is new. So if the user has changed their email
             # address with the IdP, the new email address will be stored in the identity
             # row, but the profile will retain the original email address.
             identity_row.email = email
-            identity_row.pasta_token = pasta_token
             self.session.commit()
 
         return identity_row
@@ -261,10 +252,8 @@ class UserDb:
             setattr(profile_row, key, value)
         self.session.commit()
 
-    def is_privacy_policy_accepted(self, urid: str) -> bool:
-        return self.get_profile(urid).privacy_policy_accepted
-
-    def set_privacy_policy_accepted(self, urid: str):
+    def set_privacy_policy_accepted(self, urid):
+        log.debug('Setting privacy policy accepted')
         profile_row = self.get_profile(urid)
         profile_row.privacy_policy_accepted = True
         profile_row.privacy_policy_accepted_date = datetime.datetime.now()
@@ -279,9 +268,8 @@ class UserDb:
         profile,
         idp_name: str,
         uid: str,
-        email: str = None,
-        pasta_token: str = None,
-        has_avatar: bool = False,
+        email: str,
+        has_avatar: bool,
     ):
         """Create a new identity for a given profile."""
         new_identity = Identity(
@@ -289,7 +277,6 @@ class UserDb:
             idp_name=idp_name,
             uid=uid,
             email=email,
-            pasta_token=pasta_token,
             has_avatar=has_avatar,
         )
         self.session.add(new_identity)
@@ -440,7 +427,7 @@ class UserDb:
         return query.filter(db.group.GroupMember.group == group_row).all()
 
     def get_group_membership_list(self, profile_row):
-        """Get the groups that the profile is a member of."""
+        """Get the groups that this profile is a member of."""
         query = (
             self.session.query(db.group.Group)
             .join(db.group.GroupMember)
@@ -449,9 +436,7 @@ class UserDb:
         return query.all()
 
     def get_group_membership_grid_set(self, profile_row):
-        return {
-            group.grid for group in self.get_group_membership_list(profile_row)
-        }
+        return {group.grid for group in self.get_group_membership_list(profile_row)}
 
     def leave_group_membership(self, profile_row, group_id):
         """Leave a group.
@@ -469,9 +454,7 @@ class UserDb:
             .first()
         )
         if member_row is None:
-            raise ValueError(
-                f'Member {profile_row.id} not found in group {group_id}'
-            )
+            raise ValueError(f'Member {profile_row.id} not found in group {group_id}')
         member_row.group.updated = datetime.datetime.now()
         self.session.delete(member_row)
         self.session.commit()

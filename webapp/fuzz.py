@@ -42,11 +42,13 @@ async def update(profile_row):
 
 async def search(query_str):
     match_list = thefuzz.process.extractBests(
-        query_str, fuzz_cache.keys(), score_cutoff=Config.FUZZ_CUTOFF, limit=Config.FUZZ_LIMIT
+        query_str,
+        fuzz_cache.keys(),
+        score_cutoff=Config.FUZZ_CUTOFF,
+        limit=Config.FUZZ_LIMIT,
     )
     log.debug(f'match_list:')
     for m in match_list:
         log.debug(f'  {m}')
 
     return [fuzz_cache[k] for k, v in match_list]
-

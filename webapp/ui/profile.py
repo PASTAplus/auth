@@ -16,8 +16,7 @@ router = fastapi.APIRouter()
 # UI routes
 
 # We allow opening the profile via POST in addition to GET, to be compliant with what
-# other clients except. This comes into effect when redirected through the privacy
-# policy.
+# other clients except. TODO: Still needed?
 @router.api_route('/ui/profile', methods=['GET', 'POST'])
 async def profile(
     request: starlette.requests.Request,
@@ -35,14 +34,15 @@ async def profile(
                 profile_row,
                 refresh=request.query_params.get('refresh') == 'true',
             ),
+            'profile': profile_row,
             #
             'request': request,
-            'profile': profile_row,
         },
     )
 
 
 # Internal routes
+
 
 @router.post('/profile/update')
 async def profile_update(
@@ -53,5 +53,3 @@ async def profile_update(
     profile_dict = await request.json()
     log.info(profile_dict)
     udb.update_profile(token.urid, **profile_dict)
-
-

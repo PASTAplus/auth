@@ -1,9 +1,6 @@
 import daiquiri
 import fastapi
-import starlette.datastructures
 import starlette.requests
-import starlette.responses
-import starlette.status
 import starlette.templating
 
 import db.iface
@@ -16,6 +13,7 @@ log = daiquiri.getLogger(__name__)
 router = fastapi.APIRouter()
 
 # UI routes
+
 
 @router.get('/ui/membership')
 async def membership(
@@ -33,13 +31,16 @@ async def membership(
                 profile_row,
                 refresh=request.query_params.get('refresh') == 'true',
             ),
+            'profile': profile_row,
             #
             'request': request,
-            'group_membership_list': udb.get_group_membership_list(profile_row),
+            'group_membership_list': profile_row.group_members,
         },
     )
 
+
 # Internal routes
+
 
 @router.post('/membership/leave')
 async def membership_leave(
@@ -51,7 +52,4 @@ async def membership_leave(
     group_id = form_data.get('group-id')
     profile_row = udb.get_profile(token.urid)
     udb.leave_group_membership(profile_row, group_id)
-    return starlette.responses.RedirectResponse(
-        url=util.url('/ui/membership'),
-        status_code=starlette.status.HTTP_303_SEE_OTHER,
-    )
+    return util.redirect_internal('/ui/membership')

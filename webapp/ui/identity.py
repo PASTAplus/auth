@@ -1,8 +1,6 @@
 import daiquiri
 import fastapi
 import starlette.requests
-import starlette.responses
-import starlette.status
 import starlette.templating
 
 import db.iface
@@ -15,6 +13,7 @@ log = daiquiri.getLogger(__name__)
 router = fastapi.APIRouter()
 
 # UI routes
+
 
 @router.get('/ui/identity')
 async def identity(
@@ -44,13 +43,16 @@ async def identity(
             # Base
             'token': token,
             'avatar_url': util.get_profile_avatar_url(profile_row),
+            'profile': profile_row,
             #
             'request': request,
             'identity_list': identity_list,
         },
     )
 
+
 # Internal routes
+
 
 @router.post('/identity/unlink')
 async def identity_unlink(
@@ -68,7 +70,4 @@ async def identity_unlink(
 
     udb.delete_identity(profile_row, idp_name, uid)
 
-    return starlette.responses.RedirectResponse(
-        url=util.url('/ui/identity'),
-        status_code=starlette.status.HTTP_303_SEE_OTHER,
-    )
+    return util.redirect_internal('/ui/identity')

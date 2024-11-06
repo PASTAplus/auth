@@ -2,6 +2,7 @@ import config
 import pasta_token
 import webapp.util
 
+
 def create_test_pasta_token(urid, user_db_populated):
     profile = user_db_populated.get_profile(urid)
     return pasta_token.make_pasta_token(profile.urid)
@@ -27,7 +28,6 @@ def create_test_pasta_token(urid, user_db_populated):
 #     log.debug(f'Creating token: {token.to_string()}')
 #     auth_token = pasta_crypto.create_auth_token(private_key, token.to_string())
 #     return auth_token
-
 
 
 def get_db_as_json(user_db_populated):
