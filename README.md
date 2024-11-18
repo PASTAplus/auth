@@ -114,8 +114,12 @@ Since we currently have public production and test instances of Auth, and also r
 
 - https://auth.edirepository.org/auth/callback/orcid
 - https://auth-d.edirepository.org/auth/callback/orcid
-- https://localhost:5443/auth/callback/orcid
+- https://127.0.0.1:5443/auth/callback/orcid
 
+Note: ORCID does not support `localhost` in the `redirect_uri`, so we use `127.0.1.1`. However, this conflicts with
+requirement for `localhost` by other IdPs, so can only be used for testing ORCID in development. To test ORCID in
+development, also set `127.0.0.1` in Config.SERVICE_BASE_URL.
+```
 
 ## Conda
 
