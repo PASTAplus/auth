@@ -1,3 +1,4 @@
+import copy
 import datetime
 import uuid
 
@@ -298,24 +299,32 @@ class UserDb:
         self.session.delete(identity_row)
         self.session.commit()
 
-    def move_identity(self, profile_row: Profile, link_urid: str):
+    def move_identity(self, to_profile_row: Profile, idp_name: str, uid: str):
         """Move an identity to a new profile.
 
-        Link the profile represented by the link_urid to the profile represented by
-        profile_row.
+        Link the profile represented by the idp_name and uid to the profile represented by
+        to_profile_row.
+
+        In order for this method to be secure, all the parameters must be set from claims from
+        signed tokens.
         """
         identity_row = self.get_identity(idp_name, uid)
-        old_profile = identity_row.profile
+        old_profile_row = identity_row.profile
+
+        if old_profile_row == to_profile_row:
+            raise ValueError('The account was already linked to this profile')
+
         # Reassign the identity to the new profile
-        identity_row.profile = profile_row
-        # If this was the only identity that referenced the previous profile...
-        if not old_profile.identities:
-            for group_member in old_profile.group_members:
+        identity_row.profile = to_profile_row
+        # Delete the old profile if it is now orphaned (has no identities that can log
+        # into it)
+        if not old_profile_row.identities:
+            for group_member in old_profile_row.group_members:
                 # Reassign any group memberships to the new profile
                 # group_member.profile = new_profile
                 # Delete any group memberships assigned to the old profile
                 self.session.delete(group_member)
-            for group in old_profile.groups:
+            for group in old_profile_row.groups:
                 # Reassign any groups to the new profile
                 # group.profile = new_profile
                 # Delete any groups assigned to the old profile
@@ -324,7 +333,7 @@ class UserDb:
                     self.session.delete(group_member)
                 self.session.delete(group)
             # Delete the now orphaned profile
-            self.session.delete(old_profile)
+            self.session.delete(old_profile_row)
         self.session.commit()
 
     @staticmethod
