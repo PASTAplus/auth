@@ -129,6 +129,7 @@ async def callback_github(
         full_name = uid
 
     return util.handle_successful_login(
+        request=request,
         udb=udb,
         target_url=target,
         full_name=full_name,

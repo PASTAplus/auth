@@ -2,6 +2,9 @@ import daiquiri
 import fastapi
 import starlette.requests
 import starlette.templating
+import starlette.responses
+import starlette.datastructures
+import starlette.status
 
 import db.iface
 import pasta_jwt
@@ -106,7 +109,7 @@ async def signin_ldap(
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
 ):
     """Handle LDAP sign in from the Auth sign in page. This duplicates some of the logic
-    * in idp/ldap.py, but interacts with the browser instead of a server side client.
+    in idp/ldap.py, but interacts with the browser instead of a server side client.
     """
     form_data = await request.form()
     username = form_data.get('username')
@@ -121,7 +124,8 @@ async def signin_ldap(
     log.debug(f'signin_ldap() - signin successful: {ldap_dn}')
 
     return util.handle_successful_login(
-        udb,
+        request=request,
+        udb=udb,
         target_url=str(util.url('/ui/profile')),
         full_name=username,
         idp_name='ldap',
@@ -141,15 +145,22 @@ async def signin_token(
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
     token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
-    # The profile is created from the pasta_token cookie, and represents the profile in
-    # which we are already logged in.
-    profile_row = udb.get_profile(token.urid)
-    #
-    token_str = request.query_params.get('token')
-    token_obj = pasta_jwt.PastaJwt.decode(token_str)
-    link_urid = token_obj.urid
-    udb.move_identity(profile_row, link_urid)
-    return util.redirect_internal('/ui/profile')
+    # link_token is the account the user was already signed in to when they clicked the link
+    # button.
+    link_token_str = request.query_params.get('link_token')
+    link_token_obj = pasta_jwt.PastaJwt.decode(link_token_str)
+    link_profile_row = udb.get_profile(link_token_obj.urid)
+    # token is the account the user signed in to after clicking the link button.
+    try:
+        udb.move_identity(link_profile_row, token.claims['idp_name'], token.claims['uid'])
+    except ValueError as e:
+        return util.redirect_internal('/ui/signin', error=str(e))
+    # As the 'link account' flow shares the same flow as the regular sign in, we are now signed in
+    # to the account we linked to, while we want to remain signed in to the account we clicked the
+    # link button from. Therefore, we roll back the cookie we just received.
+    response = util.redirect_internal('/ui/identity')
+    response.set_cookie('pasta_token', link_token_obj.encode())
+    return response
 
 
 @router.get('/signout')

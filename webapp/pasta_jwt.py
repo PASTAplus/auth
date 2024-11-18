@@ -117,8 +117,9 @@ async def token(
     yield token_obj
 
 
-def make_jwt(udb, profile_row, is_vetted):
+def make_jwt(udb, identity_row, is_vetted):
     """Create a JWT for the given profile."""
+    profile_row = identity_row.profile
     groups_set = udb.get_group_membership_grid_set(profile_row)
     groups_set.add(Config.AUTHENTICATED)
     if is_vetted:
@@ -134,6 +135,9 @@ def make_jwt(udb, profile_row, is_vetted):
             # We don't have an email verification procedure yet
             'email_verified': False,
             'email_notifications': profile_row.email_notifications,
+            # Claims for account linking and client transitions
+            'idp_name': identity_row.idp_name,
+            'uid': identity_row.uid,
         }
     )
     log.info('Created PASTA JWT:')

@@ -87,6 +87,7 @@ def redirect_to_idp(
 
 
 def handle_successful_login(
+    request,
     udb,  # db.iface.UserDb
     target_url: str,
     full_name,
@@ -105,10 +106,16 @@ def handle_successful_login(
     identity_row = udb.create_or_update_profile_and_identity(
         full_name, idp_name, uid, email, has_avatar
     )
+
+    if idp_name == 'google':
+        old_uid = email
+    else:
+        old_uid = uid
+
     old_token_ = old_token.make_old_token(
-        uid=uid, groups=Config.VETTED if is_vetted else Config.AUTHENTICATED
+        uid=old_uid, groups=Config.VETTED if is_vetted else Config.AUTHENTICATED
     )
-    pasta_token = pasta_jwt.make_jwt(udb, identity_row.profile, is_vetted=is_vetted)
+    pasta_token = pasta_jwt.make_jwt(udb, identity_row, is_vetted=is_vetted)
 
     return redirect_final(
         target_url,
@@ -120,6 +127,7 @@ def handle_successful_login(
         uid=identity_row.uid,
         idp_name=identity_row.idp_name,
         sub=identity_row.uid,
+        link_token=request.cookies.get('pasta_token'),
     )
 
 
@@ -136,6 +144,7 @@ def redirect_final(
     uid: str,
     idp_name: str,
     sub: str,
+    link_token: str | None,
 ):
     """Create Response that redirects to the final target URL after successful
     authentication. This is the final step in the authentication process, and creates a
@@ -154,12 +163,14 @@ def redirect_final(
         # URI when the transition to the new authentication system is complete, since
         # they are effectively unsigned claims.
         urid=urid,
-        full_name=full_name,
+        cname=full_name,
         email=email,
         uid=uid,
         idp_name=idp_name,
         # For ezEML
         sub=sub,
+        # For account linking
+        link_token=link_token if link_token else '',
     )
     # auth-token is the location of the old proprietary token
     response.set_cookie('auth-token', token)

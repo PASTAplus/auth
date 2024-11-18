@@ -82,7 +82,8 @@ async def callback_orcid(
     log.debug('-' * 80)
 
     return util.handle_successful_login(
-        udb,
+        request=request,
+        udb=udb,
         target_url=target,
         full_name=token_dict['name'],
         idp_name='orcid',
