@@ -333,10 +333,6 @@ class UserDb:
         """
         identity_row = self.get_identity_by_id(identity_id)
         old_profile_row = identity_row.profile
-
-        if old_profile_row == to_profile_row:
-            raise ValueError('The account was already linked to this profile')
-
         # Reassign the identity to the new profile
         identity_row.profile = to_profile_row
         # Delete the old profile if it is now orphaned (has no identities that can log

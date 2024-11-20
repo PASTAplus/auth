@@ -47,6 +47,7 @@ async def identity(
             #
             'request': request,
             'identity_list': identity_list,
+            'error': request.query_params.get('error'),
         },
     )
 

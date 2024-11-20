@@ -24,20 +24,22 @@ router = fastapi.APIRouter()
 @router.get('/ui/signin')
 async def signin(
     request: starlette.requests.Request,
-    # token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
+    if token:
+        return util.redirect_internal('/ui/profile')
     return util.templates.TemplateResponse(
         'signin.html',
         {
             # Base
-            'token': None,  # token,
+            'token': None,
             'profile': None,
             #
             'request': request,
             'target_url': Config.SERVICE_BASE_URL + '/ui/profile',
             'title': 'Sign in',
             'text': 'Select your identity provider to sign in.',
-            'error_msg': request.query_params.get('error'),
+            'error': request.query_params.get('error'),
         },
     )
 

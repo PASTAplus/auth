@@ -1,10 +1,10 @@
 import datetime
+import pprint
 
 import daiquiri
 import jwt
 import starlette.requests
 
-import util
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -52,7 +52,7 @@ class PastaJwt:
         claims_dict = self._claims_dict.copy()
         for k in ['iat', 'nbf', 'exp']:
             self._add_dt(claims_dict, k)
-        return util.pformat(claims_dict)
+        return pprint.pformat(claims_dict, indent=2, sort_dicts=True)
 
     def _add_dt(self, claims_dict: dict, key: str):
         """Add a datetime object to the claims."""

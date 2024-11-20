@@ -19,6 +19,13 @@
   </div>
 
   <div class='indent'>
+
+    {% if error %}
+      <p class='alert alert-info'>
+        {{ error }}
+      </p>
+    {% endif %}
+
     <p>
       Linked accounts are external accounts that you have connected to your profile. These accounts allow you to sign in
       using different identity providers.

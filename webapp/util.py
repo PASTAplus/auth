@@ -103,6 +103,25 @@ def handle_successful_login(
     - Create old style and new style tokens
     - Redirect to the final target URL, providing the tokens and other information
     """
+    # If we are logged in when we get here, we are linking accounts.
+    link_token_str = request.cookies.get('pasta_token')
+    if link_token_str:
+        # Prevent the user from linking to an account that is already linked.
+        link_identity_row = udb.get_identity(idp_name, uid)
+        if link_identity_row:
+            token_obj = pasta_jwt.PastaJwt.decode(link_token_str)
+            profile_row = udb.get_profile(token_obj.urid)
+            if link_identity_row in profile_row.identities:
+                err_str = 'The account you linked was already linked to this profile.'
+            else:
+                err_str = (
+                    'The account you linked is already linked to another profile. If '
+                    'you wish to link the account to this profile instead, please sign '
+                    'in to the other profile and unlink it there first.'
+                )
+            return redirect_internal('/ui/identity', error=err_str)
+
+    # We may be signing in or linking an account.
     identity_row = udb.create_or_update_profile_and_identity(
         full_name, idp_name, uid, email, has_avatar
     )
@@ -127,7 +146,7 @@ def handle_successful_login(
         uid=identity_row.uid,
         idp_name=identity_row.idp_name,
         sub=identity_row.uid,
-        link_token=request.cookies.get('pasta_token'),
+        link_token=link_token_str,
     )
 
 

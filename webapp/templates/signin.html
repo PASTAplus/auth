@@ -28,9 +28,9 @@
         href='{{ url('/signin/reset') }}'>here</a> to reset your password):
     </p>
 
-    {% if error_msg %}
-        <p class='alert alert-info'>
-          {{ error_msg }}
+    {% if error %}
+      <p class='alert alert-info'>
+        {{ error }}
       </p>
     {% endif %}
 
