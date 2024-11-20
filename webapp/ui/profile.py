@@ -53,3 +53,13 @@ async def profile_update(
     profile_dict = await request.json()
     log.info(profile_dict)
     udb.update_profile(token.urid, **profile_dict)
+
+
+@router.post('/profile/delete')
+async def profile_delete(
+    request: starlette.requests.Request,
+    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+):
+    udb.delete_profile(token.urid)
+    return util.redirect_internal('/signout')

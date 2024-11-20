@@ -25,7 +25,6 @@ class Group(db.base.Base):
     profile_id = sqlalchemy.Column(
         sqlalchemy.String, sqlalchemy.ForeignKey('profile.id'), nullable=False
     )
-    profile = sqlalchemy.orm.relationship('Profile', back_populates='groups')
     # The name of the group as provided by the user. Can be edited.
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     # The description of the group as provided by the user. Can be edited.
@@ -46,11 +45,17 @@ class Group(db.base.Base):
     deleted = sqlalchemy.Column(sqlalchemy.DateTime, nullable=True)
 
     members = sqlalchemy.orm.relationship(
-        'GroupMember', back_populates='group', cascade_backrefs=False
+        'GroupMember',
+        back_populates='group',
+        cascade_backrefs=False,
+        cascade='all, delete-orphan',
     )
-    # profiles = sqlalchemy.orm.relationship(
-    #     'GroupMember', back_populates='profiles', cascade_backrefs=False
-    # )
+    profile = sqlalchemy.orm.relationship(
+        'Profile',
+        back_populates='groups',
+        cascade_backrefs=False,
+        # cascade='all, delete-orphan',
+    )
 
     @sqlalchemy.ext.hybrid.hybrid_property
     def member_count(self):
@@ -82,8 +87,18 @@ class GroupMember(db.base.Base):
         sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now
     )
 
-    group = sqlalchemy.orm.relationship('Group', back_populates='members')
-    profile = sqlalchemy.orm.relationship('Profile', back_populates='group_members')
+    group = sqlalchemy.orm.relationship(
+        'Group',
+        back_populates='members',
+        cascade_backrefs=False,
+        # cascade='all, delete-orphan',
+    )
+    profile = sqlalchemy.orm.relationship(
+        'Profile',
+        back_populates='group_members',
+        cascade_backrefs=False,
+        # cascade='all, delete-orphan',
+    )
 
     __table_args__ = (
         # Ensure that group_id and profile_id are unique together.

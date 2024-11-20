@@ -46,19 +46,29 @@ class Profile(db.base.Base):
     )
     organization = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     association = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    has_avatar = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False, default=False)
 
     # cascade_backrefs=False:
     # https://sqlalche.me/e/14/s9r1
     # https://sqlalche.me/e/b8d9
     identities = sqlalchemy.orm.relationship(
-        'Identity', back_populates='profile', cascade_backrefs=False
+        'Identity',
+        back_populates='profile',
+        cascade_backrefs=False,
+        cascade='all, delete-orphan',
     )
-    has_avatar = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False, default=False)
-
     groups = sqlalchemy.orm.relationship(
-        'Group', back_populates='profile', cascade_backrefs=False
+        'Group',
+        back_populates='profile',
+        cascade_backrefs=False,
+        cascade='all, delete-orphan',
     )
-    group_members = sqlalchemy.orm.relationship('GroupMember', back_populates='profile')
+    group_members = sqlalchemy.orm.relationship(
+        'GroupMember',
+        back_populates='profile',
+        cascade_backrefs=False,
+        cascade='all, delete-orphan',
+    )
 
     @property
     def full_name(self):
@@ -95,7 +105,6 @@ class Identity(db.base.Base):
     profile_id = sqlalchemy.Column(
         sqlalchemy.Integer, sqlalchemy.ForeignKey('profile.id'), nullable=False
     )
-    profile = sqlalchemy.orm.relationship('Profile', back_populates='identities')
     # Our name for the IdP. Currently one of 'github', 'google', 'ldap', 'microsoft',
     # 'orcid'.
     # This acts as a namespace for the subject (sub) provided by the IdP.
@@ -123,6 +132,12 @@ class Identity(db.base.Base):
     # for this IdP.
     has_avatar = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False, default=False)
 
+    profile = sqlalchemy.orm.relationship(
+        'Profile',
+        back_populates='identities',
+        cascade_backrefs=False,
+        # cascade='all, delete-orphan',
+    )
     # @property
     # def full_name(self):
     #     if self.family_name is None:
@@ -251,6 +266,11 @@ class UserDb:
         profile_row = self.get_profile(urid)
         for key, value in kwargs.items():
             setattr(profile_row, key, value)
+        self.session.commit()
+
+    def delete_profile(self, urid):
+        profile_row = self.get_profile(urid)
+        self.session.delete(profile_row)
         self.session.commit()
 
     def set_privacy_policy_accepted(self, urid):
