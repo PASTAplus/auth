@@ -34,7 +34,7 @@ async def membership(
             'profile': profile_row,
             #
             'request': request,
-            'group_membership_list': profile_row.group_members,
+            'group_membership_list': udb.get_group_membership_list(profile_row),
         },
     )
 

@@ -26,12 +26,11 @@ class PastaJwt:
         self._claims_dict.update(
             {
                 'iss': Config.JWT_ISSUER,
-                # 'aud': Config.JWT_AUDIENCE,
                 'hd': Config.JWT_HOSTED_DOMAIN,
-                'groups': set(claims_dict.get('groups', [])),
                 'iat': int(now_dt.timestamp()),
                 'nbf': int(now_dt.timestamp()),
                 'exp': int((now_dt + Config.JWT_EXPIRATION_DELTA).timestamp()),
+                'pastaGroups': set(claims_dict.get('pastaGroups', [])),
             }
         )
 
@@ -63,7 +62,7 @@ class PastaJwt:
     def encode(self) -> str:
         """Encode the PastaJwt to a string for sending to client."""
         claims_dict = self._claims_dict.copy()
-        claims_dict['groups'] = list(claims_dict['groups'])
+        claims_dict['pastaGroups'] = list(claims_dict['pastaGroups'])
         log.info(f'Encoding token: {claims_dict}')
         return jwt.encode(
             claims_dict, Config.JWT_SECRET_KEY, algorithm=Config.JWT_ALGORITHM
@@ -127,15 +126,18 @@ def make_jwt(udb, identity_row, is_vetted):
     pasta_jwt = PastaJwt(
         {
             'sub': profile_row.urid,
-            'groups': groups_set,
             'cn': profile_row.full_name,
             'gn': profile_row.given_name,
-            'sn': profile_row.family_name,
             'email': profile_row.email,
+            'sn': profile_row.family_name,
+            'pastaGroups': groups_set,
+            'pastaIsEmailEnabled': profile_row.email_notifications,
             # We don't have an email verification procedure yet
-            'email_verified': False,
-            'email_notifications': profile_row.email_notifications,
-            # Internal claims
+            'pastaIsEmailVerified': False,
+            'pastaIsVetted': is_vetted,
+            # As we currently do not issue JWT tokens to public users, we can assume that the user
+            # is authenticated if they have a JWT token.
+            'pastaIsAuthenticated': True,
             'pastaIdentityId': identity_row.id,
         }
     )
