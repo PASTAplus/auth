@@ -54,7 +54,6 @@ class Group(db.base.Base):
         'Profile',
         back_populates='groups',
         cascade_backrefs=False,
-        # cascade='all, delete-orphan',
     )
 
     @sqlalchemy.ext.hybrid.hybrid_property
@@ -91,13 +90,11 @@ class GroupMember(db.base.Base):
         'Group',
         back_populates='members',
         cascade_backrefs=False,
-        # cascade='all, delete-orphan',
     )
     profile = sqlalchemy.orm.relationship(
         'Profile',
         back_populates='group_members',
         cascade_backrefs=False,
-        # cascade='all, delete-orphan',
     )
 
     __table_args__ = (

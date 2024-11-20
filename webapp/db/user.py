@@ -136,7 +136,6 @@ class Identity(db.base.Base):
         'Profile',
         back_populates='identities',
         cascade_backrefs=False,
-        # cascade='all, delete-orphan',
     )
     # @property
     # def full_name(self):
