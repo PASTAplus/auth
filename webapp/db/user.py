@@ -291,6 +291,11 @@ class UserDb:
         ).first()
         return identity
 
+    def get_identity_by_id(self, identity_id):
+        query = self.session.query(Identity)
+        identity = query.filter(Identity.id == identity_id).first()
+        return identity
+
     def delete_identity(self, profile_row, idp_name: str, uid: str):
         """Delete an identity.
         TODO: Must raise an exception if the identity is not owned by the profile.
@@ -299,16 +304,15 @@ class UserDb:
         self.session.delete(identity_row)
         self.session.commit()
 
-    def move_identity(self, to_profile_row: Profile, idp_name: str, uid: str):
+    def move_identity(self, to_profile_row: Profile, identity_id: int):
         """Move an identity to a new profile.
 
-        Link the profile represented by the idp_name and uid to the profile represented by
+        Link the identity represented by the identity_id to the profile represented by
         to_profile_row.
 
-        In order for this method to be secure, all the parameters must be set from claims from
-        signed tokens.
+        In order for this method to be secure, the parameters must come from valid tokens.
         """
-        identity_row = self.get_identity(idp_name, uid)
+        identity_row = self.get_identity_by_id(identity_id)
         old_profile_row = identity_row.profile
 
         if old_profile_row == to_profile_row:

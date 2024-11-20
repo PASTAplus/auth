@@ -135,9 +135,8 @@ def make_jwt(udb, identity_row, is_vetted):
             # We don't have an email verification procedure yet
             'email_verified': False,
             'email_notifications': profile_row.email_notifications,
-            # Claims for account linking and client transitions
-            'idp_name': identity_row.idp_name,
-            'uid': identity_row.uid,
+            # Internal claims
+            'pastaIdentityId': identity_row.id,
         }
     )
     log.info('Created PASTA JWT:')

@@ -152,7 +152,7 @@ async def signin_token(
     link_profile_row = udb.get_profile(link_token_obj.urid)
     # token is the account the user signed in to after clicking the link button.
     try:
-        udb.move_identity(link_profile_row, token.claims['idp_name'], token.claims['uid'])
+        udb.move_identity(link_profile_row, token.claims['pastaIdentityId'])
     except ValueError as e:
         return util.redirect_internal('/ui/signin', error=str(e))
     # As the 'link account' flow shares the same flow as the regular sign in, we are now signed in
