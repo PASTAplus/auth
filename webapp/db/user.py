@@ -317,42 +317,11 @@ class UserDb:
 
     def delete_identity(self, profile_row, idp_name: str, uid: str):
         """Delete an identity.
-        TODO: Must raise an exception if the identity is not owned by the profile.
         """
         identity_row = self.get_identity(idp_name, uid)
+        if identity_row not in profile_row.identities:
+            raise ValueError(f'Identity {idp_name} {uid} does not belong to profile')
         self.session.delete(identity_row)
-        self.session.commit()
-
-    def move_identity(self, to_profile_row: Profile, identity_id: int):
-        """Move an identity to a new profile.
-
-        Link the identity represented by the identity_id to the profile represented by
-        to_profile_row.
-
-        In order for this method to be secure, the parameters must come from valid tokens.
-        """
-        identity_row = self.get_identity_by_id(identity_id)
-        old_profile_row = identity_row.profile
-        # Reassign the identity to the new profile
-        identity_row.profile = to_profile_row
-        # Delete the old profile if it is now orphaned (has no identities that can log
-        # into it)
-        if not old_profile_row.identities:
-            for group_member in old_profile_row.group_members:
-                # Reassign any group memberships to the new profile
-                # group_member.profile = new_profile
-                # Delete any group memberships assigned to the old profile
-                self.session.delete(group_member)
-            for group in old_profile_row.groups:
-                # Reassign any groups to the new profile
-                # group.profile = new_profile
-                # Delete any groups assigned to the old profile
-                for group_member in group.members:
-                    # Delete any group memberships assigned to the old profile
-                    self.session.delete(group_member)
-                self.session.delete(group)
-            # Delete the now orphaned profile
-            self.session.delete(old_profile_row)
         self.session.commit()
 
     @staticmethod
