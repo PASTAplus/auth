@@ -4,6 +4,7 @@ import starlette.requests
 import starlette.templating
 
 import db.iface
+import fuzz
 import pasta_jwt
 import util
 
@@ -53,6 +54,8 @@ async def profile_update(
     profile_dict = await request.json()
     log.info(profile_dict)
     udb.update_profile(token.urid, **profile_dict)
+    profile_row = udb.get_profile(token.urid)
+    await fuzz.update(profile_row)
 
 
 @router.post('/profile/delete')

@@ -1,4 +1,3 @@
-import copy
 import datetime
 import uuid
 
@@ -9,6 +8,8 @@ import sqlalchemy.pool
 
 import db.base
 import db.group
+import db.sync
+
 import util
 
 log = daiquiri.getLogger(__name__)
@@ -219,6 +220,7 @@ class UserDb:
             # row, but the profile will retain the original email address.
             identity_row.email = email
             self.session.commit()
+            self.sync_update('identity')
 
         return identity_row
 
@@ -238,6 +240,7 @@ class UserDb:
         )
         self.session.add(new_profile)
         self.session.commit()
+        self.sync_update('profile')
         return new_profile
 
     def get_profile(self, urid):
@@ -266,11 +269,13 @@ class UserDb:
         for key, value in kwargs.items():
             setattr(profile_row, key, value)
         self.session.commit()
+        self.sync_update('profile')
 
     def delete_profile(self, urid):
         profile_row = self.get_profile(urid)
         self.session.delete(profile_row)
         self.session.commit()
+        self.sync_update('profile')
 
     def set_privacy_policy_accepted(self, urid):
         log.debug('Setting privacy policy accepted')
@@ -301,6 +306,7 @@ class UserDb:
         )
         self.session.add(new_identity)
         self.session.commit()
+        self.sync_update('identity')
         return new_identity
 
     def get_identity(self, idp_name: str, uid: str):
@@ -316,13 +322,13 @@ class UserDb:
         return identity
 
     def delete_identity(self, profile_row, idp_name: str, uid: str):
-        """Delete an identity.
-        """
+        """Delete an identity."""
         identity_row = self.get_identity(idp_name, uid)
         if identity_row not in profile_row.identities:
             raise ValueError(f'Identity {idp_name} {uid} does not belong to profile')
         self.session.delete(identity_row)
         self.session.commit()
+        self.sync_update('identity')
 
     @staticmethod
     def get_new_urid():
@@ -331,6 +337,10 @@ class UserDb:
     def get_all_profiles(self):
         query = self.session.query(Profile)
         return query.order_by(sqlalchemy.asc(Profile.id)).all()
+
+    def get_all_profiles_generator(self):
+        for profile_row in self.session.query(Profile):
+            yield profile_row
 
     #
     # Group
@@ -345,6 +355,7 @@ class UserDb:
         )
         self.session.add(new_group)
         self.session.commit()
+        self.sync_update('group')
         return new_group
 
     def get_group(self, profile_row, group_id):
@@ -371,6 +382,7 @@ class UserDb:
         group_row.name = name
         group_row.description = description or None
         self.session.commit()
+        self.sync_update('group')
 
     def delete_group(self, profile_row, group_id):
         """Delete a group by its ID.
@@ -383,6 +395,7 @@ class UserDb:
         ).delete()
         self.session.delete(group_row)
         self.session.commit()
+        self.sync_update('group')
 
     def add_group_member(self, profile_row, group_id, member_profile_id):
         """Add a member to a group.
@@ -397,6 +410,7 @@ class UserDb:
         self.session.add(new_member)
         group_row.updated = datetime.datetime.now()
         self.session.commit()
+        self.sync_update('group_member')
 
     def delete_group_member(self, profile_row, group_id, member_profile_id):
         """Delete a member from a group.
@@ -419,6 +433,7 @@ class UserDb:
         self.session.delete(member_row)
         group_row.updated = datetime.datetime.now()
         self.session.commit()
+        self.sync_update('group_member')
 
     def get_group_member_list(self, profile_row, group_id):
         """Get the members of a group.
@@ -460,3 +475,22 @@ class UserDb:
         member_row.group.updated = datetime.datetime.now()
         self.session.delete(member_row)
         self.session.commit()
+        self.sync_update('group_member')
+
+    #
+    # Sync
+    #
+
+    def sync_update(self, name):
+        """Update the timestamp on name"""
+        sync_row = self.session.query(db.sync.Sync).filter_by(name=name).first()
+        if sync_row is None:
+            sync_row = db.sync.Sync(name=name)
+            self.session.add(sync_row)
+        # No-op update to trigger onupdate
+        sync_row.name = sync_row.name
+        self.session.commit()
+
+    def get_sync_ts(self):
+        """Get the latest timestamp"""
+        return self.session.query(sqlalchemy.func.max(db.sync.Sync.updated)).scalar()
