@@ -97,31 +97,16 @@ def handle_successful_login(
     has_avatar,
     is_vetted,
 ):
-    """After user has successfully authenticated:
-
-    - Create or update user's Profile and Identity in the database
-    - Create old style and new style tokens
-    - Redirect to the final target URL, providing the tokens and other information
+    """After user has successfully authenticated with an IdP, handle the final steps of
+    the authentication process.
     """
-    # If we are logged in when we get here, we are linking accounts.
-    link_token_str = request.cookies.get('pasta_token')
-    if link_token_str:
-        # Prevent the user from linking to an account that is already linked.
-        link_identity_row = udb.get_identity(idp_name, uid)
-        if link_identity_row:
-            token_obj = pasta_jwt.PastaJwt.decode(link_token_str)
-            profile_row = udb.get_profile(token_obj.urid)
-            if link_identity_row in profile_row.identities:
-                err_str = 'The account you linked was already linked to this profile.'
-            else:
-                err_str = (
-                    'The account you linked is already linked to another profile. If '
-                    'you wish to link the account to this profile instead, please sign '
-                    'in to the other profile and unlink it there first.'
-                )
-            return redirect_internal('/ui/identity', error=err_str)
+    # If we have a valid token here, we are already logged in, and are linking accounts.
+    token_str = request.cookies.get('pasta_token')
+    token_obj = pasta_jwt.PastaJwt.decode(token_str)
+    if token_obj is not None:
+        return link_account(token_obj, udb, full_name, idp_name, uid, email, has_avatar)
 
-    # We may be signing in or linking an account.
+    # We are currently signed out, and are signing in to a new or existing account.
     identity_row = udb.create_or_update_profile_and_identity(
         full_name, idp_name, uid, email, has_avatar
     )
@@ -146,8 +131,29 @@ def handle_successful_login(
         uid=identity_row.uid,
         idp_name=identity_row.idp_name,
         sub=identity_row.uid,
-        link_token=link_token_str,
     )
+
+
+def link_account(
+    token: pasta_jwt.PastaJwt, udb, full_name, idp_name, uid, email, has_avatar
+):
+    """Link new account to the profile associated with the token."""
+    profile_row = udb.get_profile(token.urid)
+    # Prevent linking an account that is already linked.
+    identity_row = udb.get_identity(idp_name, uid)
+    if identity_row:
+        if identity_row in profile_row.identities:
+            msg_str = 'The account you linked was already linked to this profile.'
+        else:
+            msg_str = (
+                'The account you linked is already linked to another profile. If '
+                'you wish to link the account to this profile instead, please sign '
+                'in to the other profile and unlink it there first.'
+            )
+    else:
+        udb.create_identity(profile_row, idp_name, uid, email, has_avatar)
+        msg_str = 'Account linked successfully.'
+    return redirect_internal('/ui/identity', msg=msg_str)
 
 
 def redirect_final(
@@ -163,12 +169,12 @@ def redirect_final(
     uid: str,
     idp_name: str,
     sub: str,
-    link_token: str | None,
 ):
-    """Create Response that redirects to the final target URL after successful
-    authentication. This is the final step in the authentication process, and creates a
-    uniform set of query parameters and cookies returned to all clients for all
-    authentication flows.
+    """Create Response that redirects to the final target URL, providing the old style and new style
+    tokens, and other information
+
+    This is the final step in the authentication process, and creates a uniform set of query
+    parameters and cookies returned to all clients for all authentication flows.
 
     target_url: The URL to which the client originally requested to be redirected.
     """
@@ -188,8 +194,6 @@ def redirect_final(
         idp_name=idp_name,
         # For ezEML
         sub=sub,
-        # For account linking
-        link_token=link_token if link_token else '',
     )
     # auth-token is the location of the old proprietary token
     response.set_cookie('auth-token', token)

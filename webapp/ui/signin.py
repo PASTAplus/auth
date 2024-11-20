@@ -60,7 +60,7 @@ async def signin_link(
             'profile': None,
             #
             'request': request,
-            'target_url': Config.SERVICE_BASE_URL + '/signin/link/token',
+            'target_url': Config.SERVICE_BASE_URL + '/ui/identity',
             'title': 'Link Account',
             'text': """
             <p>
@@ -102,9 +102,6 @@ async def signin_reset(
 #
 
 
-# LDAP flow
-
-
 @router.post('/signin/ldap')
 async def signin_ldap(
     request: starlette.requests.Request,
@@ -136,33 +133,6 @@ async def signin_ldap(
         has_avatar=False,
         is_vetted=True,
     )
-
-
-# OAuth2 flow
-
-
-@router.api_route('/signin/link/token', methods=['GET', 'POST'])
-async def signin_token(
-    request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
-):
-    # link_token is the account the user was already signed in to when they clicked the link
-    # button.
-    link_token_str = request.query_params.get('link_token')
-    link_token_obj = pasta_jwt.PastaJwt.decode(link_token_str)
-    link_profile_row = udb.get_profile(link_token_obj.urid)
-    # token is the account the user signed in to after clicking the link button.
-    try:
-        udb.move_identity(link_profile_row, token.claims['pastaIdentityId'])
-    except ValueError as e:
-        return util.redirect_internal('/ui/signin', error=str(e))
-    # As the 'link account' flow shares the same flow as the regular sign in, we are now signed in
-    # to the account we linked to, while we want to remain signed in to the account we clicked the
-    # link button from. Therefore, we roll back the cookie we just received.
-    response = util.redirect_internal('/ui/identity')
-    response.set_cookie('pasta_token', link_token_obj.encode())
-    return response
 
 
 @router.get('/signout')
