@@ -119,10 +119,6 @@ async def token(
 def make_jwt(udb, identity_row, is_vetted):
     """Create a JWT for the given profile."""
     profile_row = identity_row.profile
-    groups_set = udb.get_group_membership_grid_set(profile_row)
-    groups_set.add(Config.AUTHENTICATED)
-    if is_vetted:
-        groups_set.add('vetted')  # Can't use Config.VETTED here
     pasta_jwt = PastaJwt(
         {
             'sub': profile_row.urid,
@@ -130,7 +126,7 @@ def make_jwt(udb, identity_row, is_vetted):
             'gn': profile_row.given_name,
             'email': profile_row.email,
             'sn': profile_row.family_name,
-            'pastaGroups': groups_set,
+            'pastaGroups': udb.get_group_membership_grid_set(profile_row),
             'pastaIsEmailEnabled': profile_row.email_notifications,
             # We don't have an email verification procedure yet
             'pastaIsEmailVerified': False,
