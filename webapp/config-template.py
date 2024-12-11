@@ -25,7 +25,7 @@ class Config(object):
 
     # Filesystem paths
     STATIC_PATH = HERE_PATH / 'static'
-    DB_PATH = (HERE_PATH / '../db.sqlite').resolve()
+    DB_PATH = (HERE_PATH / '../auth.sqlite').resolve()
     AVATARS_PATH = HERE_PATH / 'avatars'
     TEMPLATES_PATH = HERE_PATH / 'templates'
 

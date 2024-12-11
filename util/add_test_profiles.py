@@ -18,7 +18,7 @@ import webapp.db.iface
 log = logging.getLogger(__name__)
 
 
-DB_PATH = pathlib.Path('~/git/auth/db.sqlite').expanduser().resolve()
+DB_PATH = pathlib.Path('~/git/auth/auth.sqlite').expanduser().resolve()
 
 
 def main():
