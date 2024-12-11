@@ -117,8 +117,7 @@ def handle_successful_login(
 def handle_client_login(
     udb, target_url, full_name, idp_name, uid, email, has_avatar, is_vetted
 ):
-    """We are currently signed out, and are signing in to a new or existing account.
-    """
+    """We are currently signed out, and are signing in to a new or existing account."""
     target_url = target_url
     identity_row = udb.create_or_update_profile_and_identity(
         full_name, idp_name, uid, email, has_avatar
@@ -156,12 +155,15 @@ def handle_link_account(request, udb, idp_name, uid, email, has_avatar):
     identity_row = udb.get_identity(idp_name, uid)
     if identity_row:
         if identity_row in profile_row.identities:
-            msg_str = 'The account you linked was already linked to this profile.'
+            msg_str = (
+                'The account you are attempting to link was already linked to this '
+                'profile.'
+            )
         else:
             msg_str = (
-                'The account you linked is already linked to another profile. If '
-                'you wish to link the account to this profile instead, please sign '
-                'in to the other profile and unlink it there first.'
+                'The account you are attempting to link is already linked to another '
+                'profile. If you wish to link the account to this profile instead, '
+                'please sign in to the other profile and unlink it there first.'
             )
     else:
         udb.create_identity(profile_row, idp_name, uid, email, has_avatar)
