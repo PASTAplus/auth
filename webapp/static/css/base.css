@@ -50,6 +50,10 @@
     margin-right: 1rem;
 }
 
+.nav-item .active {
+    font-weight: bolder;
+}
+
 /* Headers */
 
 /* Reduce all header sizes by 0.2rem from default */
