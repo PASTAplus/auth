@@ -14,9 +14,7 @@
 {% endblock %}
 
 {% block content %}
-  <div class='header-container'>
-    <h1 aria-label>Accounts</h1>
-  </div>
+  <h1 aria-label>Accounts</h1>
 
   <div class='indent'>
 
@@ -86,9 +84,9 @@
 
     {% if identity_list|length == 1 %}
       <p class='alert alert-info'>
-      You currently have only one account linked to your profile. If you wish to unlink this account, link a new account
-      first to ensure your profile remains accessible. If you no longer wish to access your profile, you may delete your
-      profile from the Profile page, which will also unlink this account.
+        You currently have only one account linked to your profile. If you wish to unlink this account, link a new account
+        first to ensure your profile remains accessible. If you no longer wish to access your profile, you may delete your
+        profile from the Profile page, which will also unlink this account.
       </p>
     {% endif %}
 

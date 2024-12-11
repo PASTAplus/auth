@@ -4,7 +4,6 @@ import starlette.requests
 import starlette.templating
 
 import db.iface
-import fuzz
 import pasta_jwt
 import util
 
@@ -42,24 +41,55 @@ async def profile(
     )
 
 
-# Internal routes
-
-
-@router.post('/profile/update')
-async def profile_update(
+@router.get('/ui/profile/edit')
+async def profile_edit(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
     token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
-    profile_dict = await request.json()
-    log.info(profile_dict)
-    udb.update_profile(token.urid, **profile_dict)
     profile_row = udb.get_profile(token.urid)
-    await fuzz.update(profile_row)
+
+    return util.templates.TemplateResponse(
+        'profile-edit.html',
+        {
+            # Base
+            'token': token,
+            'avatar_url': util.get_profile_avatar_url(
+                profile_row,
+                refresh=request.query_params.get('refresh') == 'true',
+            ),
+            'profile': profile_row,
+            #
+            'request': request,
+            'msg': request.query_params.get('msg'),
+        },
+    )
 
 
-@router.post('/profile/delete')
-async def profile_delete(
+# Internal routes
+
+
+@router.post('/profile/edit/update')
+async def profile_edit_update(
+    request: starlette.requests.Request,
+    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+):
+    form_data = await request.form()
+    util.log_dict(log.info, 'Updating profile', dict(form_data))
+    udb.update_profile(
+        token.urid,
+        full_name=form_data.get('full-name'),
+        email=form_data.get('email'),
+        email_notifications='email-notifications' in form_data,
+        organization=form_data.get('organization'),
+        association=form_data.get('association'),
+    )
+    return util.redirect_internal('/ui/profile/edit', msg='Profile updated')
+
+
+@router.post('/profile/edit/delete')
+async def profile_edit_delete(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
     token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),

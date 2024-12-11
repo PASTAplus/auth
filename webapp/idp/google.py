@@ -180,7 +180,9 @@ async def revoke_google(
     uid = request.query_params.get('uid')
     idp_token = request.query_params.get('idp_token')
 
-    log.debug(f'revoke_google() target_url="{target_url}" uid="{uid}" idp_token="{idp_token}"')
+    log.debug(
+        f'revoke_google() target_url="{target_url}" uid="{uid}" idp_token="{idp_token}"'
+    )
 
     try:
         response = requests.post(

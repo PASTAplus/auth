@@ -117,7 +117,14 @@
           <li class='nav-item'>
             <div class='row-center-parent'>
               <div class='row-center-child'>
-                <img src='{{ avatar_url }}' alt='Avatar' class='avatar'>
+                <div class='dropdown'>
+                  <button class='btn btn-link dropdown-toggle' type='button' id='avatarMenuButton'
+                          data-bs-toggle='dropdown' aria-expanded='false'><img src='{{ avatar_url }}' alt='Avatar' class='avatar'></button>
+                  <ul class='dropdown-menu' aria-labelledby='avatarMenuButton'>
+                    <li><a class='dropdown-item' href='{{ url('/ui/profile/edit') }}'>Edit Profile</a></li>
+                    <li><a class='dropdown-item' href='{{ url('/ui/avatar') }}'>Select Avatar</a></li>
+                  </ul>
+                </div>
               </div>
               <div class='row-center-child'>
                 <a class='nav-link' href='{{ url('/signout') }}'>

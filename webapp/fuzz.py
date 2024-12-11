@@ -8,10 +8,7 @@ from config import Config
 
 log = daiquiri.getLogger(__name__)
 
-fuzz_cache = {
-    'sync_ts': None,
-    'profile_dict': {}
-}
+fuzz_cache = {'sync_ts': None, 'profile_dict': {}}
 
 
 async def init_cache():

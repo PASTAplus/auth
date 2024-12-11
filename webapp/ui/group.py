@@ -129,7 +129,7 @@ async def group_delete(
     group_id = form_data.get('group-id')
     profile_row = udb.get_profile(token.urid)
     udb.delete_group(profile_row, group_id)
-    util.redirect_internal('/ui/group')
+    return util.redirect_internal('/ui/group')
 
 
 @router.get('/group/member/list/{group_id}')

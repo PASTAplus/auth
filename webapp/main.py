@@ -102,7 +102,9 @@ class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
             and not request.url.path.startswith(str(util.url('/ui/signin')))
             and not pasta_jwt.PastaJwt.is_valid(request.cookies.get('pasta_token'))
         ):
-            log.debug('Redirecting to /ui/signin: UI page requested without valid token')
+            log.debug(
+                'Redirecting to /ui/signin: UI page requested without valid token'
+            )
             return util.redirect_internal('/ui/signin')
         return await call_next(request)
 

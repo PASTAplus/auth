@@ -10,172 +10,53 @@
 {% endblock %}
 
 {% block scripts %}
-  <script src='{{ url('/static/js/profile.js') }}'></script>
+  <script src='{{ url('/static/js/profile_edit.js') }}'></script>
 {% endblock %}
 
 {% block content %}
-  <div class='header-container'>
-    <h1 aria-label>
-      <span class='row-low-parent'>
-        <span class='row-low-child'>
-          Profile
-        </span>
-        <span class='row-low-child icon-button'>
-          <img src='{{ url('/static/svg/edit-pencil.svg') }}' alt='Edit profile' id='editProfile'>
-        </span>
-      </span>
-    </h1>
-  </div>
 
-  <div class='align-content-center space-below'>
-    <div class='row-low-parent'>
-      <div class='row-low-child'>
-        <img src='{{ avatar_url }}' alt='Avatar' class='img-thumbnail avatar' id='avatarImg'>
-      </div>
-      <div class='row-low-child icon-button'>
-        <a href='{{ url('/ui/avatar') }}'>
-          <img src='{{ url('/static/svg/edit-pencil.svg') }}' alt='Select avatar' id='selectAvatar'>
-        </a>
-      </div>
-    </div>
-    <div class='profile-name' id='profileName'>{{ profile.full_name or '' }}</div>
-  </div>
+  <div class='profile-container'>
 
-  <h1 aria-label>Contact</h1>
+    <div class='profile-parent'>
 
-  <div class='indent'>
+      <div class='profile-child'>
 
-    <div class='grid-parent'>
-      {# Email #}
-      <div class='grid-child label'>Email:</div>
-      <div class='grid-child' id='profileEmail'>{{ profile.email or '' }}</div>
-      {# Email notifications #}
-      <div class='grid-child label'>Email notifications:</div>
-      <div class='grid-child' id='profileNotifications'
-           data-notifications='{{ profile.email_notifications | lower }}'
-      >
-        {{ 'Yes' if profile.email_notifications else 'No' }}
+        <h1 aria-label>Profile</h1>
+
+        <div class='avatar-parent'>
+          <div class='avatar-child avatar-img'>
+            <img src='{{ avatar_url }}' alt='Avatar' class='avatar' id='avatarImg'>
+          </div>
+          <div class='avatar-child avatar-name'>
+            {{ profile.full_name or '' }}
+          </div>
+        </div>
+
       </div>
 
-      <div class='grid-child label'>Organization:</div>
-      <div class='grid-child' id='profileOrganization'>{{ profile.organization or '' }}</div>
-      <div class='grid-child label'>Association:</div>
-      <div class='grid-child' id='profileAssociation'>{{ profile.association or '' }}</div>
-    </div>
+      <div class='profile-child'>
+        <h1 aria-label>Contact</h1>
+        <div class='indent'>
+          <div class='contact-parent'>
+            <div class='contact-child label'>Email:</div>
+            <div class='contact-child' id='profileEmail'>{{ profile.email or '' }}</div>
 
-  </div>
-
-  <h1 aria-label>Danger Zone</h1>
-
-  <div class='indent'>
-    <button class='btn btn-danger' data-bs-toggle='modal'
-            data-bs-target='#deleteProfileModal'
-            data-profile-id='{{ profile.id }}'
-    >
-      <span>Delete Profile</span>
-    </button>
-
-    {#<a href='{{ url('/ui/signin/link') }}' class='btn btn-danger'>Delete Profile</a>#}
-
-  </div>
-
-  {# Modal edit dialog #}
-
-  <div class='modal fade' id='editProfileModal' tabindex='-1' data-bs-backdrop='static'>
-    <div class='modal-dialog modal-dialog-centered'>
-      <div class='modal-content'>
-        <div class='modal-header'>
-          <h5 class='modal-title'>Edit Profile</h5>
-          <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
-        </div>
-        <div class='modal-body'>
-          <form id='editProfileForm' class='needs-validation' novalidate>
-            <div class='form-group'>
-              <label for='modalName'>Name</label>
-              <input type='text' class='form-control' id='modalName' name='name' required pattern='.{3,}'>
-              <div class='invalid-feedback'>
-                Name must be at least 3 characters long.
-              </div>
+            <div class='contact-child label'>Email notifications:</div>
+            <div class='contact-child' id='profileNotifications'
+                 data-notifications='{{ profile.email_notifications | lower }}'
+            >
+              {{ 'Yes' if profile.email_notifications else 'No' }}
             </div>
-            <div class='form-group'>
-              <p>
-                <label for='modalEmail'>Email</label>
-                {# type='email' is validated by the browser #}
-                <input type='email' class='form-control' id='modalEmail' name='email'>
-              </p>
-              <p>
-                <label for='modalNotifications'>Email notifications</label>
-                <input type='checkbox' class='form-check-input' id='modalNotifications' name='email-notifications'>
-              </p>
-            </div>
-            <div class='form-group'>
-              <label for='modalOrganization'>Organization</label>
-              <input type='text' class='form-control' id='modalOrganization' name='organization'>
-            </div>
-            <div class='form-group'>
-              <label for='modalAssociation'>Association</label>
-              <input type='text' class='form-control' id='modalAssociation' name='association'>
-            </div>
-          </form>
-        </div>
-        <div class='modal-footer'>
-          <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Close</button>
-          <button type='button' class='btn btn-primary' id='saveProfileButton'>Save Changes
-          </button>
+
+            <div class='contact-child label'>Organization:</div>
+            <div class='contact-child' id='profileOrganization'>{{ profile.organization or '' }}</div>
+
+            <div class='contact-child label'>Association:</div>
+            <div class='contact-child' id='profileAssociation'>{{ profile.association or '' }}</div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  {# Modal delete profile confirmation dialog #}
-
-  <div class='modal fade' id='deleteProfileModal' tabindex='-1' data-bs-backdrop='static'>
-    <div class='modal-dialog modal-dialog-centered'>
-      <div class='modal-content'>
-        <div class='modal-header'>
-          <h5 class='modal-title'>Delete your profile</h5>
-          <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
-        </div>
-        <div class='modal-body'>
-          <form action='{{ url('/profile/delete') }}' method='post' id='deleteProfileForm'>
-            <div class='form-group'>
-              <p>
-                Are you sure you want to delete your profile?
-              </p>
-              <ul>
-                <li>
-                  Your account(s) will be unlinked, and your profile, will be deleted from the system.
-                </li>
-                <li>
-                  Your access to resources <b>created by you</b> will be revoked.
-                </li>
-                <li>
-                  Your access to resources <b>granted to you</b> by others, both directly and via group memberships, will be
-                  revoked.
-                </li>
-                <li>
-                  Access <b>granted by you</b> to others will be revoked.
-                </li>
-                <li>
-                  <b>Groups created by you</b> will be removed, and access <b>granted to their members</b> will be
-                  revoked.
-                </li>
-              </ul>
-            </div>
-            <div class='form-group'>
-              <label for='modalName'>
-                Type 'DELETE' in the box below, then click 'Delete Profile' to confirm that you wish to
-                delete your profile. <b>This action cannot be undone</b>.
-              </label>
-              <input type='text' class='form-control' id='modalName' name='name' required pattern='DELETE'>
-            </div>
-            <div class='modal-footer'>
-              <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Cancel</button>
-              <button type='submit' class='btn btn-danger'>Delete Profile</button>
-            </div>
-          </form>
-        </div>
-      </div>
     </div>
   </div>
 

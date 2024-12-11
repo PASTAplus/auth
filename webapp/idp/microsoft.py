@@ -61,7 +61,9 @@ async def callback_microsoft(
     authentication.
     """
     login_type, target_url = util.unpack_state(request.query_params.get('state'))
-    log.debug(f'callback_microsoft() login_type="{login_type}" target_url="{target_url}"')
+    log.debug(
+        f'callback_microsoft() login_type="{login_type}" target_url="{target_url}"'
+    )
 
     code_str = request.query_params.get('code')
     if code_str is None:

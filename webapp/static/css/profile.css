@@ -1,10 +1,41 @@
-.profile-name {
-    text-align: center;
-    font-size: 2.5rem;
-    margin-top: 1rem;
+.profile-container {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    flex-wrap: nowrap;
 }
 
-.grid-parent {
+.profile-parent {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
+
+.profile-child {
+    margin: 1rem;
+}
+
+.avatar-parent {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    flex-wrap: nowrap;
+    width: auto;
+    margin: 2rem;
+}
+
+.avatar-child {
+}
+
+.avatar-img {
+}
+
+.avatar-name {
+    font-size: 2.5rem;
+    margin: 1rem;
+}
+
+.contact-parent {
     display: grid;
     grid-template-columns: max-content max-content;
     gap: .5rem;
@@ -12,7 +43,7 @@
     justify-items: left;
 }
 
-.grid-child {
+.contact-child {
 }
 
 /* Prevent single line message inside grid from wrapping */

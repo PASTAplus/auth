@@ -44,14 +44,37 @@
     /*cursor: default;*/
 }
 
+/* The small avatar in the navbar */
+
 .nav-item .avatar {
     width: 2rem;
     height: 2rem;
-    margin-right: 1rem;
+    margin-right: .3rem;
 }
 
+#avatarMenuButton {
+    text-decoration: none;
+    color: inherit;
+    padding: 0 1rem;
+}
+
+/* We can use this technique to make both ease-in and ease-out transitions work for elements that are not visible on
+ * page load. For elements that are visible on page load, this causes a flash of the element before the transition
+ * starts. For elements that are visible on page load, we move the transition into the hover class, which avoids
+ * flashing, but causes only ease-in to work.
+*/
+.dropdown-item {
+    transition: background-color .3s ease-in-out;
+    border-radius: .3rem;
+}
+.dropdown-item:hover {
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+/**/
+
 .nav-item .active {
-    font-weight: bolder;
+    font-weight: bold;
 }
 
 /* Headers */
@@ -114,7 +137,7 @@ table td, table th {
 }
 
 .indent {
-    margin: 1.0rem 0 2.5rem 2rem;
+    margin: 2rem 0 2rem 2rem;
 }
 
 .space {
