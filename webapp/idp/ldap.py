@@ -40,8 +40,8 @@ async def login_pasta(
     - Since calls to this endpoint is not initiated by browser, there's no opportunity
     to redirect back to Auth in order set a cookie in the browser.
     """
-    login_type, target_url = util.unpack_state(request.query_params.get('state'))
-    log.debug(f'login_pasta() login_type="{login_type}" target_url="{target_url}"')
+    target_url = request.query_params.get('target')
+    log.debug(f'login_pasta() target_url="{target_url}"')
 
     try:
         ldap_dn, password = util.parse_authorization_header(request)
