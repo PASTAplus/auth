@@ -27,8 +27,9 @@ async def login_google(
     """Accept the initial login request from an EDI service and redirect to the
     Google login endpoint.
     """
-    target = request.query_params.get('target')
-    log.debug(f'login_google() target="{target}"')
+    login_type = request.query_params.get('login_type', 'client')
+    target_url = request.query_params.get('target')
+    log.debug(f'login_google() login_type="{login_type}" target_url="{target_url}"')
 
     google_provider_cfg = get_google_provider_cfg()
 
@@ -37,16 +38,15 @@ async def login_google(
             'Login unsuccessful: Cannot download Google provider configuration',
             exc_info=True,
         )
-        return util.redirect_to_client_error(target, 'Login unsuccessful')
+        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
 
     util.log_dict(log.debug, 'google_provider_cfg', google_provider_cfg)
 
-    authorization_endpoint = google_provider_cfg['authorization_endpoint']
-
     return util.redirect_to_idp(
-        authorization_endpoint,
+        google_provider_cfg['authorization_endpoint'],
         'google',
-        target,
+        login_type,
+        target_url,
         client_id=Config.GOOGLE_CLIENT_ID,
         scope='openid email profile',
         # scope='read:user',
@@ -61,12 +61,12 @@ async def callback_google(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
 ):
-    target = request.cookies.get('target')
-    log.debug(f'callback_google() target="{target}"')
+    login_type, target_url = util.unpack_state(request.query_params.get('state'))
+    log.debug(f'callback_google() login_type="{login_type}" target_url="{target_url}"')
 
     code_str = request.query_params.get('code')
     if code_str is None:
-        return util.redirect_to_client_error(target, 'Login cancelled')
+        return util.redirect_to_client_error(target_url, 'Login cancelled')
 
     google_provider_cfg = get_google_provider_cfg()
     token_endpoint = google_provider_cfg['token_endpoint']
@@ -91,17 +91,17 @@ async def callback_google(
         )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.redirect_to_client_error(target, 'Login unsuccessful')
+        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
 
     try:
         token_dict = token_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {token_response.text}', exc_info=True)
-        return util.redirect_to_client_error(target, 'Login unsuccessful')
+        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
 
     if 'error' in token_dict:
         log.error(f'Login unsuccessful: {token_dict["error"]}', exc_info=True)
-        return util.redirect_to_client_error(target, 'Login unsuccessful')
+        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
 
     try:
         userinfo_response = requests.get(
@@ -112,17 +112,17 @@ async def callback_google(
         )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.redirect_to_client_error(target, 'Login unsuccessful')
+        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
 
     try:
         user_dict = userinfo_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {userinfo_response.text}', exc_info=True)
-        return util.redirect_to_client_error(target, 'Login unsuccessful')
+        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
 
     if not user_dict.get('email_verified'):
         return util.redirect_to_client_error(
-            target, 'Login unsuccessful: Email not verified'
+            target_url, 'Login unsuccessful: Email not verified'
         )
 
     # Fetch the avatar
@@ -144,7 +144,8 @@ async def callback_google(
     return util.handle_successful_login(
         request=request,
         udb=udb,
-        target_url=target,
+        login_type=login_type,
+        target_url=target_url,
         full_name=user_dict["name"],
         idp_name='google',
         uid=user_dict['sub'],
@@ -175,11 +176,11 @@ def get_google_provider_cfg():
 async def revoke_google(
     request: starlette.requests.Request,
 ):
-    target = request.query_params.get('target')
+    target_url = request.query_params.get('target')
     uid = request.query_params.get('uid')
     idp_token = request.query_params.get('idp_token')
 
-    log.debug(f'revoke_google() target="{target}" uid="{uid}" idp_token="{idp_token}"')
+    log.debug(f'revoke_google() target_url="{target_url}" uid="{uid}" idp_token="{idp_token}"')
 
     try:
         response = requests.post(
@@ -188,13 +189,13 @@ async def revoke_google(
         )
     except requests.RequestException:
         log.error('Revoke unsuccessful', exc_info=True)
-        return util.redirect_to_client_error(target, 'Revoke unsuccessful')
+        return util.redirect_to_client_error(target_url, 'Revoke unsuccessful')
     else:
         if response.status_code != starlette.status.HTTP_200_OK:
             log.error(f'Revoke unsuccessful: {response.text}', exc_info=True)
-            return util.redirect_to_client_error(target, 'Revoke unsuccessful')
+            return util.redirect_to_client_error(target_url, 'Revoke unsuccessful')
 
-    return util.redirect(target)
+    return util.redirect(target_url)
 
 
 #

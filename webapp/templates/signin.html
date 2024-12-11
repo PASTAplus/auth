@@ -40,6 +40,7 @@
           <div class='modal-content'>
             <div class='modal-body'>
               <form id='loginForm' action='{{ url('/signin/ldap') }}' method='post'>
+                <input type='hidden' name='login_type' value='{{ login_type }}'>
                 <div>
                   <label for='username' class='form-label'>User name:</label>
                 </div>
@@ -72,7 +73,7 @@
 
     <div class='indent'>
       <div class='grid'>
-        <a href='{{ url('/login/google') }}?target={{ target_url }}'>
+        <a href='{{ url('/login/google') }}?login_type={{ login_type }}&target={{ target_url }}'>
           <div class='grid-child'>
             <div class='grid-child-button'>
               <img class='grid-logo-google' src='{{ url('/static/svg/idp/google-text.svg') }}'
@@ -80,7 +81,7 @@
             </div>
           </div>
         </a>
-        <a href='{{ url('/login/microsoft') }}?target={{ target_url }}'>
+        <a href='{{ url('/login/microsoft') }}?login_type={{ login_type }}&target={{ target_url }}'>
           <div class='grid-child'>
             <div class='grid-child-button'>
               <img class='grid-logo-microsoft' src='{{ url('/static/svg/idp/microsoft.svg') }}'
@@ -88,7 +89,7 @@
             </div>
           </div>
         </a>
-        <a href='{{ url('/login/github') }}?target={{ target_url }}'>
+        <a href='{{ url('/login/github') }}?login_type={{ login_type }}&target={{ target_url }}'>
           <div class='grid-child'>
             <div class='grid-child-button'>
               <img class='grid-logo-github-symbol' src='{{ url('/static/svg/idp/github-symbol.svg') }}'
@@ -98,7 +99,7 @@
             </div>
           </div>
         </a>
-        <a href='{{ url('/login/orcid') }}?target={{ target_url }}'>
+        <a href='{{ url('/login/orcid') }}?login_type={{ login_type }}&target={{ target_url }}'>
           <div class='grid-child'>
             <div class='grid-child-button'>
               <img class='grid-logo-orcid' src='{{ url('/static/svg/idp/orcid.svg') }}'

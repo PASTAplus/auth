@@ -182,7 +182,7 @@ class UserDb:
         fields.
         """
         identity_row = self.get_identity(idp_name=idp_name, uid=uid)
-        # Split a full name into given name and family name. If full_name is a single
+        # Split a full name in to given name and family name. If full_name is a single
         # word, family_name will be None. If full_name is multiple words, the first word
         # will be given_name and the remaining words will be family_name.
         given_name, family_name = (

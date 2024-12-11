@@ -36,6 +36,7 @@ async def signin(
             'profile': None,
             #
             'request': request,
+            'login_type': 'client',
             'target_url': Config.SERVICE_BASE_URL + '/ui/profile',
             'title': 'Sign in',
             'text': 'Select your identity provider to sign in.',
@@ -60,6 +61,7 @@ async def signin_link(
             'profile': None,
             #
             'request': request,
+            'login_type': 'link',
             'target_url': Config.SERVICE_BASE_URL + '/ui/identity',
             'title': 'Link Account',
             'text': """
@@ -111,6 +113,7 @@ async def signin_ldap(
     in idp/ldap.py, but interacts with the browser instead of a server side client.
     """
     form_data = await request.form()
+    login_type = form_data.get('login_type')
     username = form_data.get('username')
     password = form_data.get('password')
     ldap_dn = util.get_ldap_dn(username)
@@ -125,6 +128,7 @@ async def signin_ldap(
     return util.handle_successful_login(
         request=request,
         udb=udb,
+        login_type=login_type,
         target_url=str(util.url('/ui/profile')),
         full_name=username,
         idp_name='ldap',

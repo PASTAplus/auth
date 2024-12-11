@@ -7,6 +7,7 @@ import pprint
 import re
 import typing
 import urllib.parse
+import uuid
 
 import PIL
 import PIL.Image
@@ -65,6 +66,7 @@ def redirect_internal(
 def redirect_to_idp(
     idp_auth_url: str,
     idp_name: str,
+    login_type: str,
     target_url: str,
     **query_param_dict,
 ):
@@ -74,22 +76,24 @@ def redirect_to_idp(
     url_obj = starlette.datastructures.URL(idp_auth_url)
     url_obj = url_obj.replace_query_params(
         redirect_uri=get_redirect_uri(idp_name),
+        state=pack_state(login_type, target_url),
         **query_param_dict,
     )
     log.debug(f'redirect_to_idp(): {url_obj}')
-    response = starlette.responses.RedirectResponse(
+    return starlette.responses.RedirectResponse(
         url_obj,
-        # RedirectResponse returns 307 Temporary Redirect by default
+        # RedirectResponse returns 307 Temporary Redirect by default.
+        # 302: Browser does not cache, and follows with GET.
+        # 307: Browser does not cache, and follows with same method as original request.
         status_code=starlette.status.HTTP_302_FOUND,
     )
-    response.set_cookie(key='target', value=target_url)
-    return response
 
 
 def handle_successful_login(
     request,
-    udb,  # db.iface.UserDb
-    target_url: str,
+    udb,
+    login_type,
+    target_url,
     full_name,
     idp_name,
     uid,
@@ -98,29 +102,35 @@ def handle_successful_login(
     is_vetted,
 ):
     """After user has successfully authenticated with an IdP, handle the final steps of
-    the authentication process.
+    the login process.
     """
-    # If we have a valid token here, we are already logged in, and are linking accounts.
-    token_str = request.cookies.get('pasta_token')
-    token_obj = pasta_jwt.PastaJwt.decode(token_str)
-    if token_obj is not None:
-        return link_account(token_obj, udb, full_name, idp_name, uid, email, has_avatar)
+    if login_type == 'client':
+        return handle_client_login(
+            udb, target_url, full_name, idp_name, uid, email, has_avatar, is_vetted
+        )
+    elif login_type == 'link':
+        return handle_link_account(request, udb, idp_name, uid, email, has_avatar)
+    else:
+        raise ValueError(f'Unknown login_type: {login_type}')
 
-    # We are currently signed out, and are signing in to a new or existing account.
+
+def handle_client_login(
+    udb, target_url, full_name, idp_name, uid, email, has_avatar, is_vetted
+):
+    """We are currently signed out, and are signing in to a new or existing account.
+    """
+    target_url = target_url
     identity_row = udb.create_or_update_profile_and_identity(
         full_name, idp_name, uid, email, has_avatar
     )
-
     if idp_name == 'google':
         old_uid = email
     else:
         old_uid = uid
-
     old_token_ = old_token.make_old_token(
         uid=old_uid, groups=Config.VETTED if is_vetted else Config.AUTHENTICATED
     )
     pasta_token = pasta_jwt.make_jwt(udb, identity_row, is_vetted=is_vetted)
-
     return redirect_final(
         target_url,
         token=old_token_,
@@ -134,11 +144,14 @@ def handle_successful_login(
     )
 
 
-def link_account(
-    token: pasta_jwt.PastaJwt, udb, full_name, idp_name, uid, email, has_avatar
-):
-    """Link new account to the profile associated with the token."""
-    profile_row = udb.get_profile(token.urid)
+def handle_link_account(request, udb, idp_name, uid, email, has_avatar):
+    """We are currently signed in, and are linking a new account to the profile we are signed
+    in to.
+    """
+    # Link new account to the profile associated with the token.
+    token_str = request.cookies.get('pasta_token')
+    token_obj = pasta_jwt.PastaJwt.decode(token_str)
+    profile_row = udb.get_profile(token_obj.urid)
     # Prevent linking an account that is already linked.
     identity_row = udb.get_identity(idp_name, uid)
     if identity_row:
@@ -241,6 +254,20 @@ def build_query_string(**query_param_dict) -> str:
     # url_obj = starlette.datastructures.URL(Config.ROOT_PATH).join(rel_url)
     # url_obj = url_obj.replace_query_params(**query_param_dict)
     return urllib.parse.urlencode(query_param_dict)
+
+
+def pack_state(login_type, target_url):
+    """Pack the login type and target URL in to a single string for use as the
+    state parameter in the OAuth2 flow."""
+    return f'{login_type}:{target_url}'
+
+
+def unpack_state(state_str: str) -> list[str, str]:
+    """Unpack the login type and target URL from a state string.
+    :returns: [login_type, target_url]
+    """
+    # noinspection PyTypeChecker
+    return state_str.split(':', maxsplit=1)
 
 
 def log_dict(logger: typing.Callable, msg: str, d: dict):
