@@ -209,21 +209,10 @@ class UserDb:
             if has_avatar:
                 avatar_img = util.get_avatar_path(idp_name, uid).read_bytes()
                 util.save_avatar(avatar_img, 'profile', profile_row.urid)
-
         else:
-            assert identity_row.profile is not None
-            assert identity_row.idp_name == idp_name
-            assert identity_row.uid == uid
             # We do not update the profile if it exists, since the profile belongs to
             # the user, and they may update their profile with their own information.
-            #
-            # We always update the email address in the identity row, but only update
-            # the profile if the profile is new. So if the user has changed their email
-            # address with the IdP, the new email address will be stored in the identity
-            # row, but the profile will retain the original email address.
-            identity_row.email = email
-            self.session.commit()
-            self.sync_update('identity')
+            self.update_identity(identity_row, idp_name, uid, email, has_avatar)
 
         return identity_row
 
@@ -311,6 +300,24 @@ class UserDb:
         self.session.commit()
         self.sync_update('identity')
         return new_identity
+
+    def update_identity(self, identity_row, idp_name, uid, email, has_avatar):
+        assert identity_row.profile is not None
+        assert identity_row.idp_name == idp_name
+        assert identity_row.uid == uid
+        # We always update the email address in the identity row, but only update the profile if the
+        # profile is new. So if the user has changed their email address with the IdP, the new email
+        # address will be stored in the identity row, but the profile will retain the original email
+        # address.
+        identity_row.email = email
+        # Normally, has_avatar will be True from the first time the user logs in with the identity.
+        # More rarely, it will go from False to True, if a user did not initially have an avatar at
+        # the IdP, but then creates one. More rarely still (if at all possible), this may go from
+        # True to False, if the user removes their avatar at the IdP. In this latter case, the
+        # avatar image in the filesystem will be orphaned here.
+        identity_row.has_avatar = has_avatar
+        self.session.commit()
+        self.sync_update('identity')
 
     def get_identity(self, idp_name: str, uid: str):
         query = self.session.query(Identity)
