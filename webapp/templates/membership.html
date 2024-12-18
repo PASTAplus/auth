@@ -32,9 +32,10 @@
 
   <div class='indent'>
 
-    {% for group_row in group_membership_list %}
+    <div class='indent group-grid'>
 
-      <div class='indent group-grid'>
+      {% for group_row in group_membership_list %}
+
         <div class='group-flex'>
           <div class='group-flex-child group-flex-name'>{{ group_row.name }}</div>
           <div class='group-flex-child'>{{ group_row.description or '' }}</div>
@@ -65,9 +66,10 @@
             </button>
           </div>
         </div>
-      </div>
 
-    {% endfor %}
+      {% endfor %}
+
+    </div>
 
   </div>
 
