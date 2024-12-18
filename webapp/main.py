@@ -90,6 +90,8 @@ for file_path in (Config.STATIC_PATH / 'site').iterdir():
 
 class RootPathMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     async def dispatch(self, request: starlette.requests.Request, call_next):
+        if not request.url.path.startswith(Config.ROOT_PATH):
+            return util.redirect_internal(request.url.path)
         request.scope['root_path'] = Config.ROOT_PATH
         return await call_next(request)
 

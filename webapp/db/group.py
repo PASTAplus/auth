@@ -22,6 +22,7 @@ class Group(db.base.Base):
     # in our system.
     grid = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True)
     # The profile of the user who created and owns the group.
+    # TODO: Change to sqlalchemy.Integer
     profile_id = sqlalchemy.Column(
         sqlalchemy.String, sqlalchemy.ForeignKey('profile.id'), nullable=False
     )
@@ -73,11 +74,13 @@ class GroupMember(db.base.Base):
     __tablename__ = 'group_member'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     # The GRID of the group to which the member belongs.
+    # TODO: Change to sqlalchemy.Integer
     group_id = sqlalchemy.Column(
         sqlalchemy.String, sqlalchemy.ForeignKey('group.id'), nullable=False
     )
     # The profile of the user who is a member of the group. Does not include the owner
     # of the group.
+    # TODO: Change to sqlalchemy.Integer
     profile_id = sqlalchemy.Column(
         sqlalchemy.String, sqlalchemy.ForeignKey('profile.id'), nullable=False
     )

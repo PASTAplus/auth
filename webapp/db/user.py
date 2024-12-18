@@ -22,9 +22,12 @@ log = daiquiri.getLogger(__name__)
 
 class Profile(db.base.Base):
     __tablename__ = 'profile'
+    # At the DB level, we use an 'id' integer primary key for rows, and for foreign key
+    # relationships.
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    # Our 'User Random ID' (urid) for the user. This is the primary key for the user in
-    # our system.
+    # The PASTA ID for the user. This is the primary key for the user in our system. We
+    # don't use it as a primary key in the DB, however, since it's a string, and string
+    # indexes are less efficient than integer indexes.
     urid = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True)
     # The user's given and family names. Initially set to the values provided by the
     # IdP.
