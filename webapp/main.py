@@ -92,6 +92,11 @@ class RootPathMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     async def dispatch(self, request: starlette.requests.Request, call_next):
         if not request.url.path.startswith(Config.ROOT_PATH):
             return util.redirect_internal(request.url.path)
+        # Setting the root_path here has the same effect as setting it in the reverse proxy (e.g.,
+        # nginx). We just set it here so that we can avoid special nginx configuration. The
+        # root_path setting is part of the ASGI spec, and is used by FastAPI to properly route
+        # requests. With this, we can keep routes agnostic of the root path the app is being served
+        # from.
         request.scope['root_path'] = Config.ROOT_PATH
         return await call_next(request)
 
