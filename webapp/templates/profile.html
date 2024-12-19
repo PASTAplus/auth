@@ -1,11 +1,76 @@
-{% extends "base.html" %}
-{% set active_page = "profile" %}
+{% extends 'base.html' %}
+{% set active_page = 'profile' %}
 
 {% block title %}
   Profile
 {% endblock %}
 
-{% block content %}
-  <h2 aria-label>Profile</h2>
+{% block head %}
+  <link rel='stylesheet' href='{{ url('/static/css/profile.css') }}'>
 {% endblock %}
 
+{% block scripts %}
+  <script src='{{ url('/static/js/profile_edit.js') }}'></script>
+{% endblock %}
+
+{% block content %}
+
+  <div class='profile-container'>
+
+    <div class='profile-parent'>
+
+      <div class='profile-child'>
+
+        <h1 aria-label>Profile</h1>
+
+        <div class='avatar-parent'>
+          <div class='avatar-child avatar-img'>
+            <img src='{{ avatar_url }}' alt='Avatar' class='avatar' id='avatarImg'>
+          </div>
+          <div class='avatar-child avatar-name'>
+            {{ profile.full_name or '' }}
+          </div>
+        </div>
+
+      </div>
+
+      <div class='profile-child'>
+        <h1 aria-label>Contact</h1>
+        <div class='indent'>
+          <div class='contact-parent'>
+
+            <div class='contact-child label'>ID</div>
+            <div class='contact-child'>
+              <div class='pasta-id-parent'>
+                <div class='pasta-id-child-text'>
+                  {{ profile.urid }}
+                </div>
+                <div class='pasta-id-child-icon'>
+                  <img src='{{ url('/static/svg/copy.svg') }}' alt='Copy Group Identifier'>
+                </div>
+              </div>
+            </div>
+
+            <div class='contact-child label'>Email:</div>
+            <div class='contact-child' id='profileEmail'>{{ profile.email or '' }}</div>
+
+            <div class='contact-child label'>Email notifications:</div>
+            <div class='contact-child' id='profileNotifications'
+                 data-notifications='{{ profile.email_notifications | lower }}'
+            >
+              {{ 'Yes' if profile.email_notifications else 'No' }}
+            </div>
+
+            <div class='contact-child label'>Organization:</div>
+            <div class='contact-child' id='profileOrganization'>{{ profile.organization or '' }}</div>
+
+            <div class='contact-child label'>Association:</div>
+            <div class='contact-child' id='profileAssociation'>{{ profile.association or '' }}</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+{% endblock %}

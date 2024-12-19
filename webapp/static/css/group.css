@@ -1,0 +1,102 @@
+.main-grid {
+    display: grid;
+    /* grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); */
+    grid-template-columns: max-content;
+    /* gap: 1rem; */
+    row-gap: 2rem;
+    /*align-items: center;*/
+    /*justify-items: left;*/
+    white-space: nowrap;
+    /* padding: 0 1rem 0 0; */
+    /*max-width: 10rem;*/
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Make room for shadows around buttons at edges */
+    padding: 2px;
+}
+
+.grid-child-title {
+    font-weight: bold;
+}
+
+.description {
+    padding: .5rem 0 .5rem 0;
+}
+
+/*
+*/
+
+.child-grid {
+    display: grid;
+    grid-template-columns: max-content;
+    align-items: center;
+    justify-items: left;
+}
+
+.child-grid-child {
+    /* display: flex; */
+    /* justify-content: center; */
+    /* white-space: nowrap; */
+    /* padding: 0 0 0 0; */
+    /* max-width: 10rem; */
+    /* overflow: hidden; */
+    /* text-overflow: ellipsis; */
+    /* background-color: red; */
+}
+
+.row-center-parent {
+    /* gap: 1rem; */
+}
+
+.button-row {
+    gap: 2rem;
+}
+
+/*.child-grid-button {*/
+/*    display: flex;*/
+/*    justify-content: center;*/
+/*}*/
+
+/*.child-grid-row {*/
+/*    display: contents;*/
+/*}*/
+
+
+
+
+/*.grid {*/
+/*    display: grid;*/
+/*    grid-template-columns: repeat(6, max-content);*/
+/*    align-items: center;*/
+/*    justify-items: left;*/
+/*}*/
+
+/*.grid-child {*/
+/*    white-space: nowrap;*/
+/*    padding: .2rem 1rem .2rem 1rem;*/
+/*}*/
+
+/*.grid-child-title {*/
+/*    font-weight: bold;*/
+/*}*/
+
+/*.grid-row {*/
+/*    display: contents;*/
+/*}*/
+
+/*.grid-logo {*/
+/*    height: 1rem;*/
+/*    !* margin-right: 1rem; *!*/
+/*}*/
+
+/* */
+
+#deleteGroupName {
+    font-weight: bold;
+}
+
+#deleteGroupModal .modal-body span {
+    display: inline;
+    margin: 0;
+    padding: 0;
+}

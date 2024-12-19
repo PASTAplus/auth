@@ -1,0 +1,24 @@
+/*
+    Identity grid
+*/
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(4, max-content);
+    align-items: center;
+    justify-items: left;
+}
+
+.grid-child {
+    white-space: nowrap;
+    padding: 1rem 1rem 1rem 1rem;
+}
+
+.grid-row {
+    display: contents;
+}
+
+.grid-logo {
+    height: 1rem;
+    /* margin-right: 1rem; */
+}

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--COLLECTION: Dazzle Line Icons-->
+<!--LICENSE: CC Attribution License-->
+<!--AUTHOR: Dazzle UI-->
+<svg
+        width="600"
+        height="666.75342"
+        viewBox="0 0 18 20.002603"
+        fill="none"
+        version="1.1"
+        id="svg4"
+        sodipodi:docname="trash2.svg"
+        inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+        xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+        xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+        xmlns="http://www.w3.org/2000/svg"
+>
+  <defs
+     id="defs8" />
+  <sodipodi:namedview
+     id="namedview6"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:pageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     inkscape:zoom="0.82975449"
+     inkscape:cx="425.42704"
+     inkscape:cy="329.01298"
+     inkscape:window-width="1920"
+     inkscape:window-height="1055"
+     inkscape:window-x="1920"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg4" />
+  <path
+     d="m 1,4.0010514 h 16 m -4,0 -0.2706,-0.81193 c -0.2623,-0.78682 -0.3935,-1.18023 -0.6367,-1.47109 -0.2148,-0.25685 -0.4906,-0.45566 -0.8022,-0.5782 -0.3529,-0.13878 -0.7675,-0.13878 -1.5969,-0.13878 H 8.3064 c -0.8294,0 -1.244,0 -1.59689,0.13878 -0.31159,0.12254 -0.58743,0.32135 -0.80222,0.5782 -0.24324,0.29086 -0.37437,0.68427 -0.63665,1.47109 L 5,4.0010514 m 10,0 V 14.201052 c 0,1.6802 0,2.5202 -0.327,3.162 -0.2876,0.5645 -0.7465,1.0234 -1.311,1.311 -0.6418,0.327 -1.4818,0.327 -3.162,0.327 H 7.8 c -1.68016,0 -2.52024,0 -3.16197,-0.327 -0.56449,-0.2876 -1.02343,-0.7465 -1.31105,-1.311 C 3,16.721252 3,15.881252 3,14.201052 V 4.0010514 m 8,4 V 15.001052 M 7,8.0010514 v 7.0000006"
+     stroke="#808080"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     id="path2"
+     style="stroke-width:1.50000002;stroke-miterlimit:4;stroke-dasharray:none;stroke:#a0a0a0;stroke-opacity:1" />
+</svg>

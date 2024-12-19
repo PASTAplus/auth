@@ -1,12 +1,9 @@
-import re
-
 import daiquiri
 import fastapi
 import requests
 import starlette.requests
 
-import pasta_token as pasta_token_
-import user_db
+import db.iface
 import util
 from config import Config
 
@@ -18,42 +15,40 @@ router = fastapi.APIRouter()
 #
 
 
-@router.get('/auth/login/orcid')
+@router.get('/login/orcid')
 async def login_orcid(
     request: starlette.requests.Request,
 ):
     """Accept the initial login request from an EDI service and redirect to the
     ORCID login endpoint.
     """
-    target = request.query_params.get('target')
-    log.debug(f'login_orcid() target="{target}"')
-    return util.redirect(
+    login_type = request.query_params.get('login_type', 'client')
+    target_url = request.query_params.get('target')
+    log.debug(f'login_orcid() target_url="{target_url}"')
+
+    return util.redirect_to_idp(
         Config.ORCID_AUTH_ENDPOINT,
+        'orcid',
+        login_type,
+        target_url,
         client_id=Config.ORCID_CLIENT_ID,
-        response_type='code',
         scope='/authenticate openid',
-        redirect_uri=util.get_redirect_uri('orcid', util.urlenc(target)),
         prompt='login',
+        response_type='code',
     )
 
 
-@router.get('/auth/login/orcid/callback/{target:path}')
-async def login_orcid_callback(
-    target,
+@router.get('/callback/orcid')
+async def callback_orcid(
     request: starlette.requests.Request,
-    udb: user_db.UserDb = fastapi.Depends(user_db.udb),
+    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
 ):
-    # Hack to work around ORCID collapsing multiple slashes in the URL path, which breaks the target
-    # URL. This adds any missing slash after the protocol.
-    # E.g., https:/host/path -> https://host/path
-    if m := re.match(r'(https?:/)([^/].*)', target, re.IGNORECASE):
-        target = f'{m.group(1)}/{m.group(2)}'
-
-    log.debug(f'login_orcid_callback() target="{target}"')
+    login_type, target_url = util.unpack_state(request.query_params.get('state'))
+    log.debug(f'callback_orcid() login_type="{login_type}" target_url="{target_url}"')
 
     code_str = request.query_params.get('code')
     if code_str is None:
-        return util.redirect(target, error='Login cancelled')
+        return util.redirect_to_client_error(target_url, 'Login cancelled')
 
     try:
         token_response = requests.post(
@@ -71,64 +66,34 @@ async def login_orcid_callback(
         )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.redirect(target, error='Login unsuccessful')
+        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
 
     try:
         token_dict = token_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {token_response.text}', exc_info=True)
-        return util.redirect(target, error='Login unsuccessful')
+        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
 
     if is_error(token_dict):
         log.error(f'Login unsuccessful: {get_error(token_dict)}', exc_info=True)
-        return util.redirect(target, error='Login unsuccessful')
+        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
 
     log.debug('-' * 80)
     log.debug('login_orcid_callback() - login successful')
     util.log_dict(log.debug, 'token_dict', token_dict)
     log.debug('-' * 80)
 
-    cname = token_dict['name']
-    uid = Config.ORCID_DNS + token_dict['orcid']
-
-    pasta_token = pasta_token_.make_pasta_token(uid=uid, groups=Config.AUTHENTICATED)
-
-    given_name, family_name = await util.split_full_name(cname)
-
-    # Update DB
-    identity_row = udb.create_or_update_profile_and_identity(
-        given_name=given_name,
-        family_name=family_name,
+    return util.handle_successful_login(
+        request=request,
+        udb=udb,
+        login_type=login_type,
+        target_url=target_url,
+        full_name=token_dict['name'],
         idp_name='orcid',
-        uid=uid,
+        uid=Config.ORCID_DNS + token_dict['orcid'],
         email=token_dict.get('email'),
-        pasta_token=pasta_token,
-    )
-
-    # Redirect to privacy policy accept page if user hasn't accepted it yet
-    if not identity_row.profile.privacy_policy_accepted:
-        return util.redirect(
-            '/auth/accept',
-            target=target,
-            pasta_token=identity_row.pasta_token,
-            urid=identity_row.profile.urid,
-            full_name=identity_row.profile.full_name,
-            email=identity_row.profile.email,
-            uid=identity_row.uid,
-            idp_name=identity_row.idp_name,
-            idp_token=token_dict['access_token'],
-        )
-
-    # Finally, redirect to the target URL with the authentication token
-    return util.redirect_target(
-        target=target,
-        pasta_token=identity_row.pasta_token,
-        urid=identity_row.profile.urid,
-        full_name=identity_row.profile.full_name,
-        email=identity_row.profile.email,
-        uid=identity_row.uid,
-        idp_name=identity_row.idp_name,
-        idp_token=token_dict['access_token'],
+        has_avatar=False,
+        is_vetted=False,
     )
 
 
@@ -137,23 +102,23 @@ async def login_orcid_callback(
 #
 
 
-@router.get('/auth/revoke/orcid')
+@router.get('/revoke/orcid')
 async def revoke_orcid(
     request: starlette.requests.Request,
 ):
-    target = request.query_params.get('target')
+    target_url = request.query_params.get('target')
     uid = request.query_params.get('uid')
     idp_token = request.query_params.get('idp_token')
     util.log_dict(
         log.debug,
         'revoke_orcid()',
         {
-            'target': target,
+            'target_url': target_url,
             'uid': uid,
             'idp_token': idp_token,
         },
     )
-    return util.redirect(target)
+    return util.redirect(target_url)
 
 
 #

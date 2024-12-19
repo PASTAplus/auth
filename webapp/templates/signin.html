@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% set active_page = 'signin' %}
+
+{% block title %}
+  Login
+{% endblock %}
+
+{% block head %}
+  <link rel='stylesheet' href='{{ url('/static/css/signin.css') }}'>
+{% endblock %}
+
+{% block scripts %}
+  <script src='{{ url('/static/js/signin.js') }}'></script>
+{% endblock %}
+
+{% block content %}
+  <h1 aria-label>{{ title }}</h1>
+
+  <div class='indent'>
+    <p>
+      {{ text | safe }}
+    </p>
+
+    <p>
+      Use your EDI account to upload data (contact support@edirepository.org to create an account or click <a
+        href='https://dashboard.edirepository.org/dashboard/auth/reset_password_init'>here</a> to reset your password):
+    </p>
+
+    {% if error %}
+      <p class='alert alert-info'>
+        {{ error }}
+      </p>
+    {% endif %}
+
+    <div class='indent'>
+      <div id='loginModal' aria-labelledby='loginModalLabel' aria-hidden='true'>
+        <div class='modal-dialog'>
+          <div class='modal-content'>
+            <div class='modal-body'>
+              <form id='loginForm' action='{{ url('/signin/ldap') }}' method='post'>
+                <input type='hidden' name='login_type' value='{{ login_type }}'>
+                <div>
+                  <label for='username' class='form-label'>User name:</label>
+                </div>
+                <div>
+                  <input type='text' class='form-control' id='username' name='username' autocomplete='username' required>
+                </div>
+                <div>
+                  <label for='password' class='form-label'>Password:</label>
+                </div>
+                <div>
+                  <input type='password' class='form-control' id='password' name='password' autocomplete='current-password' required>
+                </div>
+                <div>
+                  {# Empty cell in column to move buttons to below input elements #}
+                </div>
+                <div>
+                  <button type='button' class='btn btn-secondary' id='clearFormButton'>Clear</button>
+                  <button type='submit' class='btn btn-primary'>Sign in</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p>
+      Or use an alternate identity provider to access data requiring user authentication:
+    </p>
+
+    <div class='indent'>
+      <div class='grid'>
+        <a href='{{ url('/login/google') }}?login_type={{ login_type }}&target={{ target_url }}'>
+          <div class='grid-child'>
+            <div class='grid-child-button'>
+              <img class='grid-logo-google' src='{{ url('/static/svg/idp/google-text.svg') }}'
+                   alt='Log in with Microsoft'>
+            </div>
+          </div>
+        </a>
+        <a href='{{ url('/login/microsoft') }}?login_type={{ login_type }}&target={{ target_url }}'>
+          <div class='grid-child'>
+            <div class='grid-child-button'>
+              <img class='grid-logo-microsoft' src='{{ url('/static/svg/idp/microsoft.svg') }}'
+                   alt='Log in with Microsoft'>
+            </div>
+          </div>
+        </a>
+        <a href='{{ url('/login/github') }}?login_type={{ login_type }}&target={{ target_url }}'>
+          <div class='grid-child'>
+            <div class='grid-child-button'>
+              <img class='grid-logo-github-symbol' src='{{ url('/static/svg/idp/github-symbol.svg') }}'
+                   alt='Log in with GitHub'>
+              <img class='grid-logo-github-text' src='{{ url('/static/svg/idp/github-text.svg') }}'
+                   alt='Log in with GitHub'>
+            </div>
+          </div>
+        </a>
+        <a href='{{ url('/login/orcid') }}?login_type={{ login_type }}&target={{ target_url }}'>
+          <div class='grid-child'>
+            <div class='grid-child-button'>
+              <img class='grid-logo-orcid' src='{{ url('/static/svg/idp/orcid.svg') }}'
+                   alt='Log in with ORCID'>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <p>
+      Please read our <a href='https://edirepository.org/about/edi-policy#privacy-policy'>privacy policy</a> to know
+      what information we collect about you and to understand your privacy
+      rights.
+    </p>
+
+  </div>
+
+
+{% endblock %}
+

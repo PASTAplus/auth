@@ -1,6 +1,6 @@
 # auth
 
-PASTA+ Authentication Service
+PASTA+ Authentication Service ('Auth')
 
 Multiverse authentication service for the PASTA+ Data Repository environment.
 
@@ -11,9 +11,7 @@ Multiverse authentication service for the PASTA+ Data Repository environment.
 - LDAP accounts are managed by EDI and provide membership in the `vetted` group
 - All users that sign in (via LDAP or OAuth2) become members of the `authenticated` group
 
-
 ### Supported Identity Providers (IdPs)
-
 
 ### EDI LDAP (Lightweight Directory Access Protocol)
 
@@ -82,6 +80,46 @@ Multiverse authentication service for the PASTA+ Data Repository environment.
     - ID tokens (used for implicit and hybrid flows): Y
     - Live SDK support: N
     - Allow public client flows: N
+
+
+### redirect_uri
+
+The `redirect_uri` in OAuth2 is always a URL provided by the client. After successful sign-in, the IdP redirects to this URL, appending the user's security context as query parameters.
+
+To prevent spoofing, the `redirect_uri` must exactly match a registered value at the IdP. Multiple `redirect_uri`s can be registered to support different instances of the same OAuth2 application. For Auth, the `redirect_uri` follows this format:
+
+`https://<HOST><:PORT>/auth/callback/<IDP_NAME>`
+ 
+Since we currently have public production and test instances of Auth, and also run Auth locally under port 5443 for development, these are the `redirect_uri`s that we need to be preconfigured at each IdP.
+
+#### GitHub
+
+- https://auth.edirepository.org/auth/callback/github
+- https://auth-d.edirepository.org/auth/callback/github
+- https://localhost:5443/auth/callback/github
+
+#### Google
+
+- https://auth.edirepository.org/auth/callback/google
+- https://auth-d.edirepository.org/auth/callback/google
+- https://localhost:5443/auth/callback/google
+
+#### Microsoft
+
+- https://auth.edirepository.org/auth/callback/microsoft
+- https://auth-d.edirepository.org/auth/callback/microsoft
+- https://localhost:5443/auth/callback/microsoft
+
+#### ORCID
+
+- https://auth.edirepository.org/auth/callback/orcid
+- https://auth-d.edirepository.org/auth/callback/orcid
+- https://127.0.0.1:5443/auth/callback/orcid
+
+Note: ORCID does not support `localhost` in the `redirect_uri`, so we use `127.0.1.1`. However, this conflicts with
+requirement for `localhost` by other IdPs, so can only be used for testing ORCID in development. To test ORCID in
+development, also set `127.0.0.1` in Config.SERVICE_BASE_URL.
+```
 
 ## Conda
 

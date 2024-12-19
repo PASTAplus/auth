@@ -1,0 +1,36 @@
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 2rem;
+}
+
+.grid-child {
+}
+
+
+.avatar-button {
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.avatar-button img {
+    display: block;
+}
+
+
+/* Indicate selection (hover and click) */
+
+.grid-child {
+    transition: transform 0.3s ease-in-out
+}
+
+.grid-child:hover {
+    transform: scale(1.1);
+}
+
+.grid-child:active {
+    transition: none;
+    transform: scale(1.0);
+}

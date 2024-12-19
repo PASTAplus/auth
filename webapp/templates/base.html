@@ -4,28 +4,39 @@
   <meta charset='utf-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1'>
 
+  <meta name='theme-color' content='#ffffff'>
+  <link rel='icon' href='{{ url('/favicon.svg') }}'>
+  <link rel='manifest' href='{{ url('/manifest.json') }}'>
+  {# TODO #}
+  {#<link rel='mask-icon' href='mask-icon.svg' color='#000000'>#}
+  {#<link rel='apple-touch-icon' href='apple-touch-icon.png'>#}
+
   <title>
     {% block title %}
       Environmental Data Initiative (EDI)
     {% endblock %}
   </title>
 
-
-  <!-- Bootstrap CSS -->
-  <link href='/static/bootstrap/css/bootstrap.css' rel='stylesheet'>
+  <!-- Preload Bootstrap CSS -->
+  <link rel='preload' href='{{ url('/static/lib/bootstrap/css/bootstrap.css') }}' as='style'>
+  <link href='{{ url('/static/lib/bootstrap/css/bootstrap.css') }}' rel='stylesheet'>
   <!-- Extra styles for auth -->
-  <link href='/static/auth.css' rel='stylesheet'>
+  <link rel='preload' href='{{ url('/static/css/base.css') }}' as='style'>
+  <link href='{{ url('/static/css/base.css') }}' rel='stylesheet'>
+  {% block head %}
+  {% endblock %}
 </head>
+
 <body>
 
 <nav class='navbar navbar-expand-lg navbar-light bg-light'>
 
   <div class='container-fluid'>
 
-    <a class='navbar-brand' href='/'>
-      <img src='/static/images/edi-logo-32x32.png'
-           alt='Environmental Data Initiative Logo' width='32' height='32'>
-      <span class='navbar-brand-pad'>Environmental Data Initiative (EDI)</span>
+    <a class='navbar-brand' href='{{ url('/') }}'>
+      <img src='{{ url('/static/svg/EDI-logo-no-padding.svg') }}'
+           alt='Environmental Data Initiative Logo'>
+      <span class='navbar-brand-pad'>Environmental Data Initiative</span>
     </a>
 
     {% block navbar_menu %}
@@ -37,52 +48,94 @@
         <span class='navbar-toggler-icon'></span>
       </button>
 
-      <div class='collapse navbar-collapse' id='navbarContent'>
+      <!-- Menu, left -->
 
-        <!-- Menu, left -->
+      <ul class='navbar-nav mr-auto'>
 
-        <ul class='navbar-nav mr-auto'>
+        <li class='nav-item'>
+          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/profile') }}'>Profile</a>
+        </li>
+        <li class='nav-item'>
+          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/identity') }}'>Accounts</a>
+        </li>
+        <li class='nav-item'>
+          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/group') }}'>Groups</a>
+        </li>
+        <li class='nav-item'>
+          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/membership') }}'>Memberships</a>
+        </li>
+      </ul>
 
-          <!--<li class='nav-item'>-->
-          <!--  <a class='nav-link' href='/'>Home</a>-->
-          <!--</li>-->
-          <li class='nav-item'>
-            <a class='nav-link' href='/profile'>Profile</a>
-          </li>
-          <li class='nav-item'>
-            <a class='nav-link' href='/identity'>Identity</a>
-          </li>
-          <li class='nav-item'>
-            <a class='nav-link' href='/groups'>Groups</a>
-          </li>
+      <!-- Dev dropdown -->
 
-          <!--<li class='nav-item dropdown'>-->
-          <!--  <a class='nav-link dropdown-toggle' href='#' id='navbarDropdown' role='button' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>-->
-          <!--    Dropdown-->
-          <!--  </a>-->
-          <!--  <div class='dropdown-menu' aria-labelledby='navbarDropdown'>-->
-          <!--    <a class='dropdown-item' href='#'>Action</a>-->
-          <!--    <a class='dropdown-item' href='#'>Another action</a>-->
-          <!--    <div class='dropdown-divider'></div>-->
-          <!--    <a class='dropdown-item' href='#'>Something else here</a>-->
-          <!--  </div>-->
-          <!--</li>-->
+      {% if dev_menu %}
+        <div class='dropdown'>
+          <button class='btn btn-secondary dropdown-toggle' type='button' id='dropdownMenuButton1'
+                  data-bs-toggle='dropdown' aria-expanded='false'>
+            Dev
+          </button>
+          <ul class='dropdown-menu' aria-labelledby='dropdownMenuButton1'>
+            <li><a class='dropdown-item' href='{{ url('/dev/token') }}'>View Token</a></li>
+            <li><a class='dropdown-item' href='{{ url('/dev/profiles') }}'>View Profiles</a></li>
+            <li>
+              <div class='dropdown-divider'></div>
+            </li>
+            <li><a class='dropdown-item' href='{{ url('/dev/signin/PASTA-ea1877bbdf1e49cea9761c09923fc738') }}'>Roger
+              1</a></li>
+            <li><a class='dropdown-item' href='{{ url('/dev/signin/PASTA-484f832adcc5473e9f56f96a97f8048e') }}'>Roger
+              2</a></li>
+            <li><a class='dropdown-item' href='{{ url('/dev/signin/PASTA-8d7698eaa977401991e9ae4e79768167') }}'>Roger
+              3</a></li>
+            <li><a class='dropdown-item' href='{{ url('/dev/signin/PASTA-206b8bf7d1b64b75b2c297d2574563f8') }}'>Roger
+              4</a></li>
+            <li><a class='dropdown-item' href='{{ url('/dev/signin/PASTA-869290df1b644a28b55cf75e3803c246') }}'>Roger
+              5</a></li>
+            <li><a class='dropdown-item' href='{{ url('/dev/signin/PASTA-93869f5e5b8348709c7ed9c4cb66b55d') }}'>Tyler
+              Wallace</a></li>
+            <li><a class='dropdown-item' href='{{ url('/dev/signin/PASTA-5f96173f86fb4643bdbf53a3df431f2c') }}'>Julie
+              Sullivan</a></li>
+            <li><a class='dropdown-item' href='{{ url('/dev/signin/PASTA-e079a8461be74db9a22e625cc2f4101b') }}'>Jerry
+              Graham</a></li>
+            <li><a class='dropdown-item' href='{{ url('/dev/signin/PASTA-b1c6a876459e47b0b13175e98717aa3c') }}'>Alice
+              Hamilton</a></li>
+            <li><a class='dropdown-item' href='{{ url('/dev/signin/PASTA-eae7265bbdc246be96d2b7ffb8e062ea') }}'>Dennis
+              Ford</a></li>
+          </ul>
+        </div>
+      {% endif %}
 
-          <!--<li class='nav-item'>-->
-          <!--  <a class='nav-link disabled' href='#'>Disabled</a>-->
-          <!--</li>-->
-        </ul>
-      </div>
-
-      <!--Menu, right-->
+      <!-- Menu, right -->
 
       <ul class='navbar-nav mr-auto navbar-right'>
-        <li class='nav-item'>
-          <a class='nav-link active' href='/login'>Login</a>
-        </li>
-        <li class='nav-item'>
-          <a class='nav-link disabled' href='/register'>Register</a>
-        </li>
+        {% if not token %}
+          <li class='nav-item'>
+            <a class='nav-link active' href='{{ url('/ui/signin') }}'>Sign in</a>
+          </li>
+        {% endif %}
+
+        {% if token %}
+          <li class='nav-item'>
+            <div class='row-center-parent'>
+              <div class='row-center-child'>
+                <div class='dropdown'>
+                  <button class='btn btn-link dropdown-toggle' type='button' id='avatarMenuButton'
+                          data-bs-toggle='dropdown' aria-expanded='false'><img src='{{ avatar_url }}' alt='Avatar' class='avatar'></button>
+                  <ul class='dropdown-menu' aria-labelledby='avatarMenuButton'>
+                    <li><a class='dropdown-item' href='{{ url('/ui/profile/edit') }}'>Edit Profile</a></li>
+                    <li><a class='dropdown-item' href='{{ url('/ui/avatar') }}'>Select Avatar</a></li>
+                  </ul>
+                </div>
+              </div>
+              <div class='row-center-child'>
+                <a class='nav-link' href='{{ url('/signout') }}'>
+                  <img src='{{ url('/static/svg/sign-out.svg') }}' alt='Sign out' class='icon-link'>
+                  Sign out
+                </a>
+              </div>
+            </div>
+          </li>
+        {% endif %}
+
       </ul>
 
     {% endblock %}
@@ -90,17 +143,69 @@
   </div>
 </nav>
 
-
-<main role='main' class='container '>
+<main role='main' class='container'>
   {% block content %}
   {% endblock %}
 </main>
 
+
+{# Modal Privacy Policy accept dialog #}
+
+<div class='modal fade' id='privacyPolicyModal' tabindex='-1' data-bs-backdrop='static'
+    {% if profile is not none %}
+     data-profile-id='{{ profile.id }}'
+     data-policy-accepted='{{ profile.privacy_policy_accepted | lower }}'
+    {% endif %}
+>
+  <div class='modal-dialog modal-dialog-centered'>
+    <div class='modal-content'>
+      <form action='{{ url('/policy/accept') }}' method='post' id='privacyPolicyForm'>
+        <div class='modal-header'>
+          <h5 class='modal-title'>Environmental Data Initiative Privacy Policy</h5>
+          <button type='submit' class='btn-close' data-bs-dismiss='modal' aria-label='Close' name='action'
+                  value='decline'>
+          </button>
+        </div>
+        <div class='modal-body'>
+          {#<input type='hidden' name='profile-id' value='{% if profile is not none %}{{ profile.id }}{% endif %}'>#}
+          <div class='form-group'>
+            <p>
+              By clicking the 'Accept' button, you acknowledge and agree to our
+              <a href='https://edirepository.org/about/edi-policy#privacy-policy'>Privacy Policy</a>.
+              This policy explains how we collect, use, and protect your personal information.
+            </p>
+            <p>
+              If you do not agree to our Privacy Policy, you can still browse our data repository
+              as a guest, but features that require you to be logged in, will not be available to
+              you. If we make any significant changes to this policy, we may ask for your consent
+              again. We appreciate your understanding and cooperation.
+            </p>
+            <p>
+              Thank you for your support and use of the Environmental Data Initiative.
+            </p>
+          </div>
+          <div class='modal-footer'>
+            <button type='submit' class='btn btn-secondary' data-bs-dismiss='modal' name='action' value='decline'>
+              I Decline
+            </button>
+            <button type='submit' class='btn btn-primary' name='action' value='accept'>
+              I Accept
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
 <!-- Bootstrap Bundle with Popper -->
-<script src='/static/bootstrap/js/bootstrap.bundle.js'></script>
-<!-- Bootstrap 5 does not use jQuery, but we do -->
-<script src='/static/jquery-3.7.1.js'></script>
-<!-- js that runs on all pages -->
-<script src='/static/base.js'></script>
+<script src='{{ url('/static/lib/bootstrap/js/bootstrap.bundle.js') }}'></script>
+<!-- JS that runs on all pages -->
+<script src='{{ url('/static/js/base.js') }}'></script>
+{% block scripts %}
+  {# By importing scripts just before the /body tag, we don't have to wrap scripts
+  in checks for fully loaded DOM #}
+{% endblock %}
 </body>
 </html>

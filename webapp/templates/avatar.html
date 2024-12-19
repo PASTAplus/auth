@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% set active_page = 'identity' %}
+
+{% block title %}
+  Avatars
+{% endblock %}
+
+{% block head %}
+  <link rel='stylesheet' href='{{ url('/static/css/avatar.css') }}'>
+{% endblock %}
+
+{% block scripts %}
+  <script src='{{ url('/static/js/avatar.js') }}'></script>
+{% endblock %}
+
+{% block content %}
+
+  <h1 aria-label>Avatars</h1>
+
+  <div class='indent'>
+    <p>
+      Select the avatar you would like to use.
+    </p>
+    <p>
+      You can add avatars to this list by linking accounts from the Profile page. If you update your avatar in an
+      account, it will be reflected here. Currently, avatars are only supported for Google, Microsoft and GitHub
+      accounts.
+    </p>
+
+    <p>
+      <a href='{{ url('/ui/profile') }}' class='icon-text-button'>
+        <span><img src='{{ url('/static/svg/back.svg') }}' alt='Back to Profile'></span>
+        <span>Back to Profile</span>
+      </a>
+    </p>
+
+    <div class='indent space grid'>
+
+      {% for avatar in avatar_list %}
+        <div class='grid-child'>
+          <form action='{{ url('/avatar/update') }}' method='post'>
+            <input type='hidden' name='idp_name' value='{{ avatar.idp_name }}'>
+            <input type='hidden' name='uid' value='{{ avatar.uid }}'>
+            <button type='submit' class='avatar-button'>
+              <img src='{{ avatar.url }}' alt='Avatar' class='avatar'>
+            </button>
+          </form>
+        </div>
+      {% endfor %}
+
+    </div>
+
+  </div>
+
+{% endblock %}

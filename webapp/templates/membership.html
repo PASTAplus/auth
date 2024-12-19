@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% set active_page = 'profile' %}
+
+{% block title %}
+  Group Memberships
+{% endblock %}
+
+{% block head %}
+  <link rel='stylesheet' href='{{ url('/static/css/membership.css') }}'>
+{% endblock %}
+
+{% block scripts %}
+  <script src='{{ url('/static/js/membership.js') }}'></script>
+{% endblock %}
+
+{% block content %}
+  <h1 aria-label>Group Memberships</h1>
+
+  <div class='indent'>
+    <p>
+      Group memberships grant you access to the group's resources. Leaving a group will revoke this access. To join a
+      group, contact the group owner. If you are the owner, you can join your own group from the Groups page.
+    </p>
+    <p>
+      {% if group_membership_list %}
+        You are a member of the following groups:
+      {% else %}
+        You are not a member of any groups.
+      {% endif %}
+    </p>
+  </div>
+
+  <div class='indent'>
+
+    <div class='indent group-grid'>
+
+      {% for group_row in group_membership_list %}
+
+        <div class='group-flex'>
+          <div class='group-flex-child group-flex-name'>{{ group_row.name }}</div>
+          <div class='group-flex-child'>{{ group_row.description or '' }}</div>
+        </div>
+
+        <div class='profile-flex'>
+          <div class='profile-flex-child profile-flex-avatar'>
+            <img src='{{ group_row.profile.avatar_url }}' alt='Avatar' class='avatar avatar-small'>
+          </div>
+          <div class='profile-flex-child profile-flex-name'>{{ group_row.profile.full_name }}</div>
+          <div class='profile-flex-child'>{{ group_row.profile.email }}</div>
+          <div class='profile-flex-child'>{{ group_row.profile.organization or '' }}</div>
+          <div class='profile-flex-child'>{{ group_row.profile.association or '' }}</div>
+        </div>
+
+        <div class='group-flex'>
+          <div class='profile-flex-child profile-flex-button'>
+            <button class='icon-text-button'
+                    data-bs-toggle='modal'
+                    data-bs-target='#leaveGroupModal'
+                    data-group-id='{{ group_row.id }}'
+                    data-group-name='{{ group_row.name }}'
+                    data-group-owner='{{ group_row.profile.full_name }}'
+                    data-group-owner-email='{{ group_row.profile.email }}'
+            >
+              <span><img src='{{ url('/static/svg/leave-group.svg') }}' alt='Leave Group'></span>
+              <span>Leave</span>
+            </button>
+          </div>
+        </div>
+
+      {% endfor %}
+
+    </div>
+
+  </div>
+
+  {# Modal leave group confirmation dialog #}
+
+  <div class='modal fade' id='leaveGroupModal' tabindex='-1' data-bs-backdrop='static'>
+    <div class='modal-dialog modal-dialog-centered'>
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <h5 class='modal-title'>Leave Group</h5>
+          <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
+        </div>
+        <div class='modal-body'>
+          <form action='{{ url('/membership/leave') }}' method='post' id='leaveGroupForm'>
+            <input type='hidden' id='leaveGroupId' name='group-id'>
+            <div class='form-group'>
+              <p>
+                <span>Are you sure you want to leave group </span>
+                '<span id='leaveGroupName' class='highlight'></span>'?
+                <span>
+                </span>
+              </p>
+              <p>
+                <strong>Note:</strong> If you own this group, you can join it again from the Groups page. If you are not
+                the owner, you will need to contact the group owner
+                <span id='leaveGroupOwner' class='highlight'></span> at
+                <span id='leaveGroupEmail' class='highlight'></span> to rejoin the group.
+              </p>
+            </div>
+            <div class='modal-footer'>
+              <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Cancel</button>
+              <button type='submit' class='btn btn-danger'>Leave</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

@@ -1,0 +1,82 @@
+/*
+    Group details grid
+*/
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, max-content);
+    align-items: center;
+    justify-items: left;
+}
+
+.details-grid-child {
+    white-space: nowrap;
+    padding: 0 1rem 0 0;
+}
+
+.label {
+    font-weight: bold;
+}
+
+/*
+    Profile list grid
+ */
+
+.profile-list-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+    row-gap: 1rem;
+    /* gap: 1rem; */
+}
+
+/*
+    Single profile vertical flex
+*/
+
+.profile-flex {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* white-space: nowrap; */
+    /* justify-content: left; */
+    /* overflow: hidden; */
+    /* text-overflow: ellipsis; */
+    /* padding: 0 1rem 0 0; */
+    /* max-width: 10rem; */
+    /* grid-template-columns: max-content; */
+    /* justify-items: left; */
+    /* justify-content: center; */
+}
+
+.profile-flex-name {
+    font-weight: bold;
+}
+
+.profile-flex-child {
+    max-width: 13rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.profile-flex-avatar {
+    padding: 0 0 .5rem 0;
+    text-align: center;
+}
+
+.profile-flex-button {
+    /* display: flex; */
+    /* justify-content: center; */
+    /* Room for shadow */
+    padding: 2px;
+}
+
+.profile-flex-row {
+    display: contents;
+}
+
+/**/
+
+#searchMember {
+    max-width: 60rem;
+}
+

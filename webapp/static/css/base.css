@@ -1,0 +1,413 @@
+/* Extra styles for auth */
+
+:root {
+    /* Set the size of 1rem */
+    font-size: 17px;
+    /*--font-color: #a0a000;*/
+}
+
+.container {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+}
+
+.header-container h1 {
+}
+
+/*
+    Navbar Menu
+*/
+
+.navbar .navbar-brand {
+    font-size: 1rem;
+}
+
+.navbar .navbar-brand img {
+    width: 2rem;
+    height: 2rem;
+}
+
+.navbar-brand-pad {
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+}
+
+/* Override the default navbar color for the 'brand' name */
+.navbar-brand {
+    /*color: #000000a6 !important;*/
+    /*pointer-events: none;*/
+    /*cursor: default;*/
+}
+
+/* The small avatar in the navbar */
+
+.nav-item .avatar {
+    width: 2rem;
+    height: 2rem;
+    margin-right: .3rem;
+}
+
+#avatarMenuButton {
+    text-decoration: none;
+    color: inherit;
+    padding: 0 1rem;
+}
+
+/* We can use this technique to make both ease-in and ease-out transitions work for elements that are not visible on
+ * page load. For elements that are visible on page load, this causes a flash of the element before the transition
+ * starts. For elements that are visible on page load, we move the transition into the hover class, which avoids
+ * flashing, but causes only ease-in to work.
+*/
+.dropdown-item {
+    transition: background-color .3s ease-in-out;
+    border-radius: .3rem;
+}
+.dropdown-item:hover {
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+/**/
+
+.nav-item .active {
+    font-weight: bold;
+}
+
+/* Headers */
+
+/* Reduce all header sizes by 0.2rem from default */
+h1 {
+    font-size: 1.8rem;
+}
+
+h2 {
+    font-size: 1.6rem;
+}
+
+h3 {
+    font-size: 1.4rem;
+}
+
+h4 {
+    font-size: 1.2rem;
+}
+
+h5 {
+    font-size: 1.0rem;
+}
+
+h6 {
+    font-size: 0.8rem;
+}
+
+h1 {
+    /*padding-top: 2rem;*/
+}
+
+h1, h2, h3, h4, h5, h6 {
+    /* margin: 0; */
+    /* margin-top: 1rem; */
+    /* margin-bottom: 1rem; */
+}
+
+table td, table th {
+    white-space: nowrap;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+/* Round avatar images */
+.avatar {
+    width: 9rem;
+    height: 9rem;
+    border-radius: 50%;
+    overflow: hidden;
+    position: relative;
+    margin: 0 auto;
+    border: 0;
+}
+
+.avatar-small {
+    width: 5rem;
+    height: 5rem;
+}
+
+.indent {
+    margin: 2rem 0 2rem 2rem;
+}
+
+.space {
+    margin-top: 2rem;
+}
+
+.space-below {
+    margin-bottom: 2rem;
+}
+
+/*
+    Tooltip
+*/
+
+.nav-tooltip {
+    display: inline-block;
+    position: relative;
+}
+
+.nav-tooltip-text {
+    visibility: hidden;
+    opacity: 0;
+    z-index: -1;
+    font-size: smaller;
+    position: absolute;
+    padding: 0 1rem 0 1rem;
+    border-radius: .5rem;
+    border-style: solid;
+    border-color: #a5a5a5;
+    border-width: .1rem;
+    color: #444400;
+    background-color: #e6e6e6;
+    bottom: 100%; /* Position the tooltip above the container */
+    left: 50%;
+    transform: translateX(-50%); /* Center the tooltip horizontally */
+    white-space: nowrap;
+}
+
+.nav-tooltip:hover .nav-tooltip-text {
+    visibility: visible;
+    opacity: 1;
+    z-index: 1;
+    transition: opacity .3s;
+}
+
+/*
+    General
+*/
+
+/* Row of bottom adjusted elements */
+
+.row-low-parent {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: center;
+    flex-wrap: nowrap;
+    width: auto; /* Take minimal horizontal space */
+}
+
+.row-low-child {
+}
+
+/* Row of vertically centered elements */
+
+.row-center-parent {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    width: auto; /* Take minimal horizontal space */
+}
+
+.row-center-child {
+}
+
+/* Icon link */
+
+.icon-link {
+    cursor: pointer;
+    height: 1.2rem;
+    transition: box-shadow .3s ease-in-out;
+}
+
+.icon-link:hover {
+    box-shadow: 0 0 .2rem rgba(0, 0, 0, 0.5);
+}
+
+.icon-link:active {
+    transform: scale(0.95);
+}
+
+/* IdP logos */
+
+.idp-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 9rem;
+}
+
+.idp-logo:active {
+    /*background-color: #f0f0f0;*/
+    /*transform: scale(0.95);*/
+    /*box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);*/
+}
+
+.idp-logo-google {
+    height: 1.85rem;
+    padding-top: 0.2rem;
+}
+
+.idp-logo-microsoft {
+    height: 1.6rem;
+}
+
+.idp-logo-github-symbol {
+    padding-right: 0.3rem;
+    height: 1.6rem;
+}
+
+.idp-logo-github-text {
+    height: 1.3rem;
+}
+
+.idp-logo-orcid {
+    height: 1.6rem;
+    padding-bottom: 0.15rem;
+}
+
+.idp-logo-edi-ldap {
+    height: 3.0rem;
+}
+
+/* Icon button */
+
+.icon-button {
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    border-radius: .3rem;
+    padding: 0.2rem;
+    margin: 0 .5rem 0 0;
+}
+
+.icon-button img {
+    height: 1.2rem;
+}
+
+.icon-button:hover {
+    transition: background-color .3s ease-in-out;
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+.icon-button:active {
+    transform: scale(0.95);
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Icon + text button */
+
+.icon-text-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    /* border: 1px solid gray; */
+    background: transparent;
+    border-radius: .3rem;
+    padding: 0.2rem 1rem 0.2rem 1rem;
+    /*margin: 0 1rem 0 0;*/
+    box-shadow: 1px 1px 1.5px rgba(0, 0, 0, 0.5);
+    text-decoration: none;
+    color: inherit;
+}
+
+.icon-text-button a {
+  /* position: absolute; */
+  /* top: 0; */
+  /* left: 0; */
+  /* width: 100%; */
+  /* height: 100%; */
+  /* display: flex; */
+  /* align-items: center; */
+  /* justify-content: center; */
+  /* z-index: 1; */
+}
+
+.icon-text-button:hover {
+    /* box-shadow: 0 0 .2rem rgba(0, 0, 0, 0.5); */
+    background-color: rgba(0, 0, 0, 0.15);
+    /* Setting the transition on hover prevents button animation from triggering and causing flashing when the page is loaded */
+    transition: background-color .3s ease-in-out;
+}
+
+.icon-text-button:active {
+    /* Scaling the button down causes it to move out from under the cursor when clicking right at the edge, so we limit
+     * how much we scale it down.
+     */
+    transform: scale(0.95);
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+.icon-text-button img {
+    cursor: pointer;
+    height: 1.2rem;
+}
+
+/* For accessibility, we can show the label only to screen readers */
+.screen-reader-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+/*.pasta-id-copy-button {*/
+/*    display: flex;*/
+/*    align-items: center;*/
+/*    gap: 0.5rem;*/
+/*    border: none;*/
+/*    background: transparent;*/
+/*    border-radius: .3rem;*/
+/*    padding: 0.3em;*/
+/*    transition: background-color .3s ease-in-out;*/
+/*}*/
+
+/* Pasta ID with copy button */
+
+.pasta-id-parent {
+    display: flex;
+    align-items: center;
+    /* gap: 0.5rem; */
+    max-width: 10rem;
+}
+
+.pasta-id-child-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pasta-id-child-icon {
+    cursor: pointer;
+    border-radius: .3rem;
+    padding: 0 .5rem 0 .5rem;
+    /* height: 1.5rem; */
+    /* width: 1.2rem; */
+}
+
+.pasta-id-child-icon img {
+    height: 1.05rem;
+}
+
+.pasta-id-child-icon:hover {
+    transition: background-color .3s ease-in-out;
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+.pasta-id-child-icon:active {
+    transform: scale(0.95);
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Add a bit of space between BootStrap form-group's */
+.form-group {
+    padding: .5rem;
+}

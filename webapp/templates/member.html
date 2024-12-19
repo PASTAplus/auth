@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% set active_page = 'identity' %}
+
+{% block title %}
+  Group Members
+{% endblock %}
+
+{% block head %}
+  <link rel='stylesheet' href='{{ url('/static/css/member.css') }}'>
+{% endblock %}
+
+{% block scripts %}
+  <script src='{{ url('/static/js/member.js') }}'></script>
+{% endblock %}
+
+{% block content %}
+
+  <div class='header-container'
+       data-root-path='{{ url('') }}'
+       data-group-id='{{ group_row.id }}'
+  >
+    <h1 aria-label>Group Members</h1>
+  </div>
+
+  <div class='indent'>
+    <p>
+      Group members are users who have been added to the group and have access to the resources
+      the group has access to.
+    </p>
+    <p>
+      Adding a member to this group grants them immediate access to all resources the group has access to,
+      while removing them revokes that access.
+    </p>
+
+    <p>
+      <a href='{{ url('/ui/group') }}' class='icon-text-button'>
+        <span><img src='{{ url('/static/svg/back.svg') }}' alt='Back to Groups'></span>
+        <span>Back to Groups</span>
+      </a>
+    </p>
+
+    <div class='indent'>
+      <div class='details-grid'>
+        <div class='details-grid-child label'>Name</div>
+        <div class='details-grid-child label'>{{ group_row.name }}</div>
+
+        <div class='details-grid-child label'>Description</div>
+        <div class='details-grid-child'>{{ group_row.description or '' }}</div>
+
+        <div class='details-grid-child label'>Group ID</div>
+        <div class='details-grid-child'>
+          <div class='pasta-id-parent'>
+            <div class='pasta-id-child-text'>
+              {{ group_row.grid }}
+            </div>
+            <div class='pasta-id-child-icon'>
+              <img src='{{ url('/static/svg/copy.svg') }}' alt='Copy Group Identifier'>
+            </div>
+          </div>
+        </div>
+
+        <div class='details-grid-child label'>Created date</div>
+        <div class='details-grid-child'>{{ group_row.created }}</div>
+
+        <div class='details-grid-child label'>Updated date</div>
+        <div class='details-grid-child'>{{ group_row.updated }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class='indent'>
+    <p>Group members:</p>
+    <div class='indent profile-list-grid' id='memberList'>
+      <div class='grid-msg'>Loading members...</div>
+    </div>
+  </div>
+
+  <div class='indent'>
+    <p>Add members:</p>
+    <div class='indent'>
+      <label for='searchMember' class='screen-reader-only'>Search for member to add</label>
+      <input type='text' class='form-control' id='searchMember'
+             placeholder='Type a few letters from name, email, organization and/or association'>
+    </div>
+
+    <div class='indent profile-list-grid' id='candidateList'>
+    </div>
+  </div>
+
+{% endblock %}

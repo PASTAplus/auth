@@ -6,17 +6,20 @@ dependencies:
   - python=3.11
   - sqlalchemy=1.4.46
   - click
+  - cryptography
   - daiquiri
   - fastapi
   - gunicorn
   - ldap3
   - libiconv
-  - oauthlib
   - pendulum
+  - pillow
   - pycryptodome
+  - pyjwt
   - pynacl
   - pytest
   - requests
   - sqlite
+  - thefuzz
   - urllib3
   - uvicorn

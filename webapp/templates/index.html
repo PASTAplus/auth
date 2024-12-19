@@ -1,11 +1,14 @@
-{% extends "base.html" %}
-{% set active_page = "index" %}
+{% extends 'base.html' %}
+{% set active_page = 'index' %}
 
 {% block title %}
   Home
 {% endblock %}
 
 {% block content %}
+
+  {#<div class='container-left-margin'>#}
+
   <h1>Profiles</h1>
 
   <table>
@@ -51,5 +54,7 @@
     </tr>
     </tbody>
   </table>
+
+  {#</div>#}
 
 {% endblock %}
