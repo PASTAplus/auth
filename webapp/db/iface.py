@@ -35,7 +35,7 @@ engine = sqlalchemy.create_engine(
 )
 
 # TODO: Add some sort of switch for this
-# Base.metadata.drop_all(engine)
+# db.base.Base.metadata.drop_all(engine)
 
 # Create the tables in the database
 db.base.Base.metadata.create_all(engine)

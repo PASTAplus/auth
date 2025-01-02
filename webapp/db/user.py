@@ -9,6 +9,7 @@ import sqlalchemy.pool
 import db.base
 import db.group
 import db.sync
+import db.permission
 
 import util
 
