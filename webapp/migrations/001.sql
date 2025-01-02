@@ -83,7 +83,7 @@ select
   privacy_policy_accepted,
   privacy_policy_accepted_date,
   '',
-  association,
+  '',
   false
 from profile
 ;

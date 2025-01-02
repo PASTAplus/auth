@@ -101,6 +101,14 @@ class RootPathMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
         return await call_next(request)
 
 
+class RouterLoggingMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
+    async def dispatch(self, request: starlette.requests.Request, call_next):
+        log.info(f'>>> {request.method} {request.url}')
+        response = await call_next(request)
+        log.info(f'<<< {response.status_code}')
+        return response
+
+
 class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     async def dispatch(self, request: starlette.requests.Request, call_next):
         # If the request is for a /ui path, redirect to signin if the token is invalid
@@ -118,6 +126,8 @@ class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
 
 # noinspection PyTypeChecker
 app.add_middleware(RootPathMiddleware)
+# noinspection PyTypeChecker
+app.add_middleware(RouterLoggingMiddleware)
 # noinspection PyTypeChecker
 app.add_middleware(RedirectToSigninMiddleware)
 
