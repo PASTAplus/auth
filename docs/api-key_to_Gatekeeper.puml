@@ -1,0 +1,25 @@
+@startuml
+actor client
+participant Auth
+participant Gatekeeper
+participant PASTA
+
+title API key REQUEST directly to Gatekeeper
+
+autonumber
+
+client->Gatekeeper: REQUEST with API key
+Gatekeeper->Auth: API key
+Auth->Auth: validate API key
+Auth->Auth: generate external auth-token
+Auth->Gatekeeper: external auth-token
+Gatekeeper->Gatekeeper: generate internal token
+Gatekeeper->PASTA: REQUEST with internal auth-token
+PASTA->PASTA: authorize service
+PASTA->PASTA: authorize resource
+PASTA->PASTA: execute service
+Gatekeeper<--PASTA: service RESPONSE
+Gatekeeper->Gatekeeper: add external auth-token to RESPONSE
+client<--Gatekeeper: service RESPONSE with external auth-token
+
+@enduml
