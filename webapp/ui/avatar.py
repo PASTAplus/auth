@@ -24,13 +24,13 @@ async def avatar(
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
     token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
-    profile_row = udb.get_profile(token.urid)
+    profile_row = udb.get_profile(token.pasta_id)
 
     avatar_list = [
         {
             'url': util.get_initials_avatar_url(profile_row.initials),
             'idp_name': None,
-            'uid': '',
+            'idp_uid': '',
         }
     ]
     for identity_row in profile_row.identities:
@@ -39,7 +39,7 @@ async def avatar(
                 {
                     'url': util.get_identity_avatar_url(identity_row),
                     'idp_name': identity_row.idp_name,
-                    'uid': identity_row.uid,
+                    'idp_uid': identity_row.idp_uid,
                 }
             )
 
@@ -68,22 +68,22 @@ async def avatar_update(
 ):
     form_data = await request.form()
     idp_name = form_data.get('idp_name')
-    uid = form_data.get('uid')
+    idp_uid = form_data.get('idp_uid')
 
-    log.info(f'Updating avatar: idp_name={idp_name}, uid={uid}')
+    log.info(f'Updating avatar: idp_name={idp_name}, idp_uid={idp_uid}')
 
-    profile_row = udb.get_profile(token.urid)
+    profile_row = udb.get_profile(token.pasta_id)
 
-    if uid == '':
+    if idp_uid == '':
         profile_row.has_avatar = False
-        avatar_path = util.get_avatar_path('profile', profile_row.urid)
+        avatar_path = util.get_avatar_path('profile', profile_row.pasta_id)
         avatar_path.unlink(missing_ok=True)
     else:
         profile_row.has_avatar = True
-        avatar_img = util.get_avatar_path(idp_name, uid).read_bytes()
-        util.save_avatar(avatar_img, 'profile', profile_row.urid)
+        avatar_img = util.get_avatar_path(idp_name, idp_uid).read_bytes()
+        util.save_avatar(avatar_img, 'profile', profile_row.pasta_id)
 
-    udb.update_profile(token.urid, has_avatar=uid != '')
+    udb.update_profile(token.pasta_id, has_avatar=idp_uid != '')
 
     return util.redirect_internal('/ui/profile', refresh='true')
 

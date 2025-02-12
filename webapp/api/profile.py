@@ -32,7 +32,7 @@ async def profile_get(
     """Get a profile."""
     token = webapp.old_token.OldToken()
     token.from_auth_token(token_str)
-    profile_row = udb.get_profile(token.uid)
+    profile_row = udb.get_profile(token.idp_uid)
     return starlette.responses.Response(
         webapp.util.to_pretty_json(profile_row.as_dict())
     )
@@ -55,7 +55,7 @@ async def profile_map(
     token_src.from_auth_token(token_src_str)
     token_dst = webapp.old_token.OldToken()
     token_dst.from_auth_token(token_dst_str)
-    udb.map_profile(token_src.uid, token_dst.uid)
+    udb.map_profile(token_src.idp_uid, token_dst.idp_uid)
 
 
 # 6. drop_profile (profile_id, authtoken)
@@ -72,7 +72,7 @@ async def profile_disable(
     """
     token = webapp.old_token.OldToken()
     token.from_auth_token(token_str)
-    udb.disable_profile(token.uid)
+    udb.disable_profile(token.idp_uid)
 
 
 # 3. drop_identity (token, IdP)
@@ -81,7 +81,7 @@ async def profile_disable(
 async def identity_drop(
     token_str: str,
     idp_name: str,
-    uid: str,
+    idp_uid: str,
     udb: webapp.user_db.UserDb = fastapi.Depends(webapp.user_db.udb),
 ):
     """Drop an identity from a profile.
@@ -94,7 +94,7 @@ async def identity_drop(
     """
     token = webapp.old_token.OldToken()
     token.from_auth_token(token_str)
-    udb.drop_identity(token.uid, idp_name, uid)
+    udb.drop_identity(token.idp_uid, idp_name, idp_uid)
 
 
 # 4. list_identities (profile_id, authtoken)
@@ -108,6 +108,6 @@ async def identity_list(
     token = webapp.old_token.OldToken()
     token.from_auth_token(token_str)
     identity_list = []
-    for identity_row in udb.get_identity_list(token.uid):
+    for identity_row in udb.get_identity_list(token.idp_uid):
         identity_list.append(identity_row.as_dict())
     return starlette.responses.Response(webapp.util.to_pretty_json(identity_list))

@@ -20,8 +20,7 @@ async def refresh_token(
 ):
     """Validate and refresh an old style authentication token.
 
-    A refreshed token is a token that matches the original token's uid and
-    groups but has a new TTL.
+    A refreshed token is a token that matches the original token but has a new TTL.
     """
     external_token = (await request.body()).decode('utf-8')
 

@@ -131,7 +131,7 @@ async def callback_microsoft(
         target_url=target_url,
         full_name=user_dict['name'],
         idp_name='microsoft',
-        uid=user_dict['sub'],
+        idp_uid=user_dict['sub'],
         email=user_dict['email'],
         has_avatar=has_avatar,
         is_vetted=False,
@@ -176,8 +176,8 @@ async def logout_microsoft(
     callback URL with a `post_logout_redirect_uri` parameter.
     """
     target_url = request.query_params.get('target')
-    uid = request.query_params.get('uid')
-    log.debug(f'logout_microsoft() target_url="{target_url}" uid="{uid}"')
+    idp_uid = request.query_params.get('idp_uid')
+    log.debug(f'logout_microsoft() target_url="{target_url}" idp_uid="{idp_uid}"')
 
     # request.base_url matches the route that points to this handler, except for
     # query parameters. We built onto the base_url to reach the next handler, which

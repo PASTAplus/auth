@@ -1,6 +1,6 @@
 // Highlight the current page in the navigation bar
-let pageName = getPageName();
-let el_arr = document.querySelectorAll('a.nav-link');
+const pageName = getPageName();
+const el_arr = document.querySelectorAll('a.nav-link');
 for (let el of el_arr) {
   if (el.getAttribute('href').endsWith(`/${pageName}`)) {
     el.classList.add('active');
@@ -13,20 +13,20 @@ for (let el of el_arr) {
 }
 
 function getPageName() {
-  let url = window.location.pathname;
-  let split_list = url.split('/');
+  const url = window.location.pathname;
+  const split_list = url.split('/');
   return split_list[split_list.length - 1];
 }
 
 // Handle PASTA ID copy buttons
-let copyButtons = document.querySelectorAll('.pasta-id-child-icon');
-for (let button of copyButtons) {
-  button.addEventListener('click', function(e) {
-    let currentEl = e.target;
-    let pastaIdStr = currentEl.parentElement.previousElementSibling.textContent.trim();
-    copyTextToClipboard(pastaIdStr);
-  });
-}
+// This is a global event listener in order to handle dynamically created elements.
+document.addEventListener('click', function(event) {
+  const idEl = event.target.closest('.pasta-id-parent');
+  if (!idEl) { return; }
+  const textEl = idEl.querySelector('.pasta-id-child-text');
+  const pastaIdStr = textEl.textContent.trim();
+  copyTextToClipboard(pastaIdStr);
+});
 
 function copyTextToClipboard(text)
 {
@@ -41,7 +41,7 @@ function copyTextToClipboard(text)
 
 let privacyPolicyModal = document.getElementById('privacyPolicyModal');
 if (privacyPolicyModal.dataset.profileId !== undefined && privacyPolicyModal.dataset.policyAccepted !== 'true') {
-  let modal = new bootstrap.Modal(privacyPolicyModal);
+  const modal = new bootstrap.Modal(privacyPolicyModal);
   modal.show();
   // privacyPolicyModal.addEventListener('hidden.bs.modal', function() {
   //   let profileId = privacyPolicyModal.dataset.profileId;
@@ -50,3 +50,16 @@ if (privacyPolicyModal.dataset.profileId !== undefined && privacyPolicyModal.dat
   // });
 }
 
+// Keep track of the height of the navbar, for use in CSS that limits
+// the height of the main content area.
+
+function updateNavbarHeight() {
+  const navbar = document.querySelector('.navbar');
+  const navbarHeight = navbar.offsetHeight;
+  document.documentElement.style.setProperty('--navbar-height', `${navbarHeight}px`);
+  const headerHeight = getComputedStyle(document.documentElement).getPropertyValue('--navbar-height');
+  console.log('Header Height:', headerHeight);
+}
+
+updateNavbarHeight();
+window.addEventListener('resize', updateNavbarHeight);

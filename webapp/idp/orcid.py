@@ -90,7 +90,7 @@ async def callback_orcid(
         target_url=target_url,
         full_name=token_dict['name'],
         idp_name='orcid',
-        uid=Config.ORCID_DNS + token_dict['orcid'],
+        idp_uid=Config.ORCID_DNS + token_dict['orcid'],
         email=token_dict.get('email'),
         has_avatar=False,
         is_vetted=False,
@@ -107,14 +107,14 @@ async def revoke_orcid(
     request: starlette.requests.Request,
 ):
     target_url = request.query_params.get('target')
-    uid = request.query_params.get('uid')
+    idp_uid = request.query_params.get('idp_uid')
     idp_token = request.query_params.get('idp_token')
     util.log_dict(
         log.debug,
         'revoke_orcid()',
         {
             'target_url': target_url,
-            'uid': uid,
+            'idp_uid': idp_uid,
             'idp_token': idp_token,
         },
     )

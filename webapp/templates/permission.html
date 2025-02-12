@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{#{% set active_page = 'permission' %}#}
+
+{% block title %}
+  Permissions
+{% endblock %}
+
+{% block head %}
+  <link rel='stylesheet' href='{{ url('/static/css/permission.css') }}'>
+{% endblock %}
+
+{% block scripts %}
+  <script src='{{ url('/static/js/permission.js') }}'></script>
+{% endblock %}
+
+{% block content %}
+  <div class='split-container'>
+
+    <div class='split-top-content'>
+
+      <div class='header-container'
+           data-root-path='{{ url('') }}'
+          {#data-group-id='{{ group_row.id }}'#}
+      >
+        <h1 aria-label>Permissions</h1>
+      </div>
+
+      <div class='indent'>
+        <p>
+          Manage permissions to control access to your resources. You can grant permissions to both users and groups.
+        </p>
+      </div>
+
+    </div>
+
+    <div class='split-main'>
+
+      <div class='split-section split-left'>
+
+        <h4>Select Resources</h4>
+
+        <div>
+          <input type='text' class='form-control' id='collectionSearch' name='name' placeholder='Search for resources' autocomplete="off" spellcheck="false">
+        </div>
+        <div class='collection-right'>
+          <label>
+            <input type='checkbox' id='selectAllCheckbox'/>
+            Select All
+          </label>
+          &nbsp;&nbsp;
+          <label>
+            <input type='checkbox' id='showPermissionsCheckbox' checked/>
+            Show Permissions
+          </label>
+        </div>
+        <div class="collection-grid" id='collectionList'>
+          {#<div class='grid-msg'>Loading permissions...</div>#}
+        </div>
+      </div>
+
+      <div class='split-section split-right'>
+        {#<div class='main-grid-child'>#}
+        {#  <div class='permission-parent-flex'>#}
+        <div>
+          <h4>
+            Set Permissions
+          </h4>
+        </div>
+        <div>
+          <input type='text' class='form-control' id='candidateSearch' name='name' autocomplete="off" spellcheck="false">
+          <div id='candidateList' tabindex='0' class='form-control'></div>
+        </div>
+        {#</div>#}
+        <div class='permission-grid' id='permissionList'>
+          {#<div class='grid-msg'>Loading permissions...</div>#}
+        </div>
+
+        <hr>
+
+        <div class="permission-grid-title">Public Access</div>
+
+        <div class='permission-public' id='publicPermissions'>
+          <label>
+            <input type='radio' name='publicLevel' value='metadata_and_data'> Metadata and Data
+          </label>
+          <label>
+            <input type='radio' name='publicLevel' value='metadata_only' checked> Metadata Only
+          </label>
+          <label>
+            <input type='radio' name='publicLevel' value='none'> None
+          </label>
+        </div>
+        {#</div>#}
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

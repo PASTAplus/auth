@@ -52,7 +52,7 @@ async def dev_token(
                 'token_pp': 'NO TOKEN',
             },
         )
-    profile_row = udb.get_profile(token.urid)
+    profile_row = udb.get_profile(token.pasta_id)
     return util.templates.TemplateResponse(
         'token.html',
         {
@@ -88,19 +88,15 @@ async def index(
     )
 
 
-@router.get('/dev/signin/{urid}')
+@router.get('/dev/signin/{idp_name}/{idp_uid}')
 @assert_dev_enabled
-async def dev_signin_urid(
-    urid: str,
+async def dev_signin_pasta_id(
+    idp_name: str,
+    idp_uid: str,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
 ):
     response = util.redirect_internal('/ui/profile')
-    profile_row = udb.get_profile(urid)
-    pasta_token = pasta_jwt.PastaJwt(
-        {
-            'sub': urid,
-            'groups': udb.get_group_membership_grid_set(profile_row),
-        }
-    )
+    identity_row = udb.get_identity(idp_name, idp_uid)
+    pasta_token = pasta_jwt.make_jwt(udb, identity_row, is_vetted=True)
     response.set_cookie(key='pasta_token', value=pasta_token)
     return response

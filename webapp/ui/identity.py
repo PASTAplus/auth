@@ -21,14 +21,14 @@ async def identity(
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
     token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
-    profile_row = udb.get_profile(token.urid)
+    profile_row = udb.get_profile(token.pasta_id)
 
     identity_list = []
     for identity_row in profile_row.identities:
         identity_list.append(
             {
                 'idp_name': identity_row.idp_name,
-                'uid': identity_row.uid,
+                'idp_uid': identity_row.idp_uid,
                 'avatar_url': util.get_identity_avatar_url(identity_row),
                 'idp_logo_url': util.get_idp_logo_url(identity_row.idp_name),
                 'full_name': identity_row.email,
@@ -61,14 +61,14 @@ async def identity_unlink(
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
     token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
-    profile_row = udb.get_profile(token.urid)
+    profile_row = udb.get_profile(token.pasta_id)
 
     form_data = await request.form()
     idp_name = form_data.get('idp_name')
-    uid = form_data.get('uid')
+    idp_uid = form_data.get('idp_uid')
 
-    log.info(f'Unlinking identity: idp_name={idp_name}, uid={uid}')
+    log.info(f'Unlinking identity: idp_name={idp_name}, idp_uid={idp_uid}')
 
-    udb.delete_identity(profile_row, idp_name, uid)
+    udb.delete_identity(profile_row, idp_name, idp_uid)
 
     return util.redirect_internal('/ui/identity')

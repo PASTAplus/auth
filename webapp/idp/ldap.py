@@ -50,20 +50,20 @@ async def login_pasta(
             content=str(e), status_code=starlette.status.HTTP_400_BAD_REQUEST
         )
 
-    uid = util.get_ldap_uid(ldap_dn)
+    dn_uid = util.get_ldap_uid(ldap_dn)
 
     if not pasta_ldap.bind(ldap_dn, password):
         return starlette.responses.Response(
-            content=f'Authentication failed for user: {uid}',
+            content=f'Authentication failed for user: {dn_uid}',
             status_code=starlette.status.HTTP_401_UNAUTHORIZED,
         )
 
     log.debug(f'login_pasta() - login successful: {ldap_dn}')
 
     udb.create_or_update_profile_and_identity(
-        full_name=uid,
+        full_name=dn_uid,
         idp_name='ldap',
-        uid=ldap_dn,
+        idp_uid=ldap_dn,
         email=None,
         has_avatar=False,
     )

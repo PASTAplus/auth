@@ -2,169 +2,23 @@ import datetime
 import uuid
 
 import daiquiri
+import sqlalchemy
 import sqlalchemy.event
 import sqlalchemy.orm
 import sqlalchemy.pool
 
 import db.base
 import db.group
-import db.sync
+import db.identity
 import db.permission
-
+import db.profile
+import db.sync
 import util
 
 log = daiquiri.getLogger(__name__)
 
 
-#
-# Tables
-#
-
-
-class Profile(db.base.Base):
-    __tablename__ = 'profile'
-    # At the DB level, we use an 'id' integer primary key for rows, and for foreign key
-    # relationships.
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    # The PASTA ID for the user. This is the primary key for the user in our system. We
-    # don't use it as a primary key in the DB, however, since it's a string, and string
-    # indexes are less efficient than integer indexes.
-    urid = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True)
-    # The user's given and family names. Initially set to the values provided by the
-    # IdP.
-    given_name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    family_name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    # The email address that the user has chosen as their contact email. Initially set
-    # to the email address provided by the IdP.
-    email = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    # Permit notifications to be sent to this email address.
-    email_notifications = sqlalchemy.Column(
-        sqlalchemy.Boolean(), nullable=False, default=False
-    )
-    # Initially false, then set to true when the user accepts the privacy policy.
-    privacy_policy_accepted = sqlalchemy.Column(
-        sqlalchemy.Boolean(), nullable=False, default=False
-    )
-    # The date when the user accepted the privacy policy.
-    privacy_policy_accepted_date = sqlalchemy.Column(
-        sqlalchemy.DateTime(), nullable=True
-    )
-    organization = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    association = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    has_avatar = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False, default=False)
-
-    # cascade_backrefs=False:
-    # https://sqlalche.me/e/14/s9r1
-    # https://sqlalche.me/e/b8d9
-    identities = sqlalchemy.orm.relationship(
-        'Identity',
-        back_populates='profile',
-        cascade_backrefs=False,
-        cascade='all, delete-orphan',
-    )
-    groups = sqlalchemy.orm.relationship(
-        'Group',
-        back_populates='profile',
-        cascade_backrefs=False,
-        cascade='all, delete-orphan',
-    )
-    group_members = sqlalchemy.orm.relationship(
-        'GroupMember',
-        back_populates='profile',
-        cascade_backrefs=False,
-        cascade='all, delete-orphan',
-    )
-
-    @property
-    def full_name(self):
-        if self.family_name is None:
-            return self.given_name
-        return f'{self.given_name} {self.family_name}'
-
-    @full_name.setter
-    def full_name(self, full_name):
-        try:
-            self.given_name, self.family_name = full_name.split(' ', 1)
-        except ValueError:
-            self.given_name, self.family_name = full_name, None
-
-    @property
-    def initials(self):
-        return ''.join(s[0].upper() for s in self.full_name.split())
-
-    @property
-    def avatar_url(self):
-        return str(util.get_profile_avatar_url(self))
-
-
-class Identity(db.base.Base):
-    __tablename__ = 'identity'
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    # Identities have a many-to-one relationship with Profiles. This allows us to find
-    # the one Profile that corresponds to a given Identity, and to find all Identities
-    # that correspond to a given Profile. The latter is referenced via the backref
-    # 'identities' in the Profile. The 'profile_id' declaration creates the physical
-    # column in the table which tracks the relationship. Setting 'profile_id' nullable
-    # to False forces the identity to be linked to an existing profile. The 'profile'
-    # declaration specifies the relationship for use only in the ORM layer.
-    profile_id = sqlalchemy.Column(
-        sqlalchemy.Integer, sqlalchemy.ForeignKey('profile.id'), nullable=False
-    )
-    # Our name for the IdP. Currently one of 'github', 'google', 'ldap', 'microsoft',
-    # 'orcid'.
-    # This acts as a namespace for the subject (sub) provided by the IdP.
-    idp_name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
-    # The uid is the unique user ID provided by the IdP. The source of this value varies
-    # with the IdP. E.g., for Google, it's the 'sub' (subject) and for ORCID, it's an
-    # ORCID on URL form. The value is unique within the IdP's namespace. It is only
-    # unique within our system when combined with the idp_name.
-    uid = sqlalchemy.Column(sqlalchemy.String, nullable=False)
-    # The email address provided by the IdP. This will change if the user updates their
-    # email address with the IdP.
-    email = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    # The date and time of the first successful authentication with this identity.
-    first_auth = sqlalchemy.Column(
-        sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now
-    )
-    # The date and time of the most recent successful authentication with this identity.
-    last_auth = sqlalchemy.Column(
-        sqlalchemy.DateTime,
-        nullable=False,
-        default=datetime.datetime.now,
-        onupdate=datetime.datetime.now,
-    )
-    # True if an avatar has been successfully downloaded and stored in the file system
-    # for this IdP.
-    has_avatar = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False, default=False)
-
-    profile = sqlalchemy.orm.relationship(
-        'Profile',
-        back_populates='identities',
-        cascade_backrefs=False,
-    )
-    # @property
-    # def full_name(self):
-    #     if self.family_name is None:
-    #         return self.given_name
-    #     return f'{self.given_name} {self.family_name}'
-
-    __table_args__ = (
-        # Ensure that idp_name and uid are unique together (each IdP has its own
-        # namespace for unique identifiers)
-        sqlalchemy.UniqueConstraint('idp_name', 'uid', name='idp_name_uid_unique'),
-        # Ensure that the idp_name is the name of one of our supported IdPs
-        sqlalchemy.CheckConstraint(
-            "idp_name IN ('github', 'google', 'ldap', 'microsoft', 'orcid')",
-            name='idp_name_check',
-        ),
-    )
-
-
-#
-# Interface
-#
-
-
+# noinspection PyTypeChecker
 class UserDb:
     def __init__(self, session: sqlalchemy.orm.Session):
         self.session = session
@@ -172,20 +26,21 @@ class UserDb:
     #
     # Profile and Identity
     #
+
     def create_or_update_profile_and_identity(
         self,
         full_name: str,
         idp_name: str,
-        uid: str,
+        idp_uid: str,
         email: str | None,
         has_avatar: bool,
-    ) -> Identity:
+    ) -> db.identity.Identity:
         """Create or update a profile and identity.
 
         See the table definitions for Profile and Identity for more information on the
         fields.
         """
-        identity_row = self.get_identity(idp_name=idp_name, uid=uid)
+        identity_row = self.get_identity(idp_name=idp_name, idp_uid=idp_uid)
         # Split a full name in to given name and family name. If full_name is a single
         # word, family_name will be None. If full_name is multiple words, the first word
         # will be given_name and the remaining words will be family_name.
@@ -202,20 +57,24 @@ class UserDb:
             identity_row = self.create_identity(
                 profile=profile_row,
                 idp_name=idp_name,
-                uid=uid,
+                idp_uid=idp_uid,
                 email=email,
                 has_avatar=has_avatar,
             )
             # Set the avatar for the profile to the avatar for the identity
             if has_avatar:
-                avatar_img = util.get_avatar_path(idp_name, uid).read_bytes()
-                util.save_avatar(avatar_img, 'profile', profile_row.urid)
+                avatar_img = util.get_avatar_path(idp_name, idp_uid).read_bytes()
+                util.save_avatar(avatar_img, 'profile', profile_row.pasta_id)
         else:
             # We do not update the profile if it exists, since the profile belongs to
             # the user, and they may update their profile with their own information.
-            self.update_identity(identity_row, idp_name, uid, email, has_avatar)
+            self.update_identity(identity_row, idp_name, idp_uid, email, has_avatar)
 
         return identity_row
+
+    #
+    # Profile
+    #
 
     def create_profile(
         self,
@@ -224,8 +83,8 @@ class UserDb:
         email: str = None,
         has_avatar: bool = False,
     ):
-        new_profile = Profile(
-            urid=UserDb.get_new_urid(),
+        new_profile = db.profile.Profile(
+            pasta_id=UserDb.get_new_pasta_id(),
             given_name=given_name,
             family_name=family_name,
             email=email,
@@ -236,43 +95,48 @@ class UserDb:
         self.sync_update('profile')
         return new_profile
 
-    def get_profile(self, urid):
-        query = self.session.query(Profile)
-        profile = query.filter(Profile.urid == urid).first()
-        return profile
+    def get_profile(self, pasta_id):
+        return (
+            self.session.query(db.profile.Profile)
+            .filter(db.profile.Profile.pasta_id == pasta_id)
+            .first()
+        )
 
     def get_profiles_by_ids(self, profile_id_list):
         """Get a list of profiles by their IDs.
         The list is returned in the order of the IDs in the input list.
         """
-        query = self.session.query(Profile)
-        profile_list = query.filter(Profile.id.in_(profile_id_list)).all()
-        profile_dict = {p.id: p for p in profile_list}
+        profile_query = (
+            self.session.query(db.profile.Profile)
+            .filter(db.profile.Profile.id.in_(profile_id_list))
+            .all()
+        )
+        profile_dict = {p.id: p for p in profile_query}
         return [
             profile_dict[profile_id]
             for profile_id in profile_id_list
             if profile_id in profile_dict
         ]
 
-    def has_profile(self, urid):
-        return self.get_profile(urid) is not None
+    def has_profile(self, pasta_id):
+        return self.get_profile(pasta_id) is not None
 
-    def update_profile(self, urid, **kwargs):
-        profile_row = self.get_profile(urid)
+    def update_profile(self, pasta_id, **kwargs):
+        profile_row = self.get_profile(pasta_id)
         for key, value in kwargs.items():
             setattr(profile_row, key, value)
         self.session.commit()
         self.sync_update('profile')
 
-    def delete_profile(self, urid):
-        profile_row = self.get_profile(urid)
+    def delete_profile(self, pasta_id):
+        profile_row = self.get_profile(pasta_id)
         self.session.delete(profile_row)
         self.session.commit()
         self.sync_update('profile')
 
-    def set_privacy_policy_accepted(self, urid):
+    def set_privacy_policy_accepted(self, pasta_id):
         log.debug('Setting privacy policy accepted')
-        profile_row = self.get_profile(urid)
+        profile_row = self.get_profile(pasta_id)
         profile_row.privacy_policy_accepted = True
         profile_row.privacy_policy_accepted_date = datetime.datetime.now()
         self.session.commit()
@@ -285,15 +149,15 @@ class UserDb:
         self,
         profile,
         idp_name: str,
-        uid: str,
+        idp_uid: str,
         email: str,
         has_avatar: bool,
     ):
         """Create a new identity for a given profile."""
-        new_identity = Identity(
+        new_identity = db.identity.Identity(
             profile=profile,
             idp_name=idp_name,
-            uid=uid,
+            idp_uid=idp_uid,
             email=email,
             has_avatar=has_avatar,
         )
@@ -302,10 +166,10 @@ class UserDb:
         self.sync_update('identity')
         return new_identity
 
-    def update_identity(self, identity_row, idp_name, uid, email, has_avatar):
+    def update_identity(self, identity_row, idp_name, idp_uid, email, has_avatar):
         assert identity_row.profile is not None
         assert identity_row.idp_name == idp_name
-        assert identity_row.uid == uid
+        assert identity_row.idp_uid == idp_uid
         # We always update the email address in the identity row, but only update the profile if the
         # profile is new. So if the user has changed their email address with the IdP, the new email
         # address will be stored in the identity row, but the profile will retain the original email
@@ -320,37 +184,53 @@ class UserDb:
         self.session.commit()
         self.sync_update('identity')
 
-    def get_identity(self, idp_name: str, uid: str):
-        query = self.session.query(Identity)
-        identity = query.filter(
-            Identity.idp_name == idp_name, Identity.uid == uid
-        ).first()
-        return identity
+    def get_identity(self, idp_name: str, idp_uid: str):
+        return (
+            self.session.query(db.identity.Identity)
+            .filter(
+                db.identity.Identity.idp_name == idp_name,
+                db.identity.Identity.idp_uid == idp_uid,
+            )
+            .first()
+        )
 
     def get_identity_by_id(self, identity_id):
-        query = self.session.query(Identity)
-        identity = query.filter(Identity.id == identity_id).first()
-        return identity
+        return (
+            self.session.query(db.identity.Identity)
+            .filter(db.identity.Identity.id == identity_id)
+            .first()
+        )
 
-    def delete_identity(self, profile_row, idp_name: str, uid: str):
+    def delete_identity(self, profile_row, idp_name: str, idp_uid: str):
         """Delete an identity."""
-        identity_row = self.get_identity(idp_name, uid)
+        identity_row = self.get_identity(idp_name, idp_uid)
         if identity_row not in profile_row.identities:
-            raise ValueError(f'Identity {idp_name} {uid} does not belong to profile')
+            raise ValueError(
+                f'Identity {idp_name} {idp_uid} does not belong to profile'
+            )
         self.session.delete(identity_row)
         self.session.commit()
         self.sync_update('identity')
 
     @staticmethod
-    def get_new_urid():
+    def get_new_pasta_id():
         return f'PASTA-{uuid.uuid4().hex}'
 
     def get_all_profiles(self):
-        query = self.session.query(Profile)
-        return query.order_by(sqlalchemy.asc(Profile.id)).all()
+        return (
+            self.session.query(db.profile.Profile)
+            .order_by(sqlalchemy.asc(db.profile.Profile.id))
+            .all()
+        )
 
     def get_all_profiles_generator(self):
-        for profile_row in self.session.query(Profile):
+        """Get a generator of all profiles, sorted by name, email, with id as tiebreaker."""
+        for profile_row in self.session.query(db.profile.Profile).order_by(
+            db.profile.Profile.given_name,
+            db.profile.Profile.family_name,
+            db.profile.Profile.email,
+            db.profile.Profile.id,
+        ):
             yield profile_row
 
     #
@@ -359,7 +239,7 @@ class UserDb:
 
     def create_group(self, profile_row, name, description):
         new_group = db.group.Group(
-            grid=UserDb.get_new_urid(),
+            pasta_id=UserDb.get_new_pasta_id(),
             profile=profile_row,
             name=name,
             description=description or None,
@@ -456,15 +336,15 @@ class UserDb:
 
     def get_group_membership_list(self, profile_row):
         """Get the groups that this profile is a member of."""
-        query = (
+        return (
             self.session.query(db.group.Group)
             .join(db.group.GroupMember)
             .filter(db.group.GroupMember.profile == profile_row)
+            .all()
         )
-        return query.all()
 
-    def get_group_membership_grid_set(self, profile_row):
-        return {group.grid for group in self.get_group_membership_list(profile_row)}
+    def get_group_membership_pasta_id_set(self, profile_row):
+        return {group.pasta_id for group in self.get_group_membership_list(profile_row)}
 
     def leave_group_membership(self, profile_row, group_id):
         """Leave a group.
@@ -488,6 +368,19 @@ class UserDb:
         self.session.commit()
         self.sync_update('group_member')
 
+    def get_all_groups_generator(self):
+        for group_row in (
+            self.session.query(db.group.Group)
+            .options(sqlalchemy.orm.joinedload(db.group.Group.profile))
+            .order_by(
+                db.group.Group.name,
+                db.group.Group.description,
+                sqlalchemy.asc(db.group.Group.created),
+                db.group.Group.id,
+            )
+        ):
+            yield group_row
+
     #
     # Sync
     #
@@ -505,3 +398,452 @@ class UserDb:
     def get_sync_ts(self):
         """Get the latest timestamp"""
         return self.session.query(sqlalchemy.func.max(db.sync.Sync.updated)).scalar()
+
+    #
+    # Permission
+    #
+
+    # def get_permission_list(self, resource_row):
+    #     return (
+    #         self.session.query(db.permission.Permission)
+    #         .join(
+    #             db.profile.Profile,
+    #             db.permission.Permission.grantee_id == db.profile.Profile.id,
+    #         )
+    #         .filter(db.permission.Permission.resource == resource_row)
+    #         # order_by can only accept column names, not dynamic properties like full_name.
+    #         .order_by(
+    #             db.profile.Profile.given_name,
+    #             db.profile.Profile.family_name,
+    #             db.profile.Profile.id,
+    #         )
+    #         .all()
+    #     )
+
+    # def get_resource(self, resource_id):
+    #     return (
+    #         self.session.query(db.permission.Resource)
+    #         .filter(db.permission.Resource.id == resource_id)
+    #         .first()
+    #     )
+
+    # def get_permission(self, permission_id):
+    #     return (
+    #         self.session.query(db.permission.Permission)
+    #         .filter(db.permission.Permission.id == permission_id)
+    #         .first()
+    #     )
+
+    # def create_permission(self, resource_id, profile_id):
+    #     """Create a new READ permission"""
+    #     new_permission = db.permission.Permission(
+    #         resource_id=resource_id,
+    #         profile_id=profile_id,
+    #         level=1,
+    #     )
+    #     self.session.add(new_permission)
+    #     self.session.commit()
+    #     self.sync_update('permission')
+    #     return new_permission
+
+    ###########
+
+    # def update_permission(
+    #     self, profile_row, resource_list, profile_id, permission_level
+    # ):
+    #     """Update a permission level for a profile.
+    #
+    #     There are 2 profiles:
+    #     - The profile of the user who is updating the permission (profile_row).
+    #     - The profile of the user who is granted the permission.
+    #
+    #     resource_list contains a list of lists of [collection_id, resource_type].
+    #     """
+    #     # return
+    #
+    #     collection_id_list = {r[0] for r in resource_list}
+    #
+    #     query = (
+    #         self.session.query(
+    #             db.permission.Collection,
+    #             db.permission.Resource,
+    #             db.permission.Permission,
+    #             db.profile.Profile,
+    #         )
+    #         .outerjoin(
+    #             db.permission.Resource,
+    #             db.permission.Collection.id == db.permission.Resource.collection_id,
+    #         )
+    #         .outerjoin(
+    #             db.permission.Permission,
+    #             db.permission.Resource.id == db.permission.Permission.resource_id,
+    #         )
+    #         .outerjoin(
+    #             db.profile.Profile,
+    #             db.permission.Permission.profile_id == db.profile.Profile.id,
+    #         )
+    #         .filter(db.permission.Collection.id.in_(collection_id_list))
+    #         .order_by(
+    #             db.permission.Collection.label,
+    #             db.permission.Collection.type,
+    #             db.permission.Collection.created_date,
+    #             db.permission.Resource.type,
+    #             db.permission.Resource.label,
+    #             db.profile.Profile.given_name,
+    #             db.profile.Profile.family_name,
+    #         )
+    #         .all()
+    #     )
+    #
+    #     pprint.pp(query, width=1)
+    #
+    #     # Iterate over all the resources in all the collections.
+    #     # If a permission row exists for the profile:
+    #     #   If the new permission is 0, delete the permission_row, else update it.
+    #     # If a permission row does NOT exist for the profile:
+    #     #   Create a new permission row.
+    #     for collection_row, resource_row, permission_row, profile_row in query:
+    #         # TODO: Use set
+    #         if [collection_row.id, resource_row.type] not in resource_list:
+    #             continue
+    #
+    #         # if permission_level == 0:
+    #         #     self.delete_permission(permission_row)
+    #         #     continue
+    #         #
+    #         # if not permission_row:
+    #         #     continue
+    #
+    #         permission_row.permission_level = permission_level
+    #
+    #         self.session.commit()
+    #
+    #         # for collection_id, resource_type in resource_list:
+    #         #     if resource_row.type != resource_type:
+    #         #         continue
+    #         #
+    #         #
+    #         #     # if collection_row.id != collection_id:
+    #         #     #     continue
+    #         #
+    #         #     # permission_row = self.get_permission_by_profile(resource_id, profile_id)
+    #         #
+    #         #     if permission_level == 0:
+    #         #         return self.delete_permission(permission_row)
+    #         #
+    #         #     if not permission_row:
+    #         #         permission_row = self.create_permission(resource_row.id, profile_id)
+    #         #
+    #         #     # if permission_row.profile != profile_row:
+    #         #     #     raise ValueError('Permission does not belong to profile')
+    #
+    #     self.session.commit()
+    #     self.sync_update('permission')
+
+    async def update_permission(
+        self, token_profile_row, resource_list, profile_id, permission_level
+    ):
+        """Update a permission level for a profile.
+
+        :param token_profile_row: The profile of the user who is updating the
+        permission. The user must have authenticated and must have a valid token for
+        this profile.
+
+        :param resource_list: A list of lists of [collection_id, resource_type].
+        """
+
+        for collection_id, resource_type in resource_list:
+            resource_row_query = (
+                self.session.query(db.permission.Resource)
+                .filter(
+                    db.permission.Resource.collection_id == collection_id,
+                    db.permission.Resource.type == resource_type,
+                )
+                .all()
+            )
+            for resource_row in resource_row_query:
+                self._set_permission(
+                    token_profile_row, resource_row.id, profile_id, permission_level
+                )
+
+        self.session.commit()
+
+        # agg_perm_list = await self.get_aggregate_profile_permission_list(resource_list)
+        #
+        # for collection_id, resource_type in resource_list:
+        #     resource_row_query = (
+        #         self.session.query(db.permission.Resource)
+        #         .filter(
+        #             db.permission.Resource.collection_id == collection_id,
+        #             db.permission.Resource.type == resource_type,
+        #         )
+        #         .all()
+        #     )
+        #     for resource_row in resource_row_query:
+        #         for aggy in agg_perm_list:
+        #             self._set_permission(
+        #                 token_profile_row, resource_row.id, aggy['profile_id'], aggy['permission_level']
+        #             )
+
+        self.session.commit()
+        self.sync_update('permission')
+
+    def _set_permission(
+        self, token_profile_row, resource_id, profile_id, permission_level
+    ):
+        # TODO: Check that token_profile_row has CHANGE permission for resource_id.
+        permission_row = self._get_permission(resource_id, profile_id)
+
+        if permission_level == 0:
+            if permission_row is not None:
+                self.session.delete(permission_row)
+        else:
+            if permission_row is None:
+                permission_row = db.permission.Permission(
+                    resource_id=resource_id,
+                    grantee_id=profile_id,
+                    grantee_type=db.permission.GranteeType.PROFILE,
+                    level=db.permission.PermissionLevel(permission_level),
+                )
+                self.session.add(permission_row)
+            else:
+                permission_row.level = db.permission.PermissionLevel(permission_level)
+
+    def _get_permission(self, resource_id, profile_id):
+        # The Permission table has a unique constraint on (resource_id, profile_id).
+        return (
+            self.session.query(db.permission.Permission).filter(
+                db.permission.Permission.resource_id == resource_id,
+                db.permission.Permission.grantee_id == profile_id,
+            )
+        ).first()
+
+    #
+    # Collection
+    #
+
+    async def get_aggregate_collection_dict(self, profile_row, search_str):
+        """Get a list of collections with nested resources and permissions. The
+         permissions are aggregated by profile, and only the highest permission level
+         is returned for each profile and resource type.
+
+        In the DB:
+
+        - A collection contains zero to many resources
+        - A resource contains zero to many permissions
+        - A permission contains one profile, or one group, or one public permission
+
+        We return:
+
+        - A dict of collections
+        - Each collection contains a dict of resource types
+        - Each resource type contains a dict of resources
+        - Each resource contains a dict of profiles
+        - Each profile contains the max permission level found for that profile in the
+          resource type
+        """
+        # SQLAlchemy automatically escapes parameters to prevent SQL injection attacks,
+        # but we still need to escape the % and _ wildcards in the search string to
+        # preserve them as literals and prevent unwanted wildcard matching.
+        search_str = (
+            search_str.replace("%", "\\%").replace("_", "\\_")
+            # TODO: Check if required
+            # .replace("\\", "\\\\")
+            # .replace("'", "''")
+        )
+
+        # We issue a simple join query, then we iterate over the results and build a
+        # nested dictionary that removes the redundant information in the join result.
+        # We could issue a more complex query that pushes the aggregation to the DB, but
+        # this is much simpler, at the cost of some redundant information going over the
+        # network.
+
+        query = (
+            # We assign labels as SQLAlchemy gets confused by multiple columns with the
+            # same name (which we get after join for the id, label and type fields). We
+            # could assign only the columns that are ambiguous, but we assign all for
+            # consistency.
+            self.session.query(
+                db.permission.Collection,
+                db.permission.Resource,
+                db.permission.Permission,
+                db.profile.Profile,
+            )
+            .select_from(db.permission.Collection)
+            # In SQLAlchemy, outerjoin() is a left join. Right join is not directly
+            # supported (have to swap the order of the tables).
+            .outerjoin(
+                db.permission.Resource,
+                db.permission.Collection.id == db.permission.Resource.collection_id,
+            )
+            .outerjoin(
+                db.permission.Permission,
+                db.permission.Resource.id == db.permission.Permission.resource_id,
+            )
+            .outerjoin(
+                db.profile.Profile,
+                sqlalchemy.and_(
+                    db.permission.Permission.grantee_id == db.profile.Profile.id,
+                    db.permission.Permission.grantee_type
+                    == db.permission.GranteeType.PROFILE,
+                ),
+            )
+            .outerjoin(
+                db.group.Group,
+                sqlalchemy.and_(
+                    db.permission.Permission.grantee_id == db.group.Group.id,
+                    db.permission.Permission.grantee_type
+                    == db.permission.GranteeType.GROUP,
+                ),
+            )
+            .filter(db.permission.Collection.label.ilike(f'{search_str}%'))
+            .order_by(
+                db.permission.Collection.label,
+                db.permission.Collection.type,
+                db.permission.Collection.created_date,
+                db.permission.Resource.type,
+                db.permission.Resource.label,
+                db.profile.Profile.given_name,
+                db.profile.Profile.family_name,
+            )
+            .all()
+        )
+
+        # log.debug(query)
+
+        # Dicts preserve insertion order, so the dict structure will mirror the order in
+        # the order_by clause. The order will also carry over to the JSON output.
+
+        collection_dict = {}
+
+        for (
+            collection,
+            resource,
+            permission,
+            profile,
+        ) in query:
+            resource_dict = collection_dict.setdefault(
+                collection.id,
+                {
+                    'collection_label': collection.label,
+                    'collection_type': collection.type,
+                    'resource_dict': {},
+                },
+            )['resource_dict']
+
+            # if resource.type is None:
+            if resource is None:
+                continue
+
+            permission_dict = resource_dict.setdefault(
+                resource.type,
+                {
+                    'resource_id_dict': {},
+                    'profile_dict': {},
+                },
+            )
+
+            permission_dict['resource_id_dict'][resource.id] = resource.label
+
+            if permission is None:
+                continue
+
+            profile_dict = permission_dict['profile_dict']
+
+            profile_dict.setdefault(
+                profile.id,
+                {
+                    'pasta_id': profile.pasta_id,
+                    'full_name': profile.full_name,
+                    'permission_level': permission.level.value,
+                },
+            )
+
+            profile_dict[profile.id]['permission_level'] = max(
+                profile_dict[profile.id]['permission_level'], permission.level.value
+            )
+
+        # Iterate over profile_dict and convert them to lists sorted by full_name.
+        for collection_id, collection in collection_dict.items():
+            for resource_type, resource in collection['resource_dict'].items():
+                profile_list = list(resource['profile_dict'].values())
+                profile_list.sort(key=lambda p: p['full_name'])
+                resource['profile_list'] = profile_list
+                del resource['profile_dict']
+
+        return collection_dict
+
+    async def get_aggregate_profile_permission_list(self, resource_list):
+        """Get a list of aggregated maximum profiles and permissions for a list of
+        resources.
+
+        :param resource_list: [[collection_id, resource_type], ...]
+        """
+        collection_id_list = {r[0] for r in resource_list}
+
+        query = (
+            self.session.query(
+                db.permission.Collection,
+                db.permission.Resource,
+                db.permission.Permission,
+                db.profile.Profile,
+            )
+            .outerjoin(
+                db.permission.Resource,
+                db.permission.Collection.id == db.permission.Resource.collection_id,
+            )
+            .outerjoin(
+                db.permission.Permission,
+                db.permission.Resource.id == db.permission.Permission.resource_id,
+            )
+            .outerjoin(
+                db.profile.Profile,
+                sqlalchemy.and_(
+                    db.permission.Permission.grantee_id == db.profile.Profile.id,
+                    db.permission.Permission.grantee_type
+                    == db.permission.GranteeType.PROFILE,
+                ),
+            )
+            .outerjoin(
+                db.group.Group,
+                sqlalchemy.and_(
+                    db.permission.Permission.grantee_id == db.group.Group.id,
+                    db.permission.Permission.grantee_type
+                    == db.permission.GranteeType.GROUP,
+                ),
+            )
+            .filter(db.permission.Collection.id.in_(collection_id_list))
+            .all()
+        )
+
+        profile_dict = {}
+
+        for (collection_row, resource_row, permission_row, profile_row) in query:
+            if [collection_row.id, resource_row.type] not in resource_list:
+                continue
+
+            if permission_row is None:
+                continue
+
+            if profile_row is None:
+                continue
+
+            profile_dict.setdefault(
+                profile_row.id,
+                {
+                    'permission_id': permission_row.id,
+                    'profile_id': profile_row.id,
+                    'pasta_id': profile_row.pasta_id,
+                    'full_name': profile_row.full_name,
+                    'email': profile_row.email,
+                    'avatar_url': profile_row.avatar_url,
+                    'permission_level': permission_row.level.value,
+                },
+            )
+
+            profile_dict[profile_row.id]['permission_level'] = max(
+                profile_dict[profile_row.id]['permission_level'],
+                permission_row.level.value,
+            )
+
+        return sorted(profile_dict.values(), key=lambda p: p['full_name'])

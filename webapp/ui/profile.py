@@ -23,7 +23,7 @@ async def profile(
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
     token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
-    profile_row = udb.get_profile(token.urid)
+    profile_row = udb.get_profile(token.pasta_id)
 
     return util.templates.TemplateResponse(
         'profile.html',
@@ -47,7 +47,7 @@ async def profile_edit(
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
     token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
-    profile_row = udb.get_profile(token.urid)
+    profile_row = udb.get_profile(token.pasta_id)
 
     return util.templates.TemplateResponse(
         'profile-edit.html',
@@ -78,7 +78,7 @@ async def profile_edit_update(
     form_data = await request.form()
     util.log_dict(log.info, 'Updating profile', dict(form_data))
     udb.update_profile(
-        token.urid,
+        token.pasta_id,
         full_name=form_data.get('full-name'),
         email=form_data.get('email'),
         email_notifications='email-notifications' in form_data,
@@ -94,5 +94,5 @@ async def profile_edit_delete(
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
     token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
-    udb.delete_profile(token.urid)
+    udb.delete_profile(token.pasta_id)
     return util.redirect_internal('/signout')

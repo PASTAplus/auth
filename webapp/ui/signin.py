@@ -20,6 +20,23 @@ router = fastapi.APIRouter()
 
 # UI routes
 
+@router.get('/ui/tokentest')
+async def tokentest(
+    request: starlette.requests.Request,
+    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+):
+    return util.templates.TemplateResponse(
+        'tokentest.html',
+        {
+            # Base
+            'token': token,
+            'profile': None,
+            #
+            'request': request,
+        },
+    )
+@router.get('/ui/tokentest2')
+
 
 @router.get('/ui/signin')
 async def signin(
@@ -51,7 +68,7 @@ async def signin_link(
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
     token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
-    profile_row = udb.get_profile(token.urid)
+    profile_row = udb.get_profile(token.pasta_id)
     return util.templates.TemplateResponse(
         'signin.html',
         {
@@ -132,7 +149,7 @@ async def signin_ldap(
         target_url=str(util.url('/ui/profile')),
         full_name=username,
         idp_name='ldap',
-        uid=ldap_dn,
+        idp_uid=ldap_dn,
         email=None,
         has_avatar=False,
         is_vetted=True,

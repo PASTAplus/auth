@@ -68,7 +68,7 @@
                 <button class='icon-text-button' data-bs-toggle='modal'
                         data-bs-target='#unlinkIdentityModal'
                         data-idp-name='{{ identity.idp_name }}'
-                        data-uid='{{ identity.uid }}'
+                        data-idp-idp_uid='{{ identity.idp_uid }}'
                 >
                   <span><img src='{{ url('/static/svg/unlink.svg') }}' alt='Unlink'></span>
                   <span>Unlink</span>
@@ -84,9 +84,9 @@
 
     {% if identity_list|length == 1 %}
       <p class='alert alert-info'>
-        You currently have only one account linked to your profile. If you wish to unlink this account, link a new account
-        first to ensure your profile remains accessible. If you no longer wish to access your profile, you may delete your
-        profile from the Edit Profile page, which will also unlink this account.
+        You currently have only one account linked to your profile. If you wish to unlink this account, link a new
+        account first to ensure your profile remains accessible. If you no longer wish to access your profile, you may
+        delete your profile from the Edit Profile page, which will also unlink this account.
       </p>
     {% endif %}
 
@@ -108,7 +108,7 @@
         <div class='modal-body'>
           <form action='{{ url('/identity/unlink') }}' method='post' id='unlinkIdentityForm'>
             <input type='hidden' name='idp_name' id='unlinkIdentityIdpName'>
-            <input type='hidden' name='uid' id='unlinkIdentityUid'>
+            <input type='hidden' name='idp_uid' id='unlinkIdentityUid'>
             <div class='form-group'>
               <p>
                 Click 'Unlink' to remove this account from your profile.

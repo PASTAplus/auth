@@ -148,7 +148,7 @@ async def callback_google(
         target_url=target_url,
         full_name=user_dict["name"],
         idp_name='google',
-        uid=user_dict['sub'],
+        idp_uid=user_dict['sub'],
         email=user_dict['email'],
         has_avatar=has_avatar,
         is_vetted=False,
@@ -177,11 +177,11 @@ async def revoke_google(
     request: starlette.requests.Request,
 ):
     target_url = request.query_params.get('target')
-    uid = request.query_params.get('uid')
+    idp_uid = request.query_params.get('idp_uid')
     idp_token = request.query_params.get('idp_token')
 
     log.debug(
-        f'revoke_google() target_url="{target_url}" uid="{uid}" idp_token="{idp_token}"'
+        f'revoke_google() target_url="{target_url}" idp_uid="{idp_uid}" idp_token="{idp_token}"'
     )
 
     try:

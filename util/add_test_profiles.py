@@ -1,56 +1,56 @@
 #!/usr/bin/env python
 
-"""Fill Profile table with random data.
+"""Fill profile table with random data.
 """
 
 import logging
 import pathlib
-import sqlite3
 import sys
 import uuid
 
-print(sys.path)
-sys.path.append('.')
-sys.path.append('./webapp')
+import sqlalchemy.exc
 
-import webapp.db.iface
+ROOT_PATH = pathlib.Path(__file__).resolve().parent.parent
+sys.path.append((ROOT_PATH / 'webapp').as_posix())
+
+import db.profile
+import db.iface
 
 log = logging.getLogger(__name__)
 
 
-DB_PATH = pathlib.Path('~/git/auth/auth.sqlite').expanduser().resolve()
-
-
 def main():
-    fill_profile()
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
+    session = db.iface.SessionLocal()
 
-def fill_profile():
-    """Fill the Profile table with random data."""
-
-    conn = None
     try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        for s in RANDOM_PERSON_NAME_LIST:
-            urid=f'PASTA-{uuid.uuid4().hex}'
-            given_name, family_name = s.split(' ')
-            email = f'{given_name.lower()}@{family_name.lower()}.com'
-            cursor.execute('''
-                insert into profile (urid, given_name, family_name, email, email_notifications, privacy_policy_accepted, has_avatar)
-                values (?, ?, ?, ?, ?, ?, ?)
-                ''',
-                (urid, given_name, family_name, email, False, False, False),
-            )
-            # results = cursor.fetchall()
-            # for row in results:
-            #     print(row)
-        conn.commit()
-    except sqlite3.Error as e:
-        print(f'Error: {e}')
-    finally:
-        if conn:
-            conn.close()
+        fill_profile(session)
+    except sqlalchemy.exc.SQLAlchemyError as e:
+        log.error(f'Error: {e}')
+        session.rollback()
+        return 1
+
+    session.commit()
+
+    log.info('Profiles have been added')
+
+    return 0
+
+
+def fill_profile(session):
+    for s in RANDOM_PERSON_NAME_LIST:
+        pasta_id = f'PASTA-{uuid.uuid4().hex}'
+        given_name, family_name = s.split(' ')
+        email = f'{given_name.lower()}@{family_name.lower()}.com'
+        new_profile = db.profile.Profile(
+            pasta_id=pasta_id,
+            given_name=given_name,
+            family_name=family_name,
+            email=email,
+        )
+        session.add(new_profile)
 
 
 RANDOM_PERSON_NAME_LIST = [
@@ -79,81 +79,81 @@ RANDOM_PERSON_NAME_LIST = [
     'Daniel Hall',
     'Betty Allen',
     'Matthew Young',
-    'Margaret King',
-    'Anthony Wright',
-    'Sandra Scott',
-    'Mark Green',
-    'Ashley Adams',
-    'Donald Baker',
-    'Kimberly Nelson',
-    'Steven Carter',
-    'Patricia Mitchell',
-    'Paul Perez',
-    'Carol Roberts',
-    'Andrew Turner',
-    'Michelle Phillips',
-    'Joshua Campbell',
-    'Amanda Parker',
-    'Kenneth Evans',
-    'Melissa Edwards',
-    'Kevin Collins',
-    'Stephanie Stewart',
-    'Brian Sanchez',
-    'Rebecca Morris',
-    'George Rogers',
-    'Laura Reed',
-    'Edward Cook',
-    'Sharon Morgan',
-    'Ronald Bell',
-    'Cynthia Murphy',
-    'Timothy Bailey',
-    'Angela Rivera',
-    'Jason Cooper',
-    'Brenda Richardson',
-    'Jeffrey Cox',
-    'Amy Howard',
-    'Ryan Ward',
-    'Anna Torres',
-    'Jacob Peterson',
-    'Kathleen Gray',
-    'Gary Ramirez',
-    'Shirley James',
-    'Nicholas Watson',
-    'Dorothy Brooks',
-    'Eric Kelly',
-    'Debra Sanders',
-    'Stephen Price',
-    'Frances Bennett',
-    'Jonathan Wood',
-    'Gloria Barnes',
-    'Larry Ross',
-    'Janet Henderson',
-    'Justin Coleman',
-    'Maria Jenkins',
-    'Scott Perry',
-    'Heather Powell',
-    'Brandon Long',
-    'Diane Patterson',
-    'Benjamin Hughes',
-    'Ruth Flores',
-    'Samuel Washington',
-    'Jacqueline Butler',
-    'Gregory Simmons',
-    'Kathy Foster',
-    'Frank Gonzales',
-    'Pamela Bryant',
-    'Patrick Alexander',
-    'Katherine Russell',
-    'Raymond Griffin',
-    'Christine Diaz',
-    'Jack Hayes',
-    'Ann Myers',
-    'Dennis Ford',
-    'Alice Hamilton',
-    'Jerry Graham',
-    'Julie Sullivan',
-    'Tyler Wallace',
-    'Megan West',
+    # 'Margaret King',
+    # 'Anthony Wright',
+    # 'Sandra Scott',
+    # 'Mark Green',
+    # 'Ashley Adams',
+    # 'Donald Baker',
+    # 'Kimberly Nelson',
+    # 'Steven Carter',
+    # 'Patricia Mitchell',
+    # 'Paul Perez',
+    # 'Carol Roberts',
+    # 'Andrew Turner',
+    # 'Michelle Phillips',
+    # 'Joshua Campbell',
+    # 'Amanda Parker',
+    # 'Kenneth Evans',
+    # 'Melissa Edwards',
+    # 'Kevin Collins',
+    # 'Stephanie Stewart',
+    # 'Brian Sanchez',
+    # 'Rebecca Morris',
+    # 'George Rogers',
+    # 'Laura Reed',
+    # 'Edward Cook',
+    # 'Sharon Morgan',
+    # 'Ronald Bell',
+    # 'Cynthia Murphy',
+    # 'Timothy Bailey',
+    # 'Angela Rivera',
+    # 'Jason Cooper',
+    # 'Brenda Richardson',
+    # 'Jeffrey Cox',
+    # 'Amy Howard',
+    # 'Ryan Ward',
+    # 'Anna Torres',
+    # 'Jacob Peterson',
+    # 'Kathleen Gray',
+    # 'Gary Ramirez',
+    # 'Shirley James',
+    # 'Nicholas Watson',
+    # 'Dorothy Brooks',
+    # 'Eric Kelly',
+    # 'Debra Sanders',
+    # 'Stephen Price',
+    # 'Frances Bennett',
+    # 'Jonathan Wood',
+    # 'Gloria Barnes',
+    # 'Larry Ross',
+    # 'Janet Henderson',
+    # 'Justin Coleman',
+    # 'Maria Jenkins',
+    # 'Scott Perry',
+    # 'Heather Powell',
+    # 'Brandon Long',
+    # 'Diane Patterson',
+    # 'Benjamin Hughes',
+    # 'Ruth Flores',
+    # 'Samuel Washington',
+    # 'Jacqueline Butler',
+    # 'Gregory Simmons',
+    # 'Kathy Foster',
+    # 'Frank Gonzales',
+    # 'Pamela Bryant',
+    # 'Patrick Alexander',
+    # 'Katherine Russell',
+    # 'Raymond Griffin',
+    # 'Christine Diaz',
+    # 'Jack Hayes',
+    # 'Ann Myers',
+    # 'Dennis Ford',
+    # 'Alice Hamilton',
+    # 'Jerry Graham',
+    # 'Julie Sullivan',
+    # 'Tyler Wallace',
+    # 'Megan West',
 ]
 
 

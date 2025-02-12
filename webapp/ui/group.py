@@ -6,7 +6,6 @@ import starlette.status
 import starlette.templating
 
 import db.iface
-import fuzz
 import pasta_jwt
 import util
 
@@ -24,7 +23,7 @@ async def group(
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
     token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
-    profile_row = udb.get_profile(token.urid)
+    profile_row = udb.get_profile(token.pasta_id)
 
     group_list = []
 
@@ -32,7 +31,7 @@ async def group(
         group_list.append(
             {
                 'id': group_row.id,
-                'grid': group_row.grid,
+                'pasta_id': group_row.pasta_id,
                 'name': group_row.name,
                 'description': group_row.description,
                 'member_count': group_row.member_count,
@@ -67,7 +66,7 @@ async def group_member(
 ):
     # form_data = await request.form()
     # form_data.get('group-id')
-    profile_row = udb.get_profile(token.urid)
+    profile_row = udb.get_profile(token.pasta_id)
     group_row = udb.get_group(profile_row, int(group_id))
     # group_row.created = group_row.created.strftime('%Y-%m-%d %H:%M')
     # group_row.updated = group_row.updated.strftime('%Y-%m-%d %H:%M')
@@ -99,7 +98,7 @@ async def group_new(
     form_data = await request.form()
     name = form_data.get('name')
     description = form_data.get('description')
-    profile_row = udb.get_profile(token.urid)
+    profile_row = udb.get_profile(token.pasta_id)
     udb.create_group(profile_row, name, description)
     return util.redirect_internal('/ui/group')
 
@@ -114,7 +113,7 @@ async def group_edit(
     group_id = form_data.get('group-id')
     name = form_data.get('name')
     description = form_data.get('description')
-    profile_row = udb.get_profile(token.urid)
+    profile_row = udb.get_profile(token.pasta_id)
     udb.update_group(profile_row, group_id, name, description)
     return util.redirect_internal('/ui/group')
 
@@ -127,7 +126,7 @@ async def group_delete(
 ):
     form_data = await request.form()
     group_id = form_data.get('group-id')
-    profile_row = udb.get_profile(token.urid)
+    profile_row = udb.get_profile(token.pasta_id)
     udb.delete_group(profile_row, group_id)
     return util.redirect_internal('/ui/group')
 
@@ -139,7 +138,7 @@ async def group_member(
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
     token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
-    profile_row = udb.get_profile(token.urid)
+    profile_row = udb.get_profile(token.pasta_id)
     group_row = udb.get_group(profile_row, int(group_id))
     member_list = udb.get_group_member_list(profile_row, group_row.id)
     member_list = sorted(member_list, key=lambda x: x.profile.full_name)
@@ -161,7 +160,7 @@ async def group_member_search(
     _token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
     query_dict = await request.json()
-    # profile_row = udb.get_profile(token.urid)
+    # profile_row = udb.get_profile(token.pasta_id)
     # group_row = udb.get_group(profile_row, form_data.get('group-id'))
     query_str = query_dict.get('query')
     match_list = await fuzz.search(query_str)
@@ -197,7 +196,7 @@ async def group_member_add_remove(
     token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
     request_dict = await request.json()
-    profile_row = udb.get_profile(token.urid)
+    profile_row = udb.get_profile(token.pasta_id)
     is_add = request_dict['is_add']
     group_row = udb.get_group(profile_row, request_dict['group_id'])
     f = udb.add_group_member if is_add else udb.delete_group_member

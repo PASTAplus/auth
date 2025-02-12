@@ -96,7 +96,7 @@ def handle_successful_login(
     target_url,
     full_name,
     idp_name,
-    uid,
+    idp_uid,
     email,
     has_avatar,
     is_vetted,
@@ -106,26 +106,26 @@ def handle_successful_login(
     """
     if login_type == 'client':
         return handle_client_login(
-            udb, target_url, full_name, idp_name, uid, email, has_avatar, is_vetted
+            udb, target_url, full_name, idp_name, idp_uid, email, has_avatar, is_vetted
         )
     elif login_type == 'link':
-        return handle_link_account(request, udb, idp_name, uid, email, has_avatar)
+        return handle_link_account(request, udb, idp_name, idp_uid, email, has_avatar)
     else:
         raise ValueError(f'Unknown login_type: {login_type}')
 
 
 def handle_client_login(
-    udb, target_url, full_name, idp_name, uid, email, has_avatar, is_vetted
+    udb, target_url, full_name, idp_name, idp_uid, email, has_avatar, is_vetted
 ):
     """We are currently signed out, and are signing in to a new or existing account."""
     target_url = target_url
     identity_row = udb.create_or_update_profile_and_identity(
-        full_name, idp_name, uid, email, has_avatar
+        full_name, idp_name, idp_uid, email, has_avatar
     )
     if idp_name == 'google':
         old_uid = email
     else:
-        old_uid = uid
+        old_uid = idp_uid
     old_token_ = old_token.make_old_token(
         uid=old_uid, groups=Config.VETTED if is_vetted else Config.AUTHENTICATED
     )
@@ -134,25 +134,25 @@ def handle_client_login(
         target_url,
         token=old_token_,
         pasta_token=pasta_token,
-        urid=identity_row.profile.urid,
+        pasta_id=identity_row.profile.pasta_id,
         full_name=identity_row.profile.full_name,
         email=identity_row.profile.email,
-        uid=identity_row.uid,
+        idp_uid=identity_row.idp_uid,
         idp_name=identity_row.idp_name,
-        sub=identity_row.uid,
+        sub=identity_row.idp_uid,
     )
 
 
-def handle_link_account(request, udb, idp_name, uid, email, has_avatar):
+def handle_link_account(request, udb, idp_name, idp_uid, email, has_avatar):
     """We are currently signed in, and are linking a new account to the profile we are signed
     in to.
     """
     # Link new account to the profile associated with the token.
     token_str = request.cookies.get('pasta_token')
     token_obj = pasta_jwt.PastaJwt.decode(token_str)
-    profile_row = udb.get_profile(token_obj.urid)
+    profile_row = udb.get_profile(token_obj.pasta_id)
     # Prevent linking an account that is already linked.
-    identity_row = udb.get_identity(idp_name, uid)
+    identity_row = udb.get_identity(idp_name, idp_uid)
     if identity_row:
         if identity_row in profile_row.identities:
             msg_str = (
@@ -166,7 +166,7 @@ def handle_link_account(request, udb, idp_name, uid, email, has_avatar):
                 'please sign in to the other profile and unlink it there first.'
             )
     else:
-        udb.create_identity(profile_row, idp_name, uid, email, has_avatar)
+        udb.create_identity(profile_row, idp_name, idp_uid, email, has_avatar)
         msg_str = 'Account linked successfully.'
     return redirect_internal('/ui/identity', msg=msg_str)
 
@@ -178,10 +178,10 @@ def redirect_final(
     # TODO: All the following query parameters should be removed from the redirect
     # URI when the transition to the new authentication system is complete, since
     # they are effectively unsigned claims.
-    urid: str,
+    pasta_id: str,
     full_name: str,
     email: str,
-    uid: str,
+    idp_uid: str,
     idp_name: str,
     sub: str,
 ):
@@ -202,10 +202,10 @@ def redirect_final(
         # TODO: All the following query parameters should be removed from the redirect
         # URI when the transition to the new authentication system is complete, since
         # they are effectively unsigned claims.
-        urid=urid,
+        pasta_id=pasta_id,
         cname=full_name,
         email=email,
-        uid=uid,
+        idp_uid=idp_uid,
         idp_name=idp_name,
         # For ezEML
         sub=sub,
@@ -340,7 +340,7 @@ def get_avatar_path(namespace_str, id_str, ext=None):
 
 
 def get_profile_avatar_url(profile_row, refresh=False):
-    """Return the URL to the avatar image for the given IdP and UID."""
+    """Return the URL to the avatar image for the given IdP and idp_uid."""
     if not profile_row.has_avatar:
         return get_initials_avatar_url(profile_row.initials)
     avatar_url = url(
@@ -349,7 +349,7 @@ def get_profile_avatar_url(profile_row, refresh=False):
                 Config.AVATARS_URL,
                 'profile',
                 urllib.parse.quote(
-                    filesystem.get_safe_reversible_path_element(profile_row.urid)
+                    filesystem.get_safe_reversible_path_element(profile_row.pasta_id)
                 ),
             )
         )
@@ -361,7 +361,7 @@ def get_profile_avatar_url(profile_row, refresh=False):
 
 
 def get_identity_avatar_url(identity_row, refresh=False):
-    """Return the URL to the avatar image for the given IdP and UID."""
+    """Return the URL to the avatar image for the given IdP and idp_uid."""
     if not identity_row.has_avatar:
         return get_anon_avatar_url()
     avatar_url = url(
@@ -370,7 +370,7 @@ def get_identity_avatar_url(identity_row, refresh=False):
                 Config.AVATARS_URL,
                 identity_row.idp_name,
                 urllib.parse.quote(
-                    filesystem.get_safe_reversible_path_element(identity_row.uid)
+                    filesystem.get_safe_reversible_path_element(identity_row.idp_uid)
                 ),
             )
         )
@@ -460,17 +460,17 @@ def get_ldap_uid(ldap_dn: str) -> str:
         k.strip(): v.strip()
         for (k, v) in (part.split('=') for part in ldap_dn.split(','))
     }
-    return dn_dict['uid']
+    return dn_dict['idp_uid']
 
 
-def get_ldap_dn(uid: str) -> str:
-    return f'uid={uid},o=EDI,dc=edirepository,dc=org'
+def get_ldap_dn(idp_uid: str) -> str:
+    return f'idp_uid={idp_uid},o=EDI,dc=edirepository,dc=org'
 
 
 def parse_authorization_header(
     request,
 ) -> tuple[str, str] | starlette.responses.Response:
-    """Parse the Authorization header from a request and return (uid, pw). Raise
+    """Parse the Authorization header from a request and return (idp_uid, pw). Raise
     ValueError on errors.
     """
     auth_str = request.headers.get('Authorization')
@@ -485,11 +485,11 @@ def parse_authorization_header(
         decoded_credentials = base64.b64decode(
             encoded_credentials, validate=True
         ).decode('utf-8')
-        uid, password = decoded_credentials.split(':', 1)
-        return uid, password
+        idp_uid, password = decoded_credentials.split(':', 1)
+        return idp_uid, password
     except (ValueError, IndexError, binascii.Error) as e:
         raise ValueError(f'Malformed authorization header: {e}')
 
 
-def format_authorization_header(uid: str, password: str) -> str:
-    return f'Basic {base64.b64encode(f"{uid}:{password}".encode()).decode()}'
+def format_authorization_header(idp_uid: str, password: str) -> str:
+    return f'Basic {base64.b64encode(f"{idp_uid}:{password}".encode()).decode()}'

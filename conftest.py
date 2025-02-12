@@ -71,7 +71,7 @@ def db_session(db_engine):
 @pytest.fixture
 def db_session_populated(db_session):
     #     "id": 4,
-    #     "urid": "PASTA-e851e1a4b19c4b78992455807fe79534",
+    #     "pasta_id": "PASTA-e851e1a4b19c4b78992455807fe79534",
     #     "given_name": "Given1",
     #     "family_name": "Family1",
     #     "email": "testuser@github.com",
@@ -91,7 +91,7 @@ def db_session_populated(db_session):
         # webapp.util.pp(profile_dict)
         accepted_date = profile_dict['privacy_policy_accepted_date']
         profile_row = db.user.Profile(
-            urid=profile_dict['urid'],
+            pasta_id=profile_dict['pasta_id'],
             given_name=profile_dict['given_name'],
             family_name=profile_dict['family_name'],
             email=profile_dict['email'],

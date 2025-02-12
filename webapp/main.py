@@ -11,7 +11,7 @@ import starlette.status
 
 import api.ping
 import api.refresh_token
-import fuzz
+import search_cache
 import idp.github
 import idp.google
 import idp.ldap
@@ -24,6 +24,7 @@ import ui.group
 import ui.identity
 import ui.index
 import ui.membership
+import ui.permission
 import ui.privacy_policy
 import ui.profile
 import ui.signin
@@ -50,7 +51,7 @@ async def lifespan(
     _app: fastapi.FastAPI,
 ):
     log.info('Application starting...')
-    await fuzz.init_cache()
+    await search_cache.init_cache()
     yield
     log.info('Application stopping...')
 
@@ -145,6 +146,7 @@ app.include_router(ui.group.router)
 app.include_router(ui.identity.router)
 app.include_router(ui.index.router)
 app.include_router(ui.membership.router)
+app.include_router(ui.permission.router)
 app.include_router(ui.privacy_policy.router)
 app.include_router(ui.profile.router)
 app.include_router(ui.signin.router)

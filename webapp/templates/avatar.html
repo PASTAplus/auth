@@ -40,7 +40,7 @@
         <div class='grid-child'>
           <form action='{{ url('/avatar/update') }}' method='post'>
             <input type='hidden' name='idp_name' value='{{ avatar.idp_name }}'>
-            <input type='hidden' name='uid' value='{{ avatar.uid }}'>
+            <input type='hidden' name='idp_uid' value='{{ avatar.idp_uid }}'>
             <button type='submit' class='avatar-button'>
               <img src='{{ avatar.url }}' alt='Avatar' class='avatar'>
             </button>

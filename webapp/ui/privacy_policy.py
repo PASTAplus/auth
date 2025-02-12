@@ -27,5 +27,5 @@ async def policy_accept(
             '/signout', error='Login unsuccessful: Privacy policy not accepted'
         )
 
-    udb.set_privacy_policy_accepted(token.urid)
+    udb.set_privacy_policy_accepted(token.pasta_id)
     return util.redirect_internal('/ui/profile')

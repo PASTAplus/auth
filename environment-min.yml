@@ -14,12 +14,12 @@ dependencies:
   - libiconv
   - pendulum
   - pillow
+  - psycopg2
   - pycryptodome
   - pyjwt
   - pynacl
   - pytest
   - requests
   - sqlite
-  - thefuzz
   - urllib3
   - uvicorn

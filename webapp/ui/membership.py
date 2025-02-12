@@ -21,7 +21,7 @@ async def membership(
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
     token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
 ):
-    profile_row = udb.get_profile(token.urid)
+    profile_row = udb.get_profile(token.pasta_id)
     return util.templates.TemplateResponse(
         'membership.html',
         {
@@ -50,6 +50,6 @@ async def membership_leave(
 ):
     form_data = await request.form()
     group_id = form_data.get('group-id')
-    profile_row = udb.get_profile(token.urid)
+    profile_row = udb.get_profile(token.pasta_id)
     udb.leave_group_membership(profile_row, group_id)
     return util.redirect_internal('/ui/membership')

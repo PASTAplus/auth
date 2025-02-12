@@ -38,7 +38,7 @@ class PastaJwt:
         return f'{self.__class__.__name__}' f'(sub={self._claims_dict.get("sub")})'
 
     @property
-    def urid(self) -> str:
+    def pasta_id(self) -> str:
         return self._claims_dict.get('sub')
 
     @property
@@ -121,12 +121,12 @@ def make_jwt(udb, identity_row, is_vetted):
     profile_row = identity_row.profile
     pasta_jwt = PastaJwt(
         {
-            'sub': profile_row.urid,
+            'sub': profile_row.pasta_id,
             'cn': profile_row.full_name,
             'gn': profile_row.given_name,
             'email': profile_row.email,
             'sn': profile_row.family_name,
-            'pastaGroups': udb.get_group_membership_grid_set(profile_row),
+            'pastaGroups': udb.get_group_membership_pasta_id_set(profile_row),
             'pastaIsEmailEnabled': profile_row.email_notifications,
             # We don't have an email verification procedure yet
             'pastaIsEmailVerified': False,

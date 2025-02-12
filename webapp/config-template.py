@@ -23,6 +23,16 @@ class Config(object):
     JWT_AUDIENCE = 'https://auth.edirepository.org'
     JWT_HOSTED_DOMAIN = 'edirepository.org'
 
+    # Database
+    DB_DRIVER = 'postgresql+psycopg2'
+    DB_HOST = 'localhost'
+    DB_PORT = 5432
+    DB_NAME = 'auth'
+    DB_USER = 'db-user'
+    DB_PW = 'db-password'
+    DB_POOL_SIZE = 10
+    DB_MAX_OVERFLOW = 20
+
     # Filesystem paths
     STATIC_PATH = HERE_PATH / 'static'
     DB_PATH = (HERE_PATH / '../auth.sqlite').resolve()
