@@ -4,6 +4,7 @@ import starlette.responses
 import webapp.user_db
 
 import util.old_token
+import util.pretty
 import util.utils
 
 log = daiquiri.getLogger(__name__)
@@ -19,7 +20,7 @@ async def profile_list(
     for profile_row in udb.get_all_profiles():
         profile_list.append(profile_row.as_dict())
     # webapp.util.pp(profile_list)
-    return starlette.responses.Response(util.util.to_pretty_json(profile_list))
+    return starlette.responses.Response(util.pretty.to_pretty_json(profile_list))
 
 
 # 5. get_profile (IdP, authtoken)
@@ -34,7 +35,7 @@ async def profile_get(
     token.from_auth_token(token_str)
     profile_row = udb.get_profile(token.idp_uid)
     return starlette.responses.Response(
-        util.util.to_pretty_json(profile_row.as_dict())
+        util.pretty.to_pretty_json(profile_row.as_dict())
     )
 
 
@@ -110,4 +111,4 @@ async def identity_list(
     identity_list = []
     for identity_row in udb.get_identity_list(token.idp_uid):
         identity_list.append(identity_row.as_dict())
-    return starlette.responses.Response(util.util.to_pretty_json(identity_list))
+    return starlette.responses.Response(util.pretty.to_pretty_json(identity_list))

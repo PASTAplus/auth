@@ -6,6 +6,7 @@ import starlette.responses
 import starlette.status
 import starlette.templating
 
+import db.iface
 import util.avatar
 import util.filesystem
 import util.old_token
@@ -13,9 +14,8 @@ import util.pasta_crypto
 import util.pasta_jwt
 import util.pasta_ldap
 import util.search_cache
-import util.utils
-import db.iface
 import util.template
+import util.utils
 
 log = daiquiri.getLogger(__name__)
 

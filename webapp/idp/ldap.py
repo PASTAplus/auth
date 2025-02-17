@@ -1,3 +1,7 @@
+import base64
+import binascii
+import re
+
 import daiquiri
 import fastapi
 import starlette.datastructures
@@ -15,7 +19,6 @@ import util.pasta_ldap
 import util.search_cache
 import util.template
 import util.utils
-
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -51,13 +54,13 @@ async def get_login_pasta(
     log.debug(f'login_pasta() target_url="{target_url}"')
 
     try:
-        ldap_dn, password = util.utils.parse_authorization_header(request)
+        ldap_dn, password = parse_authorization_header(request)
     except ValueError as e:
         return starlette.responses.Response(
             content=str(e), status_code=starlette.status.HTTP_400_BAD_REQUEST
         )
 
-    dn_uid = util.utils.get_ldap_uid(ldap_dn)
+    dn_uid = get_ldap_uid(ldap_dn)
 
     if not util.pasta_ldap.bind(ldap_dn, password):
         return starlette.responses.Response(
@@ -81,3 +84,43 @@ async def get_login_pasta(
     response = starlette.responses.Response('Login successful')
     response.set_cookie('auth-token', old_token_)
     return response
+
+
+def get_ldap_uid(ldap_dn: str) -> str:
+    dn_dict = {
+        k.strip(): v.strip()
+        for (k, v) in (part.split('=') for part in ldap_dn.split(','))
+    }
+    return dn_dict['idp_uid']
+
+
+def get_ldap_dn(idp_uid: str) -> str:
+    return f'idp_uid={idp_uid},o=EDI,dc=edirepository,dc=org'
+
+
+def parse_authorization_header(
+    request,
+) -> tuple[str, str] | starlette.responses.Response:
+    """Parse the Authorization header from a request and return (idp_uid, pw). Raise
+    ValueError on errors.
+    """
+    auth_str = request.headers.get('Authorization')
+    if auth_str is None:
+        raise ValueError('No authorization header in request')
+    if not (m := re.match(r'Basic\s+(.*)', auth_str)):
+        raise ValueError(
+            f'Invalid authorization scheme. Only Basic is supported: {auth_str}'
+        )
+    encoded_credentials = m.group(1)
+    try:
+        decoded_credentials = base64.b64decode(
+            encoded_credentials, validate=True
+        ).decode('utf-8')
+        idp_uid, password = decoded_credentials.split(':', 1)
+        return idp_uid, password
+    except (ValueError, IndexError, binascii.Error) as e:
+        raise ValueError(f'Malformed authorization header: {e}')
+
+
+def format_authorization_header(idp_uid: str, password: str) -> str:
+    return f'Basic {base64.b64encode(f"{idp_uid}:{password}".encode()).decode()}'

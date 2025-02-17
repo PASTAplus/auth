@@ -10,6 +10,7 @@ import util.old_token
 import util.pasta_crypto
 import util.pasta_jwt
 import util.pasta_ldap
+import util.pretty
 import util.search_cache
 import util.template
 import util.utils
@@ -89,7 +90,7 @@ async def get_callback_orcid(
 
     log.debug('-' * 80)
     log.debug('login_orcid_callback() - login successful')
-    util.utils.log_dict(log.debug, 'token_dict', token_dict)
+    util.pretty.log_dict(log.debug, 'token_dict', token_dict)
     log.debug('-' * 80)
 
     return util.utils.handle_successful_login(
@@ -118,7 +119,7 @@ async def get_revoke_orcid(
     target_url = request.query_params.get('target')
     idp_uid = request.query_params.get('idp_uid')
     idp_token = request.query_params.get('idp_token')
-    util.utils.log_dict(
+    util.pretty.log_dict(
         log.debug,
         'revoke_orcid()',
         {

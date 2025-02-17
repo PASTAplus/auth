@@ -1,10 +1,3 @@
-import base64
-import binascii
-import datetime
-import json
-import pprint
-import re
-import typing
 import urllib.parse
 
 import daiquiri
@@ -15,7 +8,7 @@ import starlette.templating
 
 import util.old_token
 import util.pasta_jwt
-
+import util.pretty
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -45,7 +38,7 @@ def redirect_internal(
     the redirect using a GET request.
     """
     url_str = f'{Config.ROOT_PATH}{path_str}'
-    log_dict(log.debug, f'Redirecting (303) to: {url_str}', query_param_dict)
+    util.pretty.log_dict(log.debug, f'Redirecting (303) to: {url_str}', query_param_dict)
     return starlette.responses.RedirectResponse(
         starlette.datastructures.URL(url_str).replace_query_params(**query_param_dict),
         status_code=starlette.status.HTTP_303_SEE_OTHER,
@@ -230,7 +223,7 @@ def redirect(url_str: str, **query_param_dict):
     caching the redirect, and guarantees that the client will not change the request
     method and body when the redirected request is made.
     """
-    log_dict(log.debug, f'Redirecting (307) to: {url_str}', query_param_dict)
+    util.pretty.log_dict(log.debug, f'Redirecting (307) to: {url_str}', query_param_dict)
     url_obj = starlette.datastructures.URL(url_str)
     url_obj = url_obj.replace_query_params(**query_param_dict)
     # f'{base_url}{"?" if query_param_dict else ""}{build_query_string(**query_param_dict)}'
@@ -261,97 +254,11 @@ def unpack_state(state_str: str) -> list[str, str]:
     return state_str.split(':', maxsplit=1)
 
 
-def log_dict(logger: typing.Callable, msg: str, d: dict):
-    logger(f'{msg}:')
-    for k, v in d.items():
-        logger(f'  {k}: {v}')
-
-
 def get_redirect_uri(idp_name):
     url_obj = starlette.datastructures.URL(Config.SERVICE_BASE_URL)
     return url_obj.replace(path=f'{url_obj.path}/callback/{idp_name}')
 
 
-class CustomJSONEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, datetime.datetime):
-            return obj.isoformat()
-        return super().default(obj)
-
-    # def decode(self, obj):
-    #     if isinstance(obj, datetime.datetime):
-    #         return obj.isoformat()
-    #     return super().default(obj)
-
-
-def to_pretty_json(obj: list | dict) -> str:
-    json_str = json.dumps(obj, indent=2, sort_keys=True, cls=CustomJSONEncoder)
-    # print(json_str)
-    return json_str
-
-
-# def json_loads(json_str: str) -> list | dict:
-#     return json.loads(json_str, cls=CustomJSONEncoder)
-
-
-def from_json(json_str: str) -> list | dict:
-    return json.loads(json_str)
-
-
-def pp(obj: list | dict):
-    print(pformat(obj))
-
-
-def pformat(obj: list | dict):
-    return pprint.pformat(obj, indent=2, sort_dicts=True)
-
-
-#
-
-
 def get_idp_logo_url(idp_name: str):
     """Return the URL to the logo image for the given IdP."""
     return f'/static/idp-logos/{idp_name}.svg'
-
-
-# LDAP
-
-
-def get_ldap_uid(ldap_dn: str) -> str:
-    dn_dict = {
-        k.strip(): v.strip()
-        for (k, v) in (part.split('=') for part in ldap_dn.split(','))
-    }
-    return dn_dict['idp_uid']
-
-
-def get_ldap_dn(idp_uid: str) -> str:
-    return f'idp_uid={idp_uid},o=EDI,dc=edirepository,dc=org'
-
-
-def parse_authorization_header(
-    request,
-) -> tuple[str, str] | starlette.responses.Response:
-    """Parse the Authorization header from a request and return (idp_uid, pw). Raise
-    ValueError on errors.
-    """
-    auth_str = request.headers.get('Authorization')
-    if auth_str is None:
-        raise ValueError('No authorization header in request')
-    if not (m := re.match(r'Basic\s+(.*)', auth_str)):
-        raise ValueError(
-            f'Invalid authorization scheme. Only Basic is supported: {auth_str}'
-        )
-    encoded_credentials = m.group(1)
-    try:
-        decoded_credentials = base64.b64decode(
-            encoded_credentials, validate=True
-        ).decode('utf-8')
-        idp_uid, password = decoded_credentials.split(':', 1)
-        return idp_uid, password
-    except (ValueError, IndexError, binascii.Error) as e:
-        raise ValueError(f'Malformed authorization header: {e}')
-
-
-def format_authorization_header(idp_uid: str, password: str) -> str:
-    return f'Basic {base64.b64encode(f"{idp_uid}:{password}".encode()).decode()}'

@@ -13,6 +13,7 @@ import util.old_token
 import util.pasta_crypto
 import util.pasta_jwt
 import util.pasta_ldap
+import util.pretty
 import util.search_cache
 import util.template
 import util.utils
@@ -105,7 +106,7 @@ async def get_callback_microsoft(
         return util.utils.redirect_to_client_error(target_url, 'Login unsuccessful')
 
     if 'id_token' not in token_dict:
-        util.utils.log_dict(log.error, 'Login unsuccessful: token_dict', token_dict)
+        util.pretty.log_dict(log.error, 'Login unsuccessful: token_dict', token_dict)
         return util.utils.redirect_to_client_error(target_url, 'Login unsuccessful')
 
     jwt_unverified_header_dict = jwt.get_unverified_header(token_dict['id_token'])
@@ -129,9 +130,9 @@ async def get_callback_microsoft(
 
     log.debug('-' * 80)
     log.debug('login_microsoft_callback() - login successful')
-    util.utils.log_dict(log.debug, 'jwt_unverified_header_dict', jwt_unverified_header_dict)
-    util.utils.log_dict(log.debug, 'token_dict', token_dict)
-    util.utils.log_dict(log.debug, 'user_dict', user_dict)
+    util.pretty.log_dict(log.debug, 'jwt_unverified_header_dict', jwt_unverified_header_dict)
+    util.pretty.log_dict(log.debug, 'token_dict', token_dict)
+    util.pretty.log_dict(log.debug, 'user_dict', user_dict)
     log.debug('-' * 80)
 
     return util.utils.handle_successful_login(

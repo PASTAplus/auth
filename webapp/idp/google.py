@@ -14,6 +14,7 @@ import util.old_token
 import util.pasta_crypto
 import util.pasta_jwt
 import util.pasta_ldap
+import util.pretty
 import util.search_cache
 import util.template
 import util.utils
@@ -50,7 +51,7 @@ async def get_login_google(
         )
         return util.utils.redirect_to_client_error(target_url, 'Login unsuccessful')
 
-    util.utils.log_dict(log.debug, 'google_provider_cfg', google_provider_cfg)
+    util.pretty.log_dict(log.debug, 'google_provider_cfg', google_provider_cfg)
 
     return util.utils.redirect_to_idp(
         google_provider_cfg['authorization_endpoint'],
@@ -147,8 +148,8 @@ async def get_callback_google(
 
     log.debug('-' * 80)
     log.debug('login_google_callback() - login successful')
-    util.utils.log_dict(log.debug, 'token_dict', token_dict)
-    util.utils.log_dict(log.debug, 'user_dict', user_dict)
+    util.pretty.log_dict(log.debug, 'token_dict', token_dict)
+    util.pretty.log_dict(log.debug, 'user_dict', user_dict)
     log.debug('-' * 80)
 
     return util.utils.handle_successful_login(
@@ -229,7 +230,7 @@ def get_user_avatar(access_token):
             detail=response_url.text,
         )
 
-    util.utils.log_dict(log.debug, 'google: get_user_avatar()', response_dict)
+    util.pretty.log_dict(log.debug, 'google: get_user_avatar()', response_dict)
 
     photos = response_dict.get('photos')
     if not photos:

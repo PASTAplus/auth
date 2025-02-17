@@ -10,6 +10,7 @@ import util.old_token
 import util.pasta_crypto
 import util.pasta_jwt
 import util.pasta_ldap
+import util.pretty
 import util.search_cache
 import util.template
 import util.utils
@@ -83,7 +84,7 @@ async def post_profile_edit_update(
     token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
 ):
     form_data = await request.form()
-    util.utils.log_dict(log.info, 'Updating profile', dict(form_data))
+    util.pretty.log_dict(log.info, 'Updating profile', dict(form_data))
     udb.update_profile(
         token.pasta_id,
         full_name=form_data.get('full-name'),

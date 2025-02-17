@@ -14,6 +14,7 @@ import util.old_token
 import util.pasta_crypto
 import util.pasta_jwt
 import util.pasta_ldap
+import util.pretty
 import util.search_cache
 import util.template
 import util.utils
@@ -128,8 +129,8 @@ async def get_callback_github(
 
     log.debug('-' * 80)
     log.debug('github_callback() - login successful')
-    util.utils.log_dict(log.debug, 'token_dict', token_dict)
-    util.utils.log_dict(log.debug, 'user_dict', user_dict)
+    util.pretty.log_dict(log.debug, 'token_dict', token_dict)
+    util.pretty.log_dict(log.debug, 'user_dict', user_dict)
     log.debug('-' * 80)
 
     idp_uid = user_dict['html_url']
