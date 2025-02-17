@@ -9,9 +9,7 @@ import PIL.ImageFont
 
 import util.filesystem
 import util.utils
-
 from config import Config
-
 
 AVATAR_FONT = PIL.ImageFont.truetype(
     Config.AVATAR_FONT_PATH,
@@ -128,3 +126,8 @@ def generate_initials_avatar(initials: str):
     # buffer.seek(0)
 
     return buffer.getvalue()
+
+
+def get_group_avatar_url():
+    """Return the URL to the group avatar image."""
+    return util.utils.url(f'/static/svg/group.svg')

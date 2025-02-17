@@ -4,20 +4,12 @@ import starlette.requests
 import starlette.status
 
 import db.iface
-
 import util.avatar
-import util.filesystem
-import util.old_token
-import util.pasta_crypto
 import util.pasta_jwt
 import util.pasta_ldap
-import util.search_cache
 import util.template
 import util.utils
-
 from config import Config
-
-
 
 log = daiquiri.getLogger(__name__)
 
@@ -26,6 +18,7 @@ router = fastapi.APIRouter()
 
 
 # UI routes
+
 
 @router.get('/ui/signin')
 async def get_ui_signin(
@@ -122,7 +115,7 @@ async def post_signin_ldap(
     login_type = form_data.get('login_type')
     username = form_data.get('username')
     password = form_data.get('password')
-    ldap_dn = util.utils.get_ldap_dn(username)
+    ldap_dn = get_ldap_dn(username)
 
     if not util.pasta_ldap.bind(ldap_dn, password):
         return util.utils.redirect_internal(
@@ -143,6 +136,10 @@ async def post_signin_ldap(
         has_avatar=False,
         is_vetted=True,
     )
+
+
+def get_ldap_dn(idp_uid: str) -> str:
+    return f'uid={idp_uid},o=EDI,dc=edirepository,dc=org'
 
 
 @router.get('/signout')

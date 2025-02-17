@@ -26,12 +26,10 @@ import ui.permission
 import ui.privacy_policy
 import ui.profile
 import ui.signin
-
 import util.avatar
 import util.pasta_jwt
 import util.search_cache
 import util.utils
-
 from config import Config
 
 daiquiri.setup(

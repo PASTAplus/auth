@@ -10,15 +10,8 @@ import starlette.responses
 import starlette.status
 
 import db.iface
-import util.avatar
-import util.filesystem
 import util.old_token
-import util.pasta_crypto
-import util.pasta_jwt
 import util.pasta_ldap
-import util.search_cache
-import util.template
-import util.utils
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -95,7 +88,7 @@ def get_ldap_uid(ldap_dn: str) -> str:
 
 
 def get_ldap_dn(idp_uid: str) -> str:
-    return f'idp_uid={idp_uid},o=EDI,dc=edirepository,dc=org'
+    return f'uid={idp_uid},o=EDI,dc=edirepository,dc=org'
 
 
 def parse_authorization_header(

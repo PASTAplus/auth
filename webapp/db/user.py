@@ -7,13 +7,13 @@ import sqlalchemy.event
 import sqlalchemy.orm
 import sqlalchemy.pool
 
-import util.avatar
 import db.base
 import db.group
 import db.identity
 import db.permission
 import db.profile
 import db.sync
+import util.avatar
 
 log = daiquiri.getLogger(__name__)
 

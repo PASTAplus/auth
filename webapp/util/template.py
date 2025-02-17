@@ -1,7 +1,6 @@
 import starlette.templating
 
 import util.utils
-
 from config import Config
 
 # Templates

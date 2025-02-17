@@ -2,9 +2,9 @@ import daiquiri
 import sqlalchemy.orm
 import sqlalchemy.pool
 
-import util.avatar
 import db.base
 import db.permission
+import util.avatar
 
 log = daiquiri.getLogger(__name__)
 
