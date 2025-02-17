@@ -9,6 +9,8 @@ from config import Config
 
 log = daiquiri.getLogger(__name__)
 
+PRIVATE_KEY_STR = Config.JWT_PRIVATE_KEY_PATH.read_text()
+PUBLIC_KEY_STR = Config.JWT_PUBLIC_KEY_PATH.read_text()
 
 class PastaJwt:
     """Encode, decode and hold the claims of a JWT.
@@ -65,7 +67,7 @@ class PastaJwt:
         claims_dict['pastaGroups'] = list(claims_dict['pastaGroups'])
         log.info(f'Encoding token: {claims_dict}')
         return jwt.encode(
-            claims_dict, Config.JWT_SECRET_KEY, algorithm=Config.JWT_ALGORITHM
+            claims_dict, PRIVATE_KEY_STR, algorithm=Config.JWT_ALGORITHM
         )
 
     @classmethod
@@ -76,13 +78,13 @@ class PastaJwt:
         """
         try:
             claims_dict = jwt.decode(
-                token_str, Config.JWT_SECRET_KEY, algorithms=[Config.JWT_ALGORITHM]
+                token_str, PUBLIC_KEY_STR, algorithms=[Config.JWT_ALGORITHM]
             )
             return cls(claims_dict)
         except jwt.ExpiredSignatureError:
             bad_claims_dict = jwt.decode(
                 token_str,
-                Config.JWT_SECRET_KEY,
+                PUBLIC_KEY_STR,
                 algorithms=[Config.JWT_ALGORITHM],
                 options={'verify_exp': False, 'verify_signature': False},
             )
@@ -99,7 +101,7 @@ class PastaJwt:
             return False
         try:
             jwt.decode(
-                token_str, Config.JWT_SECRET_KEY, algorithms=[Config.JWT_ALGORITHM]
+                token_str, PUBLIC_KEY_STR, algorithms=[Config.JWT_ALGORITHM]
             )
             return True
         except (jwt.ExpiredSignatureError, jwt.InvalidTokenError) as e:
@@ -131,8 +133,8 @@ def make_jwt(udb, identity_row, is_vetted):
             # We don't have an email verification procedure yet
             'pastaIsEmailVerified': False,
             'pastaIsVetted': is_vetted,
-            # As we currently do not issue JWT tokens to public users, we can assume that the user
-            # is authenticated if they have a JWT token.
+            # As we currently do not issue JWT tokens to public users, we can assume
+            # that the user is authenticated if they have a valid JWT.
             'pastaIsAuthenticated': True,
             'pastaIdentityId': identity_row.id,
         }

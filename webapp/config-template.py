@@ -2,6 +2,8 @@ import datetime
 import logging
 import pathlib
 
+from sample import HERE_PATH
+
 
 class Config(object):
     HERE_PATH = pathlib.Path(__file__).parent.resolve()
@@ -16,8 +18,9 @@ class Config(object):
     LOG_DB_QUERIES = False
 
     # JWT
-    JWT_SECRET_KEY = 'jwt-secret-key'
-    JWT_ALGORITHM = 'HS256'
+    JWT_PRIVATE_KEY = HERE_PATH / '../certs/private_key.pem'
+    JWT_PUBLIC_KEY = HERE_PATH / '../certs/public_key.pem'
+    JWT_ALGORITHM = 'ES256'
     JWT_EXPIRATION_DELTA = datetime.timedelta(hours=8)
     JWT_ISSUER = 'https://auth.edirepository.org'
     JWT_AUDIENCE = 'https://auth.edirepository.org'
@@ -35,8 +38,7 @@ class Config(object):
 
     # Filesystem paths
     STATIC_PATH = HERE_PATH / 'static'
-    DB_PATH = (HERE_PATH / '../auth.sqlite').resolve()
-    AVATARS_PATH = HERE_PATH / 'avatars'
+    AVATARS_PATH = HERE_PATH / '../avatars'
     TEMPLATES_PATH = HERE_PATH / 'templates'
 
     # URLs
