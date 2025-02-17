@@ -8,9 +8,15 @@ import starlette.status
 import starlette.templating
 
 import db.iface
-import search_cache
-import pasta_jwt
-import util
+import util.avatar
+import util.filesystem
+import util.old_token
+import util.pasta_crypto
+import util.pasta_jwt
+import util.pasta_ldap
+import util.search_cache
+import util.template
+import util.utils
 
 log = daiquiri.getLogger(__name__)
 
@@ -22,18 +28,18 @@ router = fastapi.APIRouter()
 
 
 @router.get('/ui/permission')
-async def permission(
+async def get_ui_permission(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
 ):
     profile_row = udb.get_profile(token.pasta_id)
-    return util.templates.TemplateResponse(
+    return util.template.templates.TemplateResponse(
         'permission.html',
         {
             # Base
             'token': token,
-            'avatar_url': util.get_profile_avatar_url(profile_row),
+            'avatar_url': util.avatar.get_profile_avatar_url(profile_row),
             'profile': profile_row,
             #
             'request': request,
@@ -45,10 +51,10 @@ async def permission(
 
 
 @router.post('/permission/resource/search')
-async def permission_resource_search(
+async def post_permission_resource_search(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    # token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
 ):
     """Called when user types in the resource search box.
     """
@@ -74,10 +80,10 @@ async def permission_resource_search(
 
 
 @router.post('/permission/get-list')
-async def permission_get_list(
+async def post_permission_get_list(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    # token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
 ):
     resource_list = await request.json()
     log.debug('1'*100)
@@ -113,17 +119,17 @@ async def get_client_permission_list(permission_list):
 
 
 @router.post('/permission/candidate/search')
-async def permission_candidate_search(
+async def post_permission_candidate_search(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+    # udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
     # Prevent this from being called by anyone not logged in
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    # token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
 ):
     query_dict = await request.json()
     # profile_row = udb.get_profile(token.pasta_id)
     # permission_row = udb.get_permission(profile_row, form_data.get('permission-id'))
     query_str = query_dict.get('query')
-    match_list = await search_cache.search(query_str)
+    match_list = await util.search_cache.search(query_str)
     # candidate_list = udb.get_profiles_by_ids(match_list)
     return starlette.responses.JSONResponse(
         {
@@ -161,7 +167,7 @@ async def get_client_candidate_list(candidate_list):
 async def permission_update(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
 ):
     """Called when the user changes the permission level dropdown for a profile."""
 

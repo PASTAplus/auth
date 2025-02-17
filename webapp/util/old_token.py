@@ -3,7 +3,7 @@ import base64
 import daiquiri
 import pendulum
 
-import pasta_crypto
+import util.pasta_crypto
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -97,9 +97,9 @@ def make_old_token(uid, groups=''):
     old_token_obj.system = Config.SYSTEM
     old_token_obj.uid = uid
     old_token_obj.groups = groups
-    private_key = pasta_crypto.import_key(Config.PRIVATE_KEY_PATH)
+    private_key = util.pasta_crypto.import_key(Config.PRIVATE_KEY_PATH)
     log.debug(f'Creating token: {old_token_obj.to_string()}')
-    old_token_str = pasta_crypto.create_auth_token(
+    old_token_str = util.pasta_crypto.create_auth_token(
         private_key, old_token_obj.to_string()
     )
     return old_token_str

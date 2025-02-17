@@ -445,7 +445,10 @@ function formatPermissionLevel(level)
   return PERMISSION_LEVEL_LIST[level] || 'Unknown';
 }
 
-function addCandidateDiv(parentEl, candidateObj):
+function addCandidateDiv(parentEl, candidateObj)
+{
+  addProfileDiv(parentEl, candidateObj);
+}
 
 // Add a div with profile avatar and info to the parent element.
 // This is used for both permissions and candidates.
@@ -460,8 +463,8 @@ function addProfileDiv(parentEl, profileObj)
       <img src='${p.avatar_url}' alt='Avatar' class='avatar avatar-smaller'>
     </div>
     <div class='profile-child profile-info'>
-      <div class='profile-info-child'>${p.full_name}</div>
-      <div class='profile-info-child'>${p.email}</div>
+      <div class='profile-info-child'>${p.title}</div>
+      <div class='profile-info-child'>${p.descr}</div>
 
       <div class='profile-info-child'>
         <div class='pasta-id-parent'>

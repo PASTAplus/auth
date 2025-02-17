@@ -7,7 +7,17 @@ import starlette.requests
 import starlette.status
 
 import db.iface
-import util
+
+import util.avatar
+import util.filesystem
+import util.old_token
+import util.pasta_crypto
+import util.pasta_jwt
+import util.pasta_ldap
+import util.search_cache
+import util.template
+import util.utils
+
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -19,7 +29,7 @@ router = fastapi.APIRouter()
 
 
 @router.get('/login/github')
-async def login_github(
+async def get_login_github(
     request: starlette.requests.Request,
 ):
     """Accept the initial login request from an EDI service and redirect to the
@@ -29,7 +39,7 @@ async def login_github(
     target_url = request.query_params.get('target')
     log.debug(f'login_github() login_type="{login_type}" target_url="{target_url}"')
 
-    return util.redirect_to_idp(
+    return util.utils.redirect_to_idp(
         Config.GITHUB_AUTH_ENDPOINT,
         'github',
         login_type,
@@ -42,20 +52,20 @@ async def login_github(
 
 
 @router.get('/callback/github')
-async def callback_github(
+async def get_callback_github(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
 ):
-    login_type, target_url = util.unpack_state(request.query_params.get('state'))
+    login_type, target_url = util.utils.unpack_state(request.query_params.get('state'))
     log.debug(f'callback_github() login_type="{login_type}" target_url="{target_url}"')
 
     if is_error(request):
         log.error(get_error_message(request))
-        return util.redirect_to_client_error(target_url, 'Login failed')
+        return util.utils.redirect_to_client_error(target_url, 'Login failed')
 
     code_str = request.query_params.get('code')
     if code_str is None:
-        return util.redirect_to_client_error(target_url, 'Login cancelled')
+        return util.utils.redirect_to_client_error(target_url, 'Login cancelled')
 
     try:
         token_response = requests.post(
@@ -64,30 +74,30 @@ async def callback_github(
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Accept': 'application/json',
             },
-            data=util.build_query_string(
+            data=util.utils.build_query_string(
                 client_id=Config.GITHUB_CLIENT_ID,
                 client_secret=Config.GITHUB_CLIENT_SECRET,
                 code=code_str,
                 authorization_response=str(
-                    util.get_redirect_uri("github").replace_query_params(code=code_str)
+                    util.utils.get_redirect_uri("github").replace_query_params(code=code_str)
                 ),
-                redirect_uri=util.get_redirect_uri('github'),
+                redirect_uri=util.utils.get_redirect_uri('github'),
                 grant_type='authorization_code',
             ),
         )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.utils.redirect_to_client_error(target_url, 'Login unsuccessful')
 
     try:
         token_dict = token_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {token_response.text}', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.utils.redirect_to_client_error(target_url, 'Login unsuccessful')
 
     if 'error' in token_dict:
         log.error(f'Login unsuccessful: {token_dict["error"]}', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.utils.redirect_to_client_error(target_url, 'Login unsuccessful')
 
     try:
         userinfo_response = requests.get(
@@ -98,28 +108,28 @@ async def callback_github(
         )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.utils.redirect_to_client_error(target_url, 'Login unsuccessful')
 
     try:
         user_dict = userinfo_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {userinfo_response.text}', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.utils.redirect_to_client_error(target_url, 'Login unsuccessful')
 
     # Fetch the avatar
     has_avatar = False
     try:
-        avatar = get_user_avatar(user_dict['avatar_url'])
+        avatar_img = get_user_avatar(user_dict['avatar_url'])
     except fastapi.HTTPException as e:
         log.error(f'Failed to fetch user avatar: {e.detail}')
     else:
-        util.save_avatar(avatar, 'github', user_dict['html_url'])
+        util.avatar.save_avatar(avatar_img, 'github', user_dict['html_url'])
         has_avatar = True
 
     log.debug('-' * 80)
     log.debug('github_callback() - login successful')
-    util.log_dict(log.debug, 'token_dict', token_dict)
-    util.log_dict(log.debug, 'user_dict', user_dict)
+    util.utils.log_dict(log.debug, 'token_dict', token_dict)
+    util.utils.log_dict(log.debug, 'user_dict', user_dict)
     log.debug('-' * 80)
 
     idp_uid = user_dict['html_url']
@@ -130,7 +140,7 @@ async def callback_github(
     else:
         full_name = idp_uid
 
-    return util.handle_successful_login(
+    return util.utils.handle_successful_login(
         request=request,
         udb=udb,
         login_type=login_type,
@@ -150,7 +160,7 @@ async def callback_github(
 
 
 @router.get('/revoke/github')
-async def revoke_github(
+async def get_revoke_github(
     request: starlette.requests.Request,
 ):
     """Receive the initial revoke request from an EDI service, delete the user's
@@ -166,12 +176,12 @@ async def revoke_github(
         # revoke_app_token(target_url, idp_token)
     except requests.RequestException:
         log.error('Revoke unsuccessful', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Revoke unsuccessful')
+        return util.utils.redirect_to_client_error(target_url, 'Revoke unsuccessful')
 
-    return util.redirect(target_url)
+    return util.utils.redirect(target_url)
 
 
-def revoke_app_token(target_url, idp_token):
+def revoke_app_token(_target_url, idp_token):
     revoke_response = requests.delete(
         f'https://api.github.com/applications/{Config.GITHUB_CLIENT_ID}/token',
         auth=(Config.GITHUB_CLIENT_ID, Config.GITHUB_CLIENT_SECRET),

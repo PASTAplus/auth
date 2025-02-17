@@ -1,9 +1,7 @@
-import util
+from util import utils
 import sample
 import tests.util
-import pytest
-import util
-import fastapi
+import util.utils
 import starlette.status
 
 

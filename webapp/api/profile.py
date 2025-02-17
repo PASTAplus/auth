@@ -3,8 +3,8 @@ import fastapi
 import starlette.responses
 import webapp.user_db
 
-import webapp.old_token
-import webapp.util
+import util.old_token
+import util.utils
 
 log = daiquiri.getLogger(__name__)
 router = fastapi.APIRouter()
@@ -19,7 +19,7 @@ async def profile_list(
     for profile_row in udb.get_all_profiles():
         profile_list.append(profile_row.as_dict())
     # webapp.util.pp(profile_list)
-    return starlette.responses.Response(webapp.util.to_pretty_json(profile_list))
+    return starlette.responses.Response(util.util.to_pretty_json(profile_list))
 
 
 # 5. get_profile (IdP, authtoken)
@@ -30,11 +30,11 @@ async def profile_get(
     udb: webapp.user_db.UserDb = fastapi.Depends(webapp.user_db.udb),
 ):
     """Get a profile."""
-    token = webapp.old_token.OldToken()
+    token = util.old_token.OldToken()
     token.from_auth_token(token_str)
     profile_row = udb.get_profile(token.idp_uid)
     return starlette.responses.Response(
-        webapp.util.to_pretty_json(profile_row.as_dict())
+        util.util.to_pretty_json(profile_row.as_dict())
     )
 
 
@@ -51,9 +51,9 @@ async def profile_map(
     All identities from profile_src are moved to profile_dst. profile_src is then
     deleted.
     """
-    token_src = webapp.old_token.OldToken()
+    token_src = util.old_token.OldToken()
     token_src.from_auth_token(token_src_str)
-    token_dst = webapp.old_token.OldToken()
+    token_dst = util.old_token.OldToken()
     token_dst.from_auth_token(token_dst_str)
     udb.map_profile(token_src.idp_uid, token_dst.idp_uid)
 
@@ -70,7 +70,7 @@ async def profile_disable(
     Disabling a profile removes all identities associated with the profile, making it
     impossible to sign in to the profile.
     """
-    token = webapp.old_token.OldToken()
+    token = util.old_token.OldToken()
     token.from_auth_token(token_str)
     udb.disable_profile(token.idp_uid)
 
@@ -92,7 +92,7 @@ async def identity_drop(
     If the identity is used again, it will be mapped to a new profile. The user is then free to
     map the new profile to an existing profile if they wish.
     """
-    token = webapp.old_token.OldToken()
+    token = util.old_token.OldToken()
     token.from_auth_token(token_str)
     udb.drop_identity(token.idp_uid, idp_name, idp_uid)
 
@@ -105,9 +105,9 @@ async def identity_list(
     udb: webapp.user_db.UserDb = fastapi.Depends(webapp.user_db.udb),
 ):
     """List all identities associated with a profile."""
-    token = webapp.old_token.OldToken()
+    token = util.old_token.OldToken()
     token.from_auth_token(token_str)
     identity_list = []
     for identity_row in udb.get_identity_list(token.idp_uid):
         identity_list.append(identity_row.as_dict())
-    return starlette.responses.Response(webapp.util.to_pretty_json(identity_list))
+    return starlette.responses.Response(util.util.to_pretty_json(identity_list))

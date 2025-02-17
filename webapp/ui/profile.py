@@ -4,8 +4,15 @@ import starlette.requests
 import starlette.templating
 
 import db.iface
-import pasta_jwt
-import util
+import util.avatar
+import util.filesystem
+import util.old_token
+import util.pasta_crypto
+import util.pasta_jwt
+import util.pasta_ldap
+import util.search_cache
+import util.template
+import util.utils
 
 log = daiquiri.getLogger(__name__)
 
@@ -18,19 +25,19 @@ router = fastapi.APIRouter()
 # We allow opening the profile via POST in addition to GET, to be compliant with what
 # other clients except. TODO: Still needed?
 @router.api_route('/ui/profile', methods=['GET', 'POST'])
-async def profile(
+async def get_post_ui_profile(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
 ):
     profile_row = udb.get_profile(token.pasta_id)
 
-    return util.templates.TemplateResponse(
+    return util.template.templates.TemplateResponse(
         'profile.html',
         {
             # Base
             'token': token,
-            'avatar_url': util.get_profile_avatar_url(
+            'avatar_url': util.avatar.get_profile_avatar_url(
                 profile_row,
                 refresh=request.query_params.get('refresh') == 'true',
             ),
@@ -42,19 +49,19 @@ async def profile(
 
 
 @router.get('/ui/profile/edit')
-async def profile_edit(
+async def get_ui_profile_edit(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
 ):
     profile_row = udb.get_profile(token.pasta_id)
 
-    return util.templates.TemplateResponse(
+    return util.template.templates.TemplateResponse(
         'profile-edit.html',
         {
             # Base
             'token': token,
-            'avatar_url': util.get_profile_avatar_url(
+            'avatar_url': util.avatar.get_profile_avatar_url(
                 profile_row,
                 refresh=request.query_params.get('refresh') == 'true',
             ),
@@ -70,13 +77,13 @@ async def profile_edit(
 
 
 @router.post('/profile/edit/update')
-async def profile_edit_update(
+async def post_profile_edit_update(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
 ):
     form_data = await request.form()
-    util.log_dict(log.info, 'Updating profile', dict(form_data))
+    util.utils.log_dict(log.info, 'Updating profile', dict(form_data))
     udb.update_profile(
         token.pasta_id,
         full_name=form_data.get('full-name'),
@@ -85,14 +92,14 @@ async def profile_edit_update(
         organization=form_data.get('organization'),
         association=form_data.get('association'),
     )
-    return util.redirect_internal('/ui/profile/edit', msg='Profile updated')
+    return util.utils.redirect_internal('/ui/profile/edit', msg='Profile updated')
 
 
 @router.post('/profile/edit/delete')
-async def profile_edit_delete(
-    request: starlette.requests.Request,
+async def post_profile_edit_delete(
+    # request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
 ):
     udb.delete_profile(token.pasta_id)
-    return util.redirect_internal('/signout')
+    return util.utils.redirect_internal('/signout')

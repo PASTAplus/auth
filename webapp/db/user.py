@@ -7,13 +7,13 @@ import sqlalchemy.event
 import sqlalchemy.orm
 import sqlalchemy.pool
 
+import util.avatar
 import db.base
 import db.group
 import db.identity
 import db.permission
 import db.profile
 import db.sync
-import util
 
 log = daiquiri.getLogger(__name__)
 
@@ -63,8 +63,8 @@ class UserDb:
             )
             # Set the avatar for the profile to the avatar for the identity
             if has_avatar:
-                avatar_img = util.get_avatar_path(idp_name, idp_uid).read_bytes()
-                util.save_avatar(avatar_img, 'profile', profile_row.pasta_id)
+                avatar_img = util.avatar.get_avatar_path(idp_name, idp_uid).read_bytes()
+                util.avatar.save_avatar(avatar_img, 'profile', profile_row.pasta_id)
         else:
             # We do not update the profile if it exists, since the profile belongs to
             # the user, and they may update their profile with their own information.

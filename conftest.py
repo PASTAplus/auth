@@ -17,7 +17,6 @@ import db.user
 import webapp.main
 import webapp.db.iface
 import webapp.db.base
-import webapp.util
 import webapp.db
 # from webapp.config import Config
 

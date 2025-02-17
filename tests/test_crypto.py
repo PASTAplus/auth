@@ -1,7 +1,7 @@
 import Crypto.PublicKey.RSA
 import daiquiri
 
-from webapp import pasta_crypto
+from util import pasta_crypto
 from webapp.config import Config
 
 # sys.path.insert(0, os.path.abspath("../src"))

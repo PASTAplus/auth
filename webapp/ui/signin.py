@@ -1,16 +1,23 @@
 import daiquiri
 import fastapi
 import starlette.requests
-import starlette.templating
-import starlette.responses
-import starlette.datastructures
 import starlette.status
 
 import db.iface
-import pasta_jwt
-import pasta_ldap
-import util
+
+import util.avatar
+import util.filesystem
+import util.old_token
+import util.pasta_crypto
+import util.pasta_jwt
+import util.pasta_ldap
+import util.search_cache
+import util.template
+import util.utils
+
 from config import Config
+
+
 
 log = daiquiri.getLogger(__name__)
 
@@ -20,32 +27,14 @@ router = fastapi.APIRouter()
 
 # UI routes
 
-@router.get('/ui/tokentest')
-async def tokentest(
-    request: starlette.requests.Request,
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
-):
-    return util.templates.TemplateResponse(
-        'tokentest.html',
-        {
-            # Base
-            'token': token,
-            'profile': None,
-            #
-            'request': request,
-        },
-    )
-@router.get('/ui/tokentest2')
-
-
 @router.get('/ui/signin')
-async def signin(
+async def get_ui_signin(
     request: starlette.requests.Request,
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
 ):
     if token:
-        return util.redirect_internal('/ui/profile')
-    return util.templates.TemplateResponse(
+        return util.utils.redirect_internal('/ui/profile')
+    return util.template.templates.TemplateResponse(
         'signin.html',
         {
             # Base
@@ -63,18 +52,18 @@ async def signin(
 
 
 @router.get('/ui/signin/link')
-async def signin_link(
+async def get_ui_signin_link(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
 ):
     profile_row = udb.get_profile(token.pasta_id)
-    return util.templates.TemplateResponse(
+    return util.template.templates.TemplateResponse(
         'signin.html',
         {
             # Base
             'token': token,
-            'avatar_url': util.get_profile_avatar_url(profile_row),
+            'avatar_url': util.avatar.get_profile_avatar_url(profile_row),
             'profile': None,
             #
             'request': request,
@@ -98,12 +87,12 @@ async def signin_link(
 
 
 @router.get('/ui/signin/reset')
-async def signin_reset(
+async def get_ui_signin_reset(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    # udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
 ):
-    return util.templates.TemplateResponse(
+    return util.template.templates.TemplateResponse(
         'signin-reset-pw.html',
         {
             # Base
@@ -122,7 +111,7 @@ async def signin_reset(
 
 
 @router.post('/signin/ldap')
-async def signin_ldap(
+async def post_signin_ldap(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
 ):
@@ -133,20 +122,20 @@ async def signin_ldap(
     login_type = form_data.get('login_type')
     username = form_data.get('username')
     password = form_data.get('password')
-    ldap_dn = util.get_ldap_dn(username)
+    ldap_dn = util.utils.get_ldap_dn(username)
 
-    if not pasta_ldap.bind(ldap_dn, password):
-        return util.redirect_internal(
+    if not util.pasta_ldap.bind(ldap_dn, password):
+        return util.utils.redirect_internal(
             '/ui/signin', error='Sign in failed. Please try again.'
         )
 
     log.debug(f'signin_ldap() - signin successful: {ldap_dn}')
 
-    return util.handle_successful_login(
+    return util.utils.handle_successful_login(
         request=request,
         udb=udb,
         login_type=login_type,
-        target_url=str(util.url('/ui/profile')),
+        target_url=str(util.utils.url('/ui/profile')),
         full_name=username,
         idp_name='ldap',
         idp_uid=ldap_dn,
@@ -158,7 +147,7 @@ async def signin_ldap(
 
 @router.get('/signout')
 async def signout(request: starlette.requests.Request):
-    response = util.redirect_internal('/ui/signin', **request.query_params)
+    response = util.utils.redirect_internal('/ui/signin', **request.query_params)
     response.delete_cookie('pasta_token')
     response.delete_cookie('auth-token')
     return response

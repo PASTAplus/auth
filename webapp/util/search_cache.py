@@ -61,7 +61,7 @@ async def init_groups(udb):
             group_row.description,
             group_row.pasta_id,
             # Enable searching for the PASTA ID without the 'PASTA-' prefix
-            re.sub(r'^PASTA-', '', group_row.pasta_id)
+            re.sub(r'^PASTA-', '', group_row.pasta_id),
         )
         candidate_list.append(
             (
@@ -70,7 +70,8 @@ async def init_groups(udb):
                     'id': group_row.id,
                     'pasta_id': group_row.pasta_id,
                     'title': group_row.name,
-                    'descr': group_row.description + f' (owner {group_row.profile.full_name})',
+                    'descr': (group_row.description or '')
+                    + f' (owner {group_row.profile.full_name})',
                     'avatar_url': group_row.profile.avatar_url,
                     'type': 'group',
                 },

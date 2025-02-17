@@ -4,8 +4,15 @@ import starlette.requests
 import starlette.templating
 
 import db.iface
-import pasta_jwt
-import util
+import util.avatar
+import util.filesystem
+import util.old_token
+import util.pasta_crypto
+import util.pasta_jwt
+import util.pasta_ldap
+import util.search_cache
+import util.template
+import util.utils
 
 log = daiquiri.getLogger(__name__)
 
@@ -16,18 +23,18 @@ router = fastapi.APIRouter()
 
 
 @router.get('/ui/membership')
-async def membership(
+async def get_ui_membership(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
 ):
     profile_row = udb.get_profile(token.pasta_id)
-    return util.templates.TemplateResponse(
+    return util.template.templates.TemplateResponse(
         'membership.html',
         {
             # Base
             'token': token,
-            'avatar_url': util.get_profile_avatar_url(
+            'avatar_url': util.avatar.get_profile_avatar_url(
                 profile_row,
                 refresh=request.query_params.get('refresh') == 'true',
             ),
@@ -43,13 +50,13 @@ async def membership(
 
 
 @router.post('/membership/leave')
-async def membership_leave(
+async def post_membership_leave(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
 ):
     form_data = await request.form()
     group_id = form_data.get('group-id')
     profile_row = udb.get_profile(token.pasta_id)
     udb.leave_group_membership(profile_row, group_id)
-    return util.redirect_internal('/ui/membership')
+    return util.utils.redirect_internal('/ui/membership')

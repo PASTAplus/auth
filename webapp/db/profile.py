@@ -2,9 +2,9 @@ import daiquiri
 import sqlalchemy.orm
 import sqlalchemy.pool
 
+import util.avatar
 import db.base
 import db.permission
-import util
 
 log = daiquiri.getLogger(__name__)
 
@@ -89,4 +89,4 @@ class Profile(db.base.Base):
 
     @property
     def avatar_url(self):
-        return str(util.get_profile_avatar_url(self))
+        return str(util.avatar.get_profile_avatar_url(self))

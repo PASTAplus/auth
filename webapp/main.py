@@ -11,13 +11,11 @@ import starlette.status
 
 import api.ping
 import api.refresh_token
-import search_cache
 import idp.github
 import idp.google
 import idp.ldap
 import idp.microsoft
 import idp.orcid
-import pasta_jwt
 import ui.avatar
 import ui.dev
 import ui.group
@@ -28,7 +26,17 @@ import ui.permission
 import ui.privacy_policy
 import ui.profile
 import ui.signin
-import util
+
+import util.avatar
+import util.filesystem
+import util.old_token
+import util.pasta_crypto
+import util.pasta_jwt
+import util.pasta_ldap
+import util.search_cache
+import util.template
+import util.utils
+
 from config import Config
 
 daiquiri.setup(
@@ -51,7 +59,7 @@ async def lifespan(
     _app: fastapi.FastAPI,
 ):
     log.info('Application starting...')
-    await search_cache.init_cache()
+    await util.search_cache.init_cache()
     yield
     log.info('Application stopping...')
 
@@ -89,10 +97,14 @@ for file_path in (Config.STATIC_PATH / 'site').iterdir():
     create_route(file_path)
 
 
+#
+# Middleware
+#
+
 class RootPathMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     async def dispatch(self, request: starlette.requests.Request, call_next):
         if not request.url.path.startswith(Config.ROOT_PATH):
-            return util.redirect_internal(request.url.path)
+            return util.utils.redirect_internal(request.url.path)
         # Setting the root_path here has the same effect as setting it in the reverse proxy (e.g.,
         # nginx). We just set it here so that we can avoid special nginx configuration. The
         # root_path setting is part of the ASGI spec, and is used by FastAPI to properly route
@@ -114,14 +126,14 @@ class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     async def dispatch(self, request: starlette.requests.Request, call_next):
         # If the request is for a /ui path, redirect to signin if the token is invalid
         if (
-            request.url.path.startswith(str(util.url('/ui')))
-            and not request.url.path.startswith(str(util.url('/ui/signin')))
-            and not pasta_jwt.PastaJwt.is_valid(request.cookies.get('pasta_token'))
+            request.url.path.startswith(str(util.utils.url('/ui')))
+            and not request.url.path.startswith(str(util.utils.url('/ui/signin')))
+            and not util.pasta_jwt.PastaJwt.is_valid(request.cookies.get('pasta_token'))
         ):
             log.debug(
                 'Redirecting to /ui/signin: UI page requested without valid token'
             )
-            return util.redirect_internal('/ui/signin')
+            return util.utils.redirect_internal('/ui/signin')
         return await call_next(request)
 
 
