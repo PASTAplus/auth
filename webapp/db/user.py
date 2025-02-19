@@ -408,7 +408,7 @@ class UserDb:
     #         self.session.query(db.permission.Permission)
     #         .join(
     #             db.profile.Profile,
-    #             db.permission.Permission.grantee_id == db.profile.Profile.id,
+    #             db.permission.Permission.principal_id == db.profile.Profile.id,
     #         )
     #         .filter(db.permission.Permission.resource == resource_row)
     #         # order_by can only accept column names, not dynamic properties like full_name.
@@ -601,8 +601,8 @@ class UserDb:
             if permission_row is None:
                 permission_row = db.permission.Permission(
                     resource_id=resource_id,
-                    grantee_id=profile_id,
-                    grantee_type=db.permission.GranteeType.PROFILE,
+                    principal_id=profile_id,
+                    principal_type=db.permission.PrincipalType.PROFILE,
                     level=db.permission.PermissionLevel(permission_level),
                 )
                 self.session.add(permission_row)
@@ -614,7 +614,7 @@ class UserDb:
         return (
             self.session.query(db.permission.Permission).filter(
                 db.permission.Permission.resource_id == resource_id,
-                db.permission.Permission.grantee_id == profile_id,
+                db.permission.Permission.principal_id == profile_id,
             )
         ).first()
 
@@ -683,17 +683,17 @@ class UserDb:
             .outerjoin(
                 db.profile.Profile,
                 sqlalchemy.and_(
-                    db.permission.Permission.grantee_id == db.profile.Profile.id,
-                    db.permission.Permission.grantee_type
-                    == db.permission.GranteeType.PROFILE,
+                    db.permission.Permission.principal_id == db.profile.Profile.id,
+                    db.permission.Permission.principal_type
+                    == db.permission.PrincipalType.PROFILE,
                 ),
             )
             .outerjoin(
                 db.group.Group,
                 sqlalchemy.and_(
-                    db.permission.Permission.grantee_id == db.group.Group.id,
-                    db.permission.Permission.grantee_type
-                    == db.permission.GranteeType.GROUP,
+                    db.permission.Permission.principal_id == db.group.Group.id,
+                    db.permission.Permission.principal_type
+                    == db.permission.PrincipalType.GROUP,
                 ),
             )
             .filter(db.permission.Collection.label.ilike(f'{search_str}%'))
@@ -799,17 +799,17 @@ class UserDb:
             .outerjoin(
                 db.profile.Profile,
                 sqlalchemy.and_(
-                    db.permission.Permission.grantee_id == db.profile.Profile.id,
-                    db.permission.Permission.grantee_type
-                    == db.permission.GranteeType.PROFILE,
+                    db.permission.Permission.principal_id == db.profile.Profile.id,
+                    db.permission.Permission.principal_type
+                    == db.permission.PrincipalType.PROFILE,
                 ),
             )
             .outerjoin(
                 db.group.Group,
                 sqlalchemy.and_(
-                    db.permission.Permission.grantee_id == db.group.Group.id,
-                    db.permission.Permission.grantee_type
-                    == db.permission.GranteeType.GROUP,
+                    db.permission.Permission.principal_id == db.group.Group.id,
+                    db.permission.Permission.principal_type
+                    == db.permission.PrincipalType.GROUP,
                 ),
             )
             .filter(db.permission.Collection.id.in_(collection_id_list))

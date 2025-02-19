@@ -25,7 +25,7 @@ async def init_cache():
     cache['candidate_list'].clear()
     await init_profiles(udb)
     await init_groups(udb)
-    pprint.pp(cache)
+    # pprint.pp(cache)
 
 
 async def init_profiles(udb):
@@ -37,6 +37,8 @@ async def init_profiles(udb):
             profile_row.full_name,
             profile_row.email,
             profile_row.pasta_id,
+            # Enable searching for the PASTA ID without the 'PASTA-' prefix
+            re.sub(r'^PASTA-', '', profile_row.pasta_id),
         )
         candidate_list.append(
             (
@@ -60,7 +62,6 @@ async def init_groups(udb):
             group_row.name,
             group_row.description,
             group_row.pasta_id,
-            # Enable searching for the PASTA ID without the 'PASTA-' prefix
             re.sub(r'^PASTA-', '', group_row.pasta_id),
         )
         candidate_list.append(
@@ -79,16 +80,10 @@ async def init_groups(udb):
         )
 
 
-async def get_client_group_dict(group_row):
-    return {}
-
-
 async def search(query_str):
     sync_ts = db.iface.get_udb().get_sync_ts()
     if sync_ts != cache.get('sync_ts'):
         await init_cache()
-
-    # score_gen = ((score(query_str, k), v) for k, v in )
 
     match_list = []
 

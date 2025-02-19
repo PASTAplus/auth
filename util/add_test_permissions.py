@@ -123,8 +123,8 @@ def get_resource_id_list(session):
 def insert_permission(session, profile_id, resource_id, level):
     new_permission = db.permission.Permission(
         resource_id=resource_id,
-        grantee_id=profile_id,
-        grantee_type=db.permission.GranteeType.PROFILE,
+        principal_id=profile_id,
+        principal_type=db.permission.PrincipalType.PROFILE,
         level=level,
     )
     session.add(new_permission)

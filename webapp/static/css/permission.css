@@ -4,14 +4,14 @@ Main grid
 
 /*
 +-----------------------------+
-|        split-container          |
+|        split-container      |
 |  +-----------------------+  |
-|  |    split-top    |  |
+|  |      split-top        |  |
 |  +-----------------------+  |
 |  +-----------------------+  |
-|  |     split-main      |  |
+|  |      split-main       |  |
 |  |  +-------+  +-------+ |  |
-|  |  | split-   |  | split-   | |  |
+|  |  | split-|  | split-| |  |
 |  |  | left- |  | right-| |  |
 |  |  |section|  |section| |  |
 |  |  +-------+  +-------+ |  |

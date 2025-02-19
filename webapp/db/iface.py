@@ -31,18 +31,6 @@ engine = sqlalchemy.create_engine(
     max_overflow=Config.DB_MAX_OVERFLOW,
 )
 
-# engine = sqlalchemy.create_engine(
-#     'sqlite:///' + Config.DB_PATH.as_posix(),
-#     echo=Config.LOG_DB_QUERIES,
-#     connect_args={
-#         # Allow multiple threads to access the database
-#         # This setup allows the SQLAlchemy engine to manage SQLite connections that can
-#         # safely be shared across threads, mitigating the "SQLite objects created in a
-#         # thread can only be used in that same thread" limitation.
-#         # 'check_same_thread': False,
-#     },
-# )
-
 # Use ./util/clear_database.py to drop all tables in the database.
 
 # Create the tables in the database
