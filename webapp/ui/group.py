@@ -10,13 +10,16 @@ import util.avatar
 import util.pasta_jwt
 import util.template
 import util.utils
+import util.search_cache
 
 log = daiquiri.getLogger(__name__)
 
 
 router = fastapi.APIRouter()
 
+#
 # UI routes
+#
 
 
 @router.get('/ui/group')
@@ -88,7 +91,9 @@ async def get_ui_group_member(
     )
 
 
+#
 # Internal routes
+#
 
 
 @router.post('/group/new')
@@ -147,9 +152,19 @@ async def post_group_member_list(
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',
-            'member_list': await get_client_profile_list(
-                [m.profile for m in member_list]
-            ),
+            'member_list': [
+                {
+                    'principal_id': p.id,
+                    'principal_type': p.id,
+                    'pasta_id': p.pasta_id,
+                    'title': p.full_name,
+                    'description': p.email,
+                    # 'organization': p.organization,
+                    # 'association': p.association,
+                    'avatar_url': p.avatar_url,
+                }
+                for p in [m.profile for m in member_list]
+            ],
         }
     )
 
@@ -162,33 +177,15 @@ async def post_group_member_search(
     _token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
 ):
     query_dict = await request.json()
-    # profile_row = udb.get_profile(token.pasta_id)
-    # group_row = udb.get_group(profile_row, form_data.get('group-id'))
     query_str = query_dict.get('query')
-    match_list = await fuzz.search(query_str) #####################################################################
-    candidate_list = udb.get_profiles_by_ids(match_list)
+    principal_list = await util.search_cache.search(query_str, include_groups=False)
+    # log.debug(json.dumps(match_list, indent=2))
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',
-            'candidate_list': await get_client_profile_list(candidate_list),
+            'principal_list': principal_list,
         }
     )
-
-
-async def get_client_profile_list(profile_list):
-    """Create a set of plain key/value dicts with limited profile values for exposing
-    client side."""
-    return [
-        {
-            'profile_id': p.id,
-            'full_name': p.full_name,
-            'email': p.email,
-            'organization': p.organization,
-            'association': p.association,
-            'avatar_url': p.avatar_url,
-        }
-        for p in profile_list
-    ]
 
 
 @router.post('/group/member/add-remove')

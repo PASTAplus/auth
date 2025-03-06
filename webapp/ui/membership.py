@@ -14,7 +14,9 @@ log = daiquiri.getLogger(__name__)
 
 router = fastapi.APIRouter()
 
+#
 # UI routes
+#
 
 
 @router.get('/ui/membership')
@@ -41,7 +43,9 @@ async def get_ui_membership(
     )
 
 
+#
 # Internal routes
+#
 
 
 @router.post('/membership/leave')

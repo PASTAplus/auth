@@ -19,7 +19,9 @@ log = daiquiri.getLogger(__name__)
 router = fastapi.APIRouter()
 
 
+#
 # UI routes
+#
 
 
 @router.get('/ui/permission')
@@ -42,7 +44,9 @@ async def get_ui_permission(
     )
 
 
+#
 # Internal routes
+#
 
 
 @router.post('/permission/resource/search')
@@ -51,14 +55,13 @@ async def post_permission_resource_search(
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
     # token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
 ):
-    """Called when user types in the resource search box.
-    """
+    """Called when user types in the resource search box."""
     query_dict = await request.json()
     # profile_row = udb.get_profile(token.pasta_id)
     # permission_row = udb.get_permission(profile_row, form_data.get('permission-id'))
     # query_str = query_dict.get('query')
     # match_list = await fuzz.search(query_str)
-    # candidate_list = udb.get_profiles_by_ids(match_list)
+    # principal_list = udb.get_profiles_by_ids(match_list)
     profile_row = None  # udb.get_profile(token.pasta_id)
     # collection_list = udb.get_collection_list(profile_row, query_dict.get('query'))
     # client_collection_list = await get_client_collection_list(collection_list)
@@ -74,83 +77,43 @@ async def post_permission_resource_search(
     )
 
 
-@router.post('/permission/get-list')
-async def post_permission_get_list(
+@router.post('/permission/aggregate/get')
+async def post_permission_aggregate_get(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
     # token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
 ):
     resource_list = await request.json()
-    log.debug('1'*100)
-    log.debug(json.dumps(resource_list, indent=2))
-    profile_permission_list = await udb.get_aggregate_profile_permission_list(resource_list)
-    log.debug(json.dumps(profile_permission_list, indent=2))
+    # log.debug('1' * 100)
+    # log.debug(json.dumps(resource_list, indent=2))
+    permission_list = await udb.get_aggregate_permission_list(
+        resource_list
+    )
+    log.debug(json.dumps(permission_list, indent=2))
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',
-            'profile_permission_list': profile_permission_list,
+            'permission_list': permission_list,
         }
     )
 
-
-async def get_client_permission_list(permission_list):
-    """Create a set of plain key/value dicts with limited profile values for exposing
-    client side."""
-    return [
-        {
-            'permission_id': p.id,
-            'level': p.permission_level.value,
-            # Profile
-            'profile_id': p.profile.id,
-            'pasta_id': p.profile.pasta_id,
-            'full_name': p.profile.full_name,
-            'email': p.profile.email,
-            'organization': p.profile.organization,
-            'association': p.profile.association,
-            'avatar_url': p.profile.avatar_url,
-        }
-        for p in permission_list
-    ]
-
-
-@router.post('/permission/candidate/search')
-async def post_permission_candidate_search(
+@router.post('/permission/principal/search')
+async def post_permission_principal_search(
     request: starlette.requests.Request,
     # udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
     # Prevent this from being called by anyone not logged in
     # token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
 ):
     query_dict = await request.json()
-    # profile_row = udb.get_profile(token.pasta_id)
-    # permission_row = udb.get_permission(profile_row, form_data.get('permission-id'))
     query_str = query_dict.get('query')
-    match_list = await util.search_cache.search(query_str)
-    # candidate_list = udb.get_profiles_by_ids(match_list)
+    principal_list = await util.search_cache.search(query_str, include_groups=True)
+    log.debug(json.dumps(principal_list, indent=2))
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',
-            # 'candidate_list': await get_client_candidate_list(candidate_list),
-            'candidate_list': match_list,
+            'principal_list': principal_list,
         }
     )
-
-
-async def get_client_candidate_list(candidate_list):
-    """Create a set of JSON serializable key/value dicts with limited profile values for
-    exposing client side.
-    """
-    return [
-        {
-            'profile_id': p.id,
-            'pasta_id': p.pasta_id,
-            'full_name': p.full_name,
-            'email': p.email,
-            'organization': p.organization,
-            'association': p.association,
-            'avatar_url': p.avatar_url,
-        }
-        for p in candidate_list
-    ]
 
 
 #
@@ -159,13 +122,13 @@ async def get_client_candidate_list(candidate_list):
 
 
 @router.post('/permission/update')
-async def permission_update(
+async def post_permission_update(
     request: starlette.requests.Request,
     udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
     token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
 ):
-    """Called when the user changes the permission level dropdown for a profile."""
-
+    """Called when the user changes the permission level dropdown for a profile.
+    """
     # TODO: There is a race condition where changes can be lost if the user changes multiple times
     # quickly for the same profile. This probably happens because the change is asynchronously sent
     # to the server, and the list is then async updated while the old list still exists and is still
@@ -181,7 +144,8 @@ async def permission_update(
         await udb.update_permission(
             profile_row,
             update_dict['resources'],
-            update_dict['profileId'],
+            update_dict['principalId'],
+            update_dict['principalType'],
             update_dict['permissionLevel'],
         )
     except ValueError as e:
@@ -194,7 +158,6 @@ async def permission_update(
             'status': 'ok',
         }
     )
-
 
 # @router.post('/permission/crud')
 # async def permission_crud(

@@ -99,7 +99,7 @@ class Permission(db.base.Base):
         index=True,
     )
     # The profile or group which is granted this permission.
-    # When the type is 'pub', the only valid value is 0.
+    # When the principal_type is PUBLIC, this must be null.
     principal_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=True, index=True)
     # The type of the principal_id (PROFILE, GROUP, PUBLIC)
     principal_type = sqlalchemy.Column(
@@ -141,13 +141,13 @@ def create_trigger(dbapi_connection, _connection_record):
         returns trigger as $$
         begin
             if
-                (new.principal_type = 'PROFILE'::principal_type and not exists
+                (new.principal_type = 'PROFILE'::principaltype and not exists
                 (select 1 from profile where id = new.principal_id)) or
-                (new.principal_type = 'GROUP'::principal_type and not exists
+                (new.principal_type = 'GROUP'::principaltype and not exists
                 (select 1 from "group" where id = new.principal_id)) or
-                (new.principal_type = 'PUBLIC'::principal_type and new.principal_id is not null)
+                (new.principal_type = 'PUBLIC'::principaltype and new.principal_id is not null)
             then
-                raise exception using message = 'invalid principal_type and/or principal_id: ' 
+                raise exception using message = 'invalid principal_type and/or principal_id: '
                 || new.principal_type || ', ' || new.principal_id;
             end if;
             return new;

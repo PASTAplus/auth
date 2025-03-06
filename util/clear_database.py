@@ -49,8 +49,9 @@ def main():
 
 def clear_database(session):
     for table_name in db.base.Base.metadata.tables.values():
-        sequence_name = f"{table_name.name}_id_seq"
-        session.execute(f"alter sequence {sequence_name} restart with 1")
+        session.execute(
+            sqlalchemy.text(f'drop table if exists "{table_name.name}" cascade')
+        )
 
     session.commit()
 

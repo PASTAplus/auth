@@ -14,7 +14,9 @@ log = daiquiri.getLogger(__name__)
 
 router = fastapi.APIRouter()
 
+#
 # UI routes
+#
 
 
 @router.get('/ui/identity')
@@ -54,7 +56,9 @@ async def get_ui_identity(
     )
 
 
+#
 # Internal routes
+#
 
 
 @router.post('/identity/unlink')

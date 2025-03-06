@@ -30,6 +30,9 @@ import util.avatar
 import util.pasta_jwt
 import util.search_cache
 import util.utils
+import db.user
+import db.iface
+
 from config import Config
 
 daiquiri.setup(
@@ -52,7 +55,14 @@ async def lifespan(
     _app: fastapi.FastAPI,
 ):
     log.info('Application starting...')
+    # Create the public profile if it doesn't exist.
+    with db.iface.SessionLocal().begin():
+        udb = db.iface.get_udb()
+        if not udb.get_public_profile():
+            udb.create_public_profile()
+    # Initialize the profile and group search cache
     await util.search_cache.init_cache()
+    # Run the app
     yield
     log.info('Application stopping...')
 
@@ -66,10 +76,29 @@ app.mount(
     name='static',
 )
 
+# Custom StaticFiles class to set MIME type
+class AvatarFiles(fastapi.staticfiles.StaticFiles):
+    """Custom StaticFiles class to set the mimetype for SVG files.
+    """
+    async def get_response(self, path, scope):
+        full_path, stat_result = self.lookup_path(path)
+        if stat_result is None:
+            raise fastapi.HTTPException(status_code=404, detail="File not found")
+        return starlette.responses.FileResponse(
+            full_path,
+            stat_result=stat_result,
+            media_type='image/svg+xml' if await self.is_svg(full_path) else 'image/*',
+        )
+
+    async def is_svg(self, path):
+        with open(path, 'rb') as f:
+            return b'<?xml' in f.read(16).lower()
+
+
 # Set up serving of avatars
 app.mount(
     Config.AVATARS_URL,
-    fastapi.staticfiles.StaticFiles(directory=Config.AVATARS_PATH),
+    AvatarFiles(directory=Config.AVATARS_PATH),
     name='avatars',
 )
 
@@ -93,6 +122,7 @@ for file_path in (Config.STATIC_PATH / 'site').iterdir():
 #
 # Middleware
 #
+
 
 class RootPathMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     async def dispatch(self, request: starlette.requests.Request, call_next):

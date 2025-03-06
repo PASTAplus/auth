@@ -40,7 +40,7 @@
         <h4>Select Resources</h4>
 
         <div>
-          <input type='text' class='form-control' id='collectionSearch' name='name' placeholder='Search for resources' autocomplete="off" spellcheck="false">
+          <input type='text' class='form-control' id='collectionSearch' placeholder='Search for resources' autocomplete="off" spellcheck="false">
         </div>
         <div class='collection-right'>
           <label>
@@ -59,40 +59,19 @@
       </div>
 
       <div class='split-section split-right'>
-        {#<div class='main-grid-child'>#}
-        {#  <div class='permission-parent-flex'>#}
         <div>
           <h4>
             Set Permissions
           </h4>
         </div>
         <div>
-          <input type='text' class='form-control' id='candidateSearch' name='name' autocomplete="off" spellcheck="false">
-          <div id='candidateList' tabindex='0' class='form-control'></div>
+          <input type='text' class='form-control' id='principalSearch' autocomplete="off" spellcheck="false">
+          <div id='principalList' tabindex='0' class='form-control'></div>
         </div>
-        {#</div>#}
         <div class='permission-grid' id='permissionList'>
           {#<div class='grid-msg'>Loading permissions...</div>#}
         </div>
-
-        <hr>
-
-        <div class="permission-grid-title">Public Access</div>
-
-        <div class='permission-public' id='publicPermissions'>
-          <label>
-            <input type='radio' name='publicLevel' value='metadata_and_data'> Metadata and Data
-          </label>
-          <label>
-            <input type='radio' name='publicLevel' value='metadata_only' checked> Metadata Only
-          </label>
-          <label>
-            <input type='radio' name='publicLevel' value='none'> None
-          </label>
-        </div>
-        {#</div>#}
       </div>
     </div>
   </div>
-
 {% endblock %}

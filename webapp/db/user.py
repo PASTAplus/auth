@@ -6,6 +6,7 @@ import sqlalchemy
 import sqlalchemy.event
 import sqlalchemy.orm
 import sqlalchemy.pool
+import sqlalchemy.exc
 
 import db.base
 import db.group
@@ -14,6 +15,7 @@ import db.permission
 import db.profile
 import db.sync
 import util.avatar
+from config import Config
 
 log = daiquiri.getLogger(__name__)
 
@@ -49,6 +51,7 @@ class UserDb:
         )
         if identity_row is None:
             profile_row = self.create_profile(
+                pasta_id=self.get_new_pasta_id(),
                 given_name=given_name,
                 family_name=family_name,
                 email=email,
@@ -78,22 +81,43 @@ class UserDb:
 
     def create_profile(
         self,
+        pasta_id: str,
         given_name: str = None,
         family_name: str = None,
         email: str = None,
         has_avatar: bool = False,
     ):
-        new_profile = db.profile.Profile(
-            pasta_id=UserDb.get_new_pasta_id(),
+        new_profile_row = db.profile.Profile(
+            pasta_id=pasta_id,
             given_name=given_name,
             family_name=family_name,
             email=email,
             has_avatar=has_avatar,
         )
-        self.session.add(new_profile)
+        self.session.add(new_profile_row)
         self.session.commit()
         self.sync_update('profile')
-        return new_profile
+        return new_profile_row
+
+    def get_public_profile(self):
+        """Get the profile for the public user."""
+        return (
+            self.session.query(db.profile.Profile)
+            .filter(db.profile.Profile.pasta_id == Config.PUBLIC_PASTA_ID)
+            .first()
+        )
+
+    def create_public_profile(self):
+        try:
+            self.create_profile(
+                pasta_id=Config.PUBLIC_PASTA_ID,
+                given_name=Config.PUBLIC_NAME,
+                has_avatar=True,
+            )
+        except sqlalchemy.exc.IntegrityError:
+            self.session.rollback()
+        else:
+            util.avatar.init_public_avatar()
 
     def get_profile(self, pasta_id):
         return (
@@ -382,174 +406,24 @@ class UserDb:
             yield group_row
 
     #
-    # Sync
-    #
-
-    def sync_update(self, name):
-        """Update the timestamp on name"""
-        sync_row = self.session.query(db.sync.Sync).filter_by(name=name).first()
-        if sync_row is None:
-            sync_row = db.sync.Sync(name=name)
-            self.session.add(sync_row)
-        # No-op update to trigger onupdate
-        sync_row.name = sync_row.name
-        self.session.commit()
-
-    def get_sync_ts(self):
-        """Get the latest timestamp"""
-        return self.session.query(sqlalchemy.func.max(db.sync.Sync.updated)).scalar()
-
-    #
     # Permission
     #
 
-    # def get_permission_list(self, resource_row):
-    #     return (
-    #         self.session.query(db.permission.Permission)
-    #         .join(
-    #             db.profile.Profile,
-    #             db.permission.Permission.principal_id == db.profile.Profile.id,
-    #         )
-    #         .filter(db.permission.Permission.resource == resource_row)
-    #         # order_by can only accept column names, not dynamic properties like full_name.
-    #         .order_by(
-    #             db.profile.Profile.given_name,
-    #             db.profile.Profile.family_name,
-    #             db.profile.Profile.id,
-    #         )
-    #         .all()
-    #     )
-
-    # def get_resource(self, resource_id):
-    #     return (
-    #         self.session.query(db.permission.Resource)
-    #         .filter(db.permission.Resource.id == resource_id)
-    #         .first()
-    #     )
-
-    # def get_permission(self, permission_id):
-    #     return (
-    #         self.session.query(db.permission.Permission)
-    #         .filter(db.permission.Permission.id == permission_id)
-    #         .first()
-    #     )
-
-    # def create_permission(self, resource_id, profile_id):
-    #     """Create a new READ permission"""
-    #     new_permission = db.permission.Permission(
-    #         resource_id=resource_id,
-    #         profile_id=profile_id,
-    #         level=1,
-    #     )
-    #     self.session.add(new_permission)
-    #     self.session.commit()
-    #     self.sync_update('permission')
-    #     return new_permission
-
-    ###########
-
-    # def update_permission(
-    #     self, profile_row, resource_list, profile_id, permission_level
-    # ):
-    #     """Update a permission level for a profile.
-    #
-    #     There are 2 profiles:
-    #     - The profile of the user who is updating the permission (profile_row).
-    #     - The profile of the user who is granted the permission.
-    #
-    #     resource_list contains a list of lists of [collection_id, resource_type].
-    #     """
-    #     # return
-    #
-    #     collection_id_list = {r[0] for r in resource_list}
-    #
-    #     query = (
-    #         self.session.query(
-    #             db.permission.Collection,
-    #             db.permission.Resource,
-    #             db.permission.Permission,
-    #             db.profile.Profile,
-    #         )
-    #         .outerjoin(
-    #             db.permission.Resource,
-    #             db.permission.Collection.id == db.permission.Resource.collection_id,
-    #         )
-    #         .outerjoin(
-    #             db.permission.Permission,
-    #             db.permission.Resource.id == db.permission.Permission.resource_id,
-    #         )
-    #         .outerjoin(
-    #             db.profile.Profile,
-    #             db.permission.Permission.profile_id == db.profile.Profile.id,
-    #         )
-    #         .filter(db.permission.Collection.id.in_(collection_id_list))
-    #         .order_by(
-    #             db.permission.Collection.label,
-    #             db.permission.Collection.type,
-    #             db.permission.Collection.created_date,
-    #             db.permission.Resource.type,
-    #             db.permission.Resource.label,
-    #             db.profile.Profile.given_name,
-    #             db.profile.Profile.family_name,
-    #         )
-    #         .all()
-    #     )
-    #
-    #     pprint.pp(query, width=1)
-    #
-    #     # Iterate over all the resources in all the collections.
-    #     # If a permission row exists for the profile:
-    #     #   If the new permission is 0, delete the permission_row, else update it.
-    #     # If a permission row does NOT exist for the profile:
-    #     #   Create a new permission row.
-    #     for collection_row, resource_row, permission_row, profile_row in query:
-    #         # TODO: Use set
-    #         if [collection_row.id, resource_row.type] not in resource_list:
-    #             continue
-    #
-    #         # if permission_level == 0:
-    #         #     self.delete_permission(permission_row)
-    #         #     continue
-    #         #
-    #         # if not permission_row:
-    #         #     continue
-    #
-    #         permission_row.permission_level = permission_level
-    #
-    #         self.session.commit()
-    #
-    #         # for collection_id, resource_type in resource_list:
-    #         #     if resource_row.type != resource_type:
-    #         #         continue
-    #         #
-    #         #
-    #         #     # if collection_row.id != collection_id:
-    #         #     #     continue
-    #         #
-    #         #     # permission_row = self.get_permission_by_profile(resource_id, profile_id)
-    #         #
-    #         #     if permission_level == 0:
-    #         #         return self.delete_permission(permission_row)
-    #         #
-    #         #     if not permission_row:
-    #         #         permission_row = self.create_permission(resource_row.id, profile_id)
-    #         #
-    #         #     # if permission_row.profile != profile_row:
-    #         #     #     raise ValueError('Permission does not belong to profile')
-    #
-    #     self.session.commit()
-    #     self.sync_update('permission')
-
     async def update_permission(
-        self, token_profile_row, resource_list, profile_id, permission_level
+        self,
+        token_profile_row,
+        resource_list,
+        principal_id,
+        principal_type,
+        permission_level,
     ):
-        """Update a permission level for a profile.
+        """Update a permission level for a principal.
 
         :param token_profile_row: The profile of the user who is updating the
         permission. The user must have authenticated and must have a valid token for
         this profile.
 
-        :param resource_list: A list of lists of [collection_id, resource_type].
+        :param resource_list: [[collection_id, resource_type], ...]
         """
 
         for collection_id, resource_type in resource_list:
@@ -563,12 +437,16 @@ class UserDb:
             )
             for resource_row in resource_row_query:
                 self._set_permission(
-                    token_profile_row, resource_row.id, profile_id, permission_level
+                    token_profile_row,
+                    resource_row.id,
+                    principal_id,
+                    principal_type,
+                    permission_level,
                 )
 
         self.session.commit()
 
-        # agg_perm_list = await self.get_aggregate_profile_permission_list(resource_list)
+        # agg_perm_list = await self.get_aggregate_permission_list(resource_list)
         #
         # for collection_id, resource_type in resource_list:
         #     resource_row_query = (
@@ -589,10 +467,16 @@ class UserDb:
         self.sync_update('permission')
 
     def _set_permission(
-        self, token_profile_row, resource_id, profile_id, permission_level
+        self,
+        token_profile_row,
+        resource_id,
+        principal_id,
+        principal_type,
+        permission_level,
     ):
         # TODO: Check that token_profile_row has CHANGE permission for resource_id.
-        permission_row = self._get_permission(resource_id, profile_id)
+        principal_enum = db.permission.PrincipalType[principal_type.upper()]
+        permission_row = self._get_permission(resource_id, principal_id, principal_enum)
 
         if permission_level == 0:
             if permission_row is not None:
@@ -601,20 +485,22 @@ class UserDb:
             if permission_row is None:
                 permission_row = db.permission.Permission(
                     resource_id=resource_id,
-                    principal_id=profile_id,
-                    principal_type=db.permission.PrincipalType.PROFILE,
+                    principal_id=principal_id,
+                    principal_type=principal_enum,
                     level=db.permission.PermissionLevel(permission_level),
                 )
                 self.session.add(permission_row)
             else:
                 permission_row.level = db.permission.PermissionLevel(permission_level)
 
-    def _get_permission(self, resource_id, profile_id):
-        # The Permission table has a unique constraint on (resource_id, profile_id).
+    def _get_permission(self, resource_id, principal_id, principal_enum):
+        # The Permission table has a unique constraint on (resource_id, principal_id, principal_type),
+        # so there will be 0 or 1 match to this query.
         return (
             self.session.query(db.permission.Permission).filter(
                 db.permission.Permission.resource_id == resource_id,
-                db.permission.Permission.principal_id == profile_id,
+                db.permission.Permission.principal_id == principal_id,
+                db.permission.Permission.principal_type == principal_enum,
             )
         ).first()
 
@@ -622,10 +508,10 @@ class UserDb:
     # Collection
     #
 
-    async def get_aggregate_collection_dict(self, profile_row, search_str):
+    async def get_aggregate_collection_dict(self, token_profile_row, search_str):
         """Get a list of collections with nested resources and permissions. The
-         permissions are aggregated by profile, and only the highest permission level
-         is returned for each profile and resource type.
+         permissions are aggregated by principal, and only the highest permission level
+         is returned for each principal and resource type.
 
         In the DB:
 
@@ -639,7 +525,7 @@ class UserDb:
         - Each collection contains a dict of resource types
         - Each resource type contains a dict of resources
         - Each resource contains a dict of profiles
-        - Each profile contains the max permission level found for that profile in the
+        - Each principal contains the max permission level found for that principal in the
           resource type
         """
         # SQLAlchemy automatically escapes parameters to prevent SQL injection attacks,
@@ -668,6 +554,7 @@ class UserDb:
                 db.permission.Resource,
                 db.permission.Permission,
                 db.profile.Profile,
+                db.group.Group,
             )
             .select_from(db.permission.Collection)
             # In SQLAlchemy, outerjoin() is a left join. Right join is not directly
@@ -706,7 +593,6 @@ class UserDb:
                 db.profile.Profile.given_name,
                 db.profile.Profile.family_name,
             )
-            .all()
         )
 
         # log.debug(query)
@@ -717,82 +603,117 @@ class UserDb:
         collection_dict = {}
 
         for (
-            collection,
-            resource,
-            permission,
-            profile,
-        ) in query:
+            collection_row,
+            resource_row,
+            permission_row,
+            profile_row,
+            group_row,
+        ) in query.yield_per(Config.DB_YIELD_ROWS):
             resource_dict = collection_dict.setdefault(
-                collection.id,
+                collection_row.id,
                 {
-                    'collection_label': collection.label,
-                    'collection_type': collection.type,
+                    'collection_label': collection_row.label,
+                    'collection_type': collection_row.type,
                     'resource_dict': {},
                 },
             )['resource_dict']
 
-            # if resource.type is None:
-            if resource is None:
+            if resource_row is None:
                 continue
 
             permission_dict = resource_dict.setdefault(
-                resource.type,
+                resource_row.type,
                 {
                     'resource_id_dict': {},
-                    'profile_dict': {},
+                    'principal_dict': {},
                 },
             )
 
-            permission_dict['resource_id_dict'][resource.id] = resource.label
+            permission_dict['resource_id_dict'][resource_row.id] = resource_row.label
 
-            if permission is None:
+            if permission_row is None:
                 continue
 
-            profile_dict = permission_dict['profile_dict']
+            principal_dict = permission_dict['principal_dict']
 
-            profile_dict.setdefault(
-                profile.id,
-                {
-                    'pasta_id': profile.pasta_id,
-                    'full_name': profile.full_name,
-                    'permission_level': permission.level.value,
-                },
+            if profile_row is not None:
+                # Principal is a profile
+                assert group_row is None, 'Profile and group cannot join on same row'
+                d = {
+                    'principal_id': profile_row.id,
+                    'principal_type': 'profile',
+                    'pasta_id': profile_row.pasta_id,
+                    'title': profile_row.full_name,
+                    'description': profile_row.email,
+                }
+            elif group_row is not None:
+                # Principal is a group
+                assert profile_row is None, 'Profile and group cannot join on same row'
+                d = {
+                    'principal_id': group_row.id,
+                    'principal_type': 'group',
+                    'pasta_id': group_row.pasta_id,
+                    'title': group_row.name,
+                    'description': group_row.description,
+                }
+            else:
+                # Principal is the public user
+                assert permission_row.principal_id is None
+                d = {
+                    'principal_id': None,
+                    'principal_type': 'public',
+                    'pasta_id': '',
+                    'title': 'Public Access',
+                    'description': None,
+                }
+
+            principal_info_dict = principal_dict.setdefault(
+                (d['principal_id'], d['principal_type']), {**d, 'permission_level': 0}
             )
 
-            profile_dict[profile.id]['permission_level'] = max(
-                profile_dict[profile.id]['permission_level'], permission.level.value
+            principal_info_dict['permission_level'] = max(
+                principal_info_dict['permission_level'], permission_row.level.value
             )
 
-        # Iterate over profile_dict and convert them to lists sorted by full_name.
-        for collection_id, collection in collection_dict.items():
-            for resource_type, resource in collection['resource_dict'].items():
-                profile_list = list(resource['profile_dict'].values())
-                profile_list.sort(key=lambda p: p['full_name'])
-                resource['profile_list'] = profile_list
-                del resource['profile_dict']
+        # Iterate over principal_dict and convert to sorted lists
+        for collection_id, collection_info_dict in collection_dict.items():
+            for resource_type, resource_info_dict in collection_info_dict[
+                'resource_dict'
+            ].items():
+                resource_info_dict['principal_list'] = sorted(
+                    resource_info_dict['principal_dict'].values(),
+                    key=lambda p: (
+                        p['principal_type'],
+                        p['title'],
+                        p['description'],
+                        p['principal_id'],
+                    )
+                    if p['principal_id'] is not None
+                    else ('',),
+                )
+                del resource_info_dict['principal_dict']
 
         return collection_dict
 
-    async def get_aggregate_profile_permission_list(self, resource_list):
+    async def get_aggregate_permission_list(self, resource_list):
         """Get a list of aggregated maximum profiles and permissions for a list of
         resources.
 
         :param resource_list: [[collection_id, resource_type], ...]
         """
-        collection_id_list = {r[0] for r in resource_list}
-
         query = (
             self.session.query(
                 db.permission.Collection,
                 db.permission.Resource,
                 db.permission.Permission,
                 db.profile.Profile,
+                db.group.Group,
             )
-            .outerjoin(
+            .join(
                 db.permission.Resource,
                 db.permission.Collection.id == db.permission.Resource.collection_id,
             )
-            .outerjoin(
+            .join(
                 db.permission.Permission,
                 db.permission.Resource.id == db.permission.Permission.resource_id,
             )
@@ -812,38 +733,105 @@ class UserDb:
                     == db.permission.PrincipalType.GROUP,
                 ),
             )
-            .filter(db.permission.Collection.id.in_(collection_id_list))
-            .all()
+            .filter(
+                sqlalchemy.tuple_(
+                    db.permission.Collection.id,
+                    db.permission.Resource.type,
+                ).in_(resource_list)
+            )
         )
 
-        profile_dict = {}
+        principal_dict = {}
 
-        for (collection_row, resource_row, permission_row, profile_row) in query:
-            if [collection_row.id, resource_row.type] not in resource_list:
-                continue
-
-            if permission_row is None:
-                continue
-
-            if profile_row is None:
-                continue
-
-            profile_dict.setdefault(
-                profile_row.id,
-                {
-                    'permission_id': permission_row.id,
-                    'profile_id': profile_row.id,
+        for (
+            collection_row,
+            resource_row,
+            permission_row,
+            profile_row,
+            group_row,
+        ) in query.yield_per(Config.DB_YIELD_ROWS):
+            if profile_row is not None:
+                # Principal is a profile
+                assert group_row is None, 'Profile and group cannot join on same row'
+                d = {
+                    'principal_id': profile_row.id,
+                    'principal_type': 'profile',
                     'pasta_id': profile_row.pasta_id,
-                    'full_name': profile_row.full_name,
-                    'email': profile_row.email,
+                    'title': profile_row.full_name,
+                    'description': profile_row.email,
                     'avatar_url': profile_row.avatar_url,
-                    'permission_level': permission_row.level.value,
-                },
+                }
+            elif group_row is not None:
+                # Principal is a group
+                assert profile_row is None, 'Profile and group cannot join on same row'
+                d = {
+                    'principal_id': group_row.id,
+                    'principal_type': 'group',
+                    'pasta_id': group_row.pasta_id,
+                    'title': group_row.name,
+                    'description': (group_row.description or '')
+                    + f' (Owner: {group_row.profile.full_name})'.strip(),
+                    'avatar_url': str(util.avatar.get_group_avatar_url()),
+                }
+            else:
+                # Principal is the public user
+                assert permission_row.principal_id is None
+                d = {
+                    'principal_id': None,
+                    'principal_type': 'public',
+                    'pasta_id': '',
+                    'title': 'PUBLIC',
+                    'description': 'Public Access',
+                    'avatar_url': str(util.avatar.get_public_avatar_url()),
+                }
+
+            principal_info_dict = principal_dict.setdefault(
+                (d['principal_id'], d['principal_type']), {**d, 'permission_level': 0}
             )
 
-            profile_dict[profile_row.id]['permission_level'] = max(
-                profile_dict[profile_row.id]['permission_level'],
-                permission_row.level.value,
+            principal_info_dict['permission_level'] = max(
+                principal_info_dict['permission_level'], permission_row.level.value
             )
 
-        return sorted(profile_dict.values(), key=lambda p: p['full_name'])
+        if not (None, 'public') in principal_dict:
+            principal_dict[(None, 'public')] = {
+                'principal_id': None,
+                'principal_type': 'public',
+                'pasta_id': '',
+                'title': 'Public',
+                'description': 'Public Access',
+                'avatar_url': str(util.avatar.get_public_avatar_url()),
+                'permission_level': 0,
+            }
+
+        return sorted(
+            principal_dict.values(),
+            key=lambda p: (
+                p['principal_type'],
+                p['title'],
+                p['description'],
+                p['principal_id'],
+            )
+            if p['principal_id'] is not None
+            else ('',),
+        )
+
+
+    #
+    # Sync
+    #
+
+    def sync_update(self, name):
+        """Update the timestamp on name"""
+        sync_row = self.session.query(db.sync.Sync).filter_by(name=name).first()
+        if sync_row is None:
+            sync_row = db.sync.Sync(name=name)
+            self.session.add(sync_row)
+        # No-op update to trigger onupdate
+        sync_row.name = sync_row.name
+        self.session.commit()
+
+    def get_sync_ts(self):
+        """Get the latest timestamp"""
+        return self.session.query(sqlalchemy.func.max(db.sync.Sync.updated)).scalar()
+

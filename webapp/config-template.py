@@ -35,6 +35,7 @@ class Config(object):
     DB_PW = 'db-password'
     DB_POOL_SIZE = 10
     DB_MAX_OVERFLOW = 20
+    DB_YIELD_ROWS = 1000
 
     # Filesystem paths
     STATIC_PATH = HERE_PATH / 'static'
@@ -78,8 +79,9 @@ class Config(object):
     AVATAR_FONT_HEIGHT = 0.5
     AVATAR_BG_COLOR = (197, 197, 197, 255)
     AVATAR_TEXT_COLOR = (0, 0, 0, 255)
+    AVATAR_PUBLIC = HERE_PATH / 'assets/public-avatar.svg'
 
-    # Fuzzy search for group member candidates.
+    # Fuzzy search for group member principals.
     # Maximum number of results that can be returned.
     FUZZ_LIMIT = 100
     # Lowest match score that can be returned (0 is any match, 100 is only exact match).

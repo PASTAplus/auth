@@ -17,7 +17,9 @@ log = daiquiri.getLogger(__name__)
 router = fastapi.APIRouter()
 
 
+#
 # UI routes
+#
 
 
 @router.get('/ui/signin')

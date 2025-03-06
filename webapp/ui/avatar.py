@@ -17,7 +17,9 @@ log = daiquiri.getLogger(__name__)
 
 router = fastapi.APIRouter()
 
+#
 # UI routes
+#
 
 
 @router.get('/ui/avatar')
@@ -59,7 +61,9 @@ async def get_ui_avatar(
     )
 
 
+#
 # Internal routes
+#
 
 
 @router.post('/avatar/update')
