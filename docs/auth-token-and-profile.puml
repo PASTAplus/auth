@@ -6,6 +6,8 @@ participant DB
 
 title Get PASTA token via OAuth2 IdP, with implicit profile creation
 
+autonumber
+
 == Client requests a PASTA token ==
 
 client -> Auth       : GET PASTA token
