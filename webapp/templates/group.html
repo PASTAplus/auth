@@ -64,7 +64,7 @@
 
                   <div class='child-grid'>
                     <div class='row-center-parent'>
-                      {# Edit #}
+                      {# Edit group name and description #}
                       <div class='child-grid-child'>
                         <button class='icon-button'
                                 data-bs-toggle='modal'
@@ -90,12 +90,13 @@
                     <div class='row-center-parent button-row'>
                       {# Member count #}
                       <div>
-                        <span>{{ group.member_count }}</span>
+                        <span class='member-count'>{{ group.member_count }}
                         {% if group.member_count == 1 %}
-                          <span>member</span>
+                          member
                         {% else %}
-                          <span>members</span>
+                          members
                         {% endif %}
+                        </span>
                       </div>
                       {# Copy ID #}
                       <div class='row-center-child'>
@@ -151,7 +152,9 @@
           </div>
           <div>
             <input type='text' class='form-control' id='principalSearch' autocomplete="off"
-                   spellcheck="false">
+                   spellcheck="false" placeholder='Select a group in the left panel to update members'
+                   disabled
+            >
             <div id='principalList' tabindex='0' class='form-control'></div>
           </div>
           <div class='member-grid' id='memberList'>
@@ -220,9 +223,8 @@
                 </span>
               </p>
               <p>
-                <strong>Note:</strong> This will remove all members from the group and revoke their
-                access to all
-                resources the group has access to.
+                <strong>Note:</strong>
+                Any access granted by this group to its members will be revoked.
               </p>
             </div>
             <div class='modal-footer'>

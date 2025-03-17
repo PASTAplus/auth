@@ -20,7 +20,7 @@
 
       <div class='header-container'
            data-root-path='{{ url('') }}'
-          {#data-group-id='{{ group_row.id }}'#}
+           data-public-pasta-id='{{ public_pasta_id }}'
       >
         <h1 aria-label>Permissions</h1>
       </div>
@@ -40,7 +40,7 @@
         <h4>Select Resources</h4>
 
         <div>
-          <input type='text' class='form-control' id='collectionSearch' placeholder='Search for resources' autocomplete="off" spellcheck="false">
+          <input type='text' class='form-control' id='collectionSearch' placeholder='Filter resources' autocomplete="off" spellcheck="false">
         </div>
         <div class='collection-right'>
           <label>
@@ -54,7 +54,7 @@
           </label>
         </div>
         <div class="collection-grid" id='collectionList'>
-          {#<div class='grid-msg'>Loading permissions...</div>#}
+          <div class='grid-msg'>Loading resources...</div>
         </div>
       </div>
 

@@ -29,9 +29,7 @@ class Group(db.base.Base):
     # The description of the group as provided by the user. Can be edited.
     description = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     # The date and time the group was created.
-    created = sqlalchemy.Column(
-        sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now
-    )
+    created = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now)
     # The date and time the group was last updated.
     updated = sqlalchemy.Column(
         sqlalchemy.DateTime,
@@ -59,6 +57,7 @@ class Group(db.base.Base):
     def member_count(self):
         return len(self.members)
 
+    # noinspection PyMethodParameters
     @member_count.expression
     def member_count(cls):
         return (
@@ -81,9 +80,7 @@ class GroupMember(db.base.Base):
         sqlalchemy.Integer, sqlalchemy.ForeignKey('profile.id'), nullable=False, index=True
     )
     # The date and time the user was added to the group.
-    added = sqlalchemy.Column(
-        sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now
-    )
+    added = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now)
     group = sqlalchemy.orm.relationship(
         'Group',
         back_populates='members',
@@ -96,7 +93,5 @@ class GroupMember(db.base.Base):
     )
     __table_args__ = (
         # Ensure that group_id and profile_id are unique together.
-        sqlalchemy.UniqueConstraint(
-            'group_id', 'profile_id', name='group_id_profile_id_unique'
-        ),
+        sqlalchemy.UniqueConstraint('group_id', 'profile_id', name='group_id_profile_id_unique'),
     )

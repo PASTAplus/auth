@@ -1,16 +1,15 @@
 """Cache profiles and groups in memory for fast searching.
 
-We dynamically update search results as the user types in the search box. In order to speed
-up this search and avoid hitting the database, we cache the profiles and groups in memory.
+We dynamically update search results as the user types in the search box. In order to speed up this
+search and avoid hitting the database each time the user presses a key, we cache the profiles and
+groups in memory.
 """
-import pprint
 import re
 
 import daiquiri
 
 import db.iface
 import util.avatar
-
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -85,8 +84,8 @@ async def init_groups(udb):
 
 
 async def search(query_str, include_groups):
-    """Search for profiles and groups based on the query string.
-    A match is found if any of the search keys start with the query string.
+    """Search for profiles and groups based on the query string. A match is found if any of the
+    search keys start with the query string.
 
     Matches are returned with profiles first, then groups. Within the profiles and groups, the order
     is determined by the order_by() statements in the profile and group generators.

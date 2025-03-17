@@ -1,7 +1,7 @@
 const leaveGroupModal = document.getElementById('leaveGroupModal');
 
-leaveGroupModal.addEventListener('show.bs.modal', function (event) {
-  const button = event.relatedTarget;
+leaveGroupModal.addEventListener('show.bs.modal', function (ev) {
+  const button = ev.relatedTarget;
   const modalGroupId = leaveGroupModal.querySelector('#leaveGroupId');
   modalGroupId.value = button.dataset.groupId;
   const modalGroupName = leaveGroupModal.querySelector('#leaveGroupName');

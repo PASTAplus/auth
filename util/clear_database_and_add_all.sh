@@ -6,4 +6,5 @@ set -e # exit on error
 ./util/add_test_profiles.py
 ./util/add_test_groups.py
 ./util/add_test_permissions.py
+./util/add_test_groups.py
 

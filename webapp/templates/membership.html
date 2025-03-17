@@ -46,7 +46,7 @@
             <img src='{{ group_row.profile.avatar_url }}' alt='Avatar' class='avatar avatar-small'>
           </div>
           <div class='profile-flex-child profile-flex-name'>{{ group_row.profile.full_name }}</div>
-          <div class='profile-flex-child'>{{ group_row.profile.email }}</div>
+          <div class='profile-flex-child'>{{ group_row.profile.email or '' }}</div>
           <div class='profile-flex-child'>{{ group_row.profile.organization or '' }}</div>
           <div class='profile-flex-child'>{{ group_row.profile.association or '' }}</div>
         </div>

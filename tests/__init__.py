@@ -1,13 +1,3 @@
-""":Mod: __init__.py
-
-:Synopsis:
-
-:Author:
-    servilla
-
-:Created:
-    3/7/18
-"""
 import logging
 import os
 import sys

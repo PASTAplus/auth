@@ -3,9 +3,9 @@ import fastapi
 import starlette.requests
 import starlette.templating
 
-import db.iface
+import util.dependency
 import util.pasta_jwt
-import util.utils
+import util.redirect
 
 log = daiquiri.getLogger(__name__)
 router = fastapi.APIRouter()
@@ -18,16 +18,16 @@ router = fastapi.APIRouter()
 @router.post('/policy/accept')
 async def policy_accept(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     form = await request.form()
     is_accepted = form.get('action') == 'accept'
 
     if not is_accepted:
-        return util.utils.redirect_internal(
+        return util.redirect.internal(
             '/signout', error='Login unsuccessful: Privacy policy not accepted'
         )
 
-    udb.set_privacy_policy_accepted(token.pasta_id)
-    return util.utils.redirect_internal('/ui/profile')
+    udb.set_privacy_policy_accepted(token_profile_row)
+    return util.redirect.internal('/ui/profile')

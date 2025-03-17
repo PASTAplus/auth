@@ -8,6 +8,7 @@ import pathlib
 import sys
 import uuid
 
+import daiquiri
 import sqlalchemy.exc
 
 ROOT_PATH = pathlib.Path(__file__).resolve().parent.parent
@@ -16,7 +17,7 @@ sys.path.append((ROOT_PATH / 'webapp').as_posix())
 import db.profile
 import db.iface
 
-log = logging.getLogger(__name__)
+log = daiquiri.getLogger(__name__)
 
 
 def main():

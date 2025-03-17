@@ -1,8 +1,4 @@
-import sqlite3
-
 import daiquiri
-import fastapi
-import sqlalchemy.event
 import sqlalchemy.orm
 import sqlalchemy.pool
 
@@ -16,7 +12,6 @@ from config import Config
 
 log = daiquiri.getLogger(__name__)
 
-UserDb = db.user.UserDb
 
 engine = sqlalchemy.create_engine(
     sqlalchemy.engine.URL.create(
@@ -36,28 +31,13 @@ engine = sqlalchemy.create_engine(
 # Create the tables in the database
 db.base.Base.metadata.create_all(engine)
 
-SessionLocal = sqlalchemy.orm.sessionmaker(
-    autocommit=False, autoflush=False, bind=engine
-)
-
-# # Enable foreign key checking in SQLite
-# @sqlalchemy.event.listens_for(sqlalchemy.pool.Pool, 'connect')
-# def _on_connect(dbapi_con, _connection_record):
-#     if isinstance(dbapi_con, sqlite3.Connection):
-#         dbapi_con.execute('PRAGMA foreign_keys=ON')
+SessionLocal = sqlalchemy.orm.sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 def get_session():
     session = SessionLocal()
     try:
         yield session
-    finally:
-        session.close()
-
-
-def udb(session: sqlalchemy.orm.Session = fastapi.Depends(get_session)):
-    try:
-        yield db.user.UserDb(session)
     finally:
         session.close()
 

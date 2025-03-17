@@ -6,11 +6,11 @@ import starlette.responses
 import starlette.status
 import starlette.templating
 
-import db.iface
 import util.avatar
+import util.dependency
 import util.pasta_jwt
+import util.redirect
 import util.template
-import util.utils
 
 log = daiquiri.getLogger(__name__)
 
@@ -25,19 +25,17 @@ router = fastapi.APIRouter()
 @router.get('/ui/avatar')
 async def get_ui_avatar(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
+    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    profile_row = udb.get_profile(token.pasta_id)
-
     avatar_list = [
         {
-            'url': util.avatar.get_initials_avatar_url(profile_row.initials),
+            'url': util.avatar.get_initials_avatar_url(token_profile_row.initials),
             'idp_name': None,
             'idp_uid': '',
         }
     ]
-    for identity_row in profile_row.identities:
+    for identity_row in token_profile_row.identities:
         if identity_row.has_avatar:
             avatar_list.append(
                 {
@@ -52,8 +50,8 @@ async def get_ui_avatar(
         {
             # Base
             'token': token,
-            'avatar_url': util.avatar.get_profile_avatar_url(profile_row),
-            'profile': profile_row,
+            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
+            'profile': token_profile_row,
             #
             'request': request,
             'avatar_list': avatar_list,
@@ -69,8 +67,8 @@ async def get_ui_avatar(
 @router.post('/avatar/update')
 async def post_avatar_update(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     form_data = await request.form()
     idp_name = form_data.get('idp_name')
@@ -78,20 +76,18 @@ async def post_avatar_update(
 
     log.info(f'Updating avatar: idp_name={idp_name}, idp_uid={idp_uid}')
 
-    profile_row = udb.get_profile(token.pasta_id)
-
     if idp_uid == '':
-        profile_row.has_avatar = False
-        avatar_path = util.avatar.get_avatar_path('profile', profile_row.pasta_id)
+        token_profile_row.has_avatar = False
+        avatar_path = util.avatar.get_avatar_path('profile', token_profile_row.pasta_id)
         avatar_path.unlink(missing_ok=True)
     else:
-        profile_row.has_avatar = True
+        token_profile_row.has_avatar = True
         avatar_img = util.avatar.get_avatar_path(idp_name, idp_uid).read_bytes()
-        util.avatar.save_avatar(avatar_img, 'profile', profile_row.pasta_id)
+        util.avatar.save_avatar(avatar_img, 'profile', token_profile_row.pasta_id)
 
-    udb.update_profile(token.pasta_id, has_avatar=idp_uid != '')
+    udb.update_profile(token_profile_row, has_avatar=idp_uid != '')
 
-    return util.utils.redirect_internal('/ui/profile', refresh='true')
+    return util.redirect.internal('/ui/profile', refresh='true')
 
 
 @router.get('/avatar/gen/{initials}')

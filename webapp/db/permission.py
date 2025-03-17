@@ -3,8 +3,6 @@ import enum
 
 import daiquiri
 import sqlalchemy.orm
-import sqlalchemy.event
-import sqlalchemy.engine
 
 import db.base
 
@@ -30,9 +28,7 @@ class Collection(db.base.Base):
         sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now
     )
     __table_args__ = (
-        sqlalchemy.UniqueConstraint(
-            'label', 'type', name='collection_label_type_unique'
-        ),
+        sqlalchemy.UniqueConstraint('label', 'type', name='collection_label_type_unique'),
     )
     resources = sqlalchemy.orm.relationship(
         'Resource',
@@ -102,17 +98,13 @@ class Permission(db.base.Base):
     # When the principal_type is PUBLIC, this must be null.
     principal_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=True, index=True)
     # The type of the principal_id (PROFILE, GROUP, PUBLIC)
-    principal_type = sqlalchemy.Column(
-        sqlalchemy.Enum(PrincipalType), nullable=False, index=True
-    )
+    principal_type = sqlalchemy.Column(sqlalchemy.Enum(PrincipalType), nullable=False, index=True)
     # The date and time this permission was granted.
     granted_date = sqlalchemy.Column(
         sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now
     )
     # The permission level (READ, WRITE, OWN)
-    level = sqlalchemy.Column(
-        sqlalchemy.Enum(PermissionLevel), nullable=False, default=1
-    )
+    level = sqlalchemy.Column(sqlalchemy.Enum(PermissionLevel), nullable=False, default=1)
     __table_args__ = (
         sqlalchemy.UniqueConstraint(
             'resource_id', 'principal_id', 'principal_type', name='resource_profile_unique'
@@ -126,37 +118,36 @@ class Permission(db.base.Base):
     )
 
 
-@sqlalchemy.event.listens_for(sqlalchemy.engine.Engine, "connect")
-def create_trigger(dbapi_connection, _connection_record):
-    """Create a trigger to enforce the principal_id + principal_type foreign key constraint.
-    - Regular foreign key constraints don't work for this case since the principal_id can
-    reference either the profile, group table or neither, depending on the principal_type.
-    - Regular check constraints also don't work for this case since they can't reference
-    other tables (and subqueries can't be used in check constraints).
-    """
-    cursor = dbapi_connection.cursor()
-    cursor.execute(
-        """
-        create or replace function enforce_principal_id_check()
-        returns trigger as $$
-        begin
-            if
-                (new.principal_type = 'PROFILE'::principaltype and not exists
-                (select 1 from profile where id = new.principal_id)) or
-                (new.principal_type = 'GROUP'::principaltype and not exists
-                (select 1 from "group" where id = new.principal_id)) or
-                (new.principal_type = 'PUBLIC'::principaltype and new.principal_id is not null)
-            then
-                raise exception using message = 'invalid principal_type and/or principal_id: '
-                || new.principal_type || ', ' || new.principal_id;
-            end if;
-            return new;
-        end;
-        $$ language plpgsql;
-
-        create or replace trigger principal_id_check_trigger
-        before insert or update on permission
-        for each row execute function enforce_principal_id_check();
-    """
-    )
-    cursor.close()
+# @sqlalchemy.event.listens_for(sqlalchemy.engine.Engine, "connect")
+# def create_trigger(dbapi_connection, _connection_record):
+#     """Create a trigger to enforce the principal_id + principal_type foreign key constraint.
+#     - Regular foreign key constraints don't work for this case since the principal_id can
+#     reference either the profile or group table, depending on the principal_type.
+#     - Regular check constraints also don't work for this case since they can't reference
+#     other tables (and subqueries can't be used in check constraints).
+#     """
+#     cursor = dbapi_connection.cursor()
+#     cursor.execute(
+#         """
+#         create or replace function enforce_principal_id_check()
+#         returns trigger as $$
+#         begin
+#             if
+#                 (new.principal_type = 'PROFILE'::principaltype and not exists
+#                 (select 1 from profile where id = new.principal_id)) or
+#                 (new.principal_type = 'GROUP'::principaltype and not exists
+#                 (select 1 from "group" where id = new.principal_id))
+#             then
+#                 raise exception using message = 'Invalid principal_type and/or principal_id: '
+#                 || new.principal_type || ', ' || new.principal_id;
+#             end if;
+#             return new;
+#         end;
+#         $$ language plpgsql;
+#
+#         create or replace trigger principal_id_check_trigger
+#         before insert or update on permission
+#         for each row execute function enforce_principal_id_check();
+#     """
+#     )
+#     cursor.close()

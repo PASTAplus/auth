@@ -82,9 +82,7 @@ class OldToken(object):
         return delta > 1
 
     def ttl_to_iso(self) -> str:
-        dt = pendulum.from_timestamp(
-            int(self._token['ttl']) * 0.001, tz='America/Denver'
-        )
+        dt = pendulum.from_timestamp(int(self._token['ttl']) * 0.001, tz='America/Denver')
         return dt.to_iso8601_string()
 
     def from_auth_token(self, at: str):
@@ -99,7 +97,5 @@ def make_old_token(uid, groups=''):
     old_token_obj.groups = groups
     private_key = util.pasta_crypto.import_key(Config.PRIVATE_KEY_PATH)
     log.debug(f'Creating token: {old_token_obj.to_string()}')
-    old_token_str = util.pasta_crypto.create_auth_token(
-        private_key, old_token_obj.to_string()
-    )
+    old_token_str = util.pasta_crypto.create_auth_token(private_key, old_token_obj.to_string())
     return old_token_str

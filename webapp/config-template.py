@@ -2,8 +2,6 @@ import datetime
 import logging
 import pathlib
 
-from sample import HERE_PATH
-
 
 class Config(object):
     HERE_PATH = pathlib.Path(__file__).parent.resolve()
@@ -36,6 +34,7 @@ class Config(object):
     DB_POOL_SIZE = 10
     DB_MAX_OVERFLOW = 20
     DB_YIELD_ROWS = 1000
+    DB_PARAMETER_CHUNK_SIZE = 8192
 
     # Filesystem paths
     STATIC_PATH = HERE_PATH / 'static'
@@ -112,9 +111,7 @@ class Config(object):
     # Google OAuth client
     GOOGLE_CLIENT_ID = 'google-client-id'
     GOOGLE_CLIENT_SECRET = 'google-client-secret'
-    GOOGLE_DISCOVERY_URL = (
-        'https://accounts.google.com/.well-known/openid-configuration'
-    )
+    GOOGLE_DISCOVERY_URL = 'https://accounts.google.com/.well-known/openid-configuration'
     # GOOGLE_LOGOUT_ENDPOINT = 'https://accounts.google.com/Logout'
 
     # Orcid OAuth client
@@ -127,15 +124,9 @@ class Config(object):
     # Microsoft OAuth client
     MICROSOFT_CLIENT_ID = 'microsoft-client-id'
     MICROSOFT_CLIENT_SECRET = 'microsoft-client-secret'
-    MICROSOFT_AUTH_ENDPOINT = (
-        'https://login.microsoftonline.com/common/oauth2/v2.0/authorize'
-    )
-    MICROSOFT_TOKEN_ENDPOINT = (
-        'https://login.microsoftonline.com/common/oauth2/v2.0/token'
-    )
-    MICROSOFT_LOGOUT_ENDPOINT = (
-        'https://login.microsoftonline.com/common/oauth2/v2.0/logout'
-    )
+    MICROSOFT_AUTH_ENDPOINT = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize'
+    MICROSOFT_TOKEN_ENDPOINT = 'https://login.microsoftonline.com/common/oauth2/v2.0/token'
+    MICROSOFT_LOGOUT_ENDPOINT = 'https://login.microsoftonline.com/common/oauth2/v2.0/logout'
 
     # Unit and integration test attributes
     # Unit and integration test attributes

@@ -5,7 +5,6 @@ import starlette.status
 
 import util.old_token
 import util.pasta_crypto
-import util.utils
 from config import Config
 
 router = fastapi.APIRouter()

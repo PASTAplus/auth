@@ -185,6 +185,27 @@
   </div>
 </div>
 
+{# Modal error dialog #}
+<div class='modal fade' id='errorModal' tabindex='-1' aria-labelledby='errorModalLabel' aria-hidden='true'>
+  <div class='modal-dialog modal-dialog-centered'>
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <h5 class='modal-title' id='errorModalLabel'>Error</h5>
+        <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
+      </div>
+      <div class='modal-body'>
+        <div class='alert alert-danger'>
+          <p>An error occurred. Please try again. If the error assists, please contact us, and provide the following details:</p>
+          <p><span>Origin: <span id='errorOrigin'></span></span></p>
+          <p><span>Error: <span id='errorMsg'></span></span></p>
+        </div>
+      </div>
+      <div class='modal-footer'>
+        <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Bootstrap Bundle with Popper -->
 <script src='{{ url('/static/lib/bootstrap/js/bootstrap.bundle.js') }}'></script>

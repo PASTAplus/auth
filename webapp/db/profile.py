@@ -9,7 +9,6 @@ import util.avatar
 log = daiquiri.getLogger(__name__)
 
 
-
 class Profile(db.base.Base):
     __tablename__ = 'profile'
     # At the DB level, we use an 'id' integer primary key for rows, and for foreign key
@@ -27,17 +26,11 @@ class Profile(db.base.Base):
     # to the email address provided by the IdP.
     email = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     # Permit notifications to be sent to this email address.
-    email_notifications = sqlalchemy.Column(
-        sqlalchemy.Boolean(), nullable=False, default=False
-    )
+    email_notifications = sqlalchemy.Column(sqlalchemy.Boolean(), nullable=False, default=False)
     # Initially false, then set to true when the user accepts the privacy policy.
-    privacy_policy_accepted = sqlalchemy.Column(
-        sqlalchemy.Boolean(), nullable=False, default=False
-    )
+    privacy_policy_accepted = sqlalchemy.Column(sqlalchemy.Boolean(), nullable=False, default=False)
     # The date when the user accepted the privacy policy.
-    privacy_policy_accepted_date = sqlalchemy.Column(
-        sqlalchemy.DateTime(), nullable=True
-    )
+    privacy_policy_accepted_date = sqlalchemy.Column(sqlalchemy.DateTime(), nullable=True)
     organization = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     association = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     has_avatar = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False, default=False)

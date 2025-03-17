@@ -8,6 +8,7 @@ import random
 import sys
 import uuid
 
+import daiquiri
 import sqlalchemy.exc
 
 ROOT_PATH = pathlib.Path(__file__).resolve().parent.parent
@@ -17,7 +18,7 @@ import db.profile
 import db.iface
 import db.group
 
-log = logging.getLogger(__name__)
+log = daiquiri.getLogger(__name__)
 
 
 def main():

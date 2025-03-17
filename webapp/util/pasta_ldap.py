@@ -1,5 +1,5 @@
 import daiquiri
-from ldap3 import Server, Connection, ALL
+import ldap3
 
 from config import Config
 
@@ -14,8 +14,8 @@ def bind(dn: str, password: str):
             host = Config.LDAP_DOMAIN_DICT[rdn]
     if host is not None:
         try:
-            server = Server(host, use_ssl=True, get_info=ALL)
-            conn = Connection(
+            server = ldap3.Server(host, use_ssl=True, get_info=ldap3.ALL)
+            conn = ldap3.Connection(
                 server=server,
                 user=dn,
                 password=password,

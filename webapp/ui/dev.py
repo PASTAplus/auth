@@ -9,11 +9,11 @@ import starlette.responses
 import starlette.status
 import starlette.templating
 
-import db.iface
 import util.avatar
+import util.dependency
 import util.pasta_jwt
+import util.redirect
 import util.template
-import util.utils
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -26,9 +26,7 @@ def assert_dev_enabled(func):
     @functools.wraps(func)
     async def wrapper(*args, **kwargs):
         if not Config.ENABLE_DEV_MENU:
-            raise starlette.exceptions.HTTPException(
-                status_code=403, detail='Dev menu is disabled'
-            )
+            raise starlette.exceptions.HTTPException(status_code=403, detail='Dev menu is disabled')
         return await func(*args, **kwargs)
 
     return wrapper
@@ -38,8 +36,8 @@ def assert_dev_enabled(func):
 @assert_dev_enabled
 async def get_dev_token(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
+    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     if token is None:
         return util.template.templates.TemplateResponse(
@@ -54,14 +52,13 @@ async def get_dev_token(
                 'token_pp': 'NO TOKEN',
             },
         )
-    profile_row = udb.get_profile(token.pasta_id)
     return util.template.templates.TemplateResponse(
         'token.html',
         {
             # Base
             'token': token,
-            'avatar_url': util.avatar.get_profile_avatar_url(profile_row),
-            'profile': profile_row,
+            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
+            'profile': token_profile_row,
             #
             'request': request,
             'token_pp': token.claims_pp,
@@ -73,8 +70,8 @@ async def get_dev_token(
 @assert_dev_enabled
 async def get_dev_profiles(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
 ):
     profile_list = udb.get_all_profiles()
     return util.template.templates.TemplateResponse(
@@ -95,9 +92,9 @@ async def get_dev_profiles(
 async def get_dev_signin(
     idp_name: str,
     idp_uid: str,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
 ):
-    response = util.utils.redirect_internal('/ui/profile')
+    response = util.redirect.internal('/ui/profile')
     identity_row = udb.get_identity(idp_name, idp_uid)
     pasta_token = util.pasta_jwt.make_jwt(udb, identity_row, is_vetted=True)
     response.set_cookie(key='pasta_token', value=pasta_token)

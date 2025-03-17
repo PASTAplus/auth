@@ -1,5 +1,6 @@
 let headerContainerEl = document.getElementsByClassName('header-container')[0];
 const ROOT_PATH = headerContainerEl.dataset.rootPath;
+const PUBLIC_PASTA_ID = headerContainerEl.dataset.publicPastaId;
 const PERMISSION_LEVEL_LIST = ['None', 'Reader', 'Editor', 'Owner'];
 
 // The search input for resources
@@ -22,28 +23,21 @@ const collectionMap = new Map();
 let permissionArray = [];
 let principalArray = [];
 
-/*
-  Initial setup
-*/
+//
+//  Initial setup
+//
 
-// For testing
-collectionSearchEl.value = 'knb';
 fetchCollectionSearch();
-refreshCollections();
 
-/*
-  Events
-*/
+//
+//  Events
+//
 
 collectionSearchEl.addEventListener('input', function (e) {
   clearTimeout(resourceFetchDelay);
-  if (collectionSearchEl.value.length < 3) {
-    collectionMap.clear();
-    refreshCollections();
-    permissionArray.length = 0;
-    refreshPermissions();
-    return;
-  }
+  clearCheckboxStates();
+  permissionArray.length = 0;
+  refreshPermissions();
   resourceFetchDelay = setTimeout(fetchCollectionSearch, 300);
 });
 
@@ -63,63 +57,63 @@ principalSearchEl.addEventListener('blur', function (e) {
 
 // We can't add an event handler directly to dynamically generated elements, so we use event
 // delegation to listen for clicks on the parent element.
-permissionListEl.addEventListener('change', function (event) {
+permissionListEl.addEventListener('change', function (ev) {
   // Handle new permission level selected in permission level dropdown
-  if (event.target.classList.contains('level-dropdown')) {
-    // dataset is an HTML attribute, and all attributes are stored as strings
-    const divEl = event.target.closest('div');
+  if (ev.target.classList.contains('level-dropdown')) {
+    const divEl = ev.target.closest('div');
+    // dataset values are HTML attributes, which are always strings
     const principalId = parseInt(divEl.dataset.principalId);
     const principalType = divEl.dataset.principalType;
-    const permissionLevel = parseInt(event.target.value);
-    const resources = getAllSelectedResources();
+    const permissionLevel = parseInt(ev.target.value);
+    const resources = getSelectedResources();
     fetchSetPermission(resources, principalId, principalType, permissionLevel);
     // TODO: Test for race condition
-    event.target.disabled = true;
+    ev.target.disabled = true;
   }
 });
 
-// permissionListEl.addEventListener('click', function (event) {
+// permissionListEl.addEventListener('click', function (ev) {
 //   // Trigger change event on level-dropdown, even if the same level is selected again. This allows a
 //   // permission that only exists for some of the selected resources, to be applied to all the
 //   // selected resources without changing the permission level.
-//   if (event.target.classList.contains('level-dropdown')) {
-//     event.target.dispatchEvent(new Event('change', {bubbles: true}));
+//   if (ev.target.classList.contains('level-dropdown')) {
+//     ev.target.dispatchEvent(new Event('change', {bubbles: true}));
 //   }
 // });
 
 // We use mousedown instead of click to prevent the blur event on principalSearchEl from firing
 // before the click event.
-principalListEl.addEventListener('mousedown', function (event) {
-  const divEl = event.target.closest('.principal-flex');
+principalListEl.addEventListener('mousedown', function (ev) {
+  const divEl = ev.target.closest('.principal-flex');
   const principalId = parseInt(divEl.dataset.principalId);
   const principalType = divEl.dataset.principalType;
-  const resources = getAllSelectedResources();
+  const resources = getSelectedResources();
   fetchSetPermission(resources, principalId, principalType, 1);
 });
 
 
-selectAllCheckboxEl.addEventListener('change', function (event) {
+selectAllCheckboxEl.addEventListener('change', function (ev) {
   const checkboxes = document.querySelectorAll('.collection-checkbox');
   for (const checkbox of checkboxes) {
-    checkbox.checked = event.target.checked;
+    checkbox.checked = ev.target.checked;
   }
 });
 
-document.addEventListener('change', function (event) {
+document.addEventListener('change', function (ev) {
   // Propagate click on collection checkbox to resource checkboxes.
-  if (event.target.classList.contains('collection-checkbox-collection')) {
-    const collectionItem = event.target.closest('.collection-item');
+  if (ev.target.classList.contains('collection-checkbox-collection')) {
+    const collectionItem = ev.target.closest('.collection-item');
     const resourceCheckboxes = collectionItem.querySelectorAll('.collection-checkbox-resource');
     for (const checkbox of resourceCheckboxes) {
-      checkbox.checked = event.target.checked;
+      checkbox.checked = ev.target.checked;
       // If any checkbox is unchecked, uncheck the selectAllCheckbox.
       selectAllCheckboxEl.checked = false;
     }
   }
   // If a resource checkbox is unchecked, uncheck the collection checkbox.
-  if (event.target.classList.contains('collection-checkbox-resource')) {
-    const collectionItem = event.target.closest('.collection-item');
-    if (!event.target.checked) {
+  if (ev.target.classList.contains('collection-checkbox-resource')) {
+    const collectionItem = ev.target.closest('.collection-item');
+    if (!ev.target.checked) {
       const collectionCheckbox = collectionItem.querySelector('.collection-checkbox-collection');
       collectionCheckbox.checked = false;
       // If any checkbox is unchecked, uncheck the selectAllCheckbox.
@@ -131,7 +125,7 @@ document.addEventListener('change', function (event) {
     selectAllCheckboxEl.checked = true;
   }
   //
-  const resources = getAllSelectedResources();
+  const resources = getSelectedResources();
   if (resources.length > 0) {
     fetchGetPermissions(resources);
   }
@@ -142,65 +136,61 @@ document.addEventListener('change', function (event) {
 });
 
 // Show and hide individual permissions in the Resources list
-showPermissionsCheckboxEl.addEventListener('change', function (_event) {
+showPermissionsCheckboxEl.addEventListener('change', function (_ev) {
   refreshShowPermissions();
 });
 
 
-/*
-  Fetch
-*/
+//
+//  Fetch
+//
 
-function fetchCollectionSearch(preserveCheckboxStates = false)
+function fetchCollectionSearch()
 {
-  const searchStr = collectionSearchEl.value;
-  // console.log('fetchCollectionSearch() searchStr:', searchStr);
+  const checkboxStates = saveCheckboxStates();
 
-  // "Searching" message can go here.
-  // collectionListEl.innerHTML = `<div class='grid-msg'>Searching...</div>`;
+  // Display a "loading..." message if fetch is slow. This avoids the message flickering on in brief
+  // moments when the fetch is fast.
+  const msgDelay = setTimeout(function() {
+    collectionListEl.innerHTML = `<div class='grid-msg'>Loading resources...</div>`;
+  }, 2000);
 
   fetch(`${ROOT_PATH}/permission/resource/search`, {
     method: 'POST', headers: {
       'Content-Type': 'application/json',
-    }, body: JSON.stringify({query: searchStr}),
+    }, body: JSON.stringify({query: collectionSearchEl.value}),
   })
       .then((response) => response.json())
       .then((resultObj) => {
-        // console.log('fetchCollectionSearch() Status:', resultObj.status);
         if (resultObj.error) {
-          alert(resultObj.error);
+          errorDialog('fetchCollectionSearch()', resultObj.error);
         }
         else {
           collectionMap.clear();
-          // TODO: Probably don't need to iterate here. Can just assign the collection_dict to
-          // collectionMap.
           for (const [collectionId, collectionObj] of Object.entries(resultObj.collection_dict)) {
             collectionMap.set(parseInt(collectionId), collectionObj);
           }
-          const checkboxStates = saveCheckboxStates();
+          clearTimeout(msgDelay);
           refreshCollections();
-          if (preserveCheckboxStates) {
-            restoreCheckboxStates(checkboxStates);
-          }
-          else {
-            selectAllCheckboxEl.checked = false;
-            permissionArray.length = 0;
-            refreshPermissions();
-            refreshShowPermissions();
-          }
-          // const resources = getAllSelectedResources();
-          // fetchGetPermissions(resources);
-          // selectAllCheckboxEl.dispatchEvent(new Event('change'));
+          restoreCheckboxStates(checkboxStates);
+          //   selectAllCheckboxEl.checked = false;
+          //   permissionArray.length = 0;
+          //   refreshPermissions();
+          //   refreshShowPermissions();
         }
       })
       .catch((error) => {
-        console.error('Error:', error);
+        errorDialog('fetchCollectionSearch()', error);
       });
 }
 
 
 function fetchGetPermissions(resources)
 {
+  const msgDelay = setTimeout(function() {
+    permissionListEl.innerHTML = `<div class='grid-msg'>Loading permissions...</div>`;
+  }, 2000);
+
   fetch(`${ROOT_PATH}/permission/aggregate/get`, {
     method: 'POST', headers: {
       'Content-Type': 'application/json',
@@ -208,17 +198,17 @@ function fetchGetPermissions(resources)
   })
       .then((response) => response.json())
       .then((resultObj) => {
-        // console.log('fetchGetPermissions() Status:', resultObj.status);
         if (resultObj.error) {
-          alert(resultObj.error);
+          errorDialog('fetchGetPermissions()', resultObj.error);
         }
         else {
           permissionArray = resultObj.permission_list;
+          clearTimeout(msgDelay);
           refreshPermissions();
         }
       })
       .catch((error) => {
-        console.error('Error:', error);
+        errorDialog('fetchGetPermissions()', error);
       });
 }
 
@@ -236,50 +226,19 @@ function fetchSetPermission(resources, principalId, principalType, permissionLev
   })
       .then((response) => response.json())
       .then((resultObj) => {
-        // console.log('fetchSetPermission() Status:', resultObj.status);
         if (resultObj.error) {
-          alert(resultObj.error);
+          errorDialog('fetchSetPermission()', resultObj.error);
         }
         else {
-          fetchCollectionSearch(true);
-          // TODO: cleanest?
+          fetchCollectionSearch();
           principalSearchEl.value = '';
-          // refreshPermissions();
         }
       })
       .catch((error) => {
-        console.error('fetchSetPermission() Error:', error);
+        errorDialog('fetchSetPermission()', error);
       });
 }
 
-
-// function fetchPermissionCrud(action, o)
-// {
-//   o.action = action;
-//   // console.log('fetchPermissionCrud() o:', o);
-//   fetch(`${ROOT_PATH}/permission/crud`, {
-//     method: 'POST', headers: {
-//       'Content-Type': 'application/json',
-//     }, body: JSON.stringify(o)
-//   })
-//       .then((response) => response.json())
-//       .then((resultObj) => {
-//         // console.log('fetchPermissionCrud() Status:', resultObj.status);
-//         // Handle situation where a permission was set to None, then to another value. This creates
-//         // a new permission, so we need to update the permissionArray.
-//         if (resultObj.permissionId) {
-//           const v = permissionArray.get(o.permissionId);
-//           permissionArray.delete(o.permissionId);
-//           permissionArray.set(resultObj.permissionId, v);
-//         }
-//         if (resultObj.error) {
-//           alert(resultObj.error);
-//         }
-//       })
-//       .catch((error) => {
-//         console.error('fetchPermissionCrud() Error:', error);
-//       });
-// }
 
 function fetchPrincipalSearch()
 {
@@ -292,7 +251,7 @@ function fetchPrincipalSearch()
       .then((response) => response.json())
       .then((resultObj) => {
         if (resultObj.error) {
-          alert(resultObj.error);
+          errorDialog('fetchPrincipalSearch()', resultObj.error);
         }
         else {
           principalArray = resultObj.principal_list;
@@ -300,13 +259,13 @@ function fetchPrincipalSearch()
         }
       })
       .catch((error) => {
-        console.error('Error:', error);
+        errorDialog('fetchPrincipalSearch()', error);
       });
 }
 
-/*
-  Refresh
-*/
+//
+//  Refresh
+//
 
 function refreshCollections()
 {
@@ -345,17 +304,10 @@ function refreshPermissions()
     principalSearchEl.disabled = false;
   }
 
-  // We use a document fragment to avoid multiple reflows.
   const fragment = document.createDocumentFragment();
   for (const permissionObj of permissionArray) {
-    if (permissionObj.principal_type === 'public') {
-      addPublicPrincipalDiv(fragment, permissionObj);
-      addPermissionLevelDropdownDiv(fragment, permissionObj, true);
-    }
-    else {
       addPrincipalDiv(fragment, permissionObj);
       addPermissionLevelDropdownDiv(fragment, permissionObj, false);
-    }
   }
   permissionListEl.replaceChildren(fragment);
 }
@@ -368,7 +320,6 @@ function refreshPrincipals()
     principalListEl.classList.add('visible');
     return;
   }
-  // We use a document fragment to avoid multiple reflows.
   const fragment = document.createDocumentFragment();
   for (const principalObj of principalArray) {
     addPrincipalDiv(fragment, principalObj);
@@ -458,8 +409,7 @@ function addPrincipalDiv(parentEl, principalObj)
     </div>
     <div class='principal-child principal-info'>
       <div class='principal-info-child'>${c.title}</div>
-      <div class='principal-info-child'>${c.description}</div>
-
+      <div class='principal-info-child'>${c.description || ''}</div>
       <div class='principal-info-child'>
         <div class='pasta-id-parent'>
           <div class='pasta-id-child-text'>
@@ -478,28 +428,7 @@ function addPrincipalDiv(parentEl, principalObj)
   parentEl.appendChild(principalEl);
 }
 
-
-function addPublicPrincipalDiv(parentEl, principalObj)
-{
-  const c = principalObj;
-  const principalEl = document.createElement('div');
-  principalEl.classList.add('principal-flex');
-  principalEl.classList.add('principal-public');
-  principalEl.dataset.principalId = c.principal_id;
-  principalEl.dataset.principalType = c.principal_type;
-  principalEl.innerHTML = `
-    <div class='principal-child principal-avatar'>
-      <img src='${c.avatar_url}' alt='Avatar' class='avatar avatar-smaller'>
-    </div>
-    <div class='principal-child principal-info'>
-      <div class='principal-info-child'>Public Access</div>
-    </div>
-  `;
-  parentEl.appendChild(principalEl);
-}
-
-
-function addPermissionLevelDropdownDiv(parentEl, permissionObj, isPublic) {
+function addPermissionLevelDropdownDiv(parentEl, permissionObj) {
   const levelEl = document.createElement('div');
   levelEl.dataset.principalId = permissionObj.principal_id;
   levelEl.dataset.principalType = permissionObj.principal_type;
@@ -508,7 +437,7 @@ function addPermissionLevelDropdownDiv(parentEl, permissionObj, isPublic) {
     <option value='0' ${permission_level === 0 ? 'selected' : ''}>None</option>
     <option value='1' ${permission_level === 1 ? 'selected' : ''}>Reader</option>
   `;
-  if (!isPublic) {
+  if (permissionObj.pasta_id !== PUBLIC_PASTA_ID) {
     optionsHtml += `
       <option value='2' ${permission_level === 2 ? 'selected' : ''}>Editor</option>
       <option value='3' ${permission_level === 3 ? 'selected' : ''}>Owner</option>
@@ -526,12 +455,12 @@ function refreshShowPermissions()
   }
 }
 
-/*
-  Utility
-*/
+//
+//  Util
+//
 
 // Return a list of [collectionId, resourceType] for each checked resource checkbox.
-function getAllSelectedResources()
+function getSelectedResources()
 {
   const selectedResourceIds = [];
   // Since resource checkboxes are updated when collection checkboxes are clicked, we only need to
@@ -548,19 +477,20 @@ function getAllSelectedResources()
       selectedResourceIds.push([collectionId, resourceType]);
     }
   }
-  // console.log('selectedResourceIds:', selectedResourceIds);
   return selectedResourceIds;
 }
 
+
+
+//
 // Checkboxes
+//
 
 function saveCheckboxStates()
 {
   const states = [];
-  // states.push(selectAllCheckboxEl.checked);
-  const checkboxes = document.querySelectorAll(
-      // '.collection-checkbox-collection,.collection-checkbox-resource');
-      '.collection-checkbox');
+  states.push(selectAllCheckboxEl.checked);
+  const checkboxes = document.querySelectorAll('.collection-checkbox');
   for (const checkbox of checkboxes) {
     states.push(checkbox.checked);
   }
@@ -569,12 +499,19 @@ function saveCheckboxStates()
 
 function restoreCheckboxStates(checkboxStates)
 {
-  // selectAllCheckboxEl.checked = checkboxStates.shift();
-  const checkboxes = document.querySelectorAll(
-      // '.collection-checkbox-collection,.collection-checkbox-resource');
-      '.collection-checkbox');
+  selectAllCheckboxEl.checked = checkboxStates.shift();
+  const checkboxes = document.querySelectorAll('.collection-checkbox');
   for (const checkbox of checkboxes) {
     checkbox.checked = checkboxStates.shift();
+  }
+}
+
+function clearCheckboxStates()
+{
+  selectAllCheckboxEl.checked = false;
+  const checkboxes = document.querySelectorAll('.collection-checkbox');
+  for (const checkbox of checkboxes) {
+    checkbox.checked = false;
   }
 }
 
