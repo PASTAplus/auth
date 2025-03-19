@@ -56,16 +56,19 @@
           <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/profile') }}'>Profile</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/identity') }}'>Accounts</a>
+          <a class='nav-link {% if not token %}disabled{% endif %}'
+             href='{{ url('/ui/identity') }}'>Accounts</a>
         </li>
         <li class='nav-item'>
           <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/group') }}'>Groups</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/membership') }}'>Memberships</a>
+          <a class='nav-link {% if not token %}disabled{% endif %}'
+             href='{{ url('/ui/membership') }}'>Memberships</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/permission') }}'>Permissions</a>
+          <a class='nav-link {% if not token %}disabled{% endif %}'
+             href='{{ url('/ui/permission') }}'>Permissions</a>
         </li>
       </ul>
 
@@ -83,10 +86,16 @@
             <li>
               <div class='dropdown-divider'></div>
             </li>
-            <li><a class='dropdown-item' href='{{ url('/dev/signin/google/117107251210852246141') }}'>Google</a></li>
-            <li><a class='dropdown-item' href='{{ url('/dev/signin/google/10618168603761292863') }}'>Google</a></li>
-            <li><a class='dropdown-item' href='{{ url('/dev/signin/github/https://github.com/rogerdahl') }}'>GitHub</a></li>
-            <li><a class='dropdown-item' href='{{ url('/dev/signin/microsoft/AAAAAAAAAAAAAAAAAAAAAMb5WmAIiWexIVAeFkG_1m4') }}'>Microsoft</a></li>
+            <li><a class='dropdown-item'
+                   href='{{ url('/dev/signin/google/117107251210852246141') }}'>Google</a></li>
+            <li><a class='dropdown-item'
+                   href='{{ url('/dev/signin/google/10618168603761292863') }}'>Google</a></li>
+            <li><a class='dropdown-item'
+                   href='{{ url('/dev/signin/github/https://github.com/rogerdahl') }}'>GitHub</a>
+            </li>
+            <li><a class='dropdown-item'
+                   href='{{ url('/dev/signin/microsoft/AAAAAAAAAAAAAAAAAAAAAMb5WmAIiWexIVAeFkG_1m4') }}'>Microsoft</a>
+            </li>
           </ul>
         </div>
       {% endif %}
@@ -106,10 +115,13 @@
               <div class='row-center-child'>
                 <div class='dropdown'>
                   <button class='btn btn-link dropdown-toggle' type='button' id='avatarMenuButton'
-                          data-bs-toggle='dropdown' aria-expanded='false'><img src='{{ avatar_url }}' alt='Avatar' class='avatar'></button>
+                          data-bs-toggle='dropdown' aria-expanded='false'><img
+                      src='{{ avatar_url }}' alt='Avatar' class='avatar'></button>
                   <ul class='dropdown-menu' aria-labelledby='avatarMenuButton'>
-                    <li><a class='dropdown-item' href='{{ url('/ui/profile/edit') }}'>Edit Profile</a></li>
-                    <li><a class='dropdown-item' href='{{ url('/ui/avatar') }}'>Select Avatar</a></li>
+                    <li><a class='dropdown-item' href='{{ url('/ui/profile/edit') }}'>Edit
+                      Profile</a></li>
+                    <li><a class='dropdown-item' href='{{ url('/ui/avatar') }}'>Select Avatar</a>
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -149,7 +161,8 @@
       <form action='{{ url('/policy/accept') }}' method='post' id='privacyPolicyForm'>
         <div class='modal-header'>
           <h5 class='modal-title'>Environmental Data Initiative Privacy Policy</h5>
-          <button type='submit' class='btn-close' data-bs-dismiss='modal' aria-label='Close' name='action'
+          <button type='submit' class='btn-close' data-bs-dismiss='modal' aria-label='Close'
+                  name='action'
                   value='decline'>
           </button>
         </div>
@@ -172,7 +185,8 @@
             </p>
           </div>
           <div class='modal-footer'>
-            <button type='submit' class='btn btn-secondary' data-bs-dismiss='modal' name='action' value='decline'>
+            <button type='submit' class='btn btn-secondary' data-bs-dismiss='modal' name='action'
+                    value='decline'>
               I Decline
             </button>
             <button type='submit' class='btn btn-primary' name='action' value='accept'>
@@ -186,7 +200,8 @@
 </div>
 
 {# Modal error dialog #}
-<div class='modal fade' id='errorModal' tabindex='-1' aria-labelledby='errorModalLabel' aria-hidden='true'>
+<div class='modal fade' id='errorModal' tabindex='-1' aria-labelledby='errorModalLabel'
+     aria-hidden='true'>
   <div class='modal-dialog modal-dialog-centered'>
     <div class='modal-content'>
       <div class='modal-header'>
@@ -194,14 +209,16 @@
         <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
       </div>
       <div class='modal-body'>
-        <div class='alert alert-danger'>
-          <p>An error occurred. Please try again. If the error assists, please contact us, and provide the following details:</p>
-          <p><span>Origin: <span id='errorOrigin'></span></span></p>
-          <p><span>Error: <span id='errorMsg'></span></span></p>
+        <div class=''>
+          <p>An error occurred. Please try again. If the error persists, contact us with the
+            details below:</p>
+          <p id='errorMsg'></p>
         </div>
+        <input type='button' id='copyErrorButton' class='btn btn-secondary'
+               value='Copy Error Details'>
       </div>
       <div class='modal-footer'>
-        <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Close</button>
+        <button type='button' class='btn btn-primary' data-bs-dismiss='modal'>Close</button>
       </div>
     </div>
   </div>

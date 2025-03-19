@@ -144,7 +144,7 @@ function fetchPrincipalSearch()
       .then((response) => response.json())
       .then((resultObj) => {
         if (resultObj.error) {
-          errorDialog('fetchPrincipalSearch()', resultObj.error);
+          errorDialog(resultObj.error);
         }
         else {
           searchProfileArray = resultObj.principal_list;
@@ -152,7 +152,7 @@ function fetchPrincipalSearch()
         }
       })
       .catch((error) => {
-        errorDialog('fetchPrincipalSearch()', error);
+        errorDialog(error);
       });
 }
 
@@ -167,7 +167,7 @@ function fetchMembers(groupId)
       .then((response) => response.json())
       .then((resultObj) => {
         if (resultObj.error) {
-          errorDialog('fetchMembers()', resultObj.error);
+          errorDialog(resultObj.error);
         }
         else {
           memberProfileArray = resultObj.member_list;
@@ -178,7 +178,7 @@ function fetchMembers(groupId)
         }
       })
       .catch((error) => {
-        errorDialog('fetchMembers()', error);
+        errorDialog(error);
       });
 }
 
@@ -197,7 +197,7 @@ function fetchAddRemoveMember(groupId, memberProfileId, isAdd)
       .then((response) => response.json())
       .then((resultObj) => {
         if (resultObj.error) {
-          errorDialog('fetchAddRemoveMember()', resultObj.error);
+          errorDialog(resultObj.error);
         }
         else {
           fetchMembers(getGroupId());
@@ -205,7 +205,7 @@ function fetchAddRemoveMember(groupId, memberProfileId, isAdd)
         }
       })
       .catch((error) => {
-        errorDialog('fetchAddRemoveMember()', error);
+        errorDialog(error);
       });
 }
 

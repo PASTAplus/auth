@@ -26,7 +26,7 @@ document.addEventListener('click', function(ev) {
     const textEl = idEl.querySelector('.pasta-id-child-text');
     const pastaIdStr = textEl.textContent.trim();
     navigator.clipboard.writeText(pastaIdStr).catch(function (error) {
-      errorDialog('copyTextToClipboard()', `Could not copy text: ${error}`);
+      errorDialog(error);
     });
   }
 });
@@ -54,8 +54,24 @@ if (privacyPolicyModal.dataset.profileId !== undefined && privacyPolicyModal.dat
 }
 
 // Error dialog
-function errorDialog(errorOrigin, errorMsg) {
-  document.getElementById('errorOrigin').innerHTML = errorOrigin;
-  document.getElementById('errorMsg').innerHTML = errorMsg;
+
+function errorDialog(error) {
+  // If the error is a string, convert it to an object.
+  const errorMsg = typeof error === 'string' ? `Error: ${error}` :
+      error.stack || error || JSON.stringify(error, null, 2);
+  document.getElementById('errorMsg').innerText = errorMsg;
   new bootstrap.Modal(document.getElementById('errorModal')).show();
+  throw error;
 }
+
+document.getElementById('copyErrorButton').addEventListener('click', function() {
+  const errorMsg = document.getElementById('errorMsg').innerText;
+  navigator.clipboard.writeText(errorMsg).then(
+    function () {
+      const copyErrorButton = document.getElementById('copyErrorButton');
+      copyErrorButton.value = 'Copied';
+    }
+  ).catch(function (error) {
+    alert(error);
+  });
+});

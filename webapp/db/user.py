@@ -666,48 +666,49 @@ class UserDb:
             )
         )
 
-    async def get_permission_list(self, resource_list):
-        """Get a list of profiles and permissions for a list of resources.
-
-        :param resource_list: [[collection_id, resource_type], ...]
+    def get_permission_generator(self, resource_ids):
+        """Yield profiles and permissions for a list of resources.
         """
-        return (
-            self.session.query(
-                db.permission.Collection,
-                db.permission.Resource,
-                db.permission.Permission,
-                db.profile.Profile,
-                db.group.Group,
+        for i in range(0, len(resource_ids), Config.DB_CHUNK_SIZE):
+            resource_chunk_list = resource_ids[i : i + Config.DB_CHUNK_SIZE]
+
+            query = (
+                self.session.query(
+                    db.permission.Collection,
+                    db.permission.Resource,
+                    db.permission.Permission,
+                    db.profile.Profile,
+                    db.group.Group,
+                )
+                .join(
+                    db.permission.Resource,
+                    db.permission.Collection.id == db.permission.Resource.collection_id,
+                )
+                .join(
+                    db.permission.Permission,
+                    db.permission.Resource.id == db.permission.Permission.resource_id,
+                )
+                .outerjoin(
+                    db.profile.Profile,
+                    sqlalchemy.and_(
+                        db.permission.Permission.principal_id == db.profile.Profile.id,
+                        db.permission.Permission.principal_type == db.permission.PrincipalType.PROFILE,
+                    ),
+                )
+                .outerjoin(
+                    db.group.Group,
+                    sqlalchemy.and_(
+                        db.permission.Permission.principal_id == db.group.Group.id,
+                        db.permission.Permission.principal_type == db.permission.PrincipalType.GROUP,
+                    ),
+                )
+                .filter(
+                    db.permission.Resource.id.in_(resource_chunk_list)
+                )
             )
-            .join(
-                db.permission.Resource,
-                db.permission.Collection.id == db.permission.Resource.collection_id,
-            )
-            .join(
-                db.permission.Permission,
-                db.permission.Resource.id == db.permission.Permission.resource_id,
-            )
-            .outerjoin(
-                db.profile.Profile,
-                sqlalchemy.and_(
-                    db.permission.Permission.principal_id == db.profile.Profile.id,
-                    db.permission.Permission.principal_type == db.permission.PrincipalType.PROFILE,
-                ),
-            )
-            .outerjoin(
-                db.group.Group,
-                sqlalchemy.and_(
-                    db.permission.Permission.principal_id == db.group.Group.id,
-                    db.permission.Permission.principal_type == db.permission.PrincipalType.GROUP,
-                ),
-            )
-            .filter(
-                sqlalchemy.tuple_(
-                    db.permission.Collection.id,
-                    db.permission.Resource.type,
-                ).in_(resource_list)
-            )
-        )
+
+            for row in query.yield_per(Config.DB_YIELD_ROWS):
+                yield row
 
     #
     # Sync

@@ -3,9 +3,9 @@ const ROOT_PATH = headerContainerEl.dataset.rootPath;
 const PUBLIC_PASTA_ID = headerContainerEl.dataset.publicPastaId;
 const PERMISSION_LEVEL_LIST = ['None', 'Reader', 'Editor', 'Owner'];
 
-// The search input for resources
-const collectionSearchEl = document.getElementById('collectionSearch');
-const collectionListEl = document.getElementById('collectionList');
+// The filter input for resources
+const resourceFilterEl = document.getElementById('resourceFilter');
+const resourceTreeEl = document.getElementById('resourceTree');
 let resourceFetchDelay = null;
 
 selectAllCheckboxEl = document.getElementById('selectAllCheckbox');
@@ -19,7 +19,7 @@ const principalSearchEl = document.getElementById('principalSearch');
 const principalListEl = document.getElementById('principalList');
 let principalFetchDelay = null;
 
-const collectionMap = new Map();
+const resourceMap = new Map();
 let permissionArray = [];
 let principalArray = [];
 
@@ -27,22 +27,55 @@ let principalArray = [];
 //  Initial setup
 //
 
-fetchCollectionSearch();
+fetchResourceFilter();
 
 //
 //  Events
 //
 
-collectionSearchEl.addEventListener('input', function (e) {
+// Resource tree (left side)
+
+resourceFilterEl.addEventListener('input', function (_ev) {
   clearTimeout(resourceFetchDelay);
   clearCheckboxStates();
   permissionArray.length = 0;
   refreshPermissions();
-  resourceFetchDelay = setTimeout(fetchCollectionSearch, 300);
+  resourceFetchDelay = setTimeout(fetchResourceFilter, 300);
 });
 
+selectAllCheckboxEl.addEventListener('change', function (ev) {
+  const checkboxEls = document.querySelectorAll('.tree-checkbox');
+  for (const checkboxEl of checkboxEls) {
+    checkboxEl.checked = ev.target.checked;
+  }
+  fetchSelectedResourcePermissions();
+});
 
-principalSearchEl.addEventListener('input', function (e) {
+resourceTreeEl.addEventListener('change', function (ev) {
+  // Propagate click on collection checkbox to resource checkboxes.
+  if (ev.target.classList.contains('tree-collection-checkbox')) {
+    const collectionItem = ev.target.closest('.tree-collection-item');
+    const checkboxEls = collectionItem.querySelectorAll('.tree-resource-type-checkbox');
+    for (const checkboxEl of checkboxEls) {
+      checkboxEl.checked = ev.target.checked;
+    }
+    refreshSelectAllCheckbox();
+    fetchSelectedResourcePermissions();
+  }
+  // Propagate click on resource type checkbox to collection checkbox.
+  if (ev.target.classList.contains('tree-resource-type-checkbox')) {
+    const collectionItemEl = ev.target.closest('.tree-collection-item');
+    const collectionCheckboxEl = collectionItemEl.querySelector('.tree-collection-checkbox');
+    const resourceTypesEl = collectionItemEl.querySelector('.tree-resource-type-list');
+    collectionCheckboxEl.checked = isAllChecked(resourceTypesEl);
+    refreshSelectAllCheckbox();
+    fetchSelectedResourcePermissions();
+  }
+});
+
+// Principal search (right side, top)
+
+principalSearchEl.addEventListener('input', function (ev) {
   clearTimeout(principalFetchDelay);
   if (principalSearchEl.value.length < 2) {
     principalListEl.classList.remove('visible');
@@ -51,9 +84,24 @@ principalSearchEl.addEventListener('input', function (e) {
   principalFetchDelay = setTimeout(fetchPrincipalSearch, 300);
 });
 
-principalSearchEl.addEventListener('blur', function (e) {
+principalSearchEl.addEventListener('blur', function (ev) {
   principalListEl.classList.remove('visible');
 });
+
+// We use mousedown instead of click to prevent the blur event on principalSearchEl from firing
+// before the click event.
+principalListEl.addEventListener('mousedown', function (ev) {
+  const divEl = ev.target.closest('.principal-flex');
+  const principalId = parseInt(divEl.dataset.principalId);
+  const principalType = divEl.dataset.principalType;
+  const resources = getSelectedResourceIds();
+  fetchSetPermission(resources, principalId, principalType, 1);
+});
+
+
+//
+// Permissions (right side, bottom)
+//
 
 // We can't add an event handler directly to dynamically generated elements, so we use event
 // delegation to listen for clicks on the parent element.
@@ -65,7 +113,7 @@ permissionListEl.addEventListener('change', function (ev) {
     const principalId = parseInt(divEl.dataset.principalId);
     const principalType = divEl.dataset.principalType;
     const permissionLevel = parseInt(ev.target.value);
-    const resources = getSelectedResources();
+    const resources = getSelectedResourceIds();
     fetchSetPermission(resources, principalId, principalType, permissionLevel);
     // TODO: Test for race condition
     ev.target.disabled = true;
@@ -81,63 +129,13 @@ permissionListEl.addEventListener('change', function (ev) {
 //   }
 // });
 
-// We use mousedown instead of click to prevent the blur event on principalSearchEl from firing
-// before the click event.
-principalListEl.addEventListener('mousedown', function (ev) {
-  const divEl = ev.target.closest('.principal-flex');
-  const principalId = parseInt(divEl.dataset.principalId);
-  const principalType = divEl.dataset.principalType;
-  const resources = getSelectedResources();
-  fetchSetPermission(resources, principalId, principalType, 1);
-});
 
-
-selectAllCheckboxEl.addEventListener('change', function (ev) {
-  const checkboxes = document.querySelectorAll('.collection-checkbox');
-  for (const checkbox of checkboxes) {
-    checkbox.checked = ev.target.checked;
-  }
-});
-
-document.addEventListener('change', function (ev) {
-  // Propagate click on collection checkbox to resource checkboxes.
-  if (ev.target.classList.contains('collection-checkbox-collection')) {
-    const collectionItem = ev.target.closest('.collection-item');
-    const resourceCheckboxes = collectionItem.querySelectorAll('.collection-checkbox-resource');
-    for (const checkbox of resourceCheckboxes) {
-      checkbox.checked = ev.target.checked;
-      // If any checkbox is unchecked, uncheck the selectAllCheckbox.
-      selectAllCheckboxEl.checked = false;
-    }
-  }
-  // If a resource checkbox is unchecked, uncheck the collection checkbox.
-  if (ev.target.classList.contains('collection-checkbox-resource')) {
-    const collectionItem = ev.target.closest('.collection-item');
-    if (!ev.target.checked) {
-      const collectionCheckbox = collectionItem.querySelector('.collection-checkbox-collection');
-      collectionCheckbox.checked = false;
-      // If any checkbox is unchecked, uncheck the selectAllCheckbox.
-      selectAllCheckboxEl.checked = false;
-    }
-  }
-  // If all checkboxes are checked, check the selectAllCheckbox.
-  if (isAllChecked()) {
-    selectAllCheckboxEl.checked = true;
-  }
-  //
-  const resources = getSelectedResources();
-  if (resources.length > 0) {
-    fetchGetPermissions(resources);
-  }
-  else {
-    permissionArray.length = 0;
-    refreshPermissions();
-  }
-});
-
-// Show and hide individual permissions in the Resources list
+// Show and hide individual permissions in the resource tree
 showPermissionsCheckboxEl.addEventListener('change', function (_ev) {
-  refreshShowPermissions();
+  const permissionList = document.querySelectorAll('.tree-principal');
+  for (const permission of permissionList) {
+    permission.classList.toggle('tree-principal-hidden', !showPermissionsCheckboxEl.checked);
+  }
 });
 
 
@@ -145,49 +143,60 @@ showPermissionsCheckboxEl.addEventListener('change', function (_ev) {
 //  Fetch
 //
 
-function fetchCollectionSearch()
+function fetchResourceFilter()
 {
   const checkboxStates = saveCheckboxStates();
 
   // Display a "loading..." message if fetch is slow. This avoids the message flickering on in brief
   // moments when the fetch is fast.
-  const msgDelay = setTimeout(function() {
-    collectionListEl.innerHTML = `<div class='grid-msg'>Loading resources...</div>`;
+  const msgDelay = setTimeout(function () {
+    resourceTreeEl.innerHTML = `<div class='grid-msg'>Loading resources...</div>`;
   }, 2000);
 
-  fetch(`${ROOT_PATH}/permission/resource/search`, {
+  fetch(`${ROOT_PATH}/permission/resource/filter`, {
     method: 'POST', headers: {
       'Content-Type': 'application/json',
-    }, body: JSON.stringify({query: collectionSearchEl.value}),
+    }, body: JSON.stringify({query: resourceFilterEl.value}),
   })
       .then((response) => response.json())
       .then((resultObj) => {
         if (resultObj.error) {
-          errorDialog('fetchCollectionSearch()', resultObj.error);
+          errorDialog(resultObj.error);
         }
         else {
-          collectionMap.clear();
-          for (const [collectionId, collectionObj] of Object.entries(resultObj.collection_dict)) {
-            collectionMap.set(parseInt(collectionId), collectionObj);
+          resourceMap.clear();
+          for (const [resourceId, resourceObj] of Object.entries(resultObj.resourceObj)) {
+            // JSON does not support integers as keys, so they are converted to strings,
+            // and we must convert them back here.
+            resourceMap.set(parseInt(resourceId), resourceObj);
           }
           clearTimeout(msgDelay);
-          refreshCollections();
+          refreshResourceTree();
           restoreCheckboxStates(checkboxStates);
           //   selectAllCheckboxEl.checked = false;
           //   permissionArray.length = 0;
           //   refreshPermissions();
-          //   refreshShowPermissions();
+          //   refreshShowPermissionsCheckbox();
         }
       })
       .catch((error) => {
-        errorDialog('fetchCollectionSearch()', error);
+        errorDialog(error);
       });
 }
 
 
-function fetchGetPermissions(resources)
+function fetchSelectedResourcePermissions()
 {
-  const msgDelay = setTimeout(function() {
+  const resources = getSelectedResourceIds();
+
+  // Skip server round-trip if no resources are selected.
+  if (!resources.length) {
+    permissionArray.length = 0;
+    // refreshPermissions();
+    return;
+  }
+
+  const msgDelay = setTimeout(function () {
     permissionListEl.innerHTML = `<div class='grid-msg'>Loading permissions...</div>`;
   }, 2000);
 
@@ -199,16 +208,16 @@ function fetchGetPermissions(resources)
       .then((response) => response.json())
       .then((resultObj) => {
         if (resultObj.error) {
-          errorDialog('fetchGetPermissions()', resultObj.error);
+          errorDialog(resultObj.error);
         }
         else {
-          permissionArray = resultObj.permission_list;
+          permissionArray = resultObj.permissionArray;
           clearTimeout(msgDelay);
           refreshPermissions();
         }
       })
       .catch((error) => {
-        errorDialog('fetchGetPermissions()', error);
+        errorDialog(error);
       });
 }
 
@@ -218,24 +227,22 @@ function fetchSetPermission(resources, principalId, principalType, permissionLev
     method: 'POST', headers: {
       'Content-Type': 'application/json',
     }, body: JSON.stringify({
-      resources: resources,
-      principalId: principalId,
-      principalType: principalType,
+      resources: resources, principalId: principalId, principalType: principalType,
       permissionLevel: permissionLevel,
     }),
   })
       .then((response) => response.json())
       .then((resultObj) => {
         if (resultObj.error) {
-          errorDialog('fetchSetPermission()', resultObj.error);
+          errorDialog(resultObj.error);
         }
         else {
-          fetchCollectionSearch();
+          fetchResourceFilter();
           principalSearchEl.value = '';
         }
       })
       .catch((error) => {
-        errorDialog('fetchSetPermission()', error);
+        errorDialog(error);
       });
 }
 
@@ -251,7 +258,7 @@ function fetchPrincipalSearch()
       .then((response) => response.json())
       .then((resultObj) => {
         if (resultObj.error) {
-          errorDialog('fetchPrincipalSearch()', resultObj.error);
+          errorDialog(resultObj.error);
         }
         else {
           principalArray = resultObj.principal_list;
@@ -259,7 +266,7 @@ function fetchPrincipalSearch()
         }
       })
       .catch((error) => {
-        errorDialog('fetchPrincipalSearch()', error);
+        errorDialog(error);
       });
 }
 
@@ -267,26 +274,30 @@ function fetchPrincipalSearch()
 //  Refresh
 //
 
-function refreshCollections()
+function refreshResourceTree()
 {
-  if (!collectionMap.size) {
-    collectionListEl.innerHTML = `<div class='grid-msg'>No resources found</div>`;
+  if (!resourceMap.size) {
+    resourceTreeEl.innerHTML = `<div class='grid-msg'>No resources found</div>`;
     return;
   }
   // We use a document fragment to avoid multiple reflows.
   const fragment = document.createDocumentFragment();
-  for (const [collectionId, collectionObj] of collectionMap) {
-    addCollectionDiv(fragment, collectionId, collectionObj);
+  for (const [resourceId, resourceObj] of resourceMap) {
+    addTreeCollectionDiv(fragment, resourceId, resourceObj);
   }
-  collectionListEl.replaceChildren(fragment);
+  resourceTreeEl.replaceChildren(fragment);
 }
 
+function refreshSelectAllCheckbox()
+{
+  selectAllCheckboxEl.checked = isAllChecked(resourceTreeEl);
+}
 
 function refreshPermissions()
 {
   if (!permissionArray.length) {
     let emptyMsg;
-    if (isSomeChecked()) {
+    if (isSomeChecked(resourceTreeEl)) {
       principalSearchEl.placeholder = 'Add Users and Groups';
       emptyMsg = 'No permissions have been added yet';
       principalSearchEl.disabled = false;
@@ -306,8 +317,8 @@ function refreshPermissions()
 
   const fragment = document.createDocumentFragment();
   for (const permissionObj of permissionArray) {
-      addPrincipalDiv(fragment, permissionObj);
-      addPermissionLevelDropdownDiv(fragment, permissionObj, false);
+    addPrincipalDiv(fragment, permissionObj);
+    addPermissionLevelDropdownDiv(fragment, permissionObj, false);
   }
   permissionListEl.replaceChildren(fragment);
 }
@@ -330,43 +341,43 @@ function refreshPrincipals()
 }
 
 
-function addCollectionDiv(parentEl, collectionId, collectionObj)
+function addTreeCollectionDiv(parentEl, collectionId, collectionObj)
 {
   const collectionEl = document.createElement('div');
-  collectionEl.classList.add('collection-item');
+  collectionEl.classList.add('tree-collection-item');
   collectionEl.dataset.collectionId = collectionId;
   collectionEl.innerHTML = `
     <div class=''>
       <label>
-      <span>
-        <input type='checkbox' class='collection-checkbox collection-checkbox-collection'/>
-        ${collectionObj.collection_label}
-        <span class='collection-type'>${collectionObj.collection_type}</span>
+        <span>
+          <input type='checkbox' class='tree-checkbox tree-collection-checkbox'/>
+          ${collectionObj.collection_label}
+          <span class='tree-collection-type'>${collectionObj.collection_type}</span>
         </span>     
       </label>
     </div>
-    <div class=''>
-      ${formatCollectionResourceDict(collectionObj.resource_dict)}
+    <div class='tree-resource-type-list'>
+      ${formatTreeResourceTypeDiv(collectionObj.resource_dict)}
    </div>
   `;
   parentEl.appendChild(collectionEl);
 }
 
 
-function formatCollectionResourceDict(resourceDict)
+function formatTreeResourceTypeDiv(resourceDict)
 {
   let htmlList = [];
   for (const [resourceType, resourceObj] of Object.entries(resourceDict)) {
     htmlList.push(`
-      <div class='collection-indent'>
-        <div class=''>
-          <label class='collection-resource-type'>
-            <input type='checkbox' class='collection-checkbox collection-checkbox-resource'/>
+      <div class='tree-indent'>
+          <label class='tree-resource-type'
+            data-resource-type='${resourceType}'
+          >
+            <input type='checkbox' class='tree-checkbox tree-resource-type-checkbox'/>
             ${resourceType}
           </label>
-        </div>
         <div class=''>
-          ${formatCollectionPrincipalDict(resourceObj.principal_list)}
+          ${formatTreePrincipalDiv(resourceObj.principal_list)}
         </div>
       </div>
     `);
@@ -375,15 +386,17 @@ function formatCollectionResourceDict(resourceDict)
 }
 
 
-function formatCollectionPrincipalDict(principalList)
+function formatTreePrincipalDiv(principalList)
 {
   let htmlList = [];
   for (const principalObj of principalList) {
     htmlList.push(`
-      <div class='collection-indent collection-principal-row'>
-        <div class='collection-name'>${principalObj.title}</div> 
-        <div class='collection-pasta-id'>${principalObj.pasta_id}</div>
-        <div class='collection-perm-level'>${formatPermissionLevel(principalObj.permission_level)}</div>
+      <div class='tree-indent tree-principal'>
+        <div class='tree-principal-name'>${principalObj.title}</div> 
+        <div class='tree-principal-pasta-id'>${principalObj.pasta_id}</div>
+        <div class='tree-principal-permission-level'>
+          ${formatTreePermissionLevelDiv(principalObj.permission_level)}
+        </div>
       </div>
     `);
   }
@@ -391,10 +404,15 @@ function formatCollectionPrincipalDict(principalList)
 }
 
 
-function formatPermissionLevel(level)
+function formatTreePermissionLevelDiv(level)
 {
   return PERMISSION_LEVEL_LIST[level] || 'Unknown';
 }
+
+
+//
+// Permissions (right side, bottom)
+//
 
 function addPrincipalDiv(parentEl, principalObj)
 {
@@ -428,7 +446,8 @@ function addPrincipalDiv(parentEl, principalObj)
   parentEl.appendChild(principalEl);
 }
 
-function addPermissionLevelDropdownDiv(parentEl, permissionObj) {
+function addPermissionLevelDropdownDiv(parentEl, permissionObj)
+{
   const levelEl = document.createElement('div');
   levelEl.dataset.principalId = permissionObj.principal_id;
   levelEl.dataset.principalType = permissionObj.principal_type;
@@ -447,40 +466,35 @@ function addPermissionLevelDropdownDiv(parentEl, permissionObj) {
   parentEl.appendChild(levelEl);
 }
 
-function refreshShowPermissions()
-{
-  const permissionList = document.querySelectorAll('.collection-principal-row');
-  for (const permission of permissionList) {
-    permission.classList.toggle('hidden', !showPermissionsCheckboxEl.checked);
-  }
-}
-
 //
 //  Util
 //
 
-// Return a list of [collectionId, resourceType] for each checked resource checkbox.
-function getSelectedResources()
+// Return a list of resourceIds for selected resource types and resources in resource tree.
+function getSelectedResourceIds()
 {
   const selectedResourceIds = [];
   // Since resource checkboxes are updated when collection checkboxes are clicked, we only need to
   // iterate over the resource checkboxes.
-  const checkboxes = document.querySelectorAll('.collection-checkbox-resource');
-  for (const checkbox of checkboxes) {
-    if (checkbox.checked) {
-      // Get the collection ID from the parent collection-item div.
-      const collectionEl = checkbox.closest('.collection-item');
-      const collectionId = parseInt(collectionEl.dataset.collectionId);
-      // Get the resource type from the resource checkbox's parent div.
-      // Strangely, the innerText is capitalized even though we only style it to be capitalized with CSS.
-      const resourceType = checkbox.closest('.collection-resource-type').textContent.trim();
-      selectedResourceIds.push([collectionId, resourceType]);
-    }
+  const checkboxEls = document.querySelectorAll('.tree-resource-type-checkbox:checked');
+  for (const checkboxEl of checkboxEls) {
+    // Get the collection ID from the parent tree-collection-item div.
+    const collectionEl = checkboxEl.closest('.tree-collection-item');
+    const collectionId = parseInt(collectionEl.dataset.collectionId);
+    const labelEl = checkboxEl.closest('.tree-resource-type');
+    const resourceType = labelEl.dataset.resourceType;
+    const resourceIdList = getResourceIdsByResourceType(collectionId, resourceType);
+    selectedResourceIds.push(...resourceIdList);
   }
   return selectedResourceIds;
 }
 
 
+function getResourceIdsByResourceType(collectionId, resourceType)
+{
+  return Object.keys(resourceMap.get(collectionId).resource_dict[resourceType].resource_id_dict)
+      .map(Number);
+}
 
 //
 // Checkboxes
@@ -490,9 +504,8 @@ function saveCheckboxStates()
 {
   const states = [];
   states.push(selectAllCheckboxEl.checked);
-  const checkboxes = document.querySelectorAll('.collection-checkbox');
-  for (const checkbox of checkboxes) {
-    states.push(checkbox.checked);
+  for (const checkboxEl of document.querySelectorAll('.tree-checkbox')) {
+    states.push(checkboxEl.checked);
   }
   return states;
 }
@@ -500,43 +513,25 @@ function saveCheckboxStates()
 function restoreCheckboxStates(checkboxStates)
 {
   selectAllCheckboxEl.checked = checkboxStates.shift();
-  const checkboxes = document.querySelectorAll('.collection-checkbox');
-  for (const checkbox of checkboxes) {
-    checkbox.checked = checkboxStates.shift();
+  for (const checkboxEl of document.querySelectorAll('.tree-checkbox')) {
+    checkboxEl.checked = checkboxStates.shift();
   }
 }
 
 function clearCheckboxStates()
 {
   selectAllCheckboxEl.checked = false;
-  const checkboxes = document.querySelectorAll('.collection-checkbox');
-  for (const checkbox of checkboxes) {
-    checkbox.checked = false;
+  for (const checkboxEl of document.querySelectorAll('.tree-checkbox')) {
+    checkboxEl.checked = false;
   }
 }
 
-function isAllChecked()
+function isAllChecked(rootEl)
 {
-  const checkboxes = document.querySelectorAll(
-      // '.collection-checkbox-collection,.collection-checkbox-resource');
-      '.collection-checkbox');
-  for (const checkbox of checkboxes) {
-    if (!checkbox.checked) {
-      return false;
-    }
-  }
-  return true;
+  return Array.from(rootEl.querySelectorAll('.tree-checkbox')).every(el => el.checked);
 }
 
-function isSomeChecked()
+function isSomeChecked(rootEl)
 {
-  const checkboxes = document.querySelectorAll(
-      // '.collection-checkbox-collection,.collection-checkbox-resource');
-      '.collection-checkbox');
-  for (const checkbox of checkboxes) {
-    if (checkbox.checked) {
-      return true;
-    }
-  }
-  return false;
+  return Array.from(rootEl.querySelectorAll('.tree-checkbox')).some(el => el.checked);
 }

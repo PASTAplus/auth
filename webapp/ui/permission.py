@@ -50,21 +50,21 @@ async def get_ui_permission(
 #
 
 
-@router.post('/permission/resource/search')
-async def post_permission_resource_search(
+@router.post('/permission/resource/filter')
+async def post_permission_resource_filter(
     request: starlette.requests.Request,
     udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    """Called when user types in the resource search box."""
+    """Called when user types in the resource search filter and when the page is first opened."""
     query_dict = await request.json()
-    collection_query = await udb.get_resource_list(token_profile_row, query_dict.get('query'))
-    collection_dict = get_aggregate_collection_dict(collection_query)
-    log.debug(json.dumps(collection_dict, indent=2))
+    resource_query = await udb.get_resource_list(token_profile_row, query_dict.get('query'))
+    resource_dict = get_aggregate_collection_dict(resource_query)
+    # log.debug(json.dumps(resource_dict, indent=2))
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',
-            'collection_dict': collection_dict,
+            'resourceObj': resource_dict,
         }
     )
 
@@ -183,18 +183,18 @@ async def post_permission_aggregate_get(
 ):
     resource_list = await request.json()
     # log.debug(json.dumps(resource_list, indent=2))
-    permission_query = await udb.get_permission_list(resource_list)
-    permission_list = await get_aggregate_permission_list(udb, permission_query)
+    permission_generator = udb.get_permission_generator(resource_list)
+    permission_list = await get_aggregate_permission_list(udb, permission_generator)
     # log.debug(json.dumps(permission_list, indent=2))
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',
-            'permission_list': permission_list,
+            'permissionArray': permission_list,
         }
     )
 
 
-async def get_aggregate_permission_list(udb, permission_query):
+async def get_aggregate_permission_list(udb, permission_generator):
     principal_dict = {}
 
     for (
@@ -203,7 +203,7 @@ async def get_aggregate_permission_list(udb, permission_query):
         permission_row,
         profile_row,
         group_row,
-    ) in permission_query.yield_per(Config.DB_YIELD_ROWS):
+    ) in permission_generator:
         if profile_row is not None:
             # Principal is a profile
             assert group_row is None, 'Profile and group cannot join on same row'

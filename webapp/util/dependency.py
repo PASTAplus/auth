@@ -39,5 +39,5 @@ async def token_profile_row(
     :returns: The profile row associated with the token, or None if the token is missing or invalid.
     :rtype: Profile | None
     """
-    if token is not None:
+    if token_ is not None:
         return udb_.get_profile(token_.pasta_id)

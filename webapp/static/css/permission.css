@@ -103,71 +103,39 @@ Main grid
 }
 
 /*
-Resources (left side)
+Resource Tree (left side)
 */
 
-#collectionSearch{
+#resourceFilter{
     margin-bottom: 1rem;
 }
 
-.collection-checkbox {
-    /* display: flex; */
-    /* align-items: center; */
-    /* gap: .5rem; */
-}
-
-.collection-item {
-    /* padding-bottom: 1rem; */
-}
-
-.collection-indent {
-    white-space: nowrap;
-    padding-left: 2rem;
-}
-
-.collection-principal-row {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.collection-name {
-}
-
-
-
-.hidden {
-    display: none;
-}
-
-
-
-.collection-perm-level {
-    font-weight: bold;
-}
-
-.collection-pasta-id {
-    font-size: smaller;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 6rem;
-    margin: 0;
-    padding: 0;
-    /* background-color: red; */
-}
-
-.collection-right {
+.tree-right {
     text-align: right;
     /* Space between top right checkboxes and collection tree */
     margin-bottom: 1rem;
 }
 
-.collection-resource-type {
-    text-transform: capitalize;
+/* Styles applicable to all levels of the resource tree */
+
+.tree-indent {
+    white-space: nowrap;
+    padding-left: 2rem;
 }
 
-.collection-type {
+.tree-checkbox {
+    /* display: flex; */
+    /* align-items: center; */
+    /* gap: .5rem; */
+}
+
+/* Collections are at the top level of the tree if present */
+
+.tree-collection-item {
+    /* padding-bottom: 1rem; */
+}
+
+.tree-collection-type {
     text-transform: capitalize;
     font-size: smaller;
     padding: .2rem;
@@ -175,6 +143,45 @@ Resources (left side)
     border-radius: 10px;
     background-color: #f9f9f9;
     margin: 0 1rem 0 1rem;
+}
+
+/* Resource types are at the 2nd level of the tree for collections */
+
+.tree-resource-type {
+    text-transform: capitalize;
+}
+
+/* Resource items are at the 1st level of the tree if collections are not present */
+
+/* Principals are at the bottom level of the tree */
+
+.tree-principal {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.tree-principal-name {
+}
+
+
+.tree-principal-hidden {
+    display: none;
+}
+
+.tree-principal-permission-level {
+    font-weight: bold;
+    margin-left: auto;
+}
+
+.tree-principal-pasta-id {
+    font-size: smaller;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 6rem;
+    margin: 0;
+    padding: 0;
 }
 
 /*
