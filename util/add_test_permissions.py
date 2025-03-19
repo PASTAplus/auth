@@ -6,6 +6,7 @@ import logging
 import pathlib
 import random
 import sys
+import uuid
 
 import daiquiri
 import sqlalchemy.exc
@@ -57,6 +58,7 @@ def add_permissions(session):
                 insert_entity(
                     session,
                     package_id,
+                    uuid.uuid4().hex,
                     'quality_report.xml',
                     'metadata',
                 )
@@ -64,6 +66,7 @@ def add_permissions(session):
                 insert_entity(
                     session,
                     package_id,
+                    uuid.uuid4().hex,
                     'metadata.eml',
                     'metadata',
                 )
@@ -73,6 +76,7 @@ def add_permissions(session):
                     insert_entity(
                         session,
                         package_id,
+                        uuid.uuid4().hex,
                         random.choice(RANDOM_FILE_NAME_TUP)
                         + random.choice(('.csv', '.txt', '.jpg', '.tiff')),
                         'data',
@@ -96,13 +100,14 @@ def insert_package(session, package_label):
     return new_collection.id
 
 
-def insert_entity(session, package_id, entity_name, entity_type):
-    log.debug(f'entity_name: {entity_name}')
+def insert_entity(session, package_id, resource_key, resource_label, resource_type):
+    log.debug(f'entity_name: {resource_label}')
 
     new_resource = db.permission.Resource(
         collection_id=package_id,
-        label=entity_name,
-        type=entity_type,
+        key=resource_key,
+        label=resource_label,
+        type=resource_type,
     )
     session.add(new_resource)
     session.flush()
