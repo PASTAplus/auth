@@ -24,6 +24,9 @@ sqlite = ">=3.49.1,<4"
 thefuzz = ">=0.22.1,<0.23"
 urllib3 = ">=2.3.0,<3"
 uvicorn = ">=0.34.0,<0.35"
+sqlalchemy = "1.4.46.*"
+psycopg2 = ">=2.9.9,<3"
+pixi-pycharm = ">=0.0.8,<0.0.9"
 
 [environments]
 test = ["test"]
