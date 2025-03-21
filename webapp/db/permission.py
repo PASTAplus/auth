@@ -17,10 +17,10 @@ log = daiquiri.getLogger(__name__)
 class Collection(db.base.Base):
     __tablename__ = 'collection'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    # A label to display and search for the collection
+    # A human-readable name to display for the collection.
     # E.g., 'edi.39.3'
     label = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
-    # A type to categorize the collection
+    # A string that describes the type of the collection.
     # E.g., 'package'
     type = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
     # The date and time the collection was created.
@@ -43,17 +43,17 @@ class Resource(db.base.Base):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     # The collection to which this resource belongs.
     collection_id = sqlalchemy.Column(
-        sqlalchemy.Integer,
-        sqlalchemy.ForeignKey('collection.id'),
-        nullable=True,
-        index=True,
+        sqlalchemy.Integer, sqlalchemy.ForeignKey('collection.id'), nullable=True, index=True
     )
-    # For packages and entities objects, The PASTA URL of the resource
-    # E.g., http://localhost:8088/package/metadata/eml/edi/39/3
-    label = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
-    # The type of the resource
-    # This is a string that is used for grouping resources of the same type.
-    # E.g., for package entities: 'quality_report', 'metadata', 'data'
+    # The unique identifier for the resource.
+    # E.g., for packages and entities objects, The PASTA URL of the resource
+    # http://localhost:8088/package/metadata/eml/edi/39/3
+    key = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
+    # A human-readable name to display for the resource
+    label = sqlalchemy.Column(sqlalchemy.String, nullable=True, index=True)
+    # A string that describes the type of the resource.
+    # This string is used for grouping resources of the same type.
+    # E.g., for package entities: 'data', 'metadata'
     type = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
     created_date = sqlalchemy.Column(
         sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now
@@ -81,7 +81,6 @@ class PermissionLevel(enum.Enum):
 class PrincipalType(enum.Enum):
     PROFILE = 1
     GROUP = 2
-    PUBLIC = 3
 
 
 class Permission(db.base.Base):
@@ -89,22 +88,18 @@ class Permission(db.base.Base):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     # The resource to which this permission applies.
     resource_id = sqlalchemy.Column(
-        sqlalchemy.Integer,
-        sqlalchemy.ForeignKey('resource.id'),
-        nullable=False,
-        index=True,
+        sqlalchemy.Integer, sqlalchemy.ForeignKey('resource.id'), nullable=False, index=True
     )
-    # The profile or group which is granted this permission.
-    # When the principal_type is PUBLIC, this must be null.
-    principal_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=True, index=True)
-    # The type of the principal_id (PROFILE, GROUP, PUBLIC)
+    # The user profile or user group to which the permission is granted.
+    principal_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, index=True)
+    # The type of the principal_id (enum of PROFILE or GROUP)
     principal_type = sqlalchemy.Column(sqlalchemy.Enum(PrincipalType), nullable=False, index=True)
+    # The access level granted by this permission (enum of 'READ', 'WRITE' or 'OWN').
+    level = sqlalchemy.Column(sqlalchemy.Enum(PermissionLevel), nullable=False, default=1)
     # The date and time this permission was granted.
     granted_date = sqlalchemy.Column(
         sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now
     )
-    # The permission level (READ, WRITE, OWN)
-    level = sqlalchemy.Column(sqlalchemy.Enum(PermissionLevel), nullable=False, default=1)
     __table_args__ = (
         sqlalchemy.UniqueConstraint(
             'resource_id', 'principal_id', 'principal_type', name='resource_profile_unique'
