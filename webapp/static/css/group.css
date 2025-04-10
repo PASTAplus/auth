@@ -1,14 +1,95 @@
-.main-grid {
+/*
+Main grid
+*/
+
+/*
++-----------------------------+
+|        split-container      |
+|  +-----------------------+  |
+|  |      split-top        |  |
+|  +-----------------------+  |
+|  +-----------------------+  |
+|  |      split-main       |  |
+|  |  +-------+  +-------+ |  |
+|  |  | split-|  | split-| |  |
+|  |  | left- |  | right-| |  |
+|  |  |section|  |section| |  |
+|  |  +-------+  +-------+ |  |
+|  +-----------------------+  |
++-----------------------------+
+*/
+
+.split-container {
     display: grid;
-    /* grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); */
-    grid-template-columns: max-content;
-    /* gap: 1rem; */
-    row-gap: 2rem;
-    /*align-items: center;*/
-    /*justify-items: left;*/
-    white-space: nowrap;
-    /* padding: 0 1rem 0 0; */
-    /*max-width: 10rem;*/
+    grid-template-rows: auto 1fr;
+    height: calc(100vh - var(--navbar-height));
+}
+
+.split-top{
+    /* background-color: #80bdff; */
+}
+
+.split-main {
+    display: flex;
+    /* Add vertical scrolling */
+    overflow-y: auto;
+    margin-left: 1rem;
+}
+
+.split-section {
+    /* Allow the container to take up the remaining space */
+    flex: 1;
+    overflow-y: auto;
+}
+
+.split-left {
+    /* Border between the left and right sides */
+    /* padding: 0 3px 0 3px; */
+    /* margin-right: 1rem; */
+    /* background-color: #444400; */
+    /* Boxes */
+    border: 2px solid #d0d0d0;
+    border-radius: 5px;
+    margin-left: 1rem;
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.split-right {
+    /* Border between the left and right sides */
+    /* padding: 0 3px 0 .8rem;*/
+    /* border-left: 2px solid #d0d0d0;*/
+    /* margin-left: .8rem;*/
+    /* background-color: #004444; */
+    /* Boxes */
+    border: 2px solid #d0d0d0;
+    border-radius: 5px;
+    margin-left: 1rem;
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+
+.main-grid {
+}
+
+.main-grid-child {
+}
+
+/*
+Groups (left side)
+*/
+
+.group-grid {
+    display: grid;
+    grid-template-columns: 2rem max-content;
+    /* row-gap: 1.5rem; */
+    align-items: center;
+    /* white-space: nowrap; */
     overflow: hidden;
     text-overflow: ellipsis;
     /* Make room for shadows around buttons at edges */
@@ -20,7 +101,214 @@
 }
 
 .description {
-    padding: .5rem 0 .5rem 0;
+    /* padding: .5rem 0 .5rem 0; */
+}
+
+.group-details {
+    transition: background-color .3s ease-in-out;
+    border-radius: .3rem;
+    padding: .5rem 1rem .5rem 1rem;
+}
+.group-details:hover {
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+.group-checkbox {
+    /* display: flex; */
+    /* align-items: center; */
+    /* gap: .5rem; */
+}
+
+.group-item {
+    /* padding-bottom: 1rem; */
+}
+
+.group-indent {
+    /* white-space: nowrap; */
+    /* padding-left: 2rem; */
+}
+
+.group-principal-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.group-name {
+}
+
+
+
+.hidden {
+    display: none;
+}
+
+
+
+.group-perm-level {
+    font-weight: bold;
+}
+
+.group-pasta-id {
+    font-size: smaller;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 6rem;
+    margin: 0;
+    padding: 0;
+    /* background-color: red; */
+}
+
+.group-right {
+    text-align: right;
+    /* Space between top right checkboxes and group tree */
+    margin-bottom: 1rem;
+}
+
+.group-resource-type {
+    text-transform: capitalize;
+}
+
+.group-type {
+    text-transform: capitalize;
+    font-size: smaller;
+    padding: .2rem;
+    border: .1rem solid #d0d0d0;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    margin: 0 1rem 0 1rem;
+}
+
+#newGroupButton {
+    margin-top: 1rem;
+}
+
+/*
+Members (right side)
+*/
+
+/*
+The member grid:
+Col 1: Principal info
+Col 2: Remove button
+*/
+.member-grid {
+    display: grid;
+     grid-template-columns: max-content max-content;
+    /* Use full width of each column */
+    /*grid-template-columns: 1fr auto;*/
+    align-items: center;
+    justify-items: left;
+    gap: 1rem;
+}
+
+.grid-child {
+    /* white-space: nowrap; */
+    /* padding: 1rem 1rem 1rem 1rem; */
+}
+
+.grid-child-span-2 {
+    /* grid-column: span 2; */
+}
+
+.member-grid-title {
+    /*font-size: larger;*/
+    /*font-weight: bold;*/
+}
+
+/*
+Principal (2 col row)
+*/
+
+.principal-flex {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.principal-child {
+}
+
+
+.principal-avatar {
+}
+
+.principal-info {
+}
+
+.principal-info-child {
+}
+
+.principal-public {
+    font-weight: bold;
+}
+
+/*
+Member dropdown
+*/
+
+.level-dropdown {
+    padding: 0.2rem;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+#principalSearch {
+    margin-bottom: 1rem;
+}
+
+#principalList {
+    /*display: flex;*/
+    display: none;
+    flex-direction: column;
+    padding: .3rem;
+    /* Open a bit of space between the input element and the dropdown. */
+    /* margin-top: .5rem; */
+    /* Ensure the dropdown is above other elements */
+    z-index: 1000;
+    /*
+    A bit of a hack to make dropdown look like the input element.
+    Is there a better way to do this in Bootstrap?
+    This is in addition to setting the form-control class on principalList
+    */
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    margin-bottom: .5rem;
+    overflow: hidden;
+}
+
+#principalList.visible {
+    display: flex;
+}
+
+
+#principalList .principal-flex {
+    padding: .3rem;
+}
+
+#principalList .principal-flex:hover {
+    background-color: rgba(0, 0, 0, 0.15);
+    transition: background-color .3s ease-in-out;
+    cursor: pointer;
+}
+
+#deleteGroupName {
+    font-weight: bold;
+}
+
+#deleteGroupModal .modal-body span {
+    display: inline;
+    margin: 0;
+    padding: 0;
+}
+
+.grid-msg {
+    /* font-size: smaller; */
+    /* color: #808080; */
+    margin: 1rem 0 0 0;
 }
 
 /*
@@ -49,57 +337,11 @@
 }
 
 .button-row {
-    gap: 2rem;
-}
-
-/*.child-grid-button {*/
-/*    display: flex;*/
-/*    justify-content: center;*/
-/*}*/
-
-/*.child-grid-row {*/
-/*    display: contents;*/
-/*}*/
-
-
-
-.principal-public {
-    font-weight: bold;
-}
-
-/*.grid {*/
-/*    display: grid;*/
-/*    grid-template-columns: repeat(6, max-content);*/
-/*    align-items: center;*/
-/*    justify-items: left;*/
-/*}*/
-
-/*.grid-child {*/
-/*    white-space: nowrap;*/
-/*    padding: .2rem 1rem .2rem 1rem;*/
-/*}*/
-
-/*.grid-child-title {*/
-/*    font-weight: bold;*/
-/*}*/
-
-/*.grid-row {*/
-/*    display: contents;*/
-/*}*/
-
-/*.grid-logo {*/
-/*    height: 1rem;*/
-/*    !* margin-right: 1rem; *!*/
-/*}*/
-
-/* */
-
-#deleteGroupName {
-    font-weight: bold;
-}
-
-#deleteGroupModal .modal-body span {
-    display: inline;
-    margin: 0;
-    padding: 0;
+    display: grid;
+    /* grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); */
+    /* grid-template-columns: repeat(auto-fill, max-content); */
+    grid-auto-flow: column;
+    row-gap: 1rem;
+    column-gap: 1rem;
+    width: 100%;
 }

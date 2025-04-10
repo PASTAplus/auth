@@ -22,7 +22,7 @@ Main grid
 .split-container {
     display: grid;
     /* Declaring only rows gives us a single implicit column */
-    /* auto for dynamic height of split-top-content, 1fr for remaining space */
+    /* auto for dynamic height of container, 1fr for remaining space */
     grid-template-rows: auto 1fr;
     height: calc(100vh - var(--navbar-height));
 }
@@ -35,7 +35,7 @@ Main grid
     display: flex;
     /* Add vertical scrolling */
     overflow-y: auto;
-    /* margin-bottom: 1rem; */
+    padding-left: 1rem;
 }
 
 .split-section {
@@ -103,46 +103,89 @@ Main grid
 }
 
 /*
-Resources (left side)
+Resource Tree (left side)
 */
 
-.collection-checkbox {
-    /* display: flex; */
-    /* align-items: center; */
-    /* gap: .5rem; */
+#resourceFilter{
+    margin-bottom: 1rem;
 }
 
-.collection-item {
-    /* padding-bottom: 1rem; */
+.tree-right {
+    text-align: right;
+    /* Space between top right checkboxes and collection tree */
+    margin-bottom: 1rem;
 }
 
-.collection-indent {
+/* Styles applicable to multiple levels of the resource tree */
+
+.tree-indent {
     white-space: nowrap;
     padding-left: 2rem;
 }
 
-.collection-profile-row {
+.tree-checkbox {
+}
+
+.tree-type-label {
+    font-weight: bold;
+    text-transform: capitalize;
+    font-size: smaller;
+    padding: .2rem;
+    border: .1rem solid #d0d0d0;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    margin: 0 1rem 0 1rem;
+}
+
+.tree-title {
+    font-weight: bold;
+}
+
+/* Collections are at the top level of the tree if present */
+
+.tree-collection-item {
+    /* padding-bottom: 1rem; */
+}
+
+.tree-collection-type {
+    /* font-weight: bold; */
+}
+
+/* Resource types are at the 2nd level of the tree for collections */
+
+.tree-resource-type {
+    text-transform: capitalize;
+    /* font-weight: bold; */
+}
+
+.tree-resource-hidden {
+    display: none;
+}
+
+/* Resource items are at the 1st level of the tree if collections are not present */
+
+/* Principals are at the bottom level of the tree */
+
+.tree-principal {
     display: flex;
     align-items: center;
     gap: 1rem;
 }
 
-.collection-name {
+.tree-principal-name {
 }
 
 
-
-.hidden {
+.tree-principal-hidden {
     display: none;
 }
 
-
-
-.collection-perm-level {
+.tree-principal-permission-level {
     font-weight: bold;
+    margin-left: auto;
 }
 
-.collection-pasta-id {
+.tree-principal-pasta-id {
     font-size: smaller;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -150,39 +193,22 @@ Resources (left side)
     max-width: 6rem;
     margin: 0;
     padding: 0;
-    /* background-color: red; */
-}
-
-.collection-right {
-    text-align: right;
-}
-
-.collection-resource-type {
-    text-transform: capitalize;
 }
 
 /*
 Permissions (right side)
 */
 
-#collectionSearch, #candidateSearch {
-    margin-bottom: 1rem;
-}
-
-.permission-parent-flex {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
 /*
 The permission grid:
-Col 1: Profile info
-Col 2: Permission dropdown
+Col 1: Principal info
+Col 2: PermissionLevel dropdown
 */
 .permission-grid {
     display: grid;
-    grid-template-columns: max-content max-content;
+     grid-template-columns: max-content max-content;
+    /* Use full width of each column */
+    /*grid-template-columns: 1fr auto;*/
     align-items: center;
     justify-items: left;
     gap: 1rem;
@@ -192,7 +218,7 @@ Col 2: Permission dropdown
     /* overflow: hidden; */
     /*text-overflow: ellipsis;*/
     /*!* Make room for shadows around buttons at edges *!*/
-    /*padding: 2px;*/
+    /* padding: 2px; */
     /* Ensures padding and border are included in the element's total width */
     /* box-sizing: border-box; */
 }
@@ -212,10 +238,10 @@ Col 2: Permission dropdown
 }
 
 /*
-Profile (2 col row)
+Principal (2 col row)
 */
 
-.profile-flex {
+.principal-flex {
     display: flex;
     /* justify-content: center; */
     align-items: center;
@@ -228,17 +254,17 @@ Profile (2 col row)
     /* background-color: red; */
 }
 
-.profile-child {
+.principal-child {
     /* white-space: nowrap; */
     /* padding: 1rem 1rem 1rem 1rem; */
 }
 
 
-.profile-avatar {
+.principal-avatar {
     /* background-color: blue; */
 }
 
-.profile-info {
+.principal-info {
     /* display: flex; */
     /* justify-content: center; */
     /*white-space: nowrap; */
@@ -249,7 +275,7 @@ Profile (2 col row)
     /* background-color: green; */
 }
 
-.profile-info-child {
+.principal-info-child {
     /*padding: 1rem 1rem 1rem 1rem;*/
     /* background-color: yellow; */
 }
@@ -315,14 +341,14 @@ Rule dropdown
 /*}*/
 
 /*
-Candidate search
+Principal search
 */
 
-#candidateSearch {
-    margin-bottom: .5rem;
+#principalSearch {
+    margin-bottom: 1rem;
 }
 
-#candidateList {
+#principalList {
     display: none;
     flex-direction: column;
     padding: .3rem;
@@ -333,7 +359,7 @@ Candidate search
     /*
     A bit of a hack to make dropdown look like the input element.
     Is there a better way to do this in Bootstrap?
-    This is in addition to setting the form-control class on candidateList
+    This is in addition to setting the form-control class on principalList
     */
     border-color: #80bdff;
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
@@ -341,16 +367,16 @@ Candidate search
     overflow: hidden;
 }
 
-#candidateList.visible {
+#principalList.visible {
     display: flex;
 }
 
 
-#candidateList .profile-flex {
+#principalList .principal-flex {
     padding: .3rem;
 }
 
-#candidateList .profile-flex:hover {
+#principalList .principal-flex:hover {
     background-color: rgba(0, 0, 0, 0.15);
     transition: background-color .3s ease-in-out;
     cursor: pointer;

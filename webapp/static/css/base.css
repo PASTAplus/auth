@@ -142,6 +142,10 @@ table td, table th {
     margin: 2rem 0 2rem 2rem;
 }
 
+.capitalize {
+    text-transform: capitalize;
+}
+
 .space {
     margin-top: 2rem;
 }
@@ -414,8 +418,14 @@ table td, table th {
     padding: .5rem;
 }
 
-/* Class to hide an element */
+/* Errors */
 
-/*.hidden {*/
-/*    display: none;*/
-/*}*/
+#errorMsg {
+    font-family: monospace;
+    font-size: .5rem;
+    white-space: pre;
+    overflow: hidden;
+    margin: 1rem;
+    overflow-x: auto;
+}
+
