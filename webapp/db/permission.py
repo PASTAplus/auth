@@ -68,8 +68,8 @@ class Resource(db.base.Base):
         # cascade_backrefs=False,
         passive_deletes=True,
     )
-    permissions = sqlalchemy.orm.relationship(
-        'Permission',
+    rules = sqlalchemy.orm.relationship(
+        'Rule',
         back_populates='resource',
         cascade_backrefs=False,
         cascade='all, delete-orphan',
@@ -87,8 +87,10 @@ class PrincipalType(enum.Enum):
     GROUP = 2
 
 
-class Permission(db.base.Base):
-    __tablename__ = 'permission'
+class Rule(db.base.Base):
+    """A rule is a permission granted to a principal (user profile or user group) on a resource."""
+
+    __tablename__ = 'rule'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     # The resource to which this permission applies.
     resource_id = sqlalchemy.Column(
@@ -135,4 +137,10 @@ class Principal(db.base.Base):
     __table_args__ = (
         sqlalchemy.UniqueConstraint('entity_id', 'entity_type', name='entity_id_type_unique'),
     )
-    cursor.close()
+    rules = sqlalchemy.orm.relationship(
+        'Rule',
+        back_populates='principal',
+        # cascade_backrefs=False,
+        # cascade='all, delete-orphan',
+    )
+

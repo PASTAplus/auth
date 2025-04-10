@@ -155,7 +155,7 @@ async def get_client_candidate_list(candidate_list):
 
 
 #
-# Permission CRUD
+# Rule CRUD
 #
 
 

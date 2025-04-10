@@ -64,7 +64,7 @@ class Profile(db.base.Base):
         cascade='all, delete-orphan',
     )
     # permissions = sqlalchemy.orm.relationship(
-    #     'Permission',
+    #     'Rule',
     #     back_populates='profile',
     #     cascade_backrefs=False,
     #     cascade='all, delete-orphan',
