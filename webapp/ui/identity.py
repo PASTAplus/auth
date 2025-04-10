@@ -75,6 +75,6 @@ async def post_identity_unlink(
 
     log.info(f'Unlinking identity: idp_name={idp_name}, idp_uid={idp_uid}')
 
-    udb.delete_identity(profile_row, idp_name, idp_uid)
+    await udb.delete_identity(token_profile_row, idp_name, idp_uid)
 
     return util.redirect.internal('/ui/identity', success_msg='Account unlinked successfully.')

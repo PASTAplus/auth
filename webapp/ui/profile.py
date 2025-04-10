@@ -39,8 +39,9 @@ async def get_post_ui_profile(
                 profile_row,
                 refresh=request.query_params.get('refresh') == 'true',
             ),
-            'profile': profile_row,
-            #
+            'profile': token_profile_row,
+            'resource_type_list': await udb.get_resource_types(token_profile_row),
+            # Page
             'request': request,
         },
     )
@@ -64,8 +65,9 @@ async def get_ui_profile_edit(
                 profile_row,
                 refresh=request.query_params.get('refresh') == 'true',
             ),
-            'profile': profile_row,
-            #
+            'profile': token_profile_row,
+            'resource_type_list': await udb.get_resource_types(token_profile_row),
+            # Page
             'request': request,
             'msg': request.query_params.get('msg'),
         },
@@ -83,8 +85,8 @@ async def post_profile_edit_update(
 ):
     form_data = await request.form()
     util.pretty.log_dict(log.info, 'Updating profile', dict(form_data))
-    udb.update_profile(
-        token.pasta_id,
+    await udb.update_profile(
+        token_profile_row,
         full_name=form_data.get('full-name'),
         email=form_data.get('email'),
         email_notifications='email-notifications' in form_data,

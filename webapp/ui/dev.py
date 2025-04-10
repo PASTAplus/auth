@@ -51,7 +51,8 @@ async def get_dev_token(
                 'token': token,
                 'avatar_url': util.avatar.get_anon_avatar_url(),
                 'profile': None,
-                #
+                'resource_type_list': await udb.get_resource_types(token_profile_row),
+                # Page
                 'request': request,
                 'token_pp': 'NO TOKEN',
             },
@@ -79,7 +80,7 @@ async def get_dev_profiles(
     udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
     token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
 ):
-    profile_list = udb.get_all_profiles()
+    profile_list = await udb.get_all_profiles()
     return util.template.templates.TemplateResponse(
         'index.html',
         {

@@ -35,8 +35,9 @@ async def get_ui_membership(
                 profile_row,
                 refresh=request.query_params.get('refresh') == 'true',
             ),
-            'profile': profile_row,
-            #
+            'profile': token_profile_row,
+            'resource_type_list': await udb.get_resource_types(token_profile_row),
+            # Page
             'request': request,
             'group_membership_list': await udb.get_group_membership_list(token_profile_row),
             'group_avatar': util.avatar.get_group_avatar_url(),

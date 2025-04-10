@@ -62,7 +62,8 @@ async def get_ui_signin_link(
             'token': token,
             'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
             'profile': None,
-            #
+            'resource_type_list': await udb.get_resource_types(token_profile_row),
+            # Page
             'request': request,
             'login_type': 'link',
             'target_url': Config.SERVICE_BASE_URL + '/ui/identity',

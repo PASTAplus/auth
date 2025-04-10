@@ -17,7 +17,7 @@ async def profile_list(
 ):
     """Get a list of all profiles."""
     profile_list = []
-    for profile_row in udb.get_all_profiles():
+    for profile_row in await udb.get_all_profiles():
         profile_list.append(profile_row.as_dict())
     # webapp.util.pp(profile_list)
     return starlette.responses.Response(util.pretty.to_pretty_json(profile_list))
@@ -71,7 +71,7 @@ async def profile_disable(
     """
     token = util.old_token.OldToken()
     token.from_auth_token(token_str)
-    udb.disable_profile(token.idp_uid)
+    await udb.disable_profile(token.idp_uid)
 
 
 # 3. drop_identity (token, IdP)
@@ -93,7 +93,7 @@ async def identity_drop(
     """
     token = util.old_token.OldToken()
     token.from_auth_token(token_str)
-    udb.drop_identity(token.idp_uid, idp_name, idp_uid)
+    await udb.drop_identity(token.idp_uid, idp_name, idp_uid)
 
 
 # 4. list_identities (profile_id, authtoken)
@@ -107,6 +107,6 @@ async def identity_list(
     token = util.old_token.OldToken()
     token.from_auth_token(token_str)
     identity_list = []
-    for identity_row in udb.get_identity_list(token.idp_uid):
+    for identity_row in await udb.get_identity_list(token.idp_uid):
         identity_list.append(identity_row.as_dict())
     return starlette.responses.Response(util.pretty.to_pretty_json(identity_list))

@@ -22,16 +22,18 @@ cache = {
 
 async def init_cache():
     udb = db.iface.get_udb()
-    cache['sync_ts'] = udb.get_sync_ts()
-    cache['candidate_list'].clear()
+    cache['sync_ts'] = await udb.get_sync_ts()
     await init_profiles(udb)
     await init_groups(udb)
     # pprint.pp(cache)
 
 
 async def init_profiles(udb):
-    candidate_list = cache['candidate_list']
-    for profile_row in udb.get_all_profiles_generator():
+    profile_list = cache['profile_list']
+    profile_list.clear()
+    async for (profile_row, principal_row) in udb.get_all_profiles_generator():
+        if profile_row.pasta_id in Config.SUPERUSER_LIST:
+            continue
         key_tup = (
             profile_row.given_name,
             profile_row.family_name,
@@ -57,8 +59,9 @@ async def init_profiles(udb):
 
 
 async def init_groups(udb):
-    candidate_list = cache['candidate_list']
-    for group_row in udb.get_all_groups_generator():
+    group_list = cache['group_list']
+    group_list.clear()
+    async for group_row in udb.get_all_groups_generator():
         key_tup = (
             group_row.name,
             group_row.description,
@@ -79,8 +82,14 @@ async def init_groups(udb):
         )
 
 
-async def search(query_str):
-    sync_ts = db.iface.get_udb().get_sync_ts()
+async def search(query_str, include_groups):
+    """Search for profiles and groups based on the query string. A match is found if any of the
+    search keys start with the query string.
+
+    Matches are returned with profiles first, then groups. Within the profiles and groups, the order
+    is determined by the order_by() statements in the profile and group generators.
+    """
+    sync_ts = await db.iface.get_udb().get_sync_ts()
     if sync_ts != cache.get('sync_ts'):
         await init_cache()
 

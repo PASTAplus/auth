@@ -63,7 +63,7 @@ async def get_login_pasta(
 
     log.debug(f'login_pasta() - login successful: {ldap_dn}')
 
-    udb.create_or_update_profile_and_identity(
+    await udb.create_or_update_profile_and_identity(
         full_name=dn_uid,
         idp_name='ldap',
         idp_uid=ldap_dn,

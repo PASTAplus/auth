@@ -32,7 +32,10 @@ async def get_ui_group(
 
     group_list = []
 
-    for group_row in profile_row.groups:
+    owned_groups = await udb.get_owned_groups(token_profile_row)
+
+    #for group_row in token_profile_row.groups:
+    for group_row in owned_groups:
         group_list.append(
             {
                 'id': group_row.id,
@@ -71,12 +74,7 @@ async def get_ui_group_member(
     token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    # form_data = await request.form()
-    # form_data.get('group-id')
-    profile_row = udb.get_profile(token.pasta_id)
-    group_row = udb.get_group(profile_row, int(group_id))
-    # group_row.created = group_row.created.strftime('%Y-%m-%d %H:%M')
-    # group_row.updated = group_row.updated.strftime('%Y-%m-%d %H:%M')
+    group_row = await udb.get_group(token_profile_row, int(group_id))
     group_row.created = group_row.created.strftime('%m/%d/%Y %I:%M %p')
     group_row.updated = group_row.updated.strftime('%m/%d/%Y %I:%M %p')
     return util.template.templates.TemplateResponse(
@@ -143,16 +141,25 @@ async def post_group_member_list(
     udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    profile_row = udb.get_profile(token.pasta_id)
-    group_row = udb.get_group(profile_row, int(group_id))
-    member_list = udb.get_group_member_list(profile_row, group_row.id)
+    group_row = await udb.get_group(token_profile_row, int(group_id))
+    member_list = await udb.get_group_member_list(token_profile_row, group_row.id)
     member_list = sorted(member_list, key=lambda x: x.profile.full_name)
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',
-            'member_list': await get_client_profile_list(
-                [m.profile for m in member_list]
-            ),
+            'member_list': [
+                {
+                    'principal_id': p.id,
+                    'principal_type': p.id,
+                    'pasta_id': p.pasta_id,
+                    'title': p.full_name,
+                    'description': p.email,
+                    # 'organization': p.organization,
+                    # 'association': p.association,
+                    'avatar_url': p.avatar_url,
+                }
+                for p in [m.profile for m in member_list]
+            ],
         }
     )
 
@@ -170,25 +177,9 @@ async def post_group_member_search(
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',
-            'candidate_list': await get_client_profile_list(candidate_list),
+            'principal_list': principal_list,
         }
     )
-
-
-async def get_client_profile_list(profile_list):
-    """Create a set of plain key/value dicts with limited profile values for exposing
-    client side."""
-    return [
-        {
-            'profile_id': p.id,
-            'full_name': p.full_name,
-            'email': p.email,
-            'organization': p.organization,
-            'association': p.association,
-            'avatar_url': p.avatar_url,
-        }
-        for p in profile_list
-    ]
 
 
 @router.post('/group/member/add-remove')
@@ -200,7 +191,8 @@ async def post_group_member_add_remove(
     request_dict = await request.json()
     profile_row = udb.get_profile(token.pasta_id)
     is_add = request_dict['is_add']
-    group_row = udb.get_group(profile_row, request_dict['group_id'])
+    group_row = await udb.get_group(token_profile_row, request_dict['group_id'])
     f = udb.add_group_member if is_add else udb.delete_group_member
-    f(profile_row, group_row.id, request_dict['member_profile_id'])
+    # noinspection PyArgumentList
+    await f(token_profile_row, group_row.id, request_dict['member_profile_id'])
     return starlette.responses.JSONResponse({'status': 'ok'})

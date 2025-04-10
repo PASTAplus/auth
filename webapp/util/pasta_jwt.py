@@ -105,16 +105,7 @@ class PastaJwt:
             return False
 
 
-async def token(
-    request: starlette.requests.Request,
-):
-    """Get token from the request cookie."""
-    token_str = request.cookies.get('pasta_token')
-    token_obj = PastaJwt.decode(token_str) if token_str else None
-    yield token_obj
-
-
-def make_jwt(udb, identity_row, is_vetted):
+async def make_jwt(udb, identity_row, is_vetted):
     """Create a JWT for the given profile."""
     profile_row = identity_row.profile
     pasta_jwt = PastaJwt(
@@ -124,7 +115,7 @@ def make_jwt(udb, identity_row, is_vetted):
             'gn': profile_row.given_name,
             'email': profile_row.email,
             'sn': profile_row.family_name,
-            'pastaGroups': udb.get_group_membership_pasta_id_set(profile_row),
+            'pastaGroups': await udb.get_group_membership_pasta_id_set(profile_row),
             'pastaIsEmailEnabled': profile_row.email_notifications,
             # We don't have an email verification procedure yet
             'pastaIsEmailVerified': False,

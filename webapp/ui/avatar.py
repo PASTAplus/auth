@@ -88,7 +88,7 @@ async def post_avatar_update(
         avatar_img = util.avatar.get_avatar_path(idp_name, idp_uid).read_bytes()
         util.avatar.save_avatar(avatar_img, 'profile', token_profile_row.pasta_id)
 
-    udb.update_profile(token.pasta_id, has_avatar=idp_uid != '')
+    await udb.update_profile(token_profile_row, has_avatar=idp_uid != '')
 
     return util.redirect.internal('/ui/profile', refresh='true')
 
