@@ -20,7 +20,8 @@
 
       <div class='header-container'
            data-root-path='{{ url('') }}'
-          {#data-group-id='{{ group_row.id }}'#}
+           data-public-pasta-id='{{ public_pasta_id }}'
+           data-resource-type='{{ resource_type }}'
       >
         <h1 aria-label>Permissions</h1>
       </div>
@@ -74,23 +75,6 @@
         <div class='permission-grid' id='permissionList'>
           {#<div class='grid-msg'>Loading permissions...</div>#}
         </div>
-
-        <hr>
-
-        <div class="permission-grid-title">Public Access</div>
-
-        <div class='permission-public' id='publicPermissions'>
-          <label>
-            <input type='radio' name='publicLevel' value='metadata_and_data'> Metadata and Data
-          </label>
-          <label>
-            <input type='radio' name='publicLevel' value='metadata_only' checked> Metadata Only
-          </label>
-          <label>
-            <input type='radio' name='publicLevel' value='none'> None
-          </label>
-        </div>
-        {#</div>#}
       </div>
     </div>
   </div>

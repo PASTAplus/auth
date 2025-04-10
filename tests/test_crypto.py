@@ -9,7 +9,7 @@ log = daiquiri.getLogger(__name__)
 
 
 def test_public_key():
-    key = pasta_crypto.import_key(Config.PUBLIC_KEY_PATH)
+    key = pasta_crypto.import_key(Config.PASTA_TOKEN_PUBLIC_KEY_PATH)
     assert isinstance(key, Crypto.PublicKey.RSA.RsaKey)
 
 
@@ -19,7 +19,7 @@ def test_private_key():
 
 
 def test_verify_auth_token():
-    public_key = pasta_crypto.import_key(Config.PUBLIC_KEY_PATH)
+    public_key = pasta_crypto.import_key(Config.PASTA_TOKEN_PUBLIC_KEY_PATH)
     auth_token = Config.TEST_AUTH_TOKEN
     pasta_crypto.verify_auth_token(public_key, auth_token)
 

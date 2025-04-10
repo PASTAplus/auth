@@ -85,7 +85,6 @@ class PermissionLevel(enum.Enum):
 class PrincipalType(enum.Enum):
     PROFILE = 1
     GROUP = 2
-    PUBLIC = 3
 
 
 class Permission(db.base.Base):
@@ -98,12 +97,10 @@ class Permission(db.base.Base):
         nullable=False,
         index=True,
     )
-    # The profile or group which is granted this permission.
-    # When the type is 'pub', the only valid value is 0.
-    principal_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=True, index=True)
-    # The type of the principal_id (PROFILE, GROUP, PUBLIC)
-    principal_type = sqlalchemy.Column(
-        sqlalchemy.Enum(PrincipalType), nullable=False, index=True
+    # The principal (user profile or user group) to which the permission is granted.
+    # principal_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, index=True)
+    principal_id = sqlalchemy.Column(
+        sqlalchemy.Integer, sqlalchemy.ForeignKey('principal.id'), nullable=False, index=True
     )
     # The date and time this permission was granted.
     granted_date = sqlalchemy.Column(
@@ -126,37 +123,16 @@ class Permission(db.base.Base):
     )
 
 
-@sqlalchemy.event.listens_for(sqlalchemy.engine.Engine, "connect")
-def create_trigger(dbapi_connection, _connection_record):
-    """Create a trigger to enforce the principal_id + principal_type foreign key constraint.
-    - Regular foreign key constraints don't work for this case since the principal_id can
-    reference either the profile, group table or neither, depending on the principal_type.
-    - Regular check constraints also don't work for this case since they can't reference
-    other tables (and subqueries can't be used in check constraints).
-    """
-    cursor = dbapi_connection.cursor()
-    cursor.execute(
-        """
-        create or replace function enforce_principal_id_check()
-        returns trigger as $$
-        begin
-            if
-                (new.principal_type = 'PROFILE'::principal_type and not exists
-                (select 1 from profile where id = new.principal_id)) or
-                (new.principal_type = 'GROUP'::principal_type and not exists
-                (select 1 from "group" where id = new.principal_id)) or
-                (new.principal_type = 'PUBLIC'::principal_type and new.principal_id is not null)
-            then
-                raise exception using message = 'invalid principal_type and/or principal_id: ' 
-                || new.principal_type || ', ' || new.principal_id;
-            end if;
-            return new;
-        end;
-        $$ language plpgsql;
+class Principal(db.base.Base):
+    """A principal maps a principal identifier to a user profile or user group."""
 
-        create or replace trigger principal_id_check_trigger
-        before insert or update on permission
-        for each row execute function enforce_principal_id_check();
-    """
+    __tablename__ = 'principal'
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    # The user profile or user group represented by this principal.
+    entity_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, index=True)
+    # The type of the entity (enum of PROFILE or GROUP).
+    entity_type = sqlalchemy.Column(sqlalchemy.Enum(EntityType), nullable=False, index=True)
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('entity_id', 'entity_type', name='entity_id_type_unique'),
     )
     cursor.close()

@@ -254,6 +254,17 @@ Profile (2 col row)
     /* background-color: yellow; */
 }
 
+.principal-public {
+    font-weight: bold;
+    /* display: flex; */
+    /* border: #ffa01f 5px dot-dash; */
+    /* border-radius: 5px; */
+    /* padding: 1rem; */
+    /* background-color: #f9f9f9; */
+    /* border-color: black; */
+    /* border-width: 100px; */
+}
+
 /*
 Permission dropdown
 */
@@ -343,16 +354,5 @@ Candidate search
     background-color: rgba(0, 0, 0, 0.15);
     transition: background-color .3s ease-in-out;
     cursor: pointer;
-}
-
-/*
-Public Access
-*/
-
-.permission-public {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
-    gap: .3rem;
-    white-space: nowrap;
 }
 

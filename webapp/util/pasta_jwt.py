@@ -77,9 +77,7 @@ class PastaJwt:
         If the token is invalid, return None.
         """
         try:
-            claims_dict = jwt.decode(
-                token_str, PUBLIC_KEY_STR, algorithms=[Config.JWT_ALGORITHM]
-            )
+            claims_dict = jwt.decode(token_str, PUBLIC_KEY_STR, algorithms=[Config.JWT_ALGORITHM])
             return cls(claims_dict)
         except jwt.ExpiredSignatureError:
             bad_claims_dict = jwt.decode(
@@ -100,9 +98,7 @@ class PastaJwt:
         if token_str is None:
             return False
         try:
-            jwt.decode(
-                token_str, PUBLIC_KEY_STR, algorithms=[Config.JWT_ALGORITHM]
-            )
+            jwt.decode(token_str, PUBLIC_KEY_STR, algorithms=[Config.JWT_ALGORITHM])
             return True
         except (jwt.ExpiredSignatureError, jwt.InvalidTokenError) as e:
             log.error(f'Invalid token: {e}: {token_str}')

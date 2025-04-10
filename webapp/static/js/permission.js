@@ -1,5 +1,7 @@
 let headerContainerEl = document.getElementsByClassName('header-container')[0];
 const ROOT_PATH = headerContainerEl.dataset.rootPath;
+const PUBLIC_PASTA_ID = headerContainerEl.dataset.publicPastaId;
+const RESOURCE_TYPE = headerContainerEl.dataset.resourceType;
 const PERMISSION_LEVEL_LIST = ['None', 'Reader', 'Editor', 'Owner'];
 
 // The search input for resources
@@ -488,13 +490,15 @@ function addProfileDiv(parentEl, profileObj)
 function addPermissionLevelDropdownDiv(parentEl, permissionObj)
 {
   const levelEl = document.createElement('div');
-  levelEl.dataset.permissionId = permissionObj.permission_id;
-  levelEl.dataset.profileId = permissionObj.profile_id;
-  permission_level = permissionObj.permission_level;
-  levelEl.innerHTML = `
-    <select class='level-dropdown'>
-      <option value='0' ${permission_level === 0 ? 'selected' : ''}>None</option>
-      <option value='1' ${permission_level === 1 ? 'selected' : ''}>Reader</option>
+  levelEl.dataset.principalId = permissionObj.principal_id;
+  levelEl.dataset.principalType = permissionObj.principal_type;
+  const permission_level = permissionObj.permission_level;
+  let optionsHtml = `
+    <option value='0' ${permission_level === 0 ? 'selected' : ''}>None</option>
+    <option value='1' ${permission_level === 1 ? 'selected' : ''}>Reader</option>
+  `;
+  if (permissionObj.pasta_id !== PUBLIC_PASTA_ID) {
+    optionsHtml += `
       <option value='2' ${permission_level === 2 ? 'selected' : ''}>Editor</option>
       <option value='3' ${permission_level === 3 ? 'selected' : ''}>Owner</option>
     </select>

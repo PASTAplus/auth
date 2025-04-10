@@ -15,7 +15,7 @@ def import_key(f: str) -> RSA.RsaKey:
     return key
 
 
-def verify_auth_token(public_key: RSA.RsaKey, auth_token: str):
+def verify_auth_token(public_key: Crypto.PublicKey.RSA.RsaKey, auth_token: str):
     """
     Verifies the PASTA+ authentication token, which is a two part string
     separate with a hyphen '-', and each part being base64 encoded:
@@ -26,15 +26,11 @@ def verify_auth_token(public_key: RSA.RsaKey, auth_token: str):
 
         uid=EDI,o=EDI,dc=edirepository,dc=org*https://pasta.edirepository.org/
         authentication*1558090703946*authenticated
-
-    :param public_key:
-    :param auth_token:
-    :return:
     """
     token, signature = auth_token.split('-')
     h = MD5.new(token.encode('utf-8'))
     signature = base64.b64decode(signature)
-    pkcs1_15.new(public_key).verify(h, signature)
+    Crypto.Signature.pkcs1_15.new(public_key).verify(h, signature)
 
 
 def create_auth_token(private_key: RSA.RsaKey, token: str) -> str:

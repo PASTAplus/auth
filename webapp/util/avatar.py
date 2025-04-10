@@ -130,4 +130,18 @@ def generate_initials_avatar(initials: str):
 
 def get_group_avatar_url():
     """Return the URL to the group avatar image."""
-    return util.utils.url(f'/static/svg/group.svg')
+    return util.url.url(f'/static/svg/group.svg')
+
+
+def get_public_avatar_url():
+    """Return the URL to the public avatar image."""
+    return util.url.url(f'/static/svg/public.svg')
+
+
+def init_public_avatar():
+    """Create an avatar image for the public user."""
+    dst_path = get_avatar_path('profile', Config.PUBLIC_PASTA_ID)
+    with filelock.FileLock(dst_path.with_suffix('.lock')):
+        if dst_path.exists():
+            return
+    shutil.copy(Config.AVATAR_PUBLIC, dst_path)

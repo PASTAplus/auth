@@ -56,6 +56,12 @@ async def lifespan(
     _app: fastapi.FastAPI,
 ):
     log.info('Application starting...')
+    # Create the public profile if it doesn't exist.
+    with db.iface.SessionLocal().begin():
+        udb = db.iface.get_udb()
+        if not await udb.get_public_profile():
+            await udb.create_public_profile()
+    # Initialize the profile and group search cache
     await util.search_cache.init_cache()
     yield
     log.info('Application stopping...')
