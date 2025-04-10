@@ -9,6 +9,8 @@ import starlette.responses
 
 import db.iface
 import util.avatar
+import util.dependency
+import util.login
 import util.pretty
 import util.utils
 from config import Config
@@ -51,7 +53,7 @@ async def get_login_microsoft(
 @router.get('/callback/microsoft')
 async def get_callback_microsoft(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
 ):
     """On successful login, redeem a code for an access token. Otherwise, just redirect to the
     target URL.

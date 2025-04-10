@@ -11,6 +11,7 @@ import starlette.templating
 
 import db.iface
 import util.avatar
+import util.dependency
 import util.pasta_jwt
 import util.template
 import util.utils
@@ -38,8 +39,9 @@ def assert_dev_enabled(func):
 @assert_dev_enabled
 async def get_dev_token(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
+    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
 ):
     if token is None:
         return util.template.templates.TemplateResponse(
@@ -73,8 +75,8 @@ async def get_dev_token(
 @assert_dev_enabled
 async def get_dev_profiles(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
 ):
     profile_list = udb.get_all_profiles()
     return util.template.templates.TemplateResponse(
@@ -95,7 +97,7 @@ async def get_dev_profiles(
 async def get_dev_signin(
     idp_name: str,
     idp_uid: str,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
 ):
     response = util.utils.redirect_internal('/ui/profile')
     identity_row = udb.get_identity(idp_name, idp_uid)

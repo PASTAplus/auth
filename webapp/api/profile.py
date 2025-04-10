@@ -3,6 +3,7 @@ import fastapi
 import starlette.responses
 import webapp.user_db
 
+import util.dependency
 import util.old_token
 import util.pretty
 import util.utils
@@ -13,7 +14,7 @@ router = fastapi.APIRouter()
 
 @router.get('/v1/profile/list')
 async def profile_list(
-    udb: webapp.user_db.UserDb = fastapi.Depends(webapp.user_db.udb),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
 ):
     """Get a list of all profiles."""
     profile_list = []
@@ -28,7 +29,7 @@ async def profile_list(
 @router.get('/v1/profile/get')
 async def profile_get(
     token_str: str,
-    udb: webapp.user_db.UserDb = fastapi.Depends(webapp.user_db.udb),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
 ):
     """Get a profile."""
     token = util.old_token.OldToken()
@@ -45,7 +46,7 @@ async def profile_get(
 async def profile_map(
     token_src_str: str,
     token_dst_str: str,
-    udb: webapp.user_db.UserDb = fastapi.Depends(webapp.user_db.udb),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
 ):
     """Map profile from profile source to profile destination.
 
@@ -64,7 +65,7 @@ async def profile_map(
 @router.post('/v1/profile/disable')
 async def profile_disable(
     token_str: str,
-    udb: webapp.user_db.UserDb = fastapi.Depends(webapp.user_db.udb),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
 ):
     """Disable a profile.
 
@@ -83,7 +84,7 @@ async def identity_drop(
     token_str: str,
     idp_name: str,
     idp_uid: str,
-    udb: webapp.user_db.UserDb = fastapi.Depends(webapp.user_db.udb),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
 ):
     """Drop an identity from a profile.
 
@@ -103,7 +104,7 @@ async def identity_drop(
 @router.get('/v1/identity/list')
 async def identity_list(
     token_str: str,
-    udb: webapp.user_db.UserDb = fastapi.Depends(webapp.user_db.udb),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
 ):
     """List all identities associated with a profile."""
     token = util.old_token.OldToken()

@@ -3,7 +3,8 @@ import fastapi
 import requests
 import starlette.requests
 
-import db.iface
+import util.dependency
+import util.login
 import util.pretty
 import util.utils
 from config import Config
@@ -42,7 +43,7 @@ async def get_login_orcid(
 @router.get('/callback/orcid')
 async def get_callback_orcid(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
 ):
     login_type, target_url = util.utils.unpack_state(request.query_params.get('state'))
     log.debug(f'callback_orcid() login_type="{login_type}" target_url="{target_url}"')

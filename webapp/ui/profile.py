@@ -5,6 +5,7 @@ import starlette.templating
 
 import db.iface
 import util.avatar
+import util.dependency
 import util.pasta_jwt
 import util.pretty
 import util.template
@@ -23,8 +24,9 @@ router = fastapi.APIRouter()
 @router.api_route('/ui/profile', methods=['GET', 'POST'])
 async def get_post_ui_profile(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     profile_row = udb.get_profile(token.pasta_id)
 
@@ -47,8 +49,9 @@ async def get_post_ui_profile(
 @router.get('/ui/profile/edit')
 async def get_ui_profile_edit(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     profile_row = udb.get_profile(token.pasta_id)
 
@@ -75,8 +78,8 @@ async def get_ui_profile_edit(
 @router.post('/profile/edit/update')
 async def post_profile_edit_update(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     form_data = await request.form()
     util.pretty.log_dict(log.info, 'Updating profile', dict(form_data))
@@ -93,9 +96,8 @@ async def post_profile_edit_update(
 
 @router.post('/profile/edit/delete')
 async def post_profile_edit_delete(
-    # request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     udb.delete_profile(token.pasta_id)
     return util.utils.redirect_internal('/signout')

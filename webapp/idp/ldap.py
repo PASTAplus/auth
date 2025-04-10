@@ -9,7 +9,7 @@ import starlette.requests
 import starlette.responses
 import starlette.status
 
-import db.iface
+import util.dependency
 import util.old_token
 import util.pasta_ldap
 from config import Config
@@ -25,7 +25,7 @@ router = fastapi.APIRouter()
 @router.get('/login/pasta')
 async def get_login_pasta(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
 ):
     """Accept LDAP credentials, validate them against an external LDAP service, and
     return a response with cookie containing the old style token.

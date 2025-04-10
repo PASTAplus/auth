@@ -133,7 +133,7 @@ def udb_override(session: sqlalchemy.orm.Session):
 @pytest.fixture
 def client(db_session_populated):
     # noinspection PyUnresolvedReferences
-    webapp.main.app.dependency_overrides[webapp.user_db.udb] = functools.partial(
+    webapp.main.app.dependency_overrides[util.dependency.udb] = functools.partial(
         udb_override, db_session_populated
     )
     with fastapi.testclient.TestClient(webapp.main.app) as client:

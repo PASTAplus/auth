@@ -5,6 +5,8 @@ import starlette.status
 
 import db.iface
 import util.avatar
+import util.dependency
+import util.login
 import util.pasta_jwt
 import util.pasta_ldap
 import util.template
@@ -23,7 +25,7 @@ router = fastapi.APIRouter()
 @router.get('/ui/signin')
 async def get_ui_signin(
     request: starlette.requests.Request,
-    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
+    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
 ):
     if token:
         return util.utils.redirect_internal('/ui/profile')
@@ -47,8 +49,9 @@ async def get_ui_signin(
 @router.get('/ui/signin/link')
 async def get_ui_signin_link(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     profile_row = udb.get_profile(token.pasta_id)
     return util.template.templates.TemplateResponse(
@@ -82,8 +85,7 @@ async def get_ui_signin_link(
 @router.get('/ui/signin/reset')
 async def get_ui_signin_reset(
     request: starlette.requests.Request,
-    # udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
+    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
 ):
     return util.template.templates.TemplateResponse(
         'signin-reset-pw.html',
@@ -106,7 +108,7 @@ async def get_ui_signin_reset(
 @router.post('/signin/ldap')
 async def post_signin_ldap(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
 ):
     """Handle LDAP sign in from the Auth sign in page. This duplicates some of the logic
     in idp/ldap.py, but interacts with the browser instead of a server side client.

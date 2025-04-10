@@ -9,6 +9,7 @@ import starlette.templating
 
 import db.iface
 import util.avatar
+import util.dependency
 import util.pasta_jwt
 import util.search_cache
 import util.template
@@ -25,8 +26,9 @@ router = fastapi.APIRouter()
 @router.get('/ui/permission')
 async def get_ui_permission(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     profile_row = udb.get_profile(token.pasta_id)
     return util.template.templates.TemplateResponse(
@@ -48,8 +50,8 @@ async def get_ui_permission(
 @router.post('/permission/resource/search')
 async def post_permission_resource_search(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    # token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """Called when user types in the resource search box.
     """
@@ -77,8 +79,7 @@ async def post_permission_resource_search(
 @router.post('/permission/get-list')
 async def post_permission_get_list(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    # token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
 ):
     resource_list = await request.json()
     log.debug('1'*100)
@@ -116,9 +117,9 @@ async def get_client_permission_list(permission_list):
 @router.post('/permission/candidate/search')
 async def post_permission_candidate_search(
     request: starlette.requests.Request,
-    # udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+    # udb: util.dependency.UserDb = fastapi.Depends(db.iface.udb),
     # Prevent this from being called by anyone not logged in
-    # token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
+    # token: util.dependency.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
 ):
     query_dict = await request.json()
     # profile_row = udb.get_profile(token.pasta_id)
@@ -161,8 +162,8 @@ async def get_client_candidate_list(candidate_list):
 @router.post('/permission/update')
 async def permission_update(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: util.pasta_jwt.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """Called when the user changes the permission level dropdown for a profile."""
 
