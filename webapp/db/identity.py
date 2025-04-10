@@ -37,12 +37,12 @@ class Identity(db.base.Base):
     email = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     # The date and time of the first successful authentication with this identity.
     first_auth = sqlalchemy.Column(
-        sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now
+        sqlalchemy.DateTime, nullable=True, default=datetime.datetime.now
     )
     # The date and time of the most recent successful authentication with this identity.
     last_auth = sqlalchemy.Column(
         sqlalchemy.DateTime,
-        nullable=False,
+        nullable=True,
         default=datetime.datetime.now,
         onupdate=datetime.datetime.now,
     )
