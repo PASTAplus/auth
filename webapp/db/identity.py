@@ -10,7 +10,6 @@ import db.permission
 log = daiquiri.getLogger(__name__)
 
 
-
 class Identity(db.base.Base):
     __tablename__ = 'identity'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
@@ -66,4 +65,3 @@ class Identity(db.base.Base):
             name='idp_name_check',
         ),
     )
-

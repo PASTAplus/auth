@@ -3,8 +3,6 @@ import enum
 
 import daiquiri
 import sqlalchemy.orm
-import sqlalchemy.event
-import sqlalchemy.engine
 
 import db.base
 
@@ -12,27 +10,29 @@ log = daiquiri.getLogger(__name__)
 
 
 #
-# Tables
+# Tables for tracking permissions on resources.
 #
 
 
 class Collection(db.base.Base):
+    """A collection of resources.
+
+    Multiple collections can have both the same label and type. Which collection a resource belongs
+    to is determined by the resource's collection_id. When searching for a collection, any ambiguity
+    is resolved by filtering on permissions on the referencing resource.
+    """
+
     __tablename__ = 'collection'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    # A label to display and search for the collection
+    # A human-readable name to display for the collection.
     # E.g., 'edi.39.3'
     label = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
-    # A type to categorize the collection
+    # A string that describes the type of the collection.
     # E.g., 'package'
     type = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
     # The date and time the collection was created.
     created_date = sqlalchemy.Column(
         sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now
-    )
-    __table_args__ = (
-        sqlalchemy.UniqueConstraint(
-            'label', 'type', name='collection_label_type_unique'
-        ),
     )
     resources = sqlalchemy.orm.relationship(
         'Resource',
@@ -43,21 +43,29 @@ class Collection(db.base.Base):
 
 
 class Resource(db.base.Base):
+    """A resource is anything for which permissions can be tracked individually.
+
+    The resource key is the unique identifier for the resource.
+
+    Multiple resources can have both the same label and type. When searching for a resource,
+    any ambiguity is resolved by filtering on permissions on the resource.
+    """
+
     __tablename__ = 'resource'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    # The collection to which this resource belongs.
+    # The collection to which this resource belongs. For a standalone resource, this is null.
     collection_id = sqlalchemy.Column(
-        sqlalchemy.Integer,
-        sqlalchemy.ForeignKey('collection.id'),
-        nullable=True,
-        index=True,
+        sqlalchemy.Integer, sqlalchemy.ForeignKey('collection.id'), nullable=True, index=True
     )
-    # For packages and entities objects, The PASTA URL of the resource
-    # E.g., http://localhost:8088/package/metadata/eml/edi/39/3
-    label = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
-    # The type of the resource
-    # This is a string that is used for grouping resources of the same type.
-    # E.g., for package entities: 'quality_report', 'metadata', 'data'
+    # The unique identifier for the resource.
+    # E.g., for packages and entities objects, The PASTA URL of the resource
+    # http://localhost:8088/package/metadata/eml/edi/39/3
+    key = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True, unique=True)
+    # A human-readable name to display for the resource
+    label = sqlalchemy.Column(sqlalchemy.String, nullable=True, index=True)
+    # A string that describes the type of the resource.
+    # This string is used for grouping resources of the same type.
+    # E.g., for package entities: 'data', 'metadata'
     type = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
     created_date = sqlalchemy.Column(
         sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now
@@ -77,12 +85,13 @@ class Resource(db.base.Base):
 
 
 class PermissionLevel(enum.Enum):
+    NONE = 0
     READ = 1
     WRITE = 2
-    OWN = 3
+    CHANGE = 3  # changePermission
 
 
-class PrincipalType(enum.Enum):
+class EntityType(enum.Enum):
     PROFILE = 1
     GROUP = 2
 
@@ -94,34 +103,34 @@ class Rule(db.base.Base):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     # The resource to which this permission applies.
     resource_id = sqlalchemy.Column(
-        sqlalchemy.Integer,
-        sqlalchemy.ForeignKey('resource.id'),
-        nullable=False,
-        index=True,
+        sqlalchemy.Integer, sqlalchemy.ForeignKey('resource.id'), nullable=False, index=True
     )
     # The principal (user profile or user group) to which the permission is granted.
     # principal_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, index=True)
     principal_id = sqlalchemy.Column(
         sqlalchemy.Integer, sqlalchemy.ForeignKey('principal.id'), nullable=False, index=True
     )
+    # The access level granted by this permission (enum of READ, WRITE or CHANGE).
+    level = sqlalchemy.Column(sqlalchemy.Enum(PermissionLevel), nullable=False, default=1)
     # The date and time this permission was granted.
     granted_date = sqlalchemy.Column(
         sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now
     )
-    # The permission level (READ, WRITE, OWN)
-    level = sqlalchemy.Column(
-        sqlalchemy.Enum(PermissionLevel), nullable=False, default=1
-    )
     __table_args__ = (
-        sqlalchemy.UniqueConstraint(
-            'resource_id', 'principal_id', 'principal_type', name='resource_profile_unique'
-        ),
+        sqlalchemy.UniqueConstraint('resource_id', 'principal_id', name='resource_profile_unique'),
     )
     resource = sqlalchemy.orm.relationship(
         'Resource',
-        back_populates='permissions',
+        back_populates='rules',
         # cascade_backrefs=False,
         passive_deletes=True,
+    )
+    principal = sqlalchemy.orm.relationship(
+        'Principal',
+        back_populates='rules',
+        # cascade_backrefs=False,
+        # delete-orphan cascade is normally configured only on the "one" side of a one-to-many relationship
+        # cascade='all, delete-orphan',
     )
 
 
