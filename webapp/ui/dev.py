@@ -13,8 +13,8 @@ import db.iface
 import util.avatar
 import util.dependency
 import util.pasta_jwt
+import util.redirect
 import util.template
-import util.utils
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -62,9 +62,10 @@ async def get_dev_token(
         {
             # Base
             'token': token,
-            'avatar_url': util.avatar.get_profile_avatar_url(profile_row),
-            'profile': profile_row,
-            #
+            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
+            'profile': token_profile_row,
+            'resource_type_list': await udb.get_resource_types(token_profile_row),
+            # Page
             'request': request,
             'token_pp': token.claims_pp,
         },
@@ -99,8 +100,8 @@ async def get_dev_signin(
     idp_uid: str,
     udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
 ):
-    response = util.utils.redirect_internal('/ui/profile')
-    identity_row = udb.get_identity(idp_name, idp_uid)
-    pasta_token = util.pasta_jwt.make_jwt(udb, identity_row, is_vetted=True)
+    response = util.redirect.internal('/ui/profile')
+    identity_row = await udb.get_identity(idp_name, idp_uid)
+    pasta_token = await util.pasta_jwt.make_jwt(udb, identity_row, is_vetted=True)
     response.set_cookie(key='pasta_token', value=pasta_token)
     return response

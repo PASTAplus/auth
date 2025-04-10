@@ -6,7 +6,6 @@ import webapp.user_db
 import util.dependency
 import util.old_token
 import util.pretty
-import util.utils
 
 log = daiquiri.getLogger(__name__)
 router = fastapi.APIRouter()
@@ -34,10 +33,8 @@ async def profile_get(
     """Get a profile."""
     token = util.old_token.OldToken()
     token.from_auth_token(token_str)
-    profile_row = udb.get_profile(token.idp_uid)
-    return starlette.responses.Response(
-        util.pretty.to_pretty_json(profile_row.as_dict())
-    )
+    profile_row = await udb.get_profile(token.idp_uid)
+    return starlette.responses.Response(util.pretty.to_pretty_json(profile_row.as_dict()))
 
 
 # 1. map_identity (IdP_A, authtoken_A, IdP_B, authtoken_B)

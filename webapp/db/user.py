@@ -102,11 +102,20 @@ class UserDb:
             .first()
         )
 
-    def get_profiles_by_ids(self, profile_id_list):
-        """Get a list of profiles by their IDs.
-        The list is returned in the order of the IDs in the input list.
-        """
-        profile_query = (
+    async def create_public_profile(self):
+        try:
+            await self.create_profile(
+                pasta_id=Config.PUBLIC_PASTA_ID,
+                given_name=Config.PUBLIC_NAME,
+                has_avatar=True,
+            )
+        except sqlalchemy.exc.IntegrityError:
+            self.session.rollback()
+        else:
+            util.avatar.init_public_avatar()
+
+    async def get_profile(self, pasta_id):
+        return (
             self.session.query(db.profile.Profile)
             .filter(db.profile.Profile.id.in_(profile_id_list))
             .all()

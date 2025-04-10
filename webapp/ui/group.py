@@ -9,8 +9,9 @@ import db.iface
 import util.avatar
 import util.dependency
 import util.pasta_jwt
+import util.redirect
+import util.search_cache
 import util.template
-import util.utils
 
 log = daiquiri.getLogger(__name__)
 
@@ -52,9 +53,10 @@ async def get_ui_group(
         {
             # Base
             'token': token,
-            'avatar_url': util.avatar.get_profile_avatar_url(profile_row),
-            'profile': profile_row,
-            #
+            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
+            'profile': token_profile_row,
+            'resource_type_list': await udb.get_resource_types(token_profile_row),
+            # Page
             'request': request,
             'group_list': group_list,
         },
@@ -82,9 +84,10 @@ async def get_ui_group_member(
         {
             # Base
             'token': token,
-            'avatar_url': util.avatar.get_profile_avatar_url(profile_row),
-            'profile': profile_row,
-            #
+            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
+            'profile': token_profile_row,
+            'resource_type_list': await udb.get_resource_types(token_profile_row),
+            # Page
             'request': request,
             'group_row': group_row,
         },
@@ -103,9 +106,8 @@ async def post_group_new(
     form_data = await request.form()
     name = form_data.get('name')
     description = form_data.get('description')
-    profile_row = udb.get_profile(token.pasta_id)
-    udb.create_group(profile_row, name, description)
-    return util.utils.redirect_internal('/ui/group')
+    await udb.create_group(token_profile_row, name, description)
+    return util.redirect.internal('/ui/group')
 
 
 @router.post('/group/edit')
@@ -118,9 +120,8 @@ async def post_group_edit(
     group_id = form_data.get('group-id')
     name = form_data.get('name')
     description = form_data.get('description')
-    profile_row = udb.get_profile(token.pasta_id)
-    udb.update_group(profile_row, group_id, name, description)
-    return util.utils.redirect_internal('/ui/group')
+    await udb.update_group(token_profile_row, group_id, name, description)
+    return util.redirect.internal('/ui/group')
 
 
 @router.post('/group/delete')
@@ -131,9 +132,8 @@ async def post_group_delete(
 ):
     form_data = await request.form()
     group_id = form_data.get('group-id')
-    profile_row = udb.get_profile(token.pasta_id)
-    udb.delete_group(profile_row, group_id)
-    return util.utils.redirect_internal('/ui/group')
+    await udb.delete_group(token_profile_row, group_id)
+    return util.redirect.internal('/ui/group')
 
 
 @router.get('/group/member/list/{group_id}')
@@ -166,8 +166,7 @@ async def post_group_member_search(
     # profile_row = udb.get_profile(token.pasta_id)
     # group_row = udb.get_group(profile_row, form_data.get('group-id'))
     query_str = query_dict.get('query')
-    match_list = await fuzz.search(query_str) #####################################################################
-    candidate_list = udb.get_profiles_by_ids(match_list)
+    principal_list = await util.search_cache.search(query_str, include_groups=False)
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',

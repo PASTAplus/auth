@@ -9,8 +9,9 @@ import util.dependency
 import util.login
 import util.pasta_jwt
 import util.pasta_ldap
+import util.redirect
 import util.template
-import util.utils
+import util.url
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -28,7 +29,7 @@ async def get_ui_signin(
     token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
 ):
     if token:
-        return util.utils.redirect_internal('/ui/profile')
+        return util.redirect.internal('/ui/profile')
     return util.template.templates.TemplateResponse(
         'signin.html',
         {
@@ -59,7 +60,7 @@ async def get_ui_signin_link(
         {
             # Base
             'token': token,
-            'avatar_url': util.avatar.get_profile_avatar_url(profile_row),
+            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
             'profile': None,
             #
             'request': request,
@@ -74,8 +75,10 @@ async def get_ui_signin_link(
             Linking accounts allows you to sign in with multiple identity providers.
             </p>
             <p>
-            Go to the <a href='/identity'>Accounts</a> page to see the accounts that are
-            already linked to this profile.
+                <a href='{util.url.url('/ui/identity')}' class='icon-text-button'>
+                    <span><img src='{util.url.url('/static/svg/back.svg')}' alt='Back to Accounts'></span>
+                    <span>Back to Accounts</span>
+                </a>
             </p>
             """,
         },
@@ -120,17 +123,15 @@ async def post_signin_ldap(
     ldap_dn = get_ldap_dn(username)
 
     if not util.pasta_ldap.bind(ldap_dn, password):
-        return util.utils.redirect_internal(
-            '/ui/signin', error='Sign in failed. Please try again.'
-        )
+        return util.redirect.internal('/ui/signin', error='Sign in failed. Please try again.')
 
     log.debug(f'signin_ldap() - signin successful: {ldap_dn}')
 
-    return util.utils.handle_successful_login(
+    return await util.login.handle_successful_login(
         request=request,
         udb=udb,
         login_type=login_type,
-        target_url=str(util.utils.url('/ui/profile')),
+        target_url=str(util.url.url('/ui/profile')),
         full_name=username,
         idp_name='ldap',
         idp_uid=ldap_dn,
@@ -146,7 +147,7 @@ def get_ldap_dn(idp_uid: str) -> str:
 
 @router.get('/signout')
 async def signout(request: starlette.requests.Request):
-    response = util.utils.redirect_internal('/ui/signin', **request.query_params)
+    response = util.redirect.internal('/ui/signin', **request.query_params)
     response.delete_cookie('pasta_token')
     response.delete_cookie('auth-token')
     return response

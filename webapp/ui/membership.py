@@ -7,8 +7,8 @@ import db.iface
 import util.avatar
 import util.dependency
 import util.pasta_jwt
+import util.redirect
 import util.template
-import util.utils
 
 log = daiquiri.getLogger(__name__)
 
@@ -38,7 +38,8 @@ async def get_ui_membership(
             'profile': profile_row,
             #
             'request': request,
-            'group_membership_list': udb.get_group_membership_list(profile_row),
+            'group_membership_list': await udb.get_group_membership_list(token_profile_row),
+            'group_avatar': util.avatar.get_group_avatar_url(),
         },
     )
 
@@ -54,6 +55,5 @@ async def post_membership_leave(
 ):
     form_data = await request.form()
     group_id = form_data.get('group-id')
-    profile_row = udb.get_profile(token.pasta_id)
-    udb.leave_group_membership(profile_row, group_id)
-    return util.utils.redirect_internal('/ui/membership')
+    await udb.leave_group_membership(token_profile_row, group_id)
+    return util.redirect.internal('/ui/membership')

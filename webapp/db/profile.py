@@ -90,4 +90,3 @@ class Profile(db.base.Base):
     @property
     def avatar_url(self):
         return str(util.avatar.get_profile_avatar_url(self))
-        # return str(util.avatar.get_group_avatar_url())

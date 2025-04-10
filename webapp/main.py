@@ -28,8 +28,12 @@ import ui.profile
 import ui.signin
 import util.avatar
 import util.pasta_jwt
+import util.redirect
 import util.search_cache
-import util.utils
+import util.url
+import db.user
+import db.iface
+
 from config import Config
 
 daiquiri.setup(
@@ -97,7 +101,7 @@ for file_path in (Config.STATIC_PATH / 'site').iterdir():
 class RootPathMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     async def dispatch(self, request: starlette.requests.Request, call_next):
         if not request.url.path.startswith(Config.ROOT_PATH):
-            return util.utils.redirect_internal(request.url.path)
+            return util.redirect.internal(request.url.path)
         # Setting the root_path here has the same effect as setting it in the reverse proxy (e.g.,
         # nginx). We just set it here so that we can avoid special nginx configuration. The
         # root_path setting is part of the ASGI spec, and is used by FastAPI to properly route
@@ -119,14 +123,12 @@ class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     async def dispatch(self, request: starlette.requests.Request, call_next):
         # If the request is for a /ui path, redirect to signin if the token is invalid
         if (
-            request.url.path.startswith(str(util.utils.url('/ui')))
-            and not request.url.path.startswith(str(util.utils.url('/ui/signin')))
+            request.url.path.startswith(str(util.url.url('/ui')))
+            and not request.url.path.startswith(str(util.url.url('/ui/signin')))
             and not util.pasta_jwt.PastaJwt.is_valid(request.cookies.get('pasta_token'))
         ):
-            log.debug(
-                'Redirecting to /ui/signin: UI page requested without valid token'
-            )
-            return util.utils.redirect_internal('/ui/signin')
+            log.debug('Redirecting to /ui/signin: UI page requested without valid token')
+            return util.redirect.internal('/ui/signin')
         return await call_next(request)
 
 

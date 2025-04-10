@@ -9,6 +9,7 @@ import re
 import daiquiri
 
 import db.iface
+import util.avatar
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -71,10 +72,8 @@ async def init_groups(udb):
                     'id': group_row.id,
                     'pasta_id': group_row.pasta_id,
                     'title': group_row.name,
-                    'descr': (group_row.description or '')
-                    + f' (owner {group_row.profile.full_name})',
-                    'avatar_url': group_row.profile.avatar_url,
-                    'type': 'group',
+                    'description': (group_row.description or ''),
+                    'avatar_url': str(util.avatar.get_group_avatar_url()),
                 },
             )
         )

@@ -1,8 +1,7 @@
-from util import utils
 import sample
 import tests.util
-import util.utils
 import starlette.status
+import util.pretty
 
 
 # @pytest.mark.skip
@@ -14,7 +13,7 @@ def test_ping(client):
 
 # @pytest.mark.skip
 def test_list_profiles(client, user_db_populated):
-    util.pp(user_db_populated.get_profile('PASTA-61b8b8872c13469faf4a44e3ff50b848'))
+    util.pretty.pp(user_db_populated.get_profile('PASTA-61b8b8872c13469faf4a44e3ff50b848'))
     response = client.get('/v1/profile/list')
     assert response.status_code == starlette.status.HTTP_200_OK
     sample.assert_equal_json(response.text, 'list_profiles.json')

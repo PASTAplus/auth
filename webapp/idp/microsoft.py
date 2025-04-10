@@ -12,7 +12,8 @@ import util.avatar
 import util.dependency
 import util.login
 import util.pretty
-import util.utils
+import util.redirect
+import util.url
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -34,7 +35,7 @@ async def get_login_microsoft(
     target_url = request.query_params.get('target')
     log.debug(f'login_microsoft() login_type="{login_type}" target_url="{target_url}"')
 
-    return util.utils.redirect_to_idp(
+    return util.redirect.idp(
         Config.MICROSOFT_AUTH_ENDPOINT,
         'microsoft',
         login_type,
@@ -64,14 +65,12 @@ async def get_callback_microsoft(
     The microsoft oauth service redirects to this endpoint with a code parameter after successful
     authentication.
     """
-    login_type, target_url = util.utils.unpack_state(request.query_params.get('state'))
-    log.debug(
-        f'callback_microsoft() login_type="{login_type}" target_url="{target_url}"'
-    )
+    login_type, target_url = util.login.unpack_state(request.query_params.get('state'))
+    log.debug(f'callback_microsoft() login_type="{login_type}" target_url="{target_url}"')
 
     code_str = request.query_params.get('code')
     if code_str is None:
-        return util.utils.redirect_to_client_error(target_url, 'Login cancelled')
+        return util.redirect.client_error(target_url, 'Login cancelled')
 
     try:
         token_response = requests.post(
@@ -80,27 +79,27 @@ async def get_callback_microsoft(
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Accept': 'application/json',
             },
-            data=util.utils.build_query_string(
+            data=util.url.build_query_string(
                 client_id=Config.MICROSOFT_CLIENT_ID,
                 client_secret=Config.MICROSOFT_CLIENT_SECRET,
                 code=code_str,
-                redirect_uri=util.utils.get_redirect_uri('microsoft'),
+                redirect_uri=util.login.get_redirect_uri('microsoft'),
                 grant_type='authorization_code',
             ),
         )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.utils.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.redirect.client_error(target_url, 'Login unsuccessful')
 
     try:
         token_dict = token_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {token_response.text}', exc_info=True)
-        return util.utils.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.redirect.client_error(target_url, 'Login unsuccessful')
 
     if 'id_token' not in token_dict:
         util.pretty.log_dict(log.error, 'Login unsuccessful: token_dict', token_dict)
-        return util.utils.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.redirect.client_error(target_url, 'Login unsuccessful')
 
     jwt_unverified_header_dict = jwt.get_unverified_header(token_dict['id_token'])
     ms_pub_key = get_microsoft_public_key_by_kid(jwt_unverified_header_dict['kid'])
@@ -128,7 +127,7 @@ async def get_callback_microsoft(
     util.pretty.log_dict(log.debug, 'user_dict', user_dict)
     log.debug('-' * 80)
 
-    return util.utils.handle_successful_login(
+    return await util.login.handle_successful_login(
         request=request,
         udb=udb,
         login_type=login_type,
@@ -186,10 +185,10 @@ async def get_logout_microsoft(
     # request.base_url matches the route that points to this handler, except for
     # query parameters. We built onto the base_url to reach the next handler, which
     # is the callback handler.
-    return util.utils.redirect(
+    return util.redirect.redirect(
         Config.MICROSOFT_LOGOUT_ENDPOINT,
         client_id=Config.MICROSOFT_CLIENT_ID,
-        post_logout_redirect_uri=util.utils.get_redirect_uri('microsoft'),
+        post_logout_redirect_uri=util.login.get_redirect_uri('microsoft'),
     )
 
 
@@ -205,7 +204,7 @@ async def get_logout_microsoft_callback(target_url):
     this callback URL.
     """
     log.debug(f'logout_microsoft_callback() target_url="{target_url}"')
-    return util.utils.redirect(target_url)
+    return util.redirect.redirect(target_url)
 
 
 @router.get('/logout/microsoft/clear-session')

@@ -7,8 +7,9 @@ import db.iface
 import util.avatar
 import util.dependency
 import util.pasta_jwt
+import util.redirect
 import util.template
-import util.utils
+import util.url
 
 log = daiquiri.getLogger(__name__)
 
@@ -34,7 +35,7 @@ async def get_ui_identity(
                 'idp_name': identity_row.idp_name,
                 'idp_uid': identity_row.idp_uid,
                 'avatar_url': util.avatar.get_identity_avatar_url(identity_row),
-                'idp_logo_url': util.utils.get_idp_logo_url(identity_row.idp_name),
+                'idp_logo_url': util.url.get_idp_logo_url(identity_row.idp_name),
                 'full_name': identity_row.email,
             }
         )
@@ -46,9 +47,10 @@ async def get_ui_identity(
         {
             # Base
             'token': token,
-            'avatar_url': util.avatar.get_profile_avatar_url(profile_row),
-            'profile': profile_row,
-            #
+            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
+            'profile': token_profile_row,
+            'resource_type_list': await udb.get_resource_types(token_profile_row),
+            # Page
             'request': request,
             'identity_list': identity_list,
             'msg': request.query_params.get('msg'),
@@ -75,4 +77,4 @@ async def post_identity_unlink(
 
     udb.delete_identity(profile_row, idp_name, idp_uid)
 
-    return util.utils.redirect_internal('/ui/identity')
+    return util.redirect.internal('/ui/identity', success_msg='Account unlinked successfully.')

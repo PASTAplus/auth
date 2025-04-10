@@ -11,7 +11,8 @@ import util.avatar
 import util.dependency
 import util.login
 import util.pretty
-import util.utils
+import util.redirect
+import util.url
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -42,11 +43,11 @@ async def get_login_google(
             'Login unsuccessful: Cannot download Google provider configuration',
             exc_info=True,
         )
-        return util.utils.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.redirect.client_error(target_url, 'Login unsuccessful')
 
     util.pretty.log_dict(log.debug, 'google_provider_cfg', google_provider_cfg)
 
-    return util.utils.redirect_to_idp(
+    return util.redirect.idp(
         google_provider_cfg['authorization_endpoint'],
         'google',
         login_type,
@@ -65,12 +66,12 @@ async def get_callback_google(
     request: starlette.requests.Request,
     udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
 ):
-    login_type, target_url = util.utils.unpack_state(request.query_params.get('state'))
+    login_type, target_url = util.login.unpack_state(request.query_params.get('state'))
     log.debug(f'callback_google() login_type="{login_type}" target_url="{target_url}"')
 
     code_str = request.query_params.get('code')
     if code_str is None:
-        return util.utils.redirect_to_client_error(target_url, 'Login cancelled')
+        return util.redirect.client_error(target_url, 'Login cancelled')
 
     google_provider_cfg = get_google_provider_cfg()
     token_endpoint = google_provider_cfg['token_endpoint']
@@ -82,30 +83,30 @@ async def get_callback_google(
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Accept': 'application/json',
             },
-            data=util.utils.build_query_string(
+            data=util.url.build_query_string(
                 client_id=Config.GOOGLE_CLIENT_ID,
                 client_secret=Config.GOOGLE_CLIENT_SECRET,
                 code=code_str,
                 authorization_response=str(
-                    util.utils.get_redirect_uri('google').replace_query_params(code=code_str)
+                    util.login.get_redirect_uri('google').replace_query_params(code=code_str)
                 ),
-                redirect_uri=util.utils.get_redirect_uri('google'),
+                redirect_uri=util.login.get_redirect_uri('google'),
                 grant_type='authorization_code',
             ),
         )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.utils.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.redirect.client_error(target_url, 'Login unsuccessful')
 
     try:
         token_dict = token_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {token_response.text}', exc_info=True)
-        return util.utils.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.redirect.client_error(target_url, 'Login unsuccessful')
 
     if 'error' in token_dict:
         log.error(f'Login unsuccessful: {token_dict["error"]}', exc_info=True)
-        return util.utils.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.redirect.client_error(target_url, 'Login unsuccessful')
 
     try:
         userinfo_response = requests.get(
@@ -116,18 +117,16 @@ async def get_callback_google(
         )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.utils.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.redirect.client_error(target_url, 'Login unsuccessful')
 
     try:
         user_dict = userinfo_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {userinfo_response.text}', exc_info=True)
-        return util.utils.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.redirect.client_error(target_url, 'Login unsuccessful')
 
     if not user_dict.get('email_verified'):
-        return util.utils.redirect_to_client_error(
-            target_url, 'Login unsuccessful: Email not verified'
-        )
+        return util.redirect.client_error(target_url, 'Login unsuccessful: Email not verified')
 
     # Fetch the avatar
     has_avatar = False
@@ -145,7 +144,7 @@ async def get_callback_google(
     util.pretty.log_dict(log.debug, 'user_dict', user_dict)
     log.debug('-' * 80)
 
-    return util.utils.handle_successful_login(
+    return await util.login.handle_successful_login(
         request=request,
         udb=udb,
         login_type=login_type,
@@ -195,13 +194,13 @@ async def get_revoke_google(
         )
     except requests.RequestException:
         log.error('Revoke unsuccessful', exc_info=True)
-        return util.utils.redirect_to_client_error(target_url, 'Revoke unsuccessful')
+        return util.redirect.client_error(target_url, 'Revoke unsuccessful')
     else:
         if response.status_code != starlette.status.HTTP_200_OK:
             log.error(f'Revoke unsuccessful: {response.text}', exc_info=True)
-            return util.utils.redirect_to_client_error(target_url, 'Revoke unsuccessful')
+            return util.redirect.client_error(target_url, 'Revoke unsuccessful')
 
-    return util.utils.redirect(target_url)
+    return util.redirect.redirect(target_url)
 
 
 #

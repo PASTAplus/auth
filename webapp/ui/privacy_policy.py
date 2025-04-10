@@ -5,7 +5,7 @@ import starlette.templating
 
 import util.dependency
 import util.pasta_jwt
-import util.utils
+import util.redirect
 
 log = daiquiri.getLogger(__name__)
 router = fastapi.APIRouter()
@@ -23,9 +23,9 @@ async def policy_accept(
     is_accepted = form.get('action') == 'accept'
 
     if not is_accepted:
-        return util.utils.redirect_internal(
+        return util.redirect.internal(
             '/signout', error='Login unsuccessful: Privacy policy not accepted'
         )
 
-    udb.set_privacy_policy_accepted(token.pasta_id)
-    return util.utils.redirect_internal('/ui/profile')
+    await udb.set_privacy_policy_accepted(token_profile_row)
+    return util.redirect.internal('/ui/profile')

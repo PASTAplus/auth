@@ -10,8 +10,8 @@ import db.iface
 import util.avatar
 import util.dependency
 import util.pasta_jwt
+import util.redirect
 import util.template
-import util.utils
 
 log = daiquiri.getLogger(__name__)
 
@@ -32,7 +32,7 @@ async def get_ui_avatar(
 
     avatar_list = [
         {
-            'url': util.avatar.get_initials_avatar_url(profile_row.initials),
+            'url': util.avatar.get_initials_avatar_url(token_profile_row.initials),
             'idp_name': None,
             'idp_uid': '',
         }
@@ -52,9 +52,10 @@ async def get_ui_avatar(
         {
             # Base
             'token': token,
-            'avatar_url': util.avatar.get_profile_avatar_url(profile_row),
-            'profile': profile_row,
-            #
+            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
+            'profile': token_profile_row,
+            'resource_type_list': await udb.get_resource_types(token_profile_row),
+            # Page
             'request': request,
             'avatar_list': avatar_list,
         },
@@ -79,17 +80,17 @@ async def post_avatar_update(
     profile_row = udb.get_profile(token.pasta_id)
 
     if idp_uid == '':
-        profile_row.has_avatar = False
-        avatar_path = util.avatar.get_avatar_path('profile', profile_row.pasta_id)
+        token_profile_row.has_avatar = False
+        avatar_path = util.avatar.get_avatar_path('profile', token_profile_row.pasta_id)
         avatar_path.unlink(missing_ok=True)
     else:
         profile_row.has_avatar = True
         avatar_img = util.avatar.get_avatar_path(idp_name, idp_uid).read_bytes()
-        util.avatar.save_avatar(avatar_img, 'profile', profile_row.pasta_id)
+        util.avatar.save_avatar(avatar_img, 'profile', token_profile_row.pasta_id)
 
     udb.update_profile(token.pasta_id, has_avatar=idp_uid != '')
 
-    return util.utils.redirect_internal('/ui/profile', refresh='true')
+    return util.redirect.internal('/ui/profile', refresh='true')
 
 
 @router.get('/avatar/gen/{initials}')

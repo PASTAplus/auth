@@ -5,13 +5,12 @@ import starlette.status
 
 import util.old_token
 import util.pasta_crypto
-import util.utils
 from config import Config
 
 router = fastapi.APIRouter()
 
-PUBLIC_KEY = util.pasta_crypto.import_key(Config.PUBLIC_KEY_PATH)
-PRIVATE_KEY = util.pasta_crypto.import_key(Config.PRIVATE_KEY_PATH)
+PUBLIC_KEY = util.pasta_crypto.import_key(Config.PASTA_TOKEN_PUBLIC_KEY_PATH)
+PRIVATE_KEY = util.pasta_crypto.import_key(Config.PASTA_TOKEN_PRIVATE_KEY_PATH)
 
 
 # @router.post('/v1/refresh')
