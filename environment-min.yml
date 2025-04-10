@@ -9,6 +9,7 @@ dependencies:
   - cryptography
   - daiquiri
   - fastapi
+  - filelock
   - gunicorn
   - ldap3
   - libiconv
