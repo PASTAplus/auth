@@ -5,7 +5,6 @@ import starlette.responses
 import starlette.status
 import starlette.templating
 
-import db.iface
 import util.avatar
 import util.dependency
 import util.pasta_jwt
@@ -18,7 +17,9 @@ log = daiquiri.getLogger(__name__)
 
 router = fastapi.APIRouter()
 
+#
 # UI routes
+#
 
 
 @router.get('/ui/group')
@@ -28,8 +29,6 @@ async def get_ui_group(
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
     udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
 ):
-    profile_row = udb.get_profile(token.pasta_id)
-
     group_list = []
 
     owned_groups = await udb.get_owned_groups(token_profile_row)
@@ -49,7 +48,7 @@ async def get_ui_group(
 
     # TODO: Create a toggle for these sorts?
     # group_list.sort(key=lambda x: x['name'])
-    group_list.sort(key=lambda x: x['updated'])
+    group_list.sort(key=lambda x: x['updated'], reverse=True)
 
     return util.template.templates.TemplateResponse(
         'group.html',
@@ -92,7 +91,9 @@ async def get_ui_group_member(
     )
 
 
+#
 # Internal routes
+#
 
 
 @router.post('/group/new')
@@ -169,9 +170,13 @@ async def post_group_member_search(
     request: starlette.requests.Request,
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
+    # Prevent this from being called by anyone not logged in
+    if token_profile_row is None:
+        return starlette.responses.JSONResponse(
+            {'status': 'error', 'message': 'Not logged in'},
+            status_code=starlette.status.HTTP_401_UNAUTHORIZED,
+        )
     query_dict = await request.json()
-    # profile_row = udb.get_profile(token.pasta_id)
-    # group_row = udb.get_group(profile_row, form_data.get('group-id'))
     query_str = query_dict.get('query')
     principal_list = await util.search_cache.search(query_str, include_groups=False)
     return starlette.responses.JSONResponse(
@@ -189,7 +194,6 @@ async def post_group_member_add_remove(
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     request_dict = await request.json()
-    profile_row = udb.get_profile(token.pasta_id)
     is_add = request_dict['is_add']
     group_row = await udb.get_group(token_profile_row, request_dict['group_id'])
     f = udb.add_group_member if is_add else udb.delete_group_member
