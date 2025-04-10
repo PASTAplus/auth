@@ -63,3 +63,36 @@ function updateNavbarHeight() {
 
 updateNavbarHeight();
 window.addEventListener('resize', updateNavbarHeight);
+
+//
+// Modals
+//
+
+// Privacy Policy
+let privacyPolicyModal = document.getElementById('privacyPolicyModal');
+if (privacyPolicyModal.dataset.profileId !== undefined && privacyPolicyModal.dataset.policyAccepted !== 'true') {
+  new bootstrap.Modal(privacyPolicyModal).show();
+}
+
+// Error dialog
+
+function errorDialog(error) {
+  // If the error is a string, convert it to an object.
+  const errorMsg = typeof error === 'string' ? `Error: ${error}` :
+      error.stack || error || JSON.stringify(error, null, 2);
+  document.getElementById('errorMsg').innerText = errorMsg;
+  new bootstrap.Modal(document.getElementById('errorModal')).show();
+  throw error;
+}
+
+document.getElementById('copyErrorButton').addEventListener('click', function() {
+  const errorMsg = document.getElementById('errorMsg').innerText;
+  navigator.clipboard.writeText(errorMsg).then(
+    function () {
+      const copyErrorButton = document.getElementById('copyErrorButton');
+      copyErrorButton.value = 'Copied';
+    }
+  ).catch(function (error) {
+    alert(error);
+  });
+});
