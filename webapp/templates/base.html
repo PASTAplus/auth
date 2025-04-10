@@ -17,10 +17,10 @@
     {% endblock %}
   </title>
 
-  <!-- Preload Bootstrap CSS -->
+  {# Preload Bootstrap CSS #}
   <link rel='preload' href='{{ url('/static/lib/bootstrap/css/bootstrap.css') }}' as='style'>
   <link href='{{ url('/static/lib/bootstrap/css/bootstrap.css') }}' rel='stylesheet'>
-  <!-- Extra styles for auth -->
+  {# Extra styles for auth #}
   <link rel='preload' href='{{ url('/static/css/base.css') }}' as='style'>
   <link href='{{ url('/static/css/base.css') }}' rel='stylesheet'>
   {% block head %}
@@ -48,7 +48,7 @@
         <span class='navbar-toggler-icon'></span>
       </button>
 
-      <!-- Menu, left -->
+      {# Menu, left #}
 
       <ul class='navbar-nav mr-auto'>
 
@@ -56,20 +56,44 @@
           <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/profile') }}'>Profile</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/identity') }}'>Accounts</a>
+          <a class='nav-link {% if not token %}disabled{% endif %}'
+             href='{{ url('/ui/identity') }}'>Accounts</a>
         </li>
         <li class='nav-item'>
           <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/group') }}'>Groups</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/membership') }}'>Memberships</a>
+          <a class='nav-link {% if not token %}disabled{% endif %}'
+             href='{{ url('/ui/membership') }}'>Memberships</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/permission') }}'>Permissions</a>
+          <div class='dropdown'>
+            <a class='nav-link {% if not token %}disabled{% endif %} dropdown-toggle'
+               id='permissionTypeDropdown'
+               href='{{ url('/ui/permission') }}' data-bs-toggle='dropdown' aria-expanded='false'>
+              Permissions
+            </a>
+            <ul class='dropdown-menu' aria-labelledby='permissionTypeDropdown'>
+              <li>
+                <a class='dropdown-item' href='{{ url('/ui/permission') }}'>All</a>
+              </li>
+              <li>
+                <div class='dropdown-divider'></div>
+              </li>
+              {% for resource_type in resource_type_list %}
+                <li>
+                  <a class='dropdown-item capitalize'
+                     href='{{ url('/ui/permission?type=' + resource_type) }}'>
+                    {{ resource_type }}
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
         </li>
       </ul>
 
-      <!-- Dev dropdown -->
+      {# Dev dropdown #}
 
       {% if dev_menu %}
         <div class='dropdown'>
@@ -83,15 +107,21 @@
             <li>
               <div class='dropdown-divider'></div>
             </li>
-            <li><a class='dropdown-item' href='{{ url('/dev/signin/google/117107251210852246141') }}'>Google</a></li>
-            <li><a class='dropdown-item' href='{{ url('/dev/signin/google/10618168603761292863') }}'>Google</a></li>
-            <li><a class='dropdown-item' href='{{ url('/dev/signin/github/https://github.com/rogerdahl') }}'>GitHub</a></li>
-            <li><a class='dropdown-item' href='{{ url('/dev/signin/microsoft/AAAAAAAAAAAAAAAAAAAAAMb5WmAIiWexIVAeFkG_1m4') }}'>Microsoft</a></li>
+            <li><a class='dropdown-item'
+                   href='{{ url('/dev/signin/google/117107251210852246141') }}'>Google</a></li>
+            <li><a class='dropdown-item'
+                   href='{{ url('/dev/signin/google/10618168603761292863') }}'>Google</a></li>
+            <li><a class='dropdown-item'
+                   href='{{ url('/dev/signin/github/https://github.com/rogerdahl') }}'>GitHub</a>
+            </li>
+            <li><a class='dropdown-item'
+                   href='{{ url('/dev/signin/microsoft/AAAAAAAAAAAAAAAAAAAAAMb5WmAIiWexIVAeFkG_1m4') }}'>Microsoft</a>
+            </li>
           </ul>
         </div>
       {% endif %}
 
-      <!-- Menu, right -->
+      {# Menu, right #}
 
       <ul class='navbar-nav mr-auto navbar-right'>
         {% if not token %}
@@ -106,10 +136,13 @@
               <div class='row-center-child'>
                 <div class='dropdown'>
                   <button class='btn btn-link dropdown-toggle' type='button' id='avatarMenuButton'
-                          data-bs-toggle='dropdown' aria-expanded='false'><img src='{{ avatar_url }}' alt='Avatar' class='avatar'></button>
+                          data-bs-toggle='dropdown' aria-expanded='false'><img
+                      src='{{ avatar_url }}' alt='Avatar' class='avatar'></button>
                   <ul class='dropdown-menu' aria-labelledby='avatarMenuButton'>
-                    <li><a class='dropdown-item' href='{{ url('/ui/profile/edit') }}'>Edit Profile</a></li>
-                    <li><a class='dropdown-item' href='{{ url('/ui/avatar') }}'>Select Avatar</a></li>
+                    <li><a class='dropdown-item' href='{{ url('/ui/profile/edit') }}'>Edit
+                      Profile</a></li>
+                    <li><a class='dropdown-item' href='{{ url('/ui/avatar') }}'>Select Avatar</a>
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -149,7 +182,8 @@
       <form action='{{ url('/policy/accept') }}' method='post' id='privacyPolicyForm'>
         <div class='modal-header'>
           <h5 class='modal-title'>Environmental Data Initiative Privacy Policy</h5>
-          <button type='submit' class='btn-close' data-bs-dismiss='modal' aria-label='Close' name='action'
+          <button type='submit' class='btn-close' data-bs-dismiss='modal' aria-label='Close'
+                  name='action'
                   value='decline'>
           </button>
         </div>
@@ -172,7 +206,8 @@
             </p>
           </div>
           <div class='modal-footer'>
-            <button type='submit' class='btn btn-secondary' data-bs-dismiss='modal' name='action' value='decline'>
+            <button type='submit' class='btn btn-secondary' data-bs-dismiss='modal' name='action'
+                    value='decline'>
               I Decline
             </button>
             <button type='submit' class='btn btn-primary' name='action' value='accept'>
@@ -210,13 +245,13 @@
   </div>
 </div>
 
-<!-- Bootstrap Bundle with Popper -->
+{# Bootstrap Bundle with Popper #}
 <script src='{{ url('/static/lib/bootstrap/js/bootstrap.bundle.js') }}'></script>
-<!-- JS that runs on all pages -->
+{# JS that runs on all pages #}
 <script src='{{ url('/static/js/base.js') }}'></script>
 {% block scripts %}
-  {# By importing scripts just before the /body tag, we don't have to wrap scripts
-  in checks for fully loaded DOM #}
+  {# By importing scripts just before the /body tag, we don't have to wrap scripts in checks for
+  fully loaded DOM #}
 {% endblock %}
 </body>
 </html>
