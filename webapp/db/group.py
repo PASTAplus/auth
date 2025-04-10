@@ -18,22 +18,18 @@ log = daiquiri.getLogger(__name__)
 class Group(db.base.Base):
     __tablename__ = 'group'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    # Our 'Group Random ID' (GRID) for the group. This is the primary key for the group
-    # in our system.
-    grid = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True)
-    # The profile of the user who created and owns the group.
-    # TODO: Change to sqlalchemy.Integer
+    # The group EDI ID. This is the unique reference for the group in PASTA.
+    edi_id = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True, index=True)
+    # The profile of the user who create the group.
     profile_id = sqlalchemy.Column(
-        sqlalchemy.String, sqlalchemy.ForeignKey('profile.id'), nullable=False
+        sqlalchemy.Integer, sqlalchemy.ForeignKey('profile.id'), nullable=False, index=True
     )
     # The name of the group as provided by the user. Can be edited.
-    name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    name = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
     # The description of the group as provided by the user. Can be edited.
     description = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     # The date and time the group was created.
-    created = sqlalchemy.Column(
-        sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now
-    )
+    created = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now)
     # The date and time the group was last updated.
     updated = sqlalchemy.Column(
         sqlalchemy.DateTime,
@@ -61,6 +57,7 @@ class Group(db.base.Base):
     def member_count(self):
         return len(self.members)
 
+    # noinspection PyMethodParameters
     @member_count.expression
     def member_count(cls):
         return (
@@ -73,22 +70,17 @@ class Group(db.base.Base):
 class GroupMember(db.base.Base):
     __tablename__ = 'group_member'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    # The GRID of the group to which the member belongs.
-    # TODO: Change to sqlalchemy.Integer
+    # The group to which the member belongs.
     group_id = sqlalchemy.Column(
-        sqlalchemy.String, sqlalchemy.ForeignKey('group.id'), nullable=False
+        sqlalchemy.Integer, sqlalchemy.ForeignKey('group.id'), nullable=False, index=True
     )
-    # The profile of the user who is a member of the group. Does not include the owner
-    # of the group.
-    # TODO: Change to sqlalchemy.Integer
+    # The profile of the user who is a member of the group. May include the owner of the group.
+    # Groups cannot be group members.
     profile_id = sqlalchemy.Column(
-        sqlalchemy.String, sqlalchemy.ForeignKey('profile.id'), nullable=False
+        sqlalchemy.Integer, sqlalchemy.ForeignKey('profile.id'), nullable=False, index=True
     )
     # The date and time the user was added to the group.
-    added = sqlalchemy.Column(
-        sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now
-    )
-
+    added = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now)
     group = sqlalchemy.orm.relationship(
         'Group',
         back_populates='members',
@@ -99,10 +91,7 @@ class GroupMember(db.base.Base):
         back_populates='group_members',
         cascade_backrefs=False,
     )
-
     __table_args__ = (
         # Ensure that group_id and profile_id are unique together.
-        sqlalchemy.UniqueConstraint(
-            'group_id', 'profile_id', name='group_id_profile_id_unique'
-        ),
+        sqlalchemy.UniqueConstraint('group_id', 'profile_id', name='group_id_profile_id_unique'),
     )

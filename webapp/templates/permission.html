@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{#{% set active_page = 'permission' %}#}
+
+{% block title %}
+  Permissions
+{% endblock %}
+
+{% block head %}
+  <link rel='stylesheet' href='{{ url('/static/css/permission.css') }}'>
+{% endblock %}
+
+{% block scripts %}
+  <script src='{{ url('/static/js/permission.js') }}'></script>
+{% endblock %}
+
+{% block content %}
+  <div class='split-container'>
+
+    <div class='split-top-content'>
+
+      <div class='header-container'
+           data-root-path='{{ url('') }}'
+           data-public-pasta-id='{{ public_pasta_id }}'
+           data-resource-type='{{ resource_type }}'
+      >
+        <h1 aria-label>Permissions</h1>
+      </div>
+
+      <div class='indent'>
+        <p>
+          Manage permissions to control access to your resources. You can grant permissions to both users and groups.
+        </p>
+      </div>
+
+    </div>
+
+    <div class='split-main'>
+
+      <div class='split-section split-left'>
+
+        <h4>Select Resources</h4>
+
+        <div>
+          <input type='text' class='form-control' id='resourceFilter' placeholder='Filter resources' autocomplete="off" spellcheck="false">
+        </div>
+        <div class='tree-right'>
+          <label>
+            <input type='checkbox' id='selectAllCheckbox'/>
+            Select All
+          </label>
+          &nbsp;&nbsp;
+          <label>
+            <input type='checkbox' id='showPermissionsCheckbox' checked/>
+            Show Permissions
+          </label>
+        </div>
+        <div class="tree-grid" id='resourceTree'>
+          <div class='grid-msg'>Loading resources...</div>
+        </div>
+      </div>
+
+      <div class='split-section split-right'>
+        <div>
+          <h4>
+            Set Permissions
+          </h4>
+        </div>
+        <div>
+          <input type='text' class='form-control' id='principalSearch' autocomplete="off" spellcheck="false">
+          <div id='principalList' tabindex='0' class='form-control'></div>
+        </div>
+        <div class='permission-grid' id='permissionList'>
+          {#<div class='grid-msg'>Loading permissions...</div>#}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

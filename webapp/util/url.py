@@ -1,0 +1,30 @@
+import urllib.parse
+
+import daiquiri
+import starlette.datastructures
+
+from config import Config
+
+log = daiquiri.getLogger(__name__)
+
+
+def url(path_str: str, **query_param_dict) -> starlette.datastructures.URL:
+    return starlette.datastructures.URL(f'{Config.ROOT_PATH}{path_str}').include_query_params(
+        **query_param_dict
+    )
+
+
+def urlenc(url_str: str) -> str:
+    return urllib.parse.quote(url_str, safe='')
+
+
+def build_query_string(**query_param_dict) -> str:
+    """Build a query string from keyword arguments"""
+    # url_obj = starlette.datastructures.URL(Config.ROOT_PATH).join(rel_url)
+    # url_obj = url_obj.replace_query_params(**query_param_dict)
+    return urllib.parse.urlencode(query_param_dict)
+
+
+def get_idp_logo_url(idp_name: str):
+    """Return the URL to the logo image for the given IdP."""
+    return f'/static/idp-logos/{idp_name}.svg'

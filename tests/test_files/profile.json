@@ -1,7 +1,7 @@
 [
   {
     "id": 4,
-    "urid": "PASTA-e851e1a4b19c4b78992455807fe79534",
+    "edi_id": "EDI-e851e1a4b19c4b78992455807fe79534",
     "given_name": "Given1",
     "family_name": "Family1",
     "email": "testuser1@github.com",
@@ -10,7 +10,7 @@
   },
   {
     "id": 3,
-    "urid": "PASTA-61b8b8872c13469faf4a44e3ff50b848",
+    "edi_id": "EDI-61b8b8872c13469faf4a44e3ff50b848",
     "given_name": "Given2",
     "family_name": "Family2",
     "email": "testuser2@microsoft.com",
@@ -19,7 +19,7 @@
   },
   {
     "id": 2,
-    "urid": "PASTA-a211ecebce724b3087b317d9cbce22ff",
+    "edi_id": "EDI-a211ecebce724b3087b317d9cbce22ff",
     "given_name": "Given3",
     "family_name": "Family3",
     "email": "testuser3@gmail.com",
@@ -28,7 +28,7 @@
   },
   {
     "id": 1,
-    "urid": "PASTA-c422bd31545b4d7080a84ef1ba4a6a67",
+    "edi_id": "EDI-c422bd31545b4d7080a84ef1ba4a6a67",
     "given_name": "Given4",
     "family_name": "",
     "email": null,

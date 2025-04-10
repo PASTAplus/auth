@@ -6,13 +6,13 @@ CREATE TABLE identity_new (
   id INTEGER NOT NULL,
   profile_id INTEGER NOT NULL,
   idp_name VARCHAR NOT NULL,
-  uid VARCHAR NOT NULL,
+  idp_uid VARCHAR NOT NULL,
   email VARCHAR,
   first_auth DATETIME NOT NULL,
   last_auth DATETIME NOT NULL,
   has_avatar BOOLEAN NOT NULL,
   PRIMARY KEY (id),
-  CONSTRAINT idp_name_uid_unique UNIQUE (idp_name, uid),
+  CONSTRAINT idp_name_uid_unique UNIQUE (idp_name, idp_uid),
   CONSTRAINT idp_name_check CHECK (idp_name IN ('github', 'google', 'ldap', 'microsoft', 'orcid')),
   FOREIGN KEY(profile_id) REFERENCES profile (id)
 );
@@ -21,7 +21,7 @@ insert into identity_new (
   id,
   profile_id,
   idp_name,
-  uid,
+  idp_uid,
   email,
   first_auth,
   last_auth,
@@ -31,7 +31,7 @@ select
   id,
   profile_id,
   idp_name,
-  uid,
+  idp_uid,
   email,
   first_auth,
   last_auth,
@@ -46,7 +46,7 @@ alter table identity_new rename to identity;
 
 CREATE TABLE profile_new (
 	id INTEGER NOT NULL,
-	urid VARCHAR NOT NULL,
+	edi_id VARCHAR NOT NULL,
 	given_name VARCHAR,
 	family_name VARCHAR,
 	email VARCHAR,
@@ -57,12 +57,12 @@ CREATE TABLE profile_new (
 	association VARCHAR,
 	has_avatar BOOLEAN NOT NULL,
 	PRIMARY KEY (id),
-	UNIQUE (urid)
+	UNIQUE (edi_id)
 );
 
 insert into profile_new (
 	id,
-	urid,
+	edi_id,
 	given_name,
 	family_name,
 	email,
@@ -75,7 +75,7 @@ insert into profile_new (
 )
 select
   id,
-  urid,
+  edi_id,
   given_name,
   family_name,
   email,

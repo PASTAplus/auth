@@ -17,7 +17,6 @@ import db.user
 import webapp.main
 import webapp.db.iface
 import webapp.db.base
-import webapp.util
 import webapp.db
 # from webapp.config import Config
 
@@ -71,7 +70,7 @@ def db_session(db_engine):
 @pytest.fixture
 def db_session_populated(db_session):
     #     "id": 4,
-    #     "urid": "PASTA-e851e1a4b19c4b78992455807fe79534",
+    #     "edi_id": "EDI-e851e1a4b19c4b78992455807fe79534",
     #     "given_name": "Given1",
     #     "family_name": "Family1",
     #     "email": "testuser@github.com",
@@ -91,7 +90,7 @@ def db_session_populated(db_session):
         # webapp.util.pp(profile_dict)
         accepted_date = profile_dict['privacy_policy_accepted_date']
         profile_row = db.user.Profile(
-            urid=profile_dict['urid'],
+            edi_id=profile_dict['edi_id'],
             given_name=profile_dict['given_name'],
             family_name=profile_dict['family_name'],
             email=profile_dict['email'],
@@ -134,7 +133,7 @@ def udb_override(session: sqlalchemy.orm.Session):
 @pytest.fixture
 def client(db_session_populated):
     # noinspection PyUnresolvedReferences
-    webapp.main.app.dependency_overrides[webapp.user_db.udb] = functools.partial(
+    webapp.main.app.dependency_overrides[util.dependency.udb] = functools.partial(
         udb_override, db_session_populated
     )
     with fastapi.testclient.TestClient(webapp.main.app) as client:

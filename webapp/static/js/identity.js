@@ -1,13 +1,13 @@
 // Handle identity unlink buttons
 let unlinkIdentityModal = document.getElementById('unlinkIdentityModal');
-unlinkIdentityModal.addEventListener('show.bs.modal', function (event) {
-  let button = event.relatedTarget;
+unlinkIdentityModal.addEventListener('show.bs.modal', function (ev) {
+  let button = ev.relatedTarget;
   let idpName = button.getAttribute('data-idp-name');
-  let uid = button.getAttribute('data-uid');
+  let idpUid = button.getAttribute('data-idp-uid');
 
   let modalGroupIdInput = unlinkIdentityModal.querySelector('#unlinkIdentityIdpName');
   let modalGroupNameInput = unlinkIdentityModal.querySelector('#unlinkIdentityUid');
 
   modalGroupIdInput.value = idpName;
-  modalGroupNameInput.value = uid;
+  modalGroupNameInput.value = idpUid;
 });

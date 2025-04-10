@@ -1,9 +1,8 @@
-# auth
+# Auth
 
-PASTA+ Authentication Service ('Auth')
+PASTA+ Authentication Service
 
 Multiverse authentication service for the PASTA+ Data Repository environment.
-
 
 ## Authentication
 
@@ -197,4 +196,37 @@ or
 
 ```shell
 conda update -n base -c defaults conda --repodata-fn=repodata.json
+```
+
+## Setting up a trusted CA and SSL certificate for local development
+
+To avoid browser warnings about untrusted certificates, we create a self-signed CA certificate and use it to sign a certificate for the local development server.
+
+Browsers do not use the system CA store, so the CA certificate must be added to the browser's trust store. For Chrome, go to `chrome://settings/certificates` and import the CA certificate in the `Authorities` tab.
+
+Brief instructions for creating the CA, and server certificates, and installing them to the system CA store. You will be prompted for a new password for the CA key, and for the same password again when signing the local certificate. There's no need to remember the password after that, unless you plan on signing more certs with the same CA:  
+
+```shell
+openssl genpkey -algorithm RSA -out ca.key -aes256
+openssl req -x509 -new -nodes -key ca.key -sha256 -days 3650 -out ca.crt -subj "/CN=My Local CA"
+openssl genpkey -algorithm RSA -out localhost.key
+openssl req -new -key localhost.key -out localhost.csr -subj "/CN=localhost"
+
+cat > localhost.ext <<EOF
+authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = localhost
+EOF
+
+openssl x509 -req -in localhost.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out localhost.crt -days 3650 -sha256 -extfile localhost.ext
+
+sudo cp localhost.crt /etc/ssl/certs/
+sudo cp localhost.key /etc/ssl/private/
+sudo cp ca.crt /usr/local/share/ca-certificates/
+sudo update-ca-certificates
 ```

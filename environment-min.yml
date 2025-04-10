@@ -9,17 +9,18 @@ dependencies:
   - cryptography
   - daiquiri
   - fastapi
+  - filelock
   - gunicorn
   - ldap3
   - libiconv
   - pendulum
   - pillow
+  - psycopg2
   - pycryptodome
   - pyjwt
   - pynacl
   - pytest
   - requests
   - sqlite
-  - thefuzz
   - urllib3
   - uvicorn

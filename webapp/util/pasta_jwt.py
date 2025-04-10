@@ -3,18 +3,20 @@ import pprint
 
 import daiquiri
 import jwt
-import starlette.requests
 
 from config import Config
 
 log = daiquiri.getLogger(__name__)
 
+PRIVATE_KEY_STR = Config.JWT_PRIVATE_KEY_PATH.read_text()
+PUBLIC_KEY_STR = Config.JWT_PUBLIC_KEY_PATH.read_text()
+
 
 class PastaJwt:
     """Encode, decode and hold the claims of a JWT.
 
-    A JSON Web Token (JWT) is JSON string in a specific format. This class encodes,
-    decodes and represents the claims of a PASTA JWT, but is not itself a JWT.
+    A JSON Web Token (JWT) is JSON string in a specific format. This class encodes, decodes and
+    represents the claims of a PASTA JWT, but is not itself a JWT.
     """
 
     def __init__(
@@ -38,7 +40,7 @@ class PastaJwt:
         return f'{self.__class__.__name__}' f'(sub={self._claims_dict.get("sub")})'
 
     @property
-    def urid(self) -> str:
+    def edi_id(self) -> str:
         return self._claims_dict.get('sub')
 
     @property
@@ -64,9 +66,7 @@ class PastaJwt:
         claims_dict = self._claims_dict.copy()
         claims_dict['pastaGroups'] = list(claims_dict['pastaGroups'])
         log.info(f'Encoding token: {claims_dict}')
-        return jwt.encode(
-            claims_dict, Config.JWT_SECRET_KEY, algorithm=Config.JWT_ALGORITHM
-        )
+        return jwt.encode(claims_dict, PRIVATE_KEY_STR, algorithm=Config.JWT_ALGORITHM)
 
     @classmethod
     def decode(cls, token_str: str):
@@ -75,14 +75,12 @@ class PastaJwt:
         If the token is invalid, return None.
         """
         try:
-            claims_dict = jwt.decode(
-                token_str, Config.JWT_SECRET_KEY, algorithms=[Config.JWT_ALGORITHM]
-            )
+            claims_dict = jwt.decode(token_str, PUBLIC_KEY_STR, algorithms=[Config.JWT_ALGORITHM])
             return cls(claims_dict)
         except jwt.ExpiredSignatureError:
             bad_claims_dict = jwt.decode(
                 token_str,
-                Config.JWT_SECRET_KEY,
+                PUBLIC_KEY_STR,
                 algorithms=[Config.JWT_ALGORITHM],
                 options={'verify_exp': False, 'verify_signature': False},
             )
@@ -98,41 +96,30 @@ class PastaJwt:
         if token_str is None:
             return False
         try:
-            jwt.decode(
-                token_str, Config.JWT_SECRET_KEY, algorithms=[Config.JWT_ALGORITHM]
-            )
+            jwt.decode(token_str, PUBLIC_KEY_STR, algorithms=[Config.JWT_ALGORITHM])
             return True
         except (jwt.ExpiredSignatureError, jwt.InvalidTokenError) as e:
             log.error(f'Invalid token: {e}: {token_str}')
             return False
 
 
-async def token(
-    request: starlette.requests.Request,
-):
-    """Get token from the request cookie."""
-    token_str = request.cookies.get('pasta_token')
-    token_obj = PastaJwt.decode(token_str) if token_str else None
-    yield token_obj
-
-
-def make_jwt(udb, identity_row, is_vetted):
+async def make_jwt(udb, identity_row, is_vetted):
     """Create a JWT for the given profile."""
     profile_row = identity_row.profile
     pasta_jwt = PastaJwt(
         {
-            'sub': profile_row.urid,
+            'sub': profile_row.edi_id,
             'cn': profile_row.full_name,
             'gn': profile_row.given_name,
             'email': profile_row.email,
             'sn': profile_row.family_name,
-            'pastaGroups': udb.get_group_membership_grid_set(profile_row),
+            'pastaGroups': await udb.get_group_membership_pasta_id_set(profile_row),
             'pastaIsEmailEnabled': profile_row.email_notifications,
             # We don't have an email verification procedure yet
             'pastaIsEmailVerified': False,
             'pastaIsVetted': is_vetted,
-            # As we currently do not issue JWT tokens to public users, we can assume that the user
-            # is authenticated if they have a JWT token.
+            # As we currently do not issue JWT tokens to public users, we can assume
+            # that the user is authenticated if they have a valid JWT.
             'pastaIsAuthenticated': True,
             'pastaIdentityId': identity_row.id,
         }
@@ -140,11 +127,3 @@ def make_jwt(udb, identity_row, is_vetted):
     log.info('Created PASTA JWT:')
     log.info(pasta_jwt.claims_pp)
     return pasta_jwt.encode()
-
-
-# def refresh_token(
-#     token: PastaJwt = fastapi.Depends(token),
-# ):
-#     if token is None:
-#         return None
-#     return token.encode()

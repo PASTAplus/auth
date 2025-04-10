@@ -2,11 +2,12 @@
 
 """Decode and print a PASTA token"""
 import argparse
-import logging
 import sys
 import base64
 
-log = logging.getLogger(__name__)
+import daiquiri
+
+log = daiquiri.getLogger(__name__)
 
 
 def main():

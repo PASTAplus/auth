@@ -3,8 +3,11 @@ import fastapi
 import requests
 import starlette.requests
 
-import db.iface
-import util
+import util.dependency
+import util.login
+import util.pretty
+import util.redirect
+import util.url
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -16,7 +19,7 @@ router = fastapi.APIRouter()
 
 
 @router.get('/login/orcid')
-async def login_orcid(
+async def get_login_orcid(
     request: starlette.requests.Request,
 ):
     """Accept the initial login request from an EDI service and redirect to the
@@ -26,7 +29,7 @@ async def login_orcid(
     target_url = request.query_params.get('target')
     log.debug(f'login_orcid() target_url="{target_url}"')
 
-    return util.redirect_to_idp(
+    return util.redirect.idp(
         Config.ORCID_AUTH_ENDPOINT,
         'orcid',
         login_type,
@@ -39,16 +42,16 @@ async def login_orcid(
 
 
 @router.get('/callback/orcid')
-async def callback_orcid(
+async def get_callback_orcid(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
 ):
-    login_type, target_url = util.unpack_state(request.query_params.get('state'))
+    login_type, target_url = util.login.unpack_state(request.query_params.get('state'))
     log.debug(f'callback_orcid() login_type="{login_type}" target_url="{target_url}"')
 
     code_str = request.query_params.get('code')
     if code_str is None:
-        return util.redirect_to_client_error(target_url, 'Login cancelled')
+        return util.redirect.client_error(target_url, 'Login cancelled')
 
     try:
         token_response = requests.post(
@@ -57,7 +60,7 @@ async def callback_orcid(
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Accept': 'application/json',
             },
-            data=util.build_query_string(
+            data=util.url.build_query_string(
                 client_id=Config.ORCID_CLIENT_ID,
                 client_secret=Config.ORCID_CLIENT_SECRET,
                 grant_type='authorization_code',
@@ -66,31 +69,31 @@ async def callback_orcid(
         )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.redirect.client_error(target_url, 'Login unsuccessful')
 
     try:
         token_dict = token_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {token_response.text}', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.redirect.client_error(target_url, 'Login unsuccessful')
 
     if is_error(token_dict):
         log.error(f'Login unsuccessful: {get_error(token_dict)}', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.redirect.client_error(target_url, 'Login unsuccessful')
 
     log.debug('-' * 80)
     log.debug('login_orcid_callback() - login successful')
-    util.log_dict(log.debug, 'token_dict', token_dict)
+    util.pretty.log_dict(log.debug, 'token_dict', token_dict)
     log.debug('-' * 80)
 
-    return util.handle_successful_login(
+    return await util.login.handle_successful_login(
         request=request,
         udb=udb,
         login_type=login_type,
         target_url=target_url,
         full_name=token_dict['name'],
         idp_name='orcid',
-        uid=Config.ORCID_DNS + token_dict['orcid'],
+        idp_uid=Config.ORCID_DNS + token_dict['orcid'],
         email=token_dict.get('email'),
         has_avatar=False,
         is_vetted=False,
@@ -103,22 +106,22 @@ async def callback_orcid(
 
 
 @router.get('/revoke/orcid')
-async def revoke_orcid(
+async def get_revoke_orcid(
     request: starlette.requests.Request,
 ):
     target_url = request.query_params.get('target')
-    uid = request.query_params.get('uid')
+    idp_uid = request.query_params.get('idp_uid')
     idp_token = request.query_params.get('idp_token')
-    util.log_dict(
+    util.pretty.log_dict(
         log.debug,
         'revoke_orcid()',
         {
             'target_url': target_url,
-            'uid': uid,
+            'idp_uid': idp_uid,
             'idp_token': idp_token,
         },
     )
-    return util.redirect(target_url)
+    return util.redirect.redirect(target_url)
 
 
 #

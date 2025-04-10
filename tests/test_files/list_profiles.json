@@ -16,7 +16,7 @@
         ],
         "privacy_policy_accepted": true,
         "privacy_policy_accepted_date": "2024-07-17T22:41:09.699175",
-        "urid": "PASTA-e851e1a4b19c4b78992455807fe79534"
+        "edi_id": "EDI-e851e1a4b19c4b78992455807fe79534"
     },
     {
         "email": "testuser2@microsoft.com",
@@ -35,7 +35,7 @@
         ],
         "privacy_policy_accepted": false,
         "privacy_policy_accepted_date": null,
-        "urid": "PASTA-61b8b8872c13469faf4a44e3ff50b848"
+        "edi_id": "EDI-61b8b8872c13469faf4a44e3ff50b848"
     },
     {
         "email": "testuser3@gmail.com",
@@ -54,7 +54,7 @@
         ],
         "privacy_policy_accepted": false,
         "privacy_policy_accepted_date": null,
-        "urid": "PASTA-a211ecebce724b3087b317d9cbce22ff"
+        "edi_id": "EDI-a211ecebce724b3087b317d9cbce22ff"
     },
     {
         "email": null,
@@ -73,6 +73,6 @@
         ],
         "privacy_policy_accepted": true,
         "privacy_policy_accepted_date": "2024-07-17T22:40:12.786945",
-        "urid": "PASTA-c422bd31545b4d7080a84ef1ba4a6a67"
+        "edi_id": "EDI-c422bd31545b4d7080a84ef1ba4a6a67"
     }
 ]

@@ -14,104 +14,154 @@
 {% endblock %}
 
 {% block content %}
-  <h1 aria-label>Groups</h1>
+  <div class='split-container'>
 
-  <div class='indent'>
-    <p>
-      Groups allow you to organize access to your data objects efficiently. Instead of granting access to individuals
-      one by one, you can add them to a group and manage access collectively. Adding a member to an existing group
-      grants them immediate access to all resources the group has access to, while removing them revokes that access.
-    </p>
-    <p>
-      {% if not group_list %}
-        You have not created any groups yet.
-      {% else %}
-        Your groups:
-      {% endif %}
-    </p>
+    <div class=''>
 
-    <div class='indent'>
-      <div class='main-grid'>
-        {% for group in group_list %}
-          <div class='child-grid'>
-            <div class='row-center-parent'>
-              {# Edit #}
-              <div class='child-grid-child'>
-                <button class='icon-button'
-                        data-bs-toggle='modal'
-                        data-bs-target='#groupModal'
-                        data-form-target='{{ url('/group/edit') }}'
-                        data-title='Edit group'
-                        data-group-id='{{ group.id }}'
-                        data-group-name='{{ group.name }}'
-                        data-group-description='{{ group.description or '' }}'
-                        data-submit-text='Save'
+      <div class='header-container'
+           data-root-path='{{ url('') }}'
+          {#data-group-id='{{ group_row.id }}'#}
+      >
+        <h1 aria-label>Groups</h1>
+      </div>
+
+      <div class='indent'>
+        <p>
+          Groups allow you to organize access to your data objects efficiently. Instead of granting
+          access to individuals one by one, you can add them to a group and manage access
+          collectively. Adding a member to an existing group grants them immediate access to all
+          resources the group has access to, while removing them revokes that access.
+        </p>
+      </div>
+
+    </div>
+
+    {#<div class='indent'>#}
+    <div class='split-main'>
+
+      <div class='split-section split-left'>
+
+        <h4>Groups</h4>
+
+        <div class='indent'>
+          <p>
+            {% if not group_list %}
+              You have not created any groups yet.
+            {% endif %}
+          </p>
+
+          <div class='group-grid'>
+            {% for group in group_list %}
+
+              <div>
+                <input type="radio"
+                       name="group-select"
+                       value='{{ group.id }}'
                 >
-                  <img src='{{ url('/static/svg/edit-pencil.svg') }}' alt='Edit'>
-                </button>
               </div>
-              {# Name #}
-              <div class='child-grid-child grid-child-title'>{{ group.name }}</div>
-            </div>
 
-            {# Description #}
-            <div class='child-grid-child description'>{{ group.description or '' }}</div>
+              <div class='group-details'>
 
-            <div class='row-center-parent button-row'>
-              {# Members #}
-              {#<button >#}
-              <a href='{{ url('/ui/group/member/') }}{{ group.id }}' class='icon-text-button'>
-                <span><img src='{{ url('/static/svg/group.svg') }}' alt='Edit Members'></span>
-                <span>{{ group.member_count }}</span>
-                {% if group.member_count == 1 %}
-                  <span>member</span>
-                {% else %}
-                  <span>members</span>
-                {% endif %}
-              </a>
-              {# Copy ID #}
-              <div class='row-center-child'>
-                <div class='pasta-id-parent'>
-                  <div class='pasta-id-child-text'>
-                    {{ group.grid }}
+                <div class='child-grid'>
+                  <div class='row-center-parent'>
+                    {# Edit group name and description #}
+                    <div class='child-grid-child'>
+                      <button class='icon-button'
+                              data-bs-toggle='modal'
+                              data-bs-target='#groupModal'
+                              data-form-target='{{ url('/group/edit') }}'
+                              data-title='Edit group'
+                              data-group-id='{{ group.id }}'
+                              data-group-name='{{ group.name }}'
+                              data-group-description='{{ group.description or '' }}'
+                              data-submit-text='Save'
+                      >
+                        <img src='{{ url('/static/svg/edit-pencil.svg') }}' alt='Edit'>
+                      </button>
+                    </div>
+                    {# Name #}
+                    <div class='child-grid-child grid-child-title'>{{ group.name }}</div>
                   </div>
-                  <div class='pasta-id-child-icon'>
-                    <img src='{{ url('/static/svg/copy.svg') }}' alt='Copy Group Identifier'>
+
+                  {# Description #}
+                  <div class='child-grid-child description'>{{ group.description or '' }}</div>
+
+                  {# Member count, EDI ID button, Remove button #}
+                  <div class='row-center-parent button-row'>
+                    {# Member count #}
+                    <div>
+                        <span class='member-count'>{{ group.member_count }}
+                          {% if group.member_count == 1 %}
+                            member
+                          {% else %}
+                            members
+                          {% endif %}
+                        </span>
+                    </div>
+                    {# Copy ID #}
+                    <div class='row-center-child'>
+                      <div class='pasta-id-parent'>
+                        <div class='pasta-id-child-text'>
+                          {{ group.edi_id }}
+                        </div>
+                        <div class='pasta-id-child-icon'>
+                          <img src='{{ url('/static/svg/copy.svg') }}'
+                               alt='Copy Group Identifier'>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {# Remove button #}
+                  <div class='row-center-child'>
+                    <button class='icon-text-button' data-bs-toggle='modal'
+                            data-bs-target='#deleteGroupModal'
+                            data-group-id='{{ group.id }}'
+                            data-group-name='{{ group.name }}'
+                    >
+                      <span><img src='{{ url('/static/svg/trash.svg') }}' alt='Unlink'></span>
+                      <span>Remove</span>
+                    </button>
                   </div>
                 </div>
               </div>
 
-              {# Remove #}
-              <div class='row-center-child'>
-                <button class='icon-text-button' data-bs-toggle='modal'
-                        data-bs-target='#deleteGroupModal'
-                        data-group-id='{{ group.id }}'
-                        data-group-name='{{ group.name }}'
-                >
-                  <span><img src='{{ url('/static/svg/trash.svg') }}' alt='Unlink'></span>
-                  <span>Remove</span>
-                </button>
-              </div>
-            </div>
+            {% endfor %}
           </div>
-        {% endfor %}
+          <button type='button' class='btn btn-primary' id='newGroupButton'
+                  data-bs-toggle='modal'
+                  data-bs-target='#groupModal'
+                  data-form-target='{{ url('/group/new') }}'
+                  data-title='Create a new group'
+                  data-group-id=''
+                  data-group-name=''
+                  data-group-description=''
+                  data-submit-text='Add'
+          >
+            New Group
+          </button>
+        </div>
+      </div>
+
+      <div class='split-section split-right'>
+        <div>
+          <h4>
+            Members
+          </h4>
+        </div>
+        <div>
+          <input type='text' class='form-control' id='principalSearch' autocomplete="off"
+                 spellcheck="false" placeholder='Select a group in the left panel to update members'
+                 disabled
+          >
+          <div id='principalList' tabindex='0' class='form-control'></div>
+        </div>
+        <div class='member-grid' id='memberList'>
+          {#<div class='grid-msg'>Loading members...</div>#}
+        </div>
       </div>
     </div>
   </div>
-
-  <div class='indent'>
-    <button type='button' class='btn btn-primary' data-bs-toggle='modal'
-            data-bs-target='#groupModal'
-            data-form-target='{{ url('/group/new') }}'
-            data-title='Create a new group'
-            data-group-id=''
-            data-group-name=''
-            data-group-description=''
-            data-submit-text='Add'
-    >
-      New Group
-    </button>
-  </div>
+  {#</div>#}
 
   {# New/edit group modal #}
   <div class='modal fade' id='groupModal' tabindex='-1' data-bs-backdrop='static'>
@@ -119,7 +169,8 @@
       <div class='modal-content'>
         <div class='modal-header'>
           <h5 class='modal-title' id='groupTitle'></h5>
-          <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
+          <button type='button' class='btn-close' data-bs-dismiss='modal'
+                  aria-label='Close'></button>
         </div>
         <div class='modal-body'>
           <form method='post' id='groupForm' class='needs-validation' novalidate>
@@ -129,7 +180,8 @@
                 The name and description will help you identify the group later.
               </p>
               <label for='groupName'>Name</label>
-              <input type='text' class='form-control' id='groupName' name='name' required pattern='.{3,}'>
+              <input type='text' class='form-control' id='groupName' name='name' required
+                     pattern='.{3,}'>
               <div class='invalid-feedback'>
                 Name must be at least 3 characters long.
               </div>
@@ -139,7 +191,8 @@
               <input type='text' class='form-control' id='groupDescription' name='description'>
             </div>
             <div class='modal-footer'>
-              <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Cancel</button>
+              <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Cancel
+              </button>
               <button type='submit' class='btn btn-primary' id='groupButton'>Add</button>
             </div>
           </form>
@@ -154,7 +207,8 @@
       <div class='modal-content'>
         <div class='modal-header'>
           <h5 class='modal-title'>Remove Group</h5>
-          <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
+          <button type='button' class='btn-close' data-bs-dismiss='modal'
+                  aria-label='Close'></button>
         </div>
         <div class='modal-body'>
           <form action='{{ url('/group/delete') }}' method='post' id='deleteGroupForm'>
@@ -167,12 +221,13 @@
                 </span>
               </p>
               <p>
-                <strong>Note:</strong> This will remove all members from the group and revoke their access to all
-                resources the group has access to.
+                <strong>Note:</strong>
+                Any access granted by this group to its members will be revoked.
               </p>
             </div>
             <div class='modal-footer'>
-              <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Cancel</button>
+              <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Cancel
+              </button>
               <button type='submit' class='btn btn-danger'>Remove</button>
             </div>
           </form>

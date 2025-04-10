@@ -1,15 +1,11 @@
-import sqlite3
-
 import daiquiri
-import fastapi
 import sqlalchemy.event
 import sqlalchemy.orm
 import sqlalchemy.pool
 
-import config
 import db.base
-import db.group
 import db.user
+from config import Config
 
 """Database interface.
 """
@@ -17,39 +13,92 @@ import db.user
 
 log = daiquiri.getLogger(__name__)
 
-# Bring types here for convenience
-# Base = db.base.Base
-UserDb = db.user.UserDb
-# GroupDb = db.group.GroupDb
 
 engine = sqlalchemy.create_engine(
-    'sqlite:///' + config.Config.DB_PATH.as_posix(),
-    echo=config.Config.LOG_DB_QUERIES,
-    connect_args={
-        # Allow multiple threads to access the database
-        # This setup allows the SQLAlchemy engine to manage SQLite connections that can
-        # safely be shared across threads, mitigating the "SQLite objects created in a
-        # thread can only be used in that same thread" limitation.
-        'check_same_thread': False,
-    },
+    sqlalchemy.engine.URL.create(
+        Config.DB_DRIVER,
+        host=Config.DB_HOST,
+        database=Config.DB_NAME,
+        username=Config.DB_USER,
+        password=Config.DB_PW,
+    ),
+    echo=Config.LOG_DB_QUERIES,
+    pool_size=Config.DB_POOL_SIZE,
+    max_overflow=Config.DB_MAX_OVERFLOW,
 )
 
-# TODO: Add some sort of switch for this
-# Base.metadata.drop_all(engine)
+# Use ./util/clear_database.py to drop all tables in the database.
 
 # Create the tables in the database
 db.base.Base.metadata.create_all(engine)
 
-SessionLocal = sqlalchemy.orm.sessionmaker(
-    autocommit=False, autoflush=False, bind=engine
-)
+SessionLocal = sqlalchemy.orm.sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-# Enable foreign key checking in SQlite
-@sqlalchemy.event.listens_for(sqlalchemy.pool.Pool, 'connect')
-def _on_connect(dbapi_con, _connection_record):
-    if isinstance(dbapi_con, sqlite3.Connection):
-        dbapi_con.execute('PRAGMA foreign_keys=ON')
+def create_sync_trigger(dbapi_connection, _connection_record):
+    """Create triggers to track table changes for synchronization with in-memory caches."""
+    cursor = dbapi_connection.cursor()
+    try:
+        # Create trigger function. This function is called by the triggers to update the sync table.
+        # A row for the given table name is created if it does not exist, or updated if it does.
+        # In both cases, the updated timestamp is set to the current datetime.
+        cursor.execute(
+            """
+            do $$
+            begin
+                if not exists (select 1 from pg_proc where proname = 'sync_trigger_func') then
+                    create or replace function sync_trigger_func()
+                    returns trigger
+                    language plpgsql
+                    as $body$
+                    begin
+                        RAISE NOTICE 'Sync trigger for table: %', TG_TABLE_NAME;
+        
+                        insert into sync (name, updated)
+                        values (TG_TABLE_NAME, now())
+                        on conflict (name)
+                        do update set updated = excluded.updated;
+                        
+                        return null;
+                    end;
+                    $body$;
+                end if;
+            end;
+            $$;
+            """
+        )
+
+        # Create triggers for each table
+        for trigger_name, table_name in (
+            ("sync_trigger_collection", "collection"),
+            ("sync_trigger_group", "\"group\""),
+            ("sync_trigger_group_member", "group_member"),
+            ("sync_trigger_identity", "identity"),
+            ("sync_trigger_rule", "rule"),
+            ("sync_trigger_profile", "profile"),
+            ("sync_trigger_resource", "resource"),
+        ):
+            cursor.execute(
+                f"""
+                do $$
+                begin
+                    if not exists (select 1 from pg_trigger where tgname = '{trigger_name}') then
+                        create trigger {trigger_name}
+                        after insert or update on {table_name}
+                        for each statement
+                        execute function sync_trigger_func();
+                    end if;
+                end;
+                $$;
+                """
+            )
+
+        dbapi_connection.commit()
+    finally:
+        cursor.close()
+
+
+sqlalchemy.event.listen(engine, 'connect', create_sync_trigger)
 
 
 def get_session():
@@ -60,37 +109,9 @@ def get_session():
         session.close()
 
 
-def udb(session: sqlalchemy.orm.Session = fastapi.Depends(get_session)):
-    try:
-        yield db.user.UserDb(session)
-    finally:
-        session.close()
-
-
 def get_udb():
     session = SessionLocal()
     try:
         return db.user.UserDb(session)
     finally:
         session.close()
-
-
-# def gdb(session: sqlalchemy.orm.Session = fastapi.Depends(get_session)):
-#     try:
-#         yield db.user.GroupDb(session)
-#     finally:
-#         session.close()
-
-# def get_group_db():
-#     db = group_db.SessionLocal()
-#     try:
-#         yield db
-#     finally:
-#         db.close()
-
-
-# def gdb(session: group_db.sqlalchemy.orm.Session = group_db.fastapi.Depends(get_user_db)):
-#     try:
-#         yield group_db.GroupDb(session)
-#     finally:
-#         session.close()

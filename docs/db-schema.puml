@@ -16,7 +16,7 @@ class identity {
 }
 
 class profile {
-   urid: varchar
+   pasta_id: varchar
    given_name: varchar
    family_name: varchar
    email: varchar

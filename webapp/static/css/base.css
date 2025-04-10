@@ -1,14 +1,11 @@
-/* Extra styles for auth */
-
 :root {
     /* Set the size of 1rem */
-    font-size: 17px;
-    /*--font-color: #a0a000;*/
+    font-size: 16px;
 }
 
 .container {
-    margin-top: 2rem;
-    margin-bottom: 2rem;
+    /*margin-top: 2rem;*/
+    /*margin-bottom: 2rem;*/
 }
 
 .header-container {
@@ -22,6 +19,10 @@
 /*
     Navbar Menu
 */
+
+.navbar {
+    border-bottom: 1px solid var(--bs-gray-400); /* Add a bottom border */
+}
 
 .navbar .navbar-brand {
     font-size: 1rem;
@@ -37,12 +38,6 @@
     margin-right: 0.5rem;
 }
 
-/* Override the default navbar color for the 'brand' name */
-.navbar-brand {
-    /*color: #000000a6 !important;*/
-    /*pointer-events: none;*/
-    /*cursor: default;*/
-}
 
 /* The small avatar in the navbar */
 
@@ -105,7 +100,9 @@ h6 {
 }
 
 h1 {
-    /*padding-top: 2rem;*/
+    /* We use h1 headers for the title at the top of each page.
+    Open up some space between the navbar and the title. */
+    padding-top: 2rem;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -136,8 +133,17 @@ table td, table th {
     height: 5rem;
 }
 
+.avatar-smaller {
+    width: 3rem;
+    height: 3rem;
+}
+
 .indent {
     margin: 2rem 0 2rem 2rem;
+}
+
+.capitalize {
+    text-transform: capitalize;
 }
 
 .space {
@@ -411,3 +417,15 @@ table td, table th {
 .form-group {
     padding: .5rem;
 }
+
+/* Errors */
+
+#errorMsg {
+    font-family: monospace;
+    font-size: .5rem;
+    white-space: pre;
+    overflow: hidden;
+    margin: 1rem;
+    overflow-x: auto;
+}
+

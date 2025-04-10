@@ -9,39 +9,35 @@ FILENAME_SAFE_CHARS = " @$,~*&"
 
 
 def get_safe_reversible_path(*path_list):
-    """Escape characters that are not allowed or often cause issues when used in file-
-    or directory names, then join the arguments to a filesystem path.
+    """Escape characters that are not allowed or often cause issues when used in file- or directory
+    names, then join the arguments to a filesystem path.
 
     This generates a string that is reversible but may not be easy to read.
 
-    Args:
-        path_list (list):
+    Args: path_list (list):
 
-    Returns:
-        (:obj:`str` or :obj:`Path`): A path safe for use as a as a file- or directory name.
+    Returns: (:obj:`str` or :obj:`Path`): A path safe for use as a as a file- or directory name.
 
-    See Also:
-        If a reversible path is not required, see :func:`get_safe_lossy_path`, which is
-        not reversible, but may be easier to read.
+    See Also: If a reversible path is not required, see :func:`get_safe_lossy_path`, which is not
+    reversible, but may be easier to read.
 
-        To get get the original string from the path, see :func:`get_original_path`.
+    To get the original string from the path, see :func:`get_original_path`.
     """
     # noinspection PyTypeChecker
     return os.path.join(*[get_safe_reversible_path_element(p) for p in path_list])
 
 
 def get_safe_reversible_path_element(s):
-    """Replace characters that are not allowed, have special semantics, or may cause
-     security issues, when used in file- or directory names, with filesystem safe
-     reversible codes
+    """Replace characters that are not allowed, have special semantics, or may cause security
+    issues, when used in file- or directory names, with filesystem safe reversible codes
 
-     On Unix, names starting with period are usually hidden in the filesystem. We don't
-     want there to be a chance of generating hidden files by using this function. But
-     we also don't want to escape dots in general since that makes the filenames much
-     harder to read. So we escape the dot only when it's at the start of the string.
+    On Unix, names starting with period are usually hidden in the filesystem. We don't want there
+    to be a chance of generating hidden files by using this function. But we also don't want to
+    escape dots in general since that makes the filenames much harder to read. So we escape the dot
+    only when it's at the start of the string.
 
     Args:
-         s (str): Any Unicode string
+        s (str): Any Unicode string
 
      Returns:
          str: A string safe for use as a file- or directory name.
@@ -65,15 +61,15 @@ def get_original_path_element(s):
 
 
 def get_safe_lossy_path_element(s):
-    """Like :func:`get_safe_reversible_path_element`, but generates a string that is not
-    reversible, instead prioritizing readability.
+    """Like :func:`get_safe_reversible_path_element`, but generates a string that is not reversible,
+    instead prioritizing readability.
     """
     return pathlib.Path(re.sub("[^\w.]+", "-", s.strip(" .\n\t/\\")))
 
 
 def get_safe_lossy_path(*path_list):
-    """Like :func:`get_safe_reversible_path`, but generates a string that is not
-    reversible, instead prioritizing readability.
+    """Like :func:`get_safe_reversible_path`, but generates a string that is not reversible, instead
+    prioritizing readability.
     """
     return os.path.join(*[get_safe_lossy_path_element(p) for p in path_list])
 
@@ -84,8 +80,8 @@ def create_missing_directories_for_file(file_path):
     Args:
         file_path (str): Relative or absolute path to a file that may or may not exist.
 
-            Must be a file path, as any directory element at the end of the path will
-              not be created.
+            Must be a file path, as any directory element at the end of the path will not be
+            created.
 
     See Also:
         create_missing_directories_for_dir()
@@ -97,11 +93,10 @@ def create_missing_directories_for_dir(dir_path):
     """Create any directories in ``dir_path`` that do not yet exist.
 
     Args:
-        dir_path (str): Relative or absolute path to a directory that may or may not
-          exist.
+        dir_path (str): Relative or absolute path to a directory that may or may not exist.
 
-            Must be a directory path, as any filename element at the end of the path
-              will also be created as a directory.
+            Must be a directory path, as any filename element at the end of the path will also be
+            created as a directory.
 
     See Also:
         create_missing_directories_for_file()
@@ -110,13 +105,12 @@ def create_missing_directories_for_dir(dir_path):
 
 
 def abs_path_from_base(base_path, rel_path):
-    """Join a base and a relative path and return an absolute path to the resulting
-    location.
+    """Join a base and a relative path and return an absolute path to the resulting location.
 
     Args:
         base_path (str): Relative or absolute path to prepend to ``rel_path``.
-        rel_path (str): Path relative to the location of the module file from which this
-          function is called.
+        rel_path (str): Path relative to the location of the module file from which this function is
+            called.
 
     Returns:
         (:obj:`str` or :obj:`Path`): Absolute path to the location specified by ``rel_path``.
@@ -132,12 +126,12 @@ def abs_path_from_base(base_path, rel_path):
 
 
 def abs_path(rel_path):
-    """Convert a path that is relative to the module from which this function is called,
-    to an absolute path.
+    """Convert a path that is relative to the module from which this function is called, to an
+    absolute path.
 
     Args:
-        rel_path (str): Path relative to the location of the module file from which this
-          function is called.
+        rel_path (str): Path relative to the location of the module file from which this function is
+        called.
 
     Returns:
         (:obj:`str` or :obj:`Path`): Absolute path to the location specified by ``rel_path``.
@@ -151,9 +145,9 @@ def abs_path(rel_path):
 def safe_path_exists(o):
     """Check if `o` is a path to an existing file.
 
-    ``pathlib.Path(o).is_file()`` and ``os.path.exists()`` raise various types of
-    exceptions if unable to convert `o` to a value suitable for use as a path. This
-    method aims to allow checking any object without raising exceptions.
+    ``pathlib.Path(o).is_file()`` and ``os.path.exists()`` raise various types of exceptions if
+    unable to convert `o` to a value suitable for use as a path. This method aims to allow checking
+    any object without raising exceptions.
 
     Args:
         o (object): An object that may be a path.

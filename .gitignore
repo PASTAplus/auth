@@ -8,9 +8,10 @@
 __RD.md
 auth.log
 config.py
-webapp/avatars/
+avatars/
 webapp/static/lib/
 docs/*.png
+certs/
 
 # General
 

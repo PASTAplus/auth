@@ -7,22 +7,22 @@ import sqlalchemy.exc
 import webapp.db
 
 
-def _check_urid(urid):
-    assert re.match(r'PASTA-[\da-f]{32}$', urid)
+def _check_pasta_id(edi_id):
+    assert re.match(r'EDI-[\da-f]{32}$', edi_id)
 
 
 def test_create_db_instance(db):
     assert db is not None
 
 
-def test_get_new_urid(db):
-    urid = db.get_new_urid()
-    _check_urid(urid)
+def test_get_new_pasta_id(db):
+    edi_id = db.get_new_pasta_id()
+    _check_pasta_id(edi_id)
 
 
 def test_create_profile(db):
     profile_row = db.create_profile(given_name='Given1', family_name='Family1')
-    _check_urid(profile_row.urid)
+    _check_pasta_id(profile_row.edi_id)
 
 
 def test_get_profile(db):

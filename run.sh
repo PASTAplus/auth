@@ -6,14 +6,13 @@
 #  --ssl-certfile /etc/ssl/certs/ssl-cert-snakeoil.pem
 #  --log-config logging.conf
 
-uvicorn webapp.main:app \
-  --app-dir . \
+uvicorn main:app \
   --app-dir webapp \
   --reload \
   --port 5443 \
   --host 0.0.0.0 \
   --log-level debug \
-  --workers 1 \
+  --workers 4 \
   --proxy-headers \
   --forwarded-allow-ips '*' \
   --ssl-keyfile /home/pasta/certificates/localhost.key \

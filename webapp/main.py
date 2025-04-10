@@ -1,5 +1,6 @@
 import contextlib
 import pathlib
+import logging
 
 import daiquiri.formatter
 import fastapi
@@ -11,23 +12,29 @@ import starlette.status
 
 import api.ping
 import api.refresh_token
-import fuzz
 import idp.github
 import idp.google
 import idp.ldap
 import idp.microsoft
 import idp.orcid
-import pasta_jwt
 import ui.avatar
 import ui.dev
 import ui.group
 import ui.identity
 import ui.index
 import ui.membership
+import ui.permission
 import ui.privacy_policy
 import ui.profile
 import ui.signin
-import util
+import util.avatar
+import util.pasta_jwt
+import util.redirect
+import util.search_cache
+import util.url
+import db.user
+import db.iface
+
 from config import Config
 
 daiquiri.setup(
@@ -42,6 +49,10 @@ daiquiri.setup(
     # ),
 )
 
+# Mute noisy debug output from the `filelock` module
+daiquiri.getLogger("filelock").setLevel(logging.WARNING)
+
+
 log = daiquiri.getLogger(__name__)
 
 
@@ -50,7 +61,14 @@ async def lifespan(
     _app: fastapi.FastAPI,
 ):
     log.info('Application starting...')
-    await fuzz.init_cache()
+    # Create the public profile if it doesn't exist.
+    with db.iface.SessionLocal().begin():
+        udb = db.iface.get_udb()
+        if not await udb.get_public_profile():
+            await udb.create_public_profile()
+    # Initialize the profile and group search cache
+    await util.search_cache.init_cache()
+    # Run the app
     yield
     log.info('Application stopping...')
 
@@ -64,10 +82,29 @@ app.mount(
     name='static',
 )
 
+# Custom StaticFiles class to set MIME type
+class AvatarFiles(fastapi.staticfiles.StaticFiles):
+    """Custom StaticFiles class to set the mimetype for SVG files."""
+
+    async def get_response(self, path, scope):
+        full_path, stat_result = self.lookup_path(path)
+        if stat_result is None:
+            raise fastapi.HTTPException(status_code=404, detail="File not found")
+        return starlette.responses.FileResponse(
+            full_path,
+            stat_result=stat_result,
+            media_type='image/svg+xml' if await self.is_svg(full_path) else 'image/*',
+        )
+
+    async def is_svg(self, path):
+        with open(path, 'rb') as f:
+            return b'<?xml' in f.read(16).lower()
+
+
 # Set up serving of avatars
 app.mount(
     Config.AVATARS_URL,
-    fastapi.staticfiles.StaticFiles(directory=Config.AVATARS_PATH),
+    AvatarFiles(directory=Config.AVATARS_PATH),
     name='avatars',
 )
 
@@ -88,10 +125,15 @@ for file_path in (Config.STATIC_PATH / 'site').iterdir():
     create_route(file_path)
 
 
+#
+# Middleware
+#
+
+
 class RootPathMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     async def dispatch(self, request: starlette.requests.Request, call_next):
         if not request.url.path.startswith(Config.ROOT_PATH):
-            return util.redirect_internal(request.url.path)
+            return util.redirect.internal(request.url.path)
         # Setting the root_path here has the same effect as setting it in the reverse proxy (e.g.,
         # nginx). We just set it here so that we can avoid special nginx configuration. The
         # root_path setting is part of the ASGI spec, and is used by FastAPI to properly route
@@ -101,35 +143,45 @@ class RootPathMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
         return await call_next(request)
 
 
-class RouterLoggingMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
-    async def dispatch(self, request: starlette.requests.Request, call_next):
-        log.info(f'>>> {request.method} {request.url}')
-        response = await call_next(request)
-        log.info(f'<<< {response.status_code}')
-        return response
-
-
 class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     async def dispatch(self, request: starlette.requests.Request, call_next):
         # If the request is for a /ui path, redirect to signin if the token is invalid
         if (
-            request.url.path.startswith(str(util.url('/ui')))
-            and not request.url.path.startswith(str(util.url('/ui/signin')))
-            and not pasta_jwt.PastaJwt.is_valid(request.cookies.get('pasta_token'))
+            request.url.path.startswith(str(util.url.url('/ui')))
+            and not request.url.path.startswith(str(util.url.url('/ui/signin')))
+            and not util.pasta_jwt.PastaJwt.is_valid(request.cookies.get('pasta_token'))
         ):
-            log.debug(
-                'Redirecting to /ui/signin: UI page requested without valid token'
-            )
-            return util.redirect_internal('/ui/signin')
+            log.debug('Redirecting to /ui/signin: UI page requested without valid token')
+            return util.redirect.internal('/ui/signin')
         return await call_next(request)
+
+
+# class RouterLoggingMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
+#     async def dispatch(self, request: starlette.requests.Request, call_next):
+#         log.info(f'>>> {request.method} {request.url}')
+#         response = await call_next(request)
+#         log.info(f'<<< {response.status_code}')
+#         return response
+
+
+# class SuppressGetLoggingMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
+#     async def dispatch(self, request: starlette.requests.Request, call_next):
+#         if request.method == "GET":
+#             # Suppress logging for GET requests
+#             return await call_next(request)
+#         # Log other requests
+#         log.info(f"{request.method} {request.url}")
+#         return await call_next(request)
 
 
 # noinspection PyTypeChecker
 app.add_middleware(RootPathMiddleware)
 # noinspection PyTypeChecker
-app.add_middleware(RouterLoggingMiddleware)
+# app.add_middleware(RouterLoggingMiddleware)
 # noinspection PyTypeChecker
 app.add_middleware(RedirectToSigninMiddleware)
+# noinspection PyTypeChecker
+# app.add_middleware(SuppressGetLoggingMiddleware)
 
 app.include_router(api.refresh_token.router)
 app.include_router(api.ping.router)
@@ -145,6 +197,7 @@ app.include_router(ui.group.router)
 app.include_router(ui.identity.router)
 app.include_router(ui.index.router)
 app.include_router(ui.membership.router)
+app.include_router(ui.permission.router)
 app.include_router(ui.privacy_policy.router)
 app.include_router(ui.profile.router)
 app.include_router(ui.signin.router)

@@ -1,10 +1,7 @@
-import os
-import sys
-
 import daiquiri
 
 from webapp.config import Config
-from webapp import pasta_ldap
+from util import pasta_ldap
 
 # sys.path.insert(0, os.path.abspath("../webapp"))
 log = daiquiri.getLogger(__name__)
