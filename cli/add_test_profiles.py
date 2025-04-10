@@ -2,31 +2,32 @@
 
 """Fill profile table with random data.
 """
-
+import asyncio
 import logging
 import pathlib
 import sys
 import uuid
 
+import daiquiri
 import sqlalchemy.exc
 
 ROOT_PATH = pathlib.Path(__file__).resolve().parent.parent
 sys.path.append((ROOT_PATH / 'webapp').as_posix())
 
-import db.profile
 import db.iface
+import db.user
 
-log = logging.getLogger(__name__)
+log = daiquiri.getLogger(__name__)
+udb: db.user.UserDb = db.iface.get_udb()
+session = db.iface.SessionLocal()
 
 
-def main():
+async def main():
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
-    session = db.iface.SessionLocal()
-
     try:
-        fill_profile(session)
+        await fill_profile()
     except sqlalchemy.exc.SQLAlchemyError as e:
         log.error(f'Error: {e}')
         session.rollback()
@@ -39,18 +40,12 @@ def main():
     return 0
 
 
-def fill_profile(session):
+async def fill_profile():
     for s in RANDOM_PERSON_NAME_LIST:
         pasta_id = f'PASTA-{uuid.uuid4().hex}'
         given_name, family_name = s.split(' ')
         email = f'{given_name.lower()}@{family_name.lower()}.com'
-        new_profile = db.profile.Profile(
-            pasta_id=pasta_id,
-            given_name=given_name,
-            family_name=family_name,
-            email=email,
-        )
-        session.add(new_profile)
+        await udb.create_profile(pasta_id, given_name, family_name, email)
 
 
 RANDOM_PERSON_NAME_LIST = [
@@ -158,4 +153,4 @@ RANDOM_PERSON_NAME_LIST = [
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    asyncio.run(main())

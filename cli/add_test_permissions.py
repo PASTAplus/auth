@@ -6,7 +6,9 @@ import logging
 import pathlib
 import random
 import sys
+import uuid
 
+import daiquiri
 import sqlalchemy.exc
 
 ROOT_PATH = pathlib.Path(__file__).resolve().parent.parent
@@ -16,7 +18,7 @@ import db.profile
 import db.iface
 import db.permission
 
-log = logging.getLogger(__name__)
+log = daiquiri.getLogger(__name__)
 
 
 def main():
@@ -26,7 +28,7 @@ def main():
     session = db.iface.SessionLocal()
 
     try:
-        session.query(db.permission.Permission).delete()
+        session.query(db.permission.Rule).delete()
         session.query(db.permission.Resource).delete()
         session.query(db.permission.Collection).delete()
         add_permissions(session)
@@ -56,6 +58,7 @@ def add_permissions(session):
                 insert_entity(
                     session,
                     package_id,
+                    uuid.uuid4().hex,
                     'quality_report.xml',
                     'metadata',
                 )
@@ -63,6 +66,7 @@ def add_permissions(session):
                 insert_entity(
                     session,
                     package_id,
+                    uuid.uuid4().hex,
                     'metadata.eml',
                     'metadata',
                 )
@@ -72,6 +76,7 @@ def add_permissions(session):
                     insert_entity(
                         session,
                         package_id,
+                        uuid.uuid4().hex,
                         random.choice(RANDOM_FILE_NAME_TUP)
                         + random.choice(('.csv', '.txt', '.jpg', '.tiff')),
                         'data',
@@ -79,8 +84,6 @@ def add_permissions(session):
         log.info('')
 
     profile_id_list = get_profile_id_list(session)
-    log.debug(f'profile_id_list: {profile_id_list}')
-    # sys.exit()
     resource_id_list = get_resource_id_list(session)
     insert_permissions(session, resource_id_list, profile_id_list)
 
@@ -95,13 +98,12 @@ def insert_package(session, package_label):
     return new_collection.id
 
 
-def insert_entity(session, package_id, entity_name, entity_type):
-    log.debug(f'entity_name: {entity_name}')
-
+def insert_entity(session, package_id, resource_key, resource_label, resource_type):
     new_resource = db.permission.Resource(
         collection_id=package_id,
-        label=entity_name,
-        type=entity_type,
+        key=resource_key,
+        label=resource_label,
+        type=resource_type,
     )
     session.add(new_resource)
     session.flush()
@@ -110,21 +112,19 @@ def insert_entity(session, package_id, entity_name, entity_type):
 
 def get_profile_id_list(session):
     row_list = session.query(db.profile.Profile.id).all()
-    # log.debug(f'profile_id_list: {row_list}')
     return [row[0] for row in row_list]
 
 
 def get_resource_id_list(session):
     row_list = session.query(db.permission.Resource.id).all()
-    # log.debug(f'resource_id_list: {row_list}')
     return [row[0] for row in row_list]
 
 
 def insert_permission(session, profile_id, resource_id, level):
-    new_permission = db.permission.Permission(
+    new_permission = db.permission.Rule(
         resource_id=resource_id,
         principal_id=profile_id,
-        principal_type=db.permission.PrincipalType.PROFILE,
+        principal_type=db.permission.EntityType.PROFILE,
         level=level,
     )
     session.add(new_permission)
@@ -140,7 +140,7 @@ def insert_permissions(session, resource_id_list, profile_id_list):
                 (
                     db.permission.PermissionLevel.READ,
                     db.permission.PermissionLevel.WRITE,
-                    db.permission.PermissionLevel.OWN,
+                    db.permission.PermissionLevel.CHANGE,
                 )
             )
             insert_permission(session, profile_id, resource_id, level)
