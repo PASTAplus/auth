@@ -40,7 +40,7 @@ class PastaJwt:
         return f'{self.__class__.__name__}' f'(sub={self._claims_dict.get("sub")})'
 
     @property
-    def pasta_id(self) -> str:
+    def edi_id(self) -> str:
         return self._claims_dict.get('sub')
 
     @property
@@ -108,7 +108,7 @@ async def make_jwt(udb, identity_row, is_vetted):
     profile_row = identity_row.profile
     pasta_jwt = PastaJwt(
         {
-            'sub': profile_row.pasta_id,
+            'sub': profile_row.edi_id,
             'cn': profile_row.full_name,
             'gn': profile_row.given_name,
             'email': profile_row.email,

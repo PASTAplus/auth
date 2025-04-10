@@ -40,7 +40,7 @@ async def get_ui_permission(
             'resource_type_list': await udb.get_resource_types(token_profile_row),
             # Page
             'request': request,
-            'public_pasta_id': Config.PUBLIC_PASTA_ID,
+            'public_pasta_id': Config.PUBLIC_EDI_ID,
             'resource_type': request.query_params.get('type', ''),
         },
     )
@@ -129,7 +129,7 @@ def get_aggregate_collection_list(collection_query):
             d = {
                 'principal_id': profile_row.id,
                 'principal_type': 'profile',
-                'pasta_id': profile_row.pasta_id,
+                'edi_id': profile_row.edi_id,
                 'title': profile_row.full_name,
                 'description': profile_row.email,
             }
@@ -139,7 +139,7 @@ def get_aggregate_collection_list(collection_query):
             d = {
                 'principal_id': group_row.id,
                 'principal_type': 'group',
-                'pasta_id': group_row.pasta_id,
+                'edi_id': group_row.edi_id,
                 'title': group_row.name,
                 'description': group_row.description,
             }
@@ -176,7 +176,7 @@ def get_principal_sort_key(principal_dict):
             p['description'],
             p['principal_id'],
         )
-        if p['pasta_id'] != Config.PUBLIC_PASTA_ID
+        if p['edi_id'] != Config.PUBLIC_EDI_ID
         else ('',)
     )
 
@@ -215,7 +215,7 @@ async def get_aggregate_permission_list(udb, permission_generator):
             d = {
                 'principal_id': principal_row.id,
                 'principal_type': 'profile',
-                'pasta_id': profile_row.pasta_id,
+                'edi_id': profile_row.edi_id,
                 'title': profile_row.full_name,
                 'description': profile_row.email,
                 'avatar_url': profile_row.avatar_url,
@@ -226,7 +226,7 @@ async def get_aggregate_permission_list(udb, permission_generator):
             d = {
                 'principal_id': principal_row.id,
                 'principal_type': 'group',
-                'pasta_id': group_row.pasta_id,
+                'edi_id': group_row.edi_id,
                 'title': group_row.name,
                 'description': (group_row.description or ''),
                 'avatar_url': str(util.avatar.get_group_avatar_url()),
@@ -243,16 +243,16 @@ async def get_aggregate_permission_list(udb, permission_generator):
         )
 
     # If the query did not include the public user, add it
-    if Config.PUBLIC_PASTA_ID not in {p['pasta_id'] for p in principal_dict.values()}:
+    if Config.PUBLIC_EDI_ID not in {p['edi_id'] for p in principal_dict.values()}:
         public_row = await udb.get_public_profile()
-        principal_dict[(Config.PUBLIC_PASTA_ID, 'profile')] = {
+        principal_dict[(Config.PUBLIC_EDI_ID, 'profile')] = {
             'principal_id': (
                 await udb.get_principal_by_entity(
                     public_row.id, udb.principal_type_string_to_enum('profile')
                 )
             ).id,
             'principal_type': 'profile',
-            'pasta_id': public_row.pasta_id,
+            'edi_id': public_row.edi_id,
             'title': public_row.full_name,
             'description': (public_row.email or ''),
             'avatar_url': public_row.avatar_url,  # str(util.avatar.get_public_avatar_url()),

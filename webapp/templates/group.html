@@ -86,7 +86,7 @@
                   {# Description #}
                   <div class='child-grid-child description'>{{ group.description or '' }}</div>
 
-                  {# Member count, PASTA ID button, Remove button #}
+                  {# Member count, EDI ID button, Remove button #}
                   <div class='row-center-parent button-row'>
                     {# Member count #}
                     <div>
@@ -102,7 +102,7 @@
                     <div class='row-center-child'>
                       <div class='pasta-id-parent'>
                         <div class='pasta-id-child-text'>
-                          {{ group.pasta_id }}
+                          {{ group.edi_id }}
                         </div>
                         <div class='pasta-id-child-icon'>
                           <img src='{{ url('/static/svg/copy.svg') }}'

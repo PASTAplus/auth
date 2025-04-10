@@ -46,7 +46,7 @@ alter table identity_new rename to identity;
 
 CREATE TABLE profile_new (
 	id INTEGER NOT NULL,
-	pasta_id VARCHAR NOT NULL,
+	edi_id VARCHAR NOT NULL,
 	given_name VARCHAR,
 	family_name VARCHAR,
 	email VARCHAR,
@@ -57,12 +57,12 @@ CREATE TABLE profile_new (
 	association VARCHAR,
 	has_avatar BOOLEAN NOT NULL,
 	PRIMARY KEY (id),
-	UNIQUE (pasta_id)
+	UNIQUE (edi_id)
 );
 
 insert into profile_new (
 	id,
-	pasta_id,
+	edi_id,
 	given_name,
 	family_name,
 	email,
@@ -75,7 +75,7 @@ insert into profile_new (
 )
 select
   id,
-  pasta_id,
+  edi_id,
   given_name,
   family_name,
   email,

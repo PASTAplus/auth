@@ -66,7 +66,7 @@ def target(
     # TODO: All the following query parameters should be removed from the redirect
     # URI when the transition to the new authentication system is complete, since
     # they are effectively unsigned claims.
-    pasta_id: str,
+    edi_id: str,
     full_name: str,
     email: str,
     idp_uid: str,
@@ -90,7 +90,7 @@ def target(
         # TODO: All the following query parameters should be removed from the redirect
         # URI when the transition to the new authentication system is complete, since
         # they are effectively unsigned claims.
-        pasta_id=pasta_id,
+        edi_id=edi_id,
         cname=full_name,
         email=email,
         idp_uid=idp_uid,

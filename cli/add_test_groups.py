@@ -59,7 +59,7 @@ async def insert_groups(profile_row, profile_id_list):
     for group_idx in range(group_count):
         group_name = f'{profile_row.given_name}\'s group #{group_idx}'
         group_row = await udb.create_group(profile_row, group_name, None)
-        # new_group = db.group.Group(profile_id=profile_row, pasta_id=pasta_id, name=group_name)
+        # new_group = db.group.Group(profile_id=profile_row, edi_id=edi_id, name=group_name)
         # session.add(new_group)
         # session.flush()
         # group_id = new_group.id

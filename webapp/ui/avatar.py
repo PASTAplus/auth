@@ -80,12 +80,12 @@ async def post_avatar_update(
 
     if idp_uid == '':
         token_profile_row.has_avatar = False
-        avatar_path = util.avatar.get_avatar_path('profile', token_profile_row.pasta_id)
+        avatar_path = util.avatar.get_avatar_path('profile', token_profile_row.edi_id)
         avatar_path.unlink(missing_ok=True)
     else:
         token_profile_row.has_avatar = True
         avatar_img = util.avatar.get_avatar_path(idp_name, idp_uid).read_bytes()
-        util.avatar.save_avatar(avatar_img, 'profile', token_profile_row.pasta_id)
+        util.avatar.save_avatar(avatar_img, 'profile', token_profile_row.edi_id)
 
     await udb.update_profile(token_profile_row, has_avatar=idp_uid != '')
 

@@ -42,10 +42,10 @@ async def main():
 
 async def fill_profile():
     for s in RANDOM_PERSON_NAME_LIST:
-        pasta_id = f'PASTA-{uuid.uuid4().hex}'
+        edi_id = f'EDI-{uuid.uuid4().hex}'
         given_name, family_name = s.split(' ')
         email = f'{given_name.lower()}@{family_name.lower()}.com'
-        await udb.create_profile(pasta_id, given_name, family_name, email)
+        await udb.create_profile(edi_id, given_name, family_name, email)
 
 
 RANDOM_PERSON_NAME_LIST = [

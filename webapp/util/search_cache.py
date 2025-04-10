@@ -33,15 +33,15 @@ async def init_profiles(udb):
     profile_list = cache['profile_list']
     profile_list.clear()
     async for (profile_row, principal_row) in udb.get_all_profiles_generator():
-        if profile_row.pasta_id in Config.SUPERUSER_LIST:
+        if profile_row.edi_id in Config.SUPERUSER_LIST:
             continue
         key_tup = (
             profile_row.full_name,
             profile_row.family_name,
             profile_row.email,
-            profile_row.pasta_id,
-            # Enable searching for the PASTA ID without the 'PASTA-' prefix
-            re.sub(r'^PASTA-', '', profile_row.pasta_id),
+            profile_row.edi_id,
+            # Enable searching for the EDI ID without the 'EDI-' prefix
+            re.sub(r'^EDI-', '', profile_row.edi_id),
         )
         profile_list.append(
             (
@@ -49,7 +49,7 @@ async def init_profiles(udb):
                 {
                     'principal_id': principal_row.id,
                     'principal_type': 'profile',
-                    'pasta_id': profile_row.pasta_id,
+                    'edi_id': profile_row.edi_id,
                     'title': profile_row.full_name,
                     'description': profile_row.email,
                     'avatar_url': profile_row.avatar_url,
@@ -65,8 +65,8 @@ async def init_groups(udb):
         key_tup = (
             group_row.name,
             group_row.description,
-            group_row.pasta_id,
-            re.sub(r'^PASTA-', '', group_row.pasta_id),
+            group_row.edi_id,
+            re.sub(r'^EDI-', '', group_row.edi_id),
             'group',
         )
         group_list.append(
@@ -75,7 +75,7 @@ async def init_groups(udb):
                 {
                     'principal_id': group_row.id,
                     'principal_type': 'group',
-                    'pasta_id': group_row.pasta_id,
+                    'edi_id': group_row.edi_id,
                     'title': group_row.name,
                     'description': (group_row.description or ''),
                     'avatar_url': str(util.avatar.get_group_avatar_url()),

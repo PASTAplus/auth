@@ -308,7 +308,7 @@ function addPrincipalDiv(parentEl, principalObj)
       <div class='principal-info-child'>
         <div class='pasta-id-parent'>
           <div class='pasta-id-child-text'>
-            ${p.pasta_id}
+            ${p.edi_id}
           </div>
           <div class='pasta-id-child-icon'>
             <img class='pasta-id-copy-button' 

@@ -3,15 +3,15 @@
 # import webapp.util
 #
 #
-# def create_test_pasta_token(pasta_id, user_db_populated):
-#     profile = user_db_populated.get_profile(pasta_id)
-#     return pasta_token.make_pasta_token(profile.pasta_id)
+# def create_test_pasta_token(edi_id, user_db_populated):
+#     profile = user_db_populated.get_profile(edi_id)
+#     return pasta_token.make_pasta_token(profile.edi_id)
 #
-#     # profile = query.filter(Profile.pasta_id == pasta_id).first()
+#     # profile = query.filter(Profile.edi_id == edi_id).first()
 #
 #     # token = pasta_token.PastaToken()
 #     # token.system = Config.SYSTEM
-#     # token.uid = profile.pasta_id
+#     # token.uid = profile.edi_id
 #     # token.groups = ['public']
 #     # private_key = pasta_crypto.import_key(Config.PRIVATE_KEY_PATH)
 #     # log.debug(f'Creating token: {token.to_string()}')

@@ -49,7 +49,7 @@ def get_profile_avatar_url(profile_row, refresh=False):
                 Config.AVATARS_URL,
                 'profile',
                 urllib.parse.quote(
-                    util.filesystem.get_safe_reversible_path_element(profile_row.pasta_id)
+                    util.filesystem.get_safe_reversible_path_element(profile_row.edi_id)
                 ),
             )
         )
@@ -138,7 +138,7 @@ def get_public_avatar_url():
 
 def init_public_avatar():
     """Create an avatar image for the public user."""
-    dst_path = get_avatar_path('profile', Config.PUBLIC_PASTA_ID)
+    dst_path = get_avatar_path('profile', Config.PUBLIC_EDI_ID)
     with filelock.FileLock(dst_path.with_suffix('.lock')):
         if dst_path.exists():
             return

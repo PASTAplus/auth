@@ -1,6 +1,6 @@
 let headerContainerEl = document.getElementsByClassName('header-container')[0];
 const ROOT_PATH = headerContainerEl.dataset.rootPath;
-const PUBLIC_PASTA_ID = headerContainerEl.dataset.publicPastaId;
+const PUBLIC_EDI_ID = headerContainerEl.dataset.publicPastaId;
 const RESOURCE_TYPE = headerContainerEl.dataset.resourceType;
 const PERMISSION_LEVEL_LIST = ['None', 'Reader', 'Editor', 'Owner'];
 
@@ -458,7 +458,7 @@ function formatTreePrincipalDiv(principalList)
     htmlList.push(`
       <div class='tree-indent tree-principal'>
         <div class='tree-principal-name'>${principalObj.title}</div> 
-        <div class='tree-principal-pasta-id'>${principalObj.pasta_id}</div>
+        <div class='tree-principal-pasta-id'>${principalObj.edi_id}</div>
         <div class='tree-principal-permission-level'>
           ${formatTreePermissionLevelDiv(principalObj.permission_level)}
         </div>
@@ -496,7 +496,7 @@ function addPrincipalDiv(parentEl, principalObj)
       <div class='principal-info-child'>
         <div class='pasta-id-parent'>
           <div class='pasta-id-child-text'>
-            ${c.pasta_id}
+            ${c.edi_id}
           </div>
           <div class='pasta-id-child-icon'>
             <img class='pasta-id-copy-button' 
@@ -521,7 +521,7 @@ function addPermissionLevelDropdownDiv(parentEl, permissionObj)
     <option value='0' ${permission_level === 0 ? 'selected' : ''}>None</option>
     <option value='1' ${permission_level === 1 ? 'selected' : ''}>Reader</option>
   `;
-  if (permissionObj.pasta_id !== PUBLIC_PASTA_ID) {
+  if (permissionObj.edi_id !== PUBLIC_EDI_ID) {
     optionsHtml += `
       <option value='2' ${permission_level === 2 ? 'selected' : ''}>Editor</option>
       <option value='3' ${permission_level === 3 ? 'selected' : ''}>Owner</option>

@@ -50,7 +50,7 @@ class UserDb:
         given_name, family_name = full_name.split(' ', 1) if ' ' in full_name else (full_name, None)
         if identity_row is None:
             profile_row = await self.create_profile(
-                pasta_id=self.get_new_pasta_id(),
+                edi_id=self.get_new_pasta_id(),
                 given_name=given_name,
                 family_name=family_name,
                 email=email,
@@ -66,7 +66,7 @@ class UserDb:
             # Set the avatar for the profile to the avatar for the identity
             if has_avatar:
                 avatar_img = util.avatar.get_avatar_path(idp_name, idp_uid).read_bytes()
-                util.avatar.save_avatar(avatar_img, 'profile', profile_row.pasta_id)
+                util.avatar.save_avatar(avatar_img, 'profile', profile_row.edi_id)
         else:
             # We do not update the profile if it exists, since the profile belongs to
             # the user, and they may update their profile with their own information.
@@ -80,14 +80,14 @@ class UserDb:
 
     async def create_profile(
         self,
-        pasta_id: str,
+        edi_id: str,
         given_name: str = None,
         family_name: str = None,
         email: str = None,
         has_avatar: bool = False,
     ):
         new_profile_row = db.profile.Profile(
-            pasta_id=pasta_id,
+            edi_id=edi_id,
             given_name=given_name,
             family_name=family_name,
             email=email,
@@ -103,14 +103,14 @@ class UserDb:
         """Get the profile for the public user."""
         return (
             self.session.query(db.profile.Profile)
-            .filter(db.profile.Profile.pasta_id == Config.PUBLIC_PASTA_ID)
+            .filter(db.profile.Profile.edi_id == Config.PUBLIC_EDI_ID)
             .first()
         )
 
     async def create_public_profile(self):
         try:
             await self.create_profile(
-                pasta_id=Config.PUBLIC_PASTA_ID,
+                edi_id=Config.PUBLIC_EDI_ID,
                 given_name=Config.PUBLIC_NAME,
                 has_avatar=True,
             )
@@ -119,10 +119,10 @@ class UserDb:
         else:
             util.avatar.init_public_avatar()
 
-    async def get_profile(self, pasta_id):
+    async def get_profile(self, edi_id):
         return (
             self.session.query(db.profile.Profile)
-            .filter(db.profile.Profile.pasta_id == pasta_id)
+            .filter(db.profile.Profile.edi_id == edi_id)
             .first()
         )
 
@@ -222,7 +222,7 @@ class UserDb:
 
     @staticmethod
     def get_new_pasta_id():
-        return f'PASTA-{uuid.uuid4().hex}'
+        return f'EDI-{uuid.uuid4().hex}'
 
     async def get_all_profiles(self):
         return (
@@ -257,9 +257,9 @@ class UserDb:
 
     async def create_group(self, token_profile_row, name, description):
         """Create a new group which will be owned by token_profile_row."""
-        pasta_id = UserDb.get_new_pasta_id()
+        edi_id = UserDb.get_new_pasta_id()
         new_group_row = db.group.Group(
-            pasta_id=pasta_id,
+            edi_id=edi_id,
             profile=token_profile_row,
             name=name,
             description=description or None,
@@ -269,10 +269,10 @@ class UserDb:
         # Create the principal for the group.
         # The principal gives us a single ID, the principal ID, to use in rules.
         await self._add_principal(new_group_row.id, db.permission.EntityType.GROUP)
-        # Create a resource for tracking permissions on the group. We use the group PASTA ID as the
-        # resource key. Since it's impossible to predict what the PASTA ID will be for a new group,
+        # Create a resource for tracking permissions on the group. We use the group EDI ID as the
+        # resource key. Since it's impossible to predict what the EDI ID will be for a new group,
         # it's not possible to create resources that would interfere with groups created later.
-        resource_row = await self.create_resource(None, pasta_id, name, 'group')
+        resource_row = await self.create_resource(None, edi_id, name, 'group')
         # Create a permission for the group owner on the group resource.
         principal_row = await self.get_principal_by_entity(
             token_profile_row.id, db.permission.EntityType.PROFILE
@@ -288,7 +288,7 @@ class UserDb:
     # async def assert_has_group_ownership(self, token_profile_row, group_row):
     #     """Assert that the given profile owns the group."""
     #     if group_row.profile_id != token_profile_row.id:
-    #         raise ValueError(f'Group {group_row.pasta_id} is not owned by profile {token_profile_row.pasta_id}')
+    #         raise ValueError(f'Group {group_row.edi_id} is not owned by profile {token_profile_row.edi_id}')
 
     async def get_group(self, token_profile_row, group_id):
         """Get a group by its ID.
@@ -298,7 +298,7 @@ class UserDb:
             self.session.query(db.group.Group)
             .join(
                 db.permission.Resource,
-                db.permission.Resource.key == db.group.Group.pasta_id,
+                db.permission.Resource.key == db.group.Group.edi_id,
             )
             .join(
                 db.permission.Rule,
@@ -343,7 +343,7 @@ class UserDb:
         group_row = await self.get_group(token_profile_row, group_id)
         group_row.name = name
         group_row.description = description or None
-        await self._set_resource_label_by_key(group_row.pasta_id, name)
+        await self._set_resource_label_by_key(group_row.edi_id, name)
         self.session.commit()
 
     async def delete_group(self, token_profile_row, group_id):
@@ -356,7 +356,7 @@ class UserDb:
             db.group.GroupMember.group_id == group_row.id
         ).delete()
         self.session.delete(group_row)
-        await self._remove_resource_by_key(group_row.pasta_id)
+        await self._remove_resource_by_key(group_row.edi_id)
         self.session.commit()
 
     async def add_group_member(self, token_profile_row, group_id, member_profile_id):
@@ -411,7 +411,7 @@ class UserDb:
         )
 
     async def get_group_membership_pasta_id_set(self, token_profile_row):
-        return {group.pasta_id for group in await self.get_group_membership_list(token_profile_row)}
+        return {group.edi_id for group in await self.get_group_membership_list(token_profile_row)}
 
     async def leave_group_membership(self, token_profile_row, group_id):
         """Leave a group.
@@ -453,7 +453,7 @@ class UserDb:
             self.session.query(db.group.Group)
             .join(
                 db.permission.Resource,
-                db.permission.Resource.key == db.group.Group.pasta_id,
+                db.permission.Resource.key == db.group.Group.edi_id,
             )
             .join(
                 db.permission.Rule,

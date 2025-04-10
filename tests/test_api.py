@@ -13,7 +13,7 @@ def test_ping(client):
 
 # @pytest.mark.skip
 def test_list_profiles(client, user_db_populated):
-    util.pretty.pp(user_db_populated.get_profile('PASTA-61b8b8872c13469faf4a44e3ff50b848'))
+    util.pretty.pp(user_db_populated.get_profile('EDI-61b8b8872c13469faf4a44e3ff50b848'))
     response = client.get('/v1/profile/list')
     assert response.status_code == starlette.status.HTTP_200_OK
     sample.assert_equal_json(response.text, 'list_profiles.json')
@@ -22,10 +22,10 @@ def test_list_profiles(client, user_db_populated):
 # @pytest.mark.skip
 def test_map_identity(client, user_db_populated):
     token_a = tests.util.create_test_pasta_token(
-        'PASTA-e851e1a4b19c4b78992455807fe79534', user_db_populated
+        'EDI-e851e1a4b19c4b78992455807fe79534', user_db_populated
     )
     token_b = tests.util.create_test_pasta_token(
-        'PASTA-61b8b8872c13469faf4a44e3ff50b848', user_db_populated
+        'EDI-61b8b8872c13469faf4a44e3ff50b848', user_db_populated
     )
     response = client.post(
         '/v1/profile/map', params={'token_src_str': token_a, 'token_dst_str': token_b}
@@ -37,7 +37,7 @@ def test_map_identity(client, user_db_populated):
 
 def test_get_profile(client, user_db_populated):
     token = tests.util.create_test_pasta_token(
-        'PASTA-61b8b8872c13469faf4a44e3ff50b848', user_db_populated
+        'EDI-61b8b8872c13469faf4a44e3ff50b848', user_db_populated
     )
     response = client.get('/v1/profile/get', params={'token_str': token})
     assert response.status_code == starlette.status.HTTP_200_OK
@@ -46,7 +46,7 @@ def test_get_profile(client, user_db_populated):
 
 def test_profile_disable(client, user_db_populated):
     token = tests.util.create_test_pasta_token(
-        'PASTA-61b8b8872c13469faf4a44e3ff50b848', user_db_populated
+        'EDI-61b8b8872c13469faf4a44e3ff50b848', user_db_populated
     )
     response = client.post('/v1/profile/disable', params={'token_str': token})
     assert response.status_code == starlette.status.HTTP_200_OK
@@ -56,7 +56,7 @@ def test_profile_disable(client, user_db_populated):
 
 def test_identity_drop(client, user_db_populated):
     token = tests.util.create_test_pasta_token(
-        'PASTA-c422bd31545b4d7080a84ef1ba4a6a67', user_db_populated
+        'EDI-c422bd31545b4d7080a84ef1ba4a6a67', user_db_populated
     )
     response = client.post(
         '/v1/identity/drop',
@@ -73,7 +73,7 @@ def test_identity_drop(client, user_db_populated):
 
 def test_identity_list(client, user_db_populated):
     token = tests.util.create_test_pasta_token(
-        'PASTA-61b8b8872c13469faf4a44e3ff50b848', user_db_populated
+        'EDI-61b8b8872c13469faf4a44e3ff50b848', user_db_populated
     )
     response = client.get('/v1/identity/list', params={'token_str': token})
     assert response.status_code == starlette.status.HTTP_200_OK

@@ -38,7 +38,7 @@ async def get_ui_group(
         group_list.append(
             {
                 'id': group_row.id,
-                'pasta_id': group_row.pasta_id,
+                'edi_id': group_row.edi_id,
                 'name': group_row.name,
                 'description': group_row.description,
                 'member_count': group_row.member_count,
@@ -152,7 +152,7 @@ async def post_group_member_list(
                 {
                     'principal_id': p.id,
                     'principal_type': p.id,
-                    'pasta_id': p.pasta_id,
+                    'edi_id': p.edi_id,
                     'title': p.full_name,
                     'description': p.email,
                     # 'organization': p.organization,

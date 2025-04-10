@@ -51,7 +51,7 @@ async def handle_client_login(
         target_url,
         token=old_token_,
         pasta_token=pasta_token,
-        pasta_id=identity_row.profile.pasta_id,
+        edi_id=identity_row.profile.edi_id,
         full_name=identity_row.profile.full_name,
         email=identity_row.profile.email,
         idp_uid=identity_row.idp_uid,
@@ -67,7 +67,7 @@ async def handle_link_account(request, udb, idp_name, idp_uid, email, has_avatar
     # Link new account to the profile associated with the token.
     token_str = request.cookies.get('pasta_token')
     token_obj = util.pasta_jwt.PastaJwt.decode(token_str)
-    profile_row = await udb.get_profile(token_obj.pasta_id)
+    profile_row = await udb.get_profile(token_obj.edi_id)
     # Prevent linking an account that is already linked.
     identity_row = await udb.get_identity(idp_name, idp_uid)
     error_msg_str = None

@@ -40,4 +40,4 @@ async def token_profile_row(
     :rtype: Profile | None
     """
     if token_ is not None:
-        return await udb_.get_profile(token_.pasta_id)
+        return await udb_.get_profile(token_.edi_id)
