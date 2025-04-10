@@ -3,8 +3,6 @@ import starlette.templating
 import util.url
 from config import Config
 
-# Templates
-
 templates = starlette.templating.Jinja2Templates(Config.TEMPLATES_PATH)
 templates.env.globals.update(
     {
@@ -14,5 +12,3 @@ templates.env.globals.update(
         'dev_menu': Config.ENABLE_DEV_MENU,
     }
 )
-
-

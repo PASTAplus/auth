@@ -10,7 +10,9 @@ import util.redirect
 log = daiquiri.getLogger(__name__)
 router = fastapi.APIRouter()
 
+#
 # Internal routes
+#
 
 
 @router.post('/policy/accept')

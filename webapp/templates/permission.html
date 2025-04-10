@@ -41,9 +41,9 @@
         <h4>Select Resources</h4>
 
         <div>
-          <input type='text' class='form-control' id='collectionSearch' name='name' placeholder='Search for resources' autocomplete="off" spellcheck="false">
+          <input type='text' class='form-control' id='resourceFilter' placeholder='Filter resources' autocomplete="off" spellcheck="false">
         </div>
-        <div class='collection-right'>
+        <div class='tree-right'>
           <label>
             <input type='checkbox' id='selectAllCheckbox'/>
             Select All
@@ -54,29 +54,25 @@
             Show Permissions
           </label>
         </div>
-        <div class="collection-grid" id='collectionList'>
-          {#<div class='grid-msg'>Loading permissions...</div>#}
+        <div class="tree-grid" id='resourceTree'>
+          <div class='grid-msg'>Loading resources...</div>
         </div>
       </div>
 
       <div class='split-section split-right'>
-        {#<div class='main-grid-child'>#}
-        {#  <div class='permission-parent-flex'>#}
         <div>
           <h4>
             Set Permissions
           </h4>
         </div>
         <div>
-          <input type='text' class='form-control' id='candidateSearch' name='name' autocomplete="off" spellcheck="false">
-          <div id='candidateList' tabindex='0' class='form-control'></div>
+          <input type='text' class='form-control' id='principalSearch' autocomplete="off" spellcheck="false">
+          <div id='principalList' tabindex='0' class='form-control'></div>
         </div>
-        {#</div>#}
         <div class='permission-grid' id='permissionList'>
           {#<div class='grid-msg'>Loading permissions...</div>#}
         </div>
       </div>
     </div>
   </div>
-
 {% endblock %}

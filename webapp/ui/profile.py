@@ -3,7 +3,6 @@ import fastapi
 import starlette.requests
 import starlette.templating
 
-import db.iface
 import util.avatar
 import util.dependency
 import util.pasta_jwt
@@ -17,7 +16,9 @@ log = daiquiri.getLogger(__name__)
 router = fastapi.APIRouter()
 
 
+#
 # UI routes
+#
 
 # We allow opening the profile via POST in addition to GET, to be compliant with what
 # other clients except. TODO: Still needed?
@@ -28,15 +29,13 @@ async def get_post_ui_profile(
     token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    profile_row = udb.get_profile(token.pasta_id)
-
     return util.template.templates.TemplateResponse(
         'profile.html',
         {
             # Base
             'token': token,
             'avatar_url': util.avatar.get_profile_avatar_url(
-                profile_row,
+                token_profile_row,
                 refresh=request.query_params.get('refresh') == 'true',
             ),
             'profile': token_profile_row,
@@ -54,15 +53,13 @@ async def get_ui_profile_edit(
     token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    profile_row = udb.get_profile(token.pasta_id)
-
     return util.template.templates.TemplateResponse(
         'profile-edit.html',
         {
             # Base
             'token': token,
             'avatar_url': util.avatar.get_profile_avatar_url(
-                profile_row,
+                token_profile_row,
                 refresh=request.query_params.get('refresh') == 'true',
             ),
             'profile': token_profile_row,
@@ -74,7 +71,9 @@ async def get_ui_profile_edit(
     )
 
 
+#
 # Internal routes
+#
 
 
 @router.post('/profile/edit/update')

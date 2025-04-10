@@ -14,7 +14,7 @@ def test_public_key():
 
 
 def test_private_key():
-    key = pasta_crypto.import_key(Config.PRIVATE_KEY_PATH)
+    key = pasta_crypto.import_key(Config.PASTA_TOKEN_PRIVATE_KEY_PATH)
     assert isinstance(key, Crypto.PublicKey.RSA.RsaKey)
 
 
@@ -25,7 +25,7 @@ def test_verify_auth_token():
 
 
 def test_create_auth_token():
-    private_key = pasta_crypto.import_key(Config.PRIVATE_KEY_PATH)
+    private_key = pasta_crypto.import_key(Config.PASTA_TOKEN_PRIVATE_KEY_PATH)
     token = Config.TEST_TOKEN
     auth_token = pasta_crypto.create_auth_token(private_key, token)
     assert isinstance(auth_token, str)

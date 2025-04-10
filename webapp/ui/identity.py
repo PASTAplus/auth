@@ -3,7 +3,6 @@ import fastapi
 import starlette.requests
 import starlette.templating
 
-import db.iface
 import util.avatar
 import util.dependency
 import util.pasta_jwt
@@ -16,7 +15,9 @@ log = daiquiri.getLogger(__name__)
 
 router = fastapi.APIRouter()
 
+#
 # UI routes
+#
 
 
 @router.get('/ui/identity')
@@ -26,10 +27,8 @@ async def get_ui_identity(
     token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    profile_row = udb.get_profile(token.pasta_id)
-
     identity_list = []
-    for identity_row in profile_row.identities:
+    for identity_row in token_profile_row.identities:
         identity_list.append(
             {
                 'idp_name': identity_row.idp_name,
@@ -53,12 +52,15 @@ async def get_ui_identity(
             # Page
             'request': request,
             'identity_list': identity_list,
-            'msg': request.query_params.get('msg'),
+            'error_msg': request.query_params.get('error_msg'),
+            'success_msg': request.query_params.get('success_msg'),
         },
     )
 
 
+#
 # Internal routes
+#
 
 
 @router.post('/identity/unlink')
@@ -67,8 +69,6 @@ async def post_identity_unlink(
     udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    profile_row = udb.get_profile(token.pasta_id)
-
     form_data = await request.form()
     idp_name = form_data.get('idp_name')
     idp_uid = form_data.get('idp_uid')

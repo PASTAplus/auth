@@ -6,7 +6,6 @@ import requests
 import starlette.requests
 import starlette.status
 
-import db.iface
 import util.avatar
 import util.dependency
 import util.login

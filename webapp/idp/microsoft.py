@@ -7,7 +7,6 @@ import requests
 import starlette.requests
 import starlette.responses
 
-import db.iface
 import util.avatar
 import util.dependency
 import util.login
@@ -245,7 +244,5 @@ def get_user_avatar(access_token):
         headers={'Authorization': f'Bearer {access_token}', 'Accept': 'image/*'},
     )
     if not response.ok:
-        raise fastapi.HTTPException(
-            status_code=response.status_code, detail=response.text
-        )
+        raise fastapi.HTTPException(status_code=response.status_code, detail=response.text)
     return response.content

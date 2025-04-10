@@ -1,17 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-"""
-:Mod: pretty
-
-:Synopsis:
-
-:Author:
-    pasta
-
-:Created:
-    2/16/25
-"""
 import datetime
 import json
 import pprint
@@ -24,19 +10,9 @@ class CustomJSONEncoder(json.JSONEncoder):
             return obj.isoformat()
         return super().default(obj)
 
-    # def decode(self, obj):
-    #     if isinstance(obj, datetime.datetime):
-    #         return obj.isoformat()
-    #     return super().default(obj)
-
-
-# def json_loads(json_str: str) -> list | dict:
-#     return json.loads(json_str, cls=CustomJSONEncoder)
-
 
 def to_pretty_json(obj: list | dict) -> str:
     json_str = json.dumps(obj, indent=2, sort_keys=True, cls=CustomJSONEncoder)
-    # print(json_str)
     return json_str
 
 

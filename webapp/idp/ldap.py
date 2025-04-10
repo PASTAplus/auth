@@ -80,10 +80,7 @@ async def get_login_pasta(
 
 
 def get_ldap_uid(ldap_dn: str) -> str:
-    dn_dict = {
-        k.strip(): v.strip()
-        for (k, v) in (part.split('=') for part in ldap_dn.split(','))
-    }
+    dn_dict = {k.strip(): v.strip() for (k, v) in (part.split('=') for part in ldap_dn.split(','))}
     return dn_dict['idp_uid']
 
 
@@ -101,14 +98,10 @@ def parse_authorization_header(
     if auth_str is None:
         raise ValueError('No authorization header in request')
     if not (m := re.match(r'Basic\s+(.*)', auth_str)):
-        raise ValueError(
-            f'Invalid authorization scheme. Only Basic is supported: {auth_str}'
-        )
+        raise ValueError(f'Invalid authorization scheme. Only Basic is supported: {auth_str}')
     encoded_credentials = m.group(1)
     try:
-        decoded_credentials = base64.b64decode(
-            encoded_credentials, validate=True
-        ).decode('utf-8')
+        decoded_credentials = base64.b64decode(encoded_credentials, validate=True).decode('utf-8')
         idp_uid, password = decoded_credentials.split(':', 1)
         return idp_uid, password
     except (ValueError, IndexError, binascii.Error) as e:

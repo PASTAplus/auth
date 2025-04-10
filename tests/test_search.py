@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
-import logging
-import sys
 import heapq
 import random
+import sys
 
-log = logging.getLogger(__name__)
+import daiquiri
+
+log = daiquiri.getLogger(__name__)
 
 # For benchmarking
 C = 1

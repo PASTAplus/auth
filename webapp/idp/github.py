@@ -6,7 +6,6 @@ import requests
 import starlette.requests
 import starlette.status
 
-import db.iface
 import util.avatar
 import util.dependency
 import util.login
@@ -215,7 +214,5 @@ def get_error_message(
 def get_user_avatar(avatar_url):
     response = requests.get(avatar_url)
     if not response.ok:
-        raise fastapi.HTTPException(
-            status_code=response.status_code, detail=response.text
-        )
+        raise fastapi.HTTPException(status_code=response.status_code, detail=response.text)
     return response.content

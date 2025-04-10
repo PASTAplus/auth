@@ -3,7 +3,6 @@ import pprint
 
 import daiquiri
 import jwt
-import starlette.requests
 
 from config import Config
 
@@ -12,11 +11,12 @@ log = daiquiri.getLogger(__name__)
 PRIVATE_KEY_STR = Config.JWT_PRIVATE_KEY_PATH.read_text()
 PUBLIC_KEY_STR = Config.JWT_PUBLIC_KEY_PATH.read_text()
 
+
 class PastaJwt:
     """Encode, decode and hold the claims of a JWT.
 
-    A JSON Web Token (JWT) is JSON string in a specific format. This class encodes,
-    decodes and represents the claims of a PASTA JWT, but is not itself a JWT.
+    A JSON Web Token (JWT) is JSON string in a specific format. This class encodes, decodes and
+    represents the claims of a PASTA JWT, but is not itself a JWT.
     """
 
     def __init__(
@@ -66,9 +66,7 @@ class PastaJwt:
         claims_dict = self._claims_dict.copy()
         claims_dict['pastaGroups'] = list(claims_dict['pastaGroups'])
         log.info(f'Encoding token: {claims_dict}')
-        return jwt.encode(
-            claims_dict, PRIVATE_KEY_STR, algorithm=Config.JWT_ALGORITHM
-        )
+        return jwt.encode(claims_dict, PRIVATE_KEY_STR, algorithm=Config.JWT_ALGORITHM)
 
     @classmethod
     def decode(cls, token_str: str):
@@ -129,11 +127,3 @@ async def make_jwt(udb, identity_row, is_vetted):
     log.info('Created PASTA JWT:')
     log.info(pasta_jwt.claims_pp)
     return pasta_jwt.encode()
-
-
-# def refresh_token(
-#     token: PastaJwt = fastapi.Depends(token),
-# ):
-#     if token is None:
-#         return None
-#     return token.encode()

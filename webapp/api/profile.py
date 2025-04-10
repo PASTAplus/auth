@@ -1,7 +1,6 @@
 import daiquiri
 import fastapi
 import starlette.responses
-import webapp.user_db
 
 import util.dependency
 import util.old_token

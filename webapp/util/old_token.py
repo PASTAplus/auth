@@ -82,9 +82,7 @@ class OldToken(object):
         return delta > 1
 
     def ttl_to_iso(self) -> str:
-        dt = pendulum.from_timestamp(
-            int(self._token['ttl']) * 0.001, tz='America/Denver'
-        )
+        dt = pendulum.from_timestamp(int(self._token['ttl']) * 0.001, tz='America/Denver')
         return dt.to_iso8601_string()
 
     def from_auth_token(self, at: str):

@@ -9,7 +9,6 @@ import starlette.responses
 import starlette.status
 import starlette.templating
 
-import db.iface
 import util.avatar
 import util.dependency
 import util.pasta_jwt
@@ -27,9 +26,7 @@ def assert_dev_enabled(func):
     @functools.wraps(func)
     async def wrapper(*args, **kwargs):
         if not Config.ENABLE_DEV_MENU:
-            raise starlette.exceptions.HTTPException(
-                status_code=403, detail='Dev menu is disabled'
-            )
+            raise starlette.exceptions.HTTPException(status_code=403, detail='Dev menu is disabled')
         return await func(*args, **kwargs)
 
     return wrapper
@@ -57,7 +54,6 @@ async def get_dev_token(
                 'token_pp': 'NO TOKEN',
             },
         )
-    profile_row = udb.get_profile(token.pasta_id)
     return util.template.templates.TemplateResponse(
         'token.html',
         {
@@ -87,7 +83,7 @@ async def get_dev_profiles(
             # Base
             'token': token,
             'profile': None,
-            #
+            # Page
             'request': request,
             'profile_list': profile_list,
         },

@@ -3,7 +3,6 @@ import fastapi
 import starlette.requests
 import starlette.status
 
-import db.iface
 import util.avatar
 import util.dependency
 import util.login
@@ -20,7 +19,9 @@ log = daiquiri.getLogger(__name__)
 router = fastapi.APIRouter()
 
 
+#
 # UI routes
+#
 
 
 @router.get('/ui/signin')
@@ -54,7 +55,6 @@ async def get_ui_signin_link(
     token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    profile_row = udb.get_profile(token.pasta_id)
     return util.template.templates.TemplateResponse(
         'signin.html',
         {
@@ -68,7 +68,9 @@ async def get_ui_signin_link(
             'login_type': 'link',
             'target_url': Config.SERVICE_BASE_URL + '/ui/identity',
             'title': 'Link Account',
-            'text': """
+            'text':
+            # language=html
+                f"""
             <p>
             Sign in to the account you wish to link to this profile.
             </p>
@@ -114,8 +116,8 @@ async def post_signin_ldap(
     request: starlette.requests.Request,
     udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
 ):
-    """Handle LDAP sign in from the Auth sign in page. This duplicates some of the logic
-    in idp/ldap.py, but interacts with the browser instead of a server side client.
+    """Handle LDAP sign in from the Auth sign in page. This duplicates some of the logic in
+    idp/ldap.py, but interacts with the browser instead of a server side client.
     """
     form_data = await request.form()
     login_type = form_data.get('login_type')

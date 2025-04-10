@@ -1,5 +1,6 @@
 import contextlib
 import pathlib
+import logging
 
 import daiquiri.formatter
 import fastapi
@@ -48,6 +49,10 @@ daiquiri.setup(
     # ),
 )
 
+# Mute noisy debug output from the `filelock` module
+daiquiri.getLogger("filelock").setLevel(logging.WARNING)
+
+
 log = daiquiri.getLogger(__name__)
 
 
@@ -63,6 +68,7 @@ async def lifespan(
             await udb.create_public_profile()
     # Initialize the profile and group search cache
     await util.search_cache.init_cache()
+    # Run the app
     yield
     log.info('Application stopping...')
 
@@ -76,10 +82,29 @@ app.mount(
     name='static',
 )
 
+# Custom StaticFiles class to set MIME type
+class AvatarFiles(fastapi.staticfiles.StaticFiles):
+    """Custom StaticFiles class to set the mimetype for SVG files."""
+
+    async def get_response(self, path, scope):
+        full_path, stat_result = self.lookup_path(path)
+        if stat_result is None:
+            raise fastapi.HTTPException(status_code=404, detail="File not found")
+        return starlette.responses.FileResponse(
+            full_path,
+            stat_result=stat_result,
+            media_type='image/svg+xml' if await self.is_svg(full_path) else 'image/*',
+        )
+
+    async def is_svg(self, path):
+        with open(path, 'rb') as f:
+            return b'<?xml' in f.read(16).lower()
+
+
 # Set up serving of avatars
 app.mount(
     Config.AVATARS_URL,
-    fastapi.staticfiles.StaticFiles(directory=Config.AVATARS_PATH),
+    AvatarFiles(directory=Config.AVATARS_PATH),
     name='avatars',
 )
 
@@ -104,6 +129,7 @@ for file_path in (Config.STATIC_PATH / 'site').iterdir():
 # Middleware
 #
 
+
 class RootPathMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     async def dispatch(self, request: starlette.requests.Request, call_next):
         if not request.url.path.startswith(Config.ROOT_PATH):
@@ -115,14 +141,6 @@ class RootPathMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
         # from.
         request.scope['root_path'] = Config.ROOT_PATH
         return await call_next(request)
-
-
-class RouterLoggingMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
-    async def dispatch(self, request: starlette.requests.Request, call_next):
-        log.info(f'>>> {request.method} {request.url}')
-        response = await call_next(request)
-        log.info(f'<<< {response.status_code}')
-        return response
 
 
 class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
@@ -138,12 +156,32 @@ class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
         return await call_next(request)
 
 
+# class RouterLoggingMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
+#     async def dispatch(self, request: starlette.requests.Request, call_next):
+#         log.info(f'>>> {request.method} {request.url}')
+#         response = await call_next(request)
+#         log.info(f'<<< {response.status_code}')
+#         return response
+
+
+# class SuppressGetLoggingMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
+#     async def dispatch(self, request: starlette.requests.Request, call_next):
+#         if request.method == "GET":
+#             # Suppress logging for GET requests
+#             return await call_next(request)
+#         # Log other requests
+#         log.info(f"{request.method} {request.url}")
+#         return await call_next(request)
+
+
 # noinspection PyTypeChecker
 app.add_middleware(RootPathMiddleware)
 # noinspection PyTypeChecker
-app.add_middleware(RouterLoggingMiddleware)
+# app.add_middleware(RouterLoggingMiddleware)
 # noinspection PyTypeChecker
 app.add_middleware(RedirectToSigninMiddleware)
+# noinspection PyTypeChecker
+# app.add_middleware(SuppressGetLoggingMiddleware)
 
 app.include_router(api.refresh_token.router)
 app.include_router(api.ping.router)

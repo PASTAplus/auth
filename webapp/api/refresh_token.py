@@ -51,8 +51,8 @@ async def post_refresh(
         content=util.pasta_crypto.create_auth_token(PRIVATE_KEY, token_obj.to_string()),
     )
 
-    # # In the Portal, the TokenRefreshFilter middleware activates immediately, on the login request
-    # # itself, so we have to set the cookie here.
+    # In the Portal, the TokenRefreshFilter middleware activates immediately, on the login request
+    # itself, so we have to set the cookie here.
     # response.set_cookie('auth-token', token_obj.to_string())
 
     return response
