@@ -12,6 +12,8 @@ import starlette.status
 import util.dependency
 import util.old_token
 import util.pasta_ldap
+import util.pasta_jwt
+
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -63,7 +65,7 @@ async def get_login_pasta(
 
     log.debug(f'login_pasta() - login successful: {ldap_dn}')
 
-    await udb.create_or_update_profile_and_identity(
+    identity_row = await udb.create_or_update_profile_and_identity(
         full_name=dn_uid,
         idp_name='ldap',
         idp_uid=ldap_dn,
@@ -71,11 +73,13 @@ async def get_login_pasta(
         has_avatar=False,
     )
 
-    # As mentioned in the docstr, this response goes to the server side web app, so we
-    # create a limited response that contains only the items checked for by the server.
+    # As described in the docstr, this response goes to the server side web app, so we create a
+    # limited response that contains only the items checked for by the server.
     old_token_ = util.old_token.make_old_token(uid=ldap_dn, groups=Config.VETTED)
+    pasta_token = await util.pasta_jwt.make_jwt(udb, identity_row, is_vetted=True)
     response = starlette.responses.Response('Login successful')
     response.set_cookie('auth-token', old_token_)
+    response.set_cookie('pasta-token', pasta_token.encode('utf-8'))
     return response
 
 
