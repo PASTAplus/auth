@@ -122,6 +122,8 @@ async def make_jwt(udb, identity_row, is_vetted):
             # that the user is authenticated if they have a valid JWT.
             'pastaIsAuthenticated': True,
             'pastaIdentityId': identity_row.id,
+            'pastaIdpName': identity_row.idp_name,
+            'pastaIdpUid': identity_row.idp_uid,
         }
     )
     log.info('Created PASTA JWT:')
