@@ -122,8 +122,11 @@ async def make_jwt(udb, identity_row, is_vetted):
             # that the user is authenticated if they have a valid JWT.
             'pastaIsAuthenticated': True,
             'pastaIdentityId': identity_row.id,
+            # This field should be deprecated in the future.
             'pastaIdpName': identity_row.idp_name,
-            'pastaIdpUid': identity_row.idp_uid,
+            # Legacy behavior for Google was to use the email address as subject. This field should
+            # be deprecated in the future.
+            'pastaIdpUid': identity_row.email if identity_row.idp_name == 'google' else identity_row.idp_uid,
         }
     )
     log.info('Created PASTA JWT:')
