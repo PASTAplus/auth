@@ -10,6 +10,7 @@ auth.log
 config.py
 avatars/
 webapp/static/lib/
+docs/*.png
 certs/
 
 # General

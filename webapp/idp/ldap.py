@@ -79,13 +79,13 @@ async def get_login_pasta(
     pasta_token = await util.pasta_jwt.make_jwt(udb, identity_row, is_vetted=True)
     response = starlette.responses.Response('Login successful')
     response.set_cookie('auth-token', old_token_)
-    response.set_cookie('pasta-token', pasta_token.encode('utf-8'))
+    response.set_cookie('pasta-token', pasta_token)
     return response
 
 
 def get_ldap_uid(ldap_dn: str) -> str:
     dn_dict = {k.strip(): v.strip() for (k, v) in (part.split('=') for part in ldap_dn.split(','))}
-    return dn_dict['idp_uid']
+    return dn_dict['uid']
 
 
 def get_ldap_dn(idp_uid: str) -> str:
