@@ -55,3 +55,6 @@
     font-weight: bold;
 }
 
+.edi-id-parent {
+    max-width: none;
+}

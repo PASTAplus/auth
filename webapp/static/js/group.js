@@ -303,19 +303,17 @@ function addPrincipalDiv(parentEl, principalObj)
       <img src='${p.avatar_url}' alt='Avatar' class='avatar avatar-smaller'>
     </div>
     <div class='principal-child principal-info'>
-      <div class='principal-info-child'>${p.title}</div>
-      <div class='principal-info-child'>${p.description || ''}</div>
-      <div class='principal-info-child'>
-        <div class='pasta-id-parent'>
-          <div class='pasta-id-child-text'>
-            ${p.edi_id}
-          </div>
-          <div class='pasta-id-child-icon'>
-            <img class='pasta-id-copy-button' 
-              src='${ROOT_PATH}/static/svg/copy.svg' 
-              alt='Copy User Identifier'
-            >
-          </div>
+      <div class='principal-title'>${p.title}</div>
+      <div class='principal-description'>${p.description || ''}</div>
+      <div class='edi-id-parent'>
+        <div class='edi-id-child-text'>
+          ${p.edi_id}
+        </div>
+        <div class='edi-id-child-icon'>
+          <img class='edi-id-copy-button'
+            src='${ROOT_PATH}/static/svg/copy.svg'
+            alt='Copy User Identifier'
+          >
         </div>
       </div>
     </div>

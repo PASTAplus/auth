@@ -365,7 +365,7 @@ table td, table th {
     border: 0;
 }
 
-/*.pasta-id-copy-button {*/
+/*.edi-id-copy-button {*/
 /*    display: flex;*/
 /*    align-items: center;*/
 /*    gap: 0.5rem;*/
@@ -378,20 +378,20 @@ table td, table th {
 
 /* Pasta ID with copy button */
 
-.pasta-id-parent {
+.edi-id-parent {
     display: flex;
     align-items: center;
     /* gap: 0.5rem; */
     max-width: 10rem;
 }
 
-.pasta-id-child-text {
+.edi-id-child-text {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.pasta-id-child-icon {
+.edi-id-child-icon {
     cursor: pointer;
     border-radius: .3rem;
     padding: 0 .5rem 0 .5rem;
@@ -399,16 +399,16 @@ table td, table th {
     /* width: 1.2rem; */
 }
 
-.pasta-id-child-icon img {
+.edi-id-child-icon img {
     height: 1.05rem;
 }
 
-.pasta-id-child-icon:hover {
+.edi-id-child-icon:hover {
     transition: background-color .3s ease-in-out;
     background-color: rgba(0, 0, 0, 0.15);
 }
 
-.pasta-id-child-icon:active {
+.edi-id-child-icon:active {
     transform: scale(0.95);
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
 }

@@ -290,15 +290,54 @@ function refreshResourceTree()
     resourceTreeEl.innerHTML = `<div class='grid-msg'>No resources found</div>`;
     return;
   }
-  // We use a document fragment to avoid multiple reflows.
-  const fragment = document.createDocumentFragment();
-  for (const resourceObj of treeArray) {
-    if (resourceObj.collection_label === null && resourceObj.collection_type === null) {
-      addTreeNullCollectionDiv(fragment, resourceObj);
-    }
-    else {
-      addTreeCollectionDiv(fragment, resourceObj);
-    }
+  resourceTreeEl.innerHTML = refreshResourceTreeRecursive(resourceArray);
+}
+
+function refreshResourceTreeRecursive(resourceArray)
+{
+  const htmlArr = [];
+  for (const resourceObj of resourceArray) {
+    htmlArr.push(
+        `<ul class='tree'>
+          <li>
+            <details class='tree-details'>
+              <summary>
+                <span>
+                  <input type='checkbox' class='tree-checkbox'
+                    data-resource-id='${resourceObj.resource_id}'
+                  />
+                  <span class='tree-resource-title'>${resourceObj.label}</span>
+                  <span class='tree-resource-type'>${resourceObj.type}</span>
+                </span>
+              </summary>
+              <ul>
+                <li class='tree-indent'>
+                  ${formatTreePrincipalDiv(resourceObj.principals)}
+                  ${refreshResourceTreeRecursive(resourceObj.children)}
+                </li>
+              </ul>
+            </details>
+          </li>
+        </ul>
+    `);
+  }
+  return htmlArr.join('');
+}
+
+// Add section of the tree for a principal in a resource type.
+function formatTreePrincipalDiv(principalList)
+{
+  let htmlArray = [];
+  for (const principalObj of principalList) {
+    htmlArray.push(`
+      <div class='tree-principal'>
+        <div class='tree-principal-name'>${principalObj.title}</div>
+        <div class='tree-principal-edi-id'>${principalObj.edi_id}</div>
+        <div class='tree-principal-permission-level'>
+          ${formatTreePermissionLevelDiv(principalObj.permission_level)}
+        </div>
+      </div>
+    `);
   }
   resourceTreeEl.replaceChildren(fragment);
 }
@@ -491,19 +530,17 @@ function addPrincipalDiv(parentEl, principalObj)
       <img src='${c.avatar_url}' alt='Avatar' class='avatar avatar-smaller'>
     </div>
     <div class='principal-child principal-info'>
-      <div class='principal-info-child'>${c.title}</div>
-      <div class='principal-info-child'>${c.description || ''}</div>
-      <div class='principal-info-child'>
-        <div class='pasta-id-parent'>
-          <div class='pasta-id-child-text'>
-            ${c.edi_id}
-          </div>
-          <div class='pasta-id-child-icon'>
-            <img class='pasta-id-copy-button' 
-              src='${ROOT_PATH}/static/svg/copy.svg' 
-              alt='Copy User Identifier'
-            >
-          </div>
+      <div class='principal-title'>${c.title}</div>
+      <div class='principal-description'>${c.description || ''}</div>
+      <div class='edi-id-parent'>
+        <div class='edi-id-child-text'>
+          ${c.edi_id}
+        </div>
+        <div class='edi-id-child-icon'>
+          <img class='edi-id-copy-button'
+            src='${ROOT_PATH}/static/svg/copy.svg'
+            alt='Copy User Identifier'
+          >
         </div>
       </div>
     </div>

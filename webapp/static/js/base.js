@@ -21,9 +21,9 @@ function getPageName() {
 // Handle EDI ID copy buttons
 // This is a global event listener in order to handle dynamically created elements.
 document.addEventListener('click', function(ev) {
-  if (ev.target.matches('.pasta-id-copy-button')) {
-    const idEl = ev.target.closest('.pasta-id-parent');
-    const textEl = idEl.querySelector('.pasta-id-child-text');
+  if (ev.target.matches('.edi-id-copy-button')) {
+    const idEl = ev.target.closest('.edi-id-parent');
+    const textEl = idEl.querySelector('.edi-id-child-text');
     const pastaIdStr = textEl.textContent.trim();
     navigator.clipboard.writeText(pastaIdStr).catch(function (error) {
       errorDialog(error);
