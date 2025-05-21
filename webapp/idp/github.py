@@ -128,20 +128,20 @@ async def get_callback_github(
 
     idp_uid = user_dict['html_url']
     if 'name' in user_dict and user_dict['name'] is not None:
-        full_name = user_dict['name']
+        common_name = user_dict['name']
     elif 'login' in user_dict and user_dict['login'] is not None:
-        full_name = user_dict['login']
+        common_name = user_dict['login']
     else:
-        full_name = idp_uid
+        common_name = idp_uid
 
     return await util.login.handle_successful_login(
         request=request,
         udb=udb,
         login_type=login_type,
         target_url=target_url,
-        full_name=full_name,
         idp_name='github',
         idp_uid=idp_uid,
+        common_name=common_name,
         email=user_dict.get('email'),
         has_avatar=has_avatar,
         is_vetted=False,

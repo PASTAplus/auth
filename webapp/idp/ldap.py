@@ -66,9 +66,9 @@ async def get_login_pasta(
     log.debug(f'login_pasta() - login successful: {ldap_dn}')
 
     identity_row = await udb.create_or_update_profile_and_identity(
-        full_name=dn_uid,
         idp_name='ldap',
         idp_uid=ldap_dn,
+        common_name=dn_uid,
         email=None,
         has_avatar=False,
     )
@@ -88,8 +88,8 @@ def get_ldap_uid(ldap_dn: str) -> str:
     return dn_dict['uid']
 
 
-def get_ldap_dn(idp_uid: str) -> str:
-    return f'uid={idp_uid},o=EDI,dc=edirepository,dc=org'
+def get_ldap_dn(dn_uid: str) -> str:
+    return f'uid={dn_uid},o=EDI,dc=edirepository,dc=org'
 
 
 def parse_authorization_header(
@@ -113,4 +113,6 @@ def parse_authorization_header(
 
 
 def format_authorization_header(idp_uid: str, password: str) -> str:
+    assert ':' not in idp_uid
+    assert ':' not in password
     return f'Basic {base64.b64encode(f"{idp_uid}:{password}".encode()).decode()}'

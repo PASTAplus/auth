@@ -381,8 +381,7 @@ table td, table th {
 .edi-id-parent {
     display: flex;
     align-items: center;
-    /* gap: 0.5rem; */
-    max-width: 10rem;
+    max-width: 8rem;
 }
 
 .edi-id-child-text {

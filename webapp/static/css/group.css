@@ -195,7 +195,7 @@ Col 2: Remove button
 */
 .member-grid {
     display: grid;
-     grid-template-columns: max-content max-content;
+    grid-template-columns: 1fr auto;
     /* Use full width of each column */
     /*grid-template-columns: 1fr auto;*/
     align-items: center;
@@ -235,9 +235,17 @@ Principal (2 col row)
 }
 
 .principal-info {
+    /* Prefer breaking at spaces, but break long words if needed */
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
-.principal-info-child {
+
+.principal-title {
+    font-weight: bold;
+}
+
+.principal-description {
 }
 
 .principal-public {

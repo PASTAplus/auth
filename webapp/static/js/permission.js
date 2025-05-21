@@ -33,7 +33,7 @@ let principalArray = [];
 //  Initial setup
 //
 
-fetchResourceFilter();
+fetchResources();
 
 //
 //  Events
@@ -46,7 +46,7 @@ resourceFilterEl.addEventListener('input', function (_ev) {
   clearCheckboxStates();
   permissionArray = [];
   refreshPermissions();
-  resourceFetchDelay = setTimeout(fetchResourceFilter, 300);
+  resourceFetchDelay = setTimeout(fetchResources, 300);
 });
 
 selectAllCheckboxEl.addEventListener('change', function (ev) {
@@ -92,9 +92,9 @@ principalSearchEl.addEventListener('blur', function (ev) {
 principalListEl.addEventListener('mousedown', function (ev) {
   const divEl = ev.target.closest('.principal-flex');
   const principalId = parseInt(divEl.dataset.principalId);
-  const principalType = divEl.dataset.principalType;
+  // const principalType = divEl.dataset.principalType;
   const resources = getSelectedResourceIds();
-  fetchSetPermission(resources, principalId, principalType, 1);
+  fetchSetPermission(resources, principalId, 1);
 });
 
 
@@ -108,10 +108,10 @@ permissionListEl.addEventListener('change', function (ev) {
     const divEl = ev.target.closest('div');
     // dataset values are HTML attributes, which are always strings
     const principalId = parseInt(divEl.dataset.principalId);
-    const principalType = divEl.dataset.principalType;
+    // const principalType = divEl.dataset.principalType;
     const permissionLevel = parseInt(ev.target.value);
     const resources = getSelectedResourceIds();
-    fetchSetPermission(resources, principalId, principalType, permissionLevel);
+    fetchSetPermission(resources, principalId, permissionLevel);
   }
 });
 
@@ -138,13 +138,14 @@ showPermissionsCheckboxEl.addEventListener('change', function (_ev) {
 //  Fetch
 //
 
-function fetchResourceFilter()
+function fetchResources()
 {
   // const checkboxStates = saveCheckboxStates();
   const treeState = saveTreeState();
 
   // Display a "loading..." message if fetch is slow. This avoids the message flickering on in brief
-  // moments when the fetch is fast.
+  // moments when the fetch is fast, but the message can still flicker on briefly if the fetch takes
+  // just slightly longer than the timeout set here.
   const msgDelay = setTimeout(function () {
     resourceTreeEl.innerHTML = `<div class='grid-msg'>Loading resources...</div>`;
   }, 2000);
@@ -161,16 +162,18 @@ function fetchResourceFilter()
         }
         else {
           treeArray = resultObj.resources;
-          resourceMap.clear();
-          let mapIdx = 0;
-          for (const resourceObj of resultObj.resources) {
-            for (const [_resourceType, resourceTypeDict] of
-                Object.entries(resourceObj.resource_dict)) {
-              resourceTypeDict.resource_map_idx = mapIdx;
-              const resourceIds = Object.keys(resourceTypeDict.resource_id_dict).map(Number);
-              resourceMap.set(mapIdx++, resourceIds);
-            }
-          }
+
+          // resourceMap.clear();
+          // let mapIdx = 0;
+          // for (const resourceObj of resultObj.resources) {
+          //   for (const [_resourceType, resourceTypeDict] of
+          //       Object.entries(resourceObj.resource_dict)) {
+          //     resourceTypeDict.resource_map_idx = mapIdx;
+          //     const resourceIds = Object.keys(resourceTypeDict.resource_id_dict).map(Number);
+          //     resourceMap.set(mapIdx++, resourceIds);
+          //   }
+          // }
+
           clearTimeout(msgDelay);
           refreshResourceTree(treeArray);
           // restoreCheckboxStates(checkboxStates);
@@ -220,14 +223,14 @@ function fetchSelectedResourcePermissions()
       });
 }
 
-function fetchSetPermission(resources, principalId, principalType, permissionLevel)
+
+function fetchSetPermission(resources, principalId, permissionLevel)
 {
   fetch(`${ROOT_PATH}/permission/update`, {
     method: 'POST', headers: {
       'Content-Type': 'application/json',
     }, body: JSON.stringify({
-      resources: resources, principalId: principalId, principalType: principalType,
-      permissionLevel: permissionLevel,
+      resources: resources, principalId: principalId, permissionLevel: permissionLevel,
     }),
   })
       .then((response) => response.json())
@@ -236,7 +239,7 @@ function fetchSetPermission(resources, principalId, principalType, permissionLev
           errorDialog(resultObj.error);
         }
         else {
-          fetchResourceFilter();
+          fetchResources();
           principalSearchEl.value = '';
         }
       })
@@ -260,7 +263,7 @@ function fetchPrincipalSearch()
           errorDialog(resultObj.error);
         }
         else {
-          principalArray = resultObj.principal_list;
+          principalArray = resultObj.principals;
           refreshPrincipals();
         }
       })
@@ -273,7 +276,7 @@ function fetchPrincipalSearch()
 //  Refresh
 //
 
-function refreshResourceTree()
+function refreshResourceTree(resourceArray)
 {
   if (!resourceArray.length) {
     resourceTreeEl.innerHTML = `<div class='grid-msg'>No resources found</div>`;
@@ -328,7 +331,13 @@ function formatTreePrincipalDiv(principalList)
       </div>
     `);
   }
-  resourceTreeEl.replaceChildren(fragment);
+  return htmlArray.join('');
+}
+
+
+function formatTreePermissionLevelDiv(level)
+{
+  return PERMISSION_LEVEL_LIST[level] || 'Unknown';
 }
 
 function refreshSelectAllCheckbox()
@@ -394,7 +403,6 @@ function addPrincipalDiv(parentEl, principalObj)
   const principalEl = document.createElement('div');
   principalEl.classList.add('principal-flex');
   principalEl.dataset.principalId = c.principal_id;
-  principalEl.dataset.principalType = c.principal_type;
   principalEl.innerHTML = `
     <div class='principal-child principal-avatar'>
       <img src='${c.avatar_url}' alt='Avatar' class='avatar avatar-smaller'>
@@ -422,7 +430,7 @@ function addPermissionLevelDropdownDiv(parentEl, permissionObj)
 {
   const levelEl = document.createElement('div');
   levelEl.dataset.principalId = permissionObj.principal_id;
-  levelEl.dataset.principalType = permissionObj.principal_type;
+  // levelEl.dataset.principalType = permissionObj.principal_type;
   const permission_level = permissionObj.permission_level;
   let optionsHtml = `
     <option value='0' ${permission_level === 0 ? 'selected' : ''}>None</option>

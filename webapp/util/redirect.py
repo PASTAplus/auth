@@ -67,7 +67,7 @@ def target(
     # URI when the transition to the new authentication system is complete, since
     # they are effectively unsigned claims.
     edi_id: str,
-    full_name: str,
+    common_name: str,
     email: str,
     idp_uid: str,
     idp_name: str,
@@ -91,11 +91,12 @@ def target(
         # URI when the transition to the new authentication system is complete, since
         # they are effectively unsigned claims.
         edi_id=edi_id,
-        cname=full_name,
+        full_name=common_name,
         email=email,
         idp_uid=idp_uid,
         idp_name=idp_name,
         # For ezEML
+        common_name=common_name,
         sub=sub,
     )
     # auth-token is the location of the old proprietary token

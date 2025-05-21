@@ -57,6 +57,6 @@ async def post_membership_leave(
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     form_data = await request.form()
-    group_id = form_data.get('group-id')
+    group_id = int(form_data.get('group-id'))
     await udb.leave_group_membership(token_profile_row, group_id)
     return util.redirect.internal('/ui/membership')

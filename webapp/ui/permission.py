@@ -11,6 +11,9 @@ import util.dependency
 import util.pasta_jwt
 import util.search_cache
 import util.template
+
+import db.permission
+
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -31,6 +34,7 @@ async def get_ui_permission(
     token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
+    """Permission page. The contents of the panels are loaded separately."""
     return util.template.templates.TemplateResponse(
         'permission.html',
         {
@@ -74,116 +78,6 @@ async def post_permission_resource_filter(
     )
 
 
-def get_aggregate_collection_list(collection_query):
-    """Get a dict of collections with nested resources and permissions. The permissions are
-    aggregated by principal, and only the highest permission level is returned for each principal
-    and resource type.
-
-    :return: A dict of collections
-        - Each collection contains a dict of resource types
-        - Each resource type contains a dict of resources
-        - Each resource contains a dict of profiles
-        - Each principal contains the max permission level found for that principal in the resource
-        type
-    """
-    # Dicts preserve insertion order, so the dict structure will mirror the order in the query. The
-    # order will also carry over to the JSON output.
-    collection_dict = {}
-
-    for i, (
-        collection_row,
-        resource_row,
-        rule_row,
-        profile_row,
-        group_row,
-    ) in enumerate(collection_query.yield_per(Config.DB_YIELD_ROWS)):
-        if collection_row is not None:
-            collection_id = collection_row.id
-            collection_label = collection_row.label
-            collection_type = collection_row.type
-        else:
-            collection_id = f'single-{resource_row.id}'
-            collection_label = None
-            collection_type = None
-
-        resource_dict = collection_dict.setdefault(
-            collection_id,
-            {
-                'collection_label': collection_label,
-                'collection_type': collection_type,
-                'resource_dict': {},
-            },
-        )['resource_dict']
-
-        permission_dict = resource_dict.setdefault(
-            resource_row.type,
-            {
-                'resource_id_dict': {},
-                'principal_dict': {},
-            },
-        )
-
-        permission_dict['resource_id_dict'][resource_row.id] = resource_row.label
-        principal_dict = permission_dict['principal_dict']
-
-        if profile_row is not None:
-            # Principal is a profile
-            assert group_row is None, 'Profile and group cannot join on same row'
-            d = {
-                'principal_id': profile_row.id,
-                'principal_type': 'profile',
-                'edi_id': profile_row.edi_id,
-                'title': profile_row.full_name,
-                'description': profile_row.email,
-            }
-        elif group_row is not None:
-            # Principal is a group
-            assert profile_row is None, 'Profile and group cannot join on same row'
-            d = {
-                'principal_id': group_row.id,
-                'principal_type': 'group',
-                'edi_id': group_row.edi_id,
-                'title': group_row.name,
-                'description': group_row.description,
-            }
-        else:
-            assert False, 'Unreachable'
-
-        principal_info_dict = principal_dict.setdefault(
-            (d['principal_id'], d['principal_type']), {**d, 'permission_level': 0}
-        )
-
-        principal_info_dict['permission_level'] = max(
-            principal_info_dict['permission_level'], rule_row.level.value
-        )
-
-    # Iterate over principal_dict and convert to sorted lists
-    for collection_id, collection_info_dict in collection_dict.items():
-        for resource_type, resource_info_dict in collection_info_dict['resource_dict'].items():
-            resource_info_dict['principal_list'] = sorted(
-                resource_info_dict['principal_dict'].values(),
-                key=get_principal_sort_key,
-            )
-            del resource_info_dict['principal_dict']
-
-    # The keys in the dict are no longer needed, so we drop them and return a list.
-    return list(collection_dict.values())
-
-
-def get_principal_sort_key(principal_dict):
-    p = principal_dict
-    return (
-        (
-            p['principal_type'],
-            p['title'],
-            p['description'],
-            p['principal_id'],
-        )
-        if p['edi_id'] != Config.PUBLIC_EDI_ID
-        else ('',)
-    )
-
-
 @router.post('/permission/aggregate/get')
 async def post_permission_aggregate_get(
     request: starlette.requests.Request,
@@ -205,7 +99,6 @@ async def get_aggregate_permission_list(udb, permission_generator):
     principal_dict = {}
 
     async for (
-        collection_row,
         resource_row,
         rule_row,
         principal_row,
@@ -242,7 +135,8 @@ async def get_aggregate_permission_list(udb, permission_generator):
         )
 
         principal_info_dict['permission_level'] = max(
-            principal_info_dict['permission_level'], rule_row.level.value
+            principal_info_dict['permission_level'],
+            db.permission.get_permission_level_enum(rule_row.permission).value,
         )
 
     # If the query did not include the public user, add it
@@ -250,8 +144,8 @@ async def get_aggregate_permission_list(udb, permission_generator):
         public_row = await udb.get_public_profile()
         principal_dict[(Config.PUBLIC_EDI_ID, 'profile')] = {
             'principal_id': (
-                await udb.get_principal_by_entity(
-                    public_row.id, udb.principal_type_string_to_enum('profile')
+                await udb.get_principal_by_subject(
+                    public_row.id, db.permission.subject_type_string_to_enum('profile')
                 )
             ).id,
             'principal_type': 'profile',
@@ -278,7 +172,7 @@ async def post_permission_principal_search(
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',
-            'principal_list': principal_list,
+            'principals': principal_list,
         }
     )
 
@@ -294,14 +188,12 @@ async def post_permission_update(
     udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    """Called when the user changes the permission level dropdown for a profile."""
+    """Called when the user changes the permission level dropdown for a profile. """
     # TODO: There is a race condition where changes can be lost if the user changes multiple times
     # quickly for the same profile. This probably happens because the change is asynchronously sent
     # to the server, and the list is then async updated while the old list still exists and is still
-    # enabled in in the UI.
-    #
-    # After fix, the solution can be checked by adding a sleep on the server side, or by setting a
-    # very low bandwidth limit in the browser dev tools.
+    # enabled in the UI. After fixing, the solution can be checked by adding a sleep on the server
+    # side, or by setting a very low bandwidth limit in the browser dev tools.
     update_dict = await request.json()
     try:
         await udb.set_permissions(

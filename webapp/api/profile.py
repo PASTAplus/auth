@@ -18,7 +18,7 @@ async def profile_list(
     profile_list = []
     for profile_row in await udb.get_all_profiles():
         profile_list.append(profile_row.as_dict())
-    # webapp.util.pp(profile_list)
+    # util.pp(profile_list)
     return starlette.responses.Response(util.pretty.to_pretty_json(profile_list))
 
 

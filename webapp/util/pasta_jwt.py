@@ -4,6 +4,9 @@ import pprint
 import daiquiri
 import jwt
 
+import util.profile_cache
+
+
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -32,7 +35,7 @@ class PastaJwt:
                 'iat': int(now_dt.timestamp()),
                 'nbf': int(now_dt.timestamp()),
                 'exp': int((now_dt + Config.JWT_EXPIRATION_DELTA).timestamp()),
-                'pastaGroups': set(claims_dict.get('pastaGroups', [])),
+                'principals': set(claims_dict.get('principals', [])),
             }
         )
 
@@ -64,7 +67,7 @@ class PastaJwt:
     def encode(self) -> str:
         """Encode the PastaJwt to a string for sending to client."""
         claims_dict = self._claims_dict.copy()
-        claims_dict['pastaGroups'] = list(claims_dict['pastaGroups'])
+        claims_dict['principals'] = list(sorted(claims_dict['principals']))
         log.info(f'Encoding token: {claims_dict}')
         return jwt.encode(claims_dict, PRIVATE_KEY_STR, algorithm=Config.JWT_ALGORITHM)
 
@@ -121,8 +124,8 @@ async def make_jwt(udb, identity_row, is_vetted):
             'gn': profile_row.given_name,
             'email': profile_row.email,
             'sn': profile_row.family_name,
-            'pastaGroups': await udb.get_group_membership_pasta_id_set(profile_row),
-            'pastaIsEmailEnabled': profile_row.email_notifications,
+            'principals': principals_set,
+            'isEmailEnabled': profile_row.email_notifications,
             # We don't have an email verification procedure yet
             'isEmailVerified': False,
             'identityId': identity_row.id,

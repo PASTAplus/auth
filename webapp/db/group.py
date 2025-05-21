@@ -18,7 +18,7 @@ log = daiquiri.getLogger(__name__)
 class Group(db.base.Base):
     __tablename__ = 'group'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    # The group EDI ID. This is the unique reference for the group in PASTA.
+    # The group EDI-ID. This is the unique reference for the group in PASTA.
     edi_id = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True, index=True)
     # The profile of the user who create the group.
     profile_id = sqlalchemy.Column(
@@ -75,7 +75,7 @@ class GroupMember(db.base.Base):
         sqlalchemy.Integer, sqlalchemy.ForeignKey('group.id'), nullable=False, index=True
     )
     # The profile of the user who is a member of the group. May include the owner of the group.
-    # Groups cannot be group members.
+    # Groups cannot be group members, so we use profile_id instead of principal_id.
     profile_id = sqlalchemy.Column(
         sqlalchemy.Integer, sqlalchemy.ForeignKey('profile.id'), nullable=False, index=True
     )

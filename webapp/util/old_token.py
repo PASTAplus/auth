@@ -96,6 +96,6 @@ def make_old_token(uid, groups=''):
     old_token_obj.uid = uid
     old_token_obj.groups = groups
     private_key = util.pasta_crypto.import_key(Config.PASTA_TOKEN_PRIVATE_KEY_PATH)
-    log.debug(f'Creating token: {old_token_obj.to_string()}')
+    log.debug(f'Creating old style token: {old_token_obj.to_string()}')
     old_token_str = util.pasta_crypto.create_auth_token(private_key, old_token_obj.to_string())
     return old_token_str

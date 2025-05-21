@@ -18,7 +18,7 @@ function getPageName() {
   return split_list[split_list.length - 1];
 }
 
-// Handle EDI ID copy buttons
+// Handle EDI-ID copy buttons
 // This is a global event listener in order to handle dynamically created elements.
 document.addEventListener('click', function(ev) {
   if (ev.target.matches('.edi-id-copy-button')) {

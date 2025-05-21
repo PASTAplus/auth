@@ -4,8 +4,8 @@ See run.py for the main entry point for development and testing.
 """
 import daiquiri
 
-from webapp.config import Config
-from webapp.main import app
+from config import Config
+from main import app
 
 daiquiri.setup(
     level=Config.LOG_LEVEL,

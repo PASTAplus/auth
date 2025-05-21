@@ -69,9 +69,9 @@ principalSearchEl.addEventListener('blur', function (_ev) {
 // before the click event.
 principalListEl.addEventListener('mousedown', function (ev) {
   const divEl = ev.target.closest('.principal-flex');
-  const principalId = parseInt(divEl.dataset.principalId);
+  const profileId = parseInt(divEl.dataset.profileId);
   const groupId = getGroupId();
-  fetchAddRemoveMember(groupId, principalId, true);
+  fetchAddRemoveMember(groupId, profileId, true);
   principalSearchEl.value = '';
 });
 
@@ -80,14 +80,14 @@ function getGroupId() {
   return document.querySelector('input[name="group-select"]:checked').value;
 }
 
-// Remove a principal from the group
+// Remove a profile from the group
 // Global click handler
 document.addEventListener('click', function (ev) {
   const buttonEl = ev.target.closest('.remove-button');
   if (!buttonEl) {return;}
-  const principalId = parseInt(buttonEl.parentElement.dataset.principalId);
+  const profileId = parseInt(buttonEl.parentElement.dataset.profileId);
   const groupId = getGroupId();
-  fetchAddRemoveMember(groupId, principalId, false);
+  fetchAddRemoveMember(groupId, profileId, false);
 });
 
 
@@ -247,7 +247,7 @@ deleteGroupModal.addEventListener('show.bs.modal', function (ev) {
 //
 
 function hasMember(profileId) {
-  return memberProfileArray.some((profileObj) => profileObj.principal_id === profileId);
+  return memberProfileArray.some((profileObj) => profileObj.profile_id === profileId);
 }
 
 
@@ -296,8 +296,7 @@ function addPrincipalDiv(parentEl, principalObj)
   const p = principalObj;
   const principalEl = document.createElement('div');
   principalEl.classList.add('principal-flex');
-  principalEl.dataset.principalId = p.principal_id;
-  principalEl.dataset.principalType = p.principal_type;
+  principalEl.dataset.profileId = p.profile_id;
   principalEl.innerHTML = `
     <div class='principal-child principal-avatar'>
       <img src='${p.avatar_url}' alt='Avatar' class='avatar avatar-smaller'>
@@ -324,7 +323,7 @@ function addPrincipalDiv(parentEl, principalObj)
 
 function addRemoveButtonDiv(parentEl, principalObj) {
   const removeEl = document.createElement('div');
-  removeEl.dataset.principalId = principalObj.principal_id;
+  removeEl.dataset.profileId = principalObj.profile_id;
   removeEl.innerHTML = `
     <button class='remove-button icon-text-button'>
       <span><img src='${ROOT_PATH}/static/svg/leave-group.svg' alt='Remove'></span>

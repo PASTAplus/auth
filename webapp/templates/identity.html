@@ -67,7 +67,7 @@
               </div>
             </div>
             <div class='grid-child'>
-              {{ identity.full_name or identity.email or '' }}
+              {{ identity.common_name or identity.email or '' }}
             </div>
             <div class='grid-child'>
               {% if identity_list|length > 1 %}

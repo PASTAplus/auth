@@ -5,8 +5,8 @@ See wsgi.py for the main entry point for production.
 import daiquiri
 import uvicorn
 
-from webapp.config import Config
-from webapp.main import app
+from config import Config
+import app
 
 daiquiri.setup(
     level=Config.LOG_LEVEL,
@@ -17,9 +17,10 @@ daiquiri.setup(
 )
 
 if __name__ == "__main__":
-    uvicorn.run(app,
-                host='127.0.0.1',
-                port=5443,
-                ssl_keyfile=Config.SERVER_KEY,
-                ssl_certfile=Config.SERVER_CERT
-                )
+    uvicorn.run(
+        app.app,
+        host='127.0.0.1',
+        port=5443,
+        ssl_keyfile=Config.TLS_KEY_PATH,
+        ssl_certfile=Config.TLS_CERT_PATH,
+    )
