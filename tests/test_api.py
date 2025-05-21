@@ -4,11 +4,11 @@ import starlette.status
 import util.pretty
 
 
-# @pytest.mark.skip
-def test_ping(client):
-    response = client.get('/auth/ping')
-    assert response.status_code == starlette.status.HTTP_200_OK
-    assert response.text == 'pong'
+import db.profile
+import sample
+import tests.utils
+import db.resource_tree
+import db.permission
 
 
 # @pytest.mark.skip
@@ -56,6 +56,10 @@ async def test_3(client, pop_udb, profile_row):
 #         print(row.id)
 #         print(row.permission)
 
+    resource_query = await pop_udb.get_resource_list(profile_row, '', None)
+    resource_tree = db.resource_tree.get_resource_tree_for_ui(resource_query)
+    # pprint.pp(resource_tree)
+    print(json.dumps(resource_tree, indent=2))
 
 def test_identity_list(client, user_db_populated):
     token = tests.util.create_test_pasta_token(

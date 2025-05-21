@@ -5,6 +5,7 @@ import starlette.responses
 import starlette.status
 import starlette.templating
 
+import db.resource_tree
 import util.avatar
 import util.dependency
 import util.pasta_jwt
@@ -62,11 +63,12 @@ async def post_permission_resource_filter(
     resource_query = await udb.get_resource_list(
         token_profile_row, query_dict.get('query'), query_dict.get('type') or None
     )
-    resource_list = get_aggregate_collection_list(resource_query)
+    resource_tree = db.resource_tree.get_resource_tree_for_ui(resource_query)
+    # pprint.pp(resource_tree)
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',
-            'resources': resource_list,
+            'resources': resource_tree,
         }
     )
 
@@ -258,7 +260,7 @@ async def get_aggregate_permission_list(udb, permission_generator):
             'avatar_url': public_row.avatar_url,  # str(util.avatar.get_public_avatar_url()),
         }
 
-    return sorted(principal_dict.values(), key=get_principal_sort_key)
+    return sorted(principal_dict.values(), key=db.resource_tree._get_principal_sort_key)
 
 
 @router.post('/permission/principal/search')

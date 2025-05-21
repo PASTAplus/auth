@@ -20,7 +20,7 @@ const principalSearchEl = document.getElementById('principalSearch');
 const principalListEl = document.getElementById('principalList');
 let principalFetchDelay = null;
 
-// The list of collection/resource/permission items in the resource tree
+// The list of resource/permission items in the resource tree
 let treeArray = [];
 // Map for looking up resource Ids for selected resources in the tree
 const resourceMap = new Map();
@@ -57,26 +57,12 @@ selectAllCheckboxEl.addEventListener('change', function (ev) {
 });
 
 resourceTreeEl.addEventListener('change', function (ev) {
-  // Propagate click on collection checkbox to resource checkboxes.
-  if (ev.target.classList.contains('tree-collection-checkbox')) {
-    const collectionItem = ev.target.closest('.tree-collection-item');
-    const checkboxEls = collectionItem.querySelectorAll('.tree-resource-type-checkbox');
+  // Propagate click on resource checkbox to child checkboxes.
+  if (ev.target.classList.contains('tree-checkbox')) {
+    const detailsEl = ev.target.closest('.tree-details');
+    const checkboxEls = detailsEl.querySelectorAll('.tree-checkbox');
     for (const checkboxEl of checkboxEls) {
       checkboxEl.checked = ev.target.checked;
-    }
-    refreshSelectAllCheckbox();
-    fetchSelectedResourcePermissions();
-  }
-  // Propagate click on resource type checkbox to collection checkbox.
-  if (ev.target.classList.contains('tree-resource-type-checkbox')) {
-    const collectionItemEl = ev.target.closest('.tree-collection-item');
-    const collectionCheckboxEl = collectionItemEl.querySelector('.tree-collection-checkbox');
-    // If collectionCheckboxEl is null, this is a top level resource, so there is no collection
-    // item.
-    if (collectionCheckboxEl !== null) {
-      const resourceTypesEl = collectionItemEl.querySelector('.tree-resource-type-list');
-      collectionCheckboxEl.checked = isAllChecked(resourceTypesEl);
-      // return;
     }
     refreshSelectAllCheckbox();
     fetchSelectedResourcePermissions();
@@ -153,7 +139,8 @@ showPermissionsCheckboxEl.addEventListener('change', function (_ev) {
 
 function fetchResourceFilter()
 {
-  const checkboxStates = saveCheckboxStates();
+  // const checkboxStates = saveCheckboxStates();
+  const treeState = saveTreeState();
 
   // Display a "loading..." message if fetch is slow. This avoids the message flickering on in brief
   // moments when the fetch is fast.
@@ -184,8 +171,9 @@ function fetchResourceFilter()
             }
           }
           clearTimeout(msgDelay);
-          refreshResourceTree();
-          restoreCheckboxStates(checkboxStates);
+          refreshResourceTree(treeArray);
+          // restoreCheckboxStates(checkboxStates);
+          restoreTreeState(treeState);
           fetchSelectedResourcePermissions();
         }
       })
@@ -286,7 +274,7 @@ function fetchPrincipalSearch()
 
 function refreshResourceTree()
 {
-  if (!treeArray.length) {
+  if (!resourceArray.length) {
     resourceTreeEl.innerHTML = `<div class='grid-msg'>No resources found</div>`;
     return;
   }
@@ -392,125 +380,6 @@ function refreshPrincipals()
     principalListEl.classList.add('visible');
   }
   principalListEl.replaceChildren(fragment);
-}
-
-// Add section of the tree for a resource that is in a collection.
-
-function addTreeCollectionDiv(parentEl, collectionObj)
-{
-  const collectionEl = document.createElement('div');
-  collectionEl.classList.add('tree-collection-item');
-  collectionEl.innerHTML = `
-    <div class=''>
-      <label>
-        <span>
-          <input type='checkbox' class='tree-checkbox tree-collection-checkbox'/>
-          <span class='tree-title'>${collectionObj.collection_label}</span>
-          <span class='tree-collection-type tree-type-label'>${collectionObj.collection_type}</span>
-        </span>
-      </label>
-    </div>
-    <div class='tree-resource-type-list'>
-      ${formatTreeResourceTypeDiv(collectionObj.resource_dict)}
-   </div>
-  `;
-  parentEl.appendChild(collectionEl);
-}
-
-
-function formatTreeResourceTypeDiv(resourceDict)
-{
-  let htmlList = [];
-  for (const [resourceType, resourceObj] of Object.entries(resourceDict)) {
-    let hideTypeClass;
-    let indentClass;
-    // if (resourceType.startsWith('single-')) {
-    //   hideTypeClass = 'tree-resource-hidden';
-    //   indentClass = '';
-    // }
-    // else {
-    hideTypeClass = '';
-    indentClass = 'tree-indent';
-    // }
-    // data-resource-type='${resourceType}'
-    htmlList.push(`
-      <div class='${indentClass}'>
-          <label class='tree-resource-type ${hideTypeClass}'>
-            <input type='checkbox' class='tree-checkbox tree-resource-type-checkbox'
-              data-resource-map-idx='${resourceObj.resource_map_idx}'
-            />
-            ${resourceType}
-          </label>
-        <div class=''>
-          ${formatTreePrincipalDiv(resourceObj.principal_list)}
-        </div>
-      </div>
-    `);
-  }
-  return htmlList.join('');
-}
-
-// Add section of the tree for a resource that is not in a collection.
-
-function addTreeNullCollectionDiv(parentEl, collectionObj)
-{
-  const collectionEl = document.createElement('div');
-  collectionEl.classList.add('tree-collection-item');
-  collectionEl.innerHTML = `
-    <div class='tree-resource-type-list'>
-      ${formatTreeNullResourceTypeDiv(collectionObj.resource_dict)}
-   </div>
-  `;
-  parentEl.appendChild(collectionEl);
-}
-
-function formatTreeNullResourceTypeDiv(resourceDict)
-{
-  let htmlList = [];
-  for (const [resourceType, resourceObj] of Object.entries(resourceDict)) {
-    htmlList.push(`
-      <div class=''>
-          <label class=''
-            data-resource-type='${resourceType}'
-          >
-            <input type='checkbox' class='tree-checkbox tree-resource-type-checkbox'
-              data-resource-map-idx='${resourceObj.resource_map_idx}'
-            />
-            <span class='tree-title'>${Object.values(resourceObj.resource_id_dict)[0]}</span>
-            <span class='tree-type-label'>${resourceType}</span>
-          </label>
-        <div class=''>
-          ${formatTreePrincipalDiv(resourceObj.principal_list)}
-        </div>
-      </div>
-    `);
-  }
-  return htmlList.join('');
-}
-
-// Add section of the tree for a principal in a resource type.
-// This is used resources both in and not in collections.
-function formatTreePrincipalDiv(principalList)
-{
-  let htmlList = [];
-  for (const principalObj of principalList) {
-    htmlList.push(`
-      <div class='tree-indent tree-principal'>
-        <div class='tree-principal-name'>${principalObj.title}</div> 
-        <div class='tree-principal-pasta-id'>${principalObj.edi_id}</div>
-        <div class='tree-principal-permission-level'>
-          ${formatTreePermissionLevelDiv(principalObj.permission_level)}
-        </div>
-      </div>
-    `);
-  }
-  return htmlList.join('');
-}
-
-
-function formatTreePermissionLevelDiv(level)
-{
-  return PERMISSION_LEVEL_LIST[level] || 'Unknown';
 }
 
 
@@ -628,4 +497,33 @@ function isAllChecked(rootEl)
 function isSomeChecked(rootEl)
 {
   return Array.from(rootEl.querySelectorAll('.tree-checkbox')).some(el => el.checked);
+}
+
+//
+// Tree
+//
+
+// Capture the open/closed and checked state of each node
+function saveTreeState() {
+  const state = {};
+  const detailsEls = document.querySelectorAll('.tree-details');
+  detailsEls.forEach(detailsEl => {
+    const checkboxEl = detailsEl.querySelector('.tree-checkbox');
+    const resourceId = checkboxEl.dataset.resourceId;
+    state[resourceId] = {open: detailsEl.open, checked: checkboxEl.checked};
+  });
+  return state;
+}
+
+// Apply the saved state to the tree
+function restoreTreeState(state) {
+  const detailsEls = document.querySelectorAll('.tree-details');
+  detailsEls.forEach(detailsEl => {
+    const checkboxEl = detailsEl.querySelector('.tree-checkbox');
+    const resourceId = checkboxEl.dataset.resourceId;
+    if (state[resourceId] !== undefined) {
+      detailsEl.open = state[resourceId].open;
+      checkboxEl.checked = state[resourceId].checked;
+    }
+  });
 }

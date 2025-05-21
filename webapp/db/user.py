@@ -14,6 +14,7 @@ import db.group
 import db.identity
 import db.permission
 import db.profile
+import db.resource_tree
 import db.sync
 import util.avatar
 from config import Config
