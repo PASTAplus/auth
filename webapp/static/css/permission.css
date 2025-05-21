@@ -303,43 +303,6 @@ Rule dropdown
     transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-/*select option:checked {*/
-/*    !* background-color: #f0f0f0; !* Set your desired background color *! *!*/
-/*    !* background-color: rgba(0, 0, 0, 0.15); *!*/
-/*}*/
-
-/*#levelDropdown:focus {*/
-/*    !* border-color: #007bff; *!*/
-/*    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);*/
-/*}*/
-
-/*#levelDropdown option:hover {*/
-/*    !* background-color: #f0f000 !important; *!*/
-/*    !* color: red; *!*/
-/*}*/
-
-/*#levelDropdown option {*/
-/*    !* padding: 0.5rem; *!*/
-/*}*/
-
-/*#levelDropdown:hover  {*/
-/*    !* background-color: #f0f000 !important; *!*/
-/*    !* color: red; *!*/
-/*}*/
-
-/*select option:hover {*/
-/*    background-color: #f0f000 !important; !* Set your desired highlight color *!*/
-/*    color: red; !* Set your desired text color *!*/
-/*}*/
-
-/*!*    !* padding: 1rem 1rem 1rem 1rem; *!*!*/
-/*!*    !* background-color: yellow; *!*!*/
-/*!*}*!*/
-
-/*#xyz123 option::hover {*/
-/*    color: green;*/
-/*}*/
-
 /*
 Principal search
 */

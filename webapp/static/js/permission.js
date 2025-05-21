@@ -573,40 +573,44 @@ function addPermissionLevelDropdownDiv(parentEl, permissionObj)
 //
 
 // Return a list of resourceIds for selected resource types and resources in resource tree.
+// function getSelectedResourceIds()
+// {
+//   const selectedResourceIds = [];
+//   const checkboxEls = document.querySelectorAll('.tree-checkbox:checked');
+//   for (const checkboxEl of checkboxEls) {
+//     const resourceId = parseInt(checkboxEl.dataset.resourceId);
+//     selectedResourceIds.push(resourceId);
+//   }
+//   return selectedResourceIds;
+// }
+
 function getSelectedResourceIds()
 {
-  const selectedResourceIds = [];
-  // Since resource checkboxes are updated when collection checkboxes are clicked, we only need to
-  // iterate over the resource checkboxes.
-  const checkboxEls = document.querySelectorAll('.tree-resource-type-checkbox:checked');
-  for (const checkboxEl of checkboxEls) {
-    const mapIdx = parseInt(checkboxEl.dataset.resourceMapIdx);
-    selectedResourceIds.push(...resourceMap.get(mapIdx));
-  }
-  return selectedResourceIds;
+  return Array.from(document.querySelectorAll('.tree-checkbox:checked'))
+      .map(checkboxEl => parseInt(checkboxEl.dataset.resourceId));
 }
 
 //
 // Checkboxes
 //
 
-function saveCheckboxStates()
-{
-  const states = [];
-  states.push(selectAllCheckboxEl.checked);
-  for (const checkboxEl of document.querySelectorAll('.tree-checkbox')) {
-    states.push(checkboxEl.checked);
-  }
-  return states;
-}
-
-function restoreCheckboxStates(checkboxStates)
-{
-  selectAllCheckboxEl.checked = checkboxStates.shift();
-  for (const checkboxEl of document.querySelectorAll('.tree-checkbox')) {
-    checkboxEl.checked = checkboxStates.shift();
-  }
-}
+// function saveCheckboxStates()
+// {
+//   const states = [];
+//   states.push(selectAllCheckboxEl.checked);
+//   for (const checkboxEl of document.querySelectorAll('.tree-checkbox')) {
+//     states.push(checkboxEl.checked);
+//   }
+//   return states;
+// }
+//
+// function restoreCheckboxStates(checkboxStates)
+// {
+//   selectAllCheckboxEl.checked = checkboxStates.shift();
+//   for (const checkboxEl of document.querySelectorAll('.tree-checkbox')) {
+//     checkboxEl.checked = checkboxStates.shift();
+//   }
+// }
 
 function clearCheckboxStates()
 {

@@ -53,18 +53,18 @@ class Group(db.base.Base):
         cascade_backrefs=False,
     )
 
-    @sqlalchemy.ext.hybrid.hybrid_property
-    def member_count(self):
-        return len(self.members)
-
-    # noinspection PyMethodParameters
-    @member_count.expression
-    def member_count(cls):
-        return (
-            sqlalchemy.select([sqlalchemy.func.count(GroupMember.id)])
-            .where(GroupMember.group_id == cls.id)
-            .label('member_count')
-        )
+    # @sqlalchemy.ext.hybrid.hybrid_property
+    # def member_count(self):
+    #     return len(self.members)
+    #
+    # # noinspection PyMethodParameters
+    # @member_count.expression
+    # def member_count(cls):
+    #     return (
+    #         sqlalchemy.select(sqlalchemy.func.count(GroupMember.id))
+    #         .where(GroupMember.group_id == cls.id)
+    #         .label('member_count')
+    #     )
 
 
 class GroupMember(db.base.Base):
