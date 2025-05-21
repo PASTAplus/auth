@@ -14,38 +14,11 @@ log = daiquiri.getLogger(__name__)
 #
 
 
-class Collection(db.base.Base):
-    """A collection of resources.
-
-    Multiple collections can have both the same label and type. Which collection a resource belongs
-    to is determined by the resource's collection_id. When searching for a collection, any ambiguity
-    is resolved by filtering on permissions on the referencing resource.
-    """
-
-    __tablename__ = 'collection'
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    # A human-readable name to display for the collection.
-    # E.g., 'edi.39.3'
-    label = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
-    # A string that describes the type of the collection.
-    # E.g., 'package'
-    type = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
-    # The date and time the collection was created.
-    created_date = sqlalchemy.Column(
-        sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now
-    )
-    resources = sqlalchemy.orm.relationship(
-        'Resource',
-        back_populates='collection',
-        cascade_backrefs=False,
-        cascade='all, delete-orphan',
-    )
-
-
 class Resource(db.base.Base):
     """A resource is anything for which permissions can be tracked individually.
 
-    The resource key is the unique identifier for the resource.
+    Resources can be addressed directly by their key. They also form a tree structure (acyclic
+    graph), as each resource can itself be a parent of other resources.
 
     Multiple resources can have both the same label and type. When searching for a resource,
     any ambiguity is resolved by filtering on permissions on the resource.
@@ -53,9 +26,10 @@ class Resource(db.base.Base):
 
     __tablename__ = 'resource'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    # The collection to which this resource belongs. For a standalone resource, this is null.
-    collection_id = sqlalchemy.Column(
-        sqlalchemy.Integer, sqlalchemy.ForeignKey('collection.id'), nullable=True, index=True
+    # Nodes in the resource tree can be either a parent or a child of other nodes.
+    # The parent of this resource. If this is null, this resource is a root node.
+    parent_id = sqlalchemy.Column(
+        sqlalchemy.Integer, sqlalchemy.ForeignKey('resource.id'), nullable=True, index=True
     )
     # The unique identifier for the resource.
     # E.g., for packages and entities objects, The PASTA URL of the resource
@@ -67,15 +41,6 @@ class Resource(db.base.Base):
     # This string is used for grouping resources of the same type.
     # E.g., for package entities: 'data', 'metadata'
     type = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
-    created_date = sqlalchemy.Column(
-        sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now
-    )
-    collection = sqlalchemy.orm.relationship(
-        'Collection',
-        back_populates='resources',
-        # cascade_backrefs=False,
-        passive_deletes=True,
-    )
     rules = sqlalchemy.orm.relationship(
         'Rule',
         back_populates='resource',
@@ -91,7 +56,53 @@ class PermissionLevel(enum.Enum):
     CHANGE = 3  # changePermission
 
 
-class EntityType(enum.Enum):
+def subject_type_string_to_enum(subject_type):
+    """Convert a string to a SubjectType enum."""
+    return SubjectType[subject_type.upper()]
+
+
+def permission_level_int_to_enum(permission_level):
+    """Convert an integer to a PermissionLevel enum."""
+    return PermissionLevel(permission_level)
+
+
+def get_permission_level_enum(permission_level):
+    """This is a workaround for a bug in SQLAlchemy, psycopg or Postgres that can cause ENUM
+    type columns to be returned as strings instead of enum objects. If `permission_level`
+    already is a PermissionLevel ENUM, it is returned unchanged. If it is a string, it is converted
+    to the corresponding ENUM.
+
+    TODO: Later in 2025, check if this is still needed.
+
+    Specifically, this happens for me only on the last row of a query result. It's not caused by
+    the data in the row itself, as it happens regardless of which row is the last row. Current
+    versions are:
+
+    - sqlalchemy=2.0.41=py311h9ecbd09_0
+    - psycopg=3.2.9=pyhd5ab78c_0
+    - psycopg-c=3.2.9=py311hafcc203_0
+    - PostgreSQL 14.17 (Ubuntu 14.17-0ubuntu0.22.04.1)
+
+    To reproduce the bug:
+
+    rows = (
+        await pop_udb.session.execute(sqlalchemy.select(db.permission.Rule))
+    ).scalars().all()
+    for row in rows:
+        # With bug still present, the permission level on the last row will be a string here.
+        # On the rest of the rows, it's the expected enum.
+    """
+    p = permission_level
+    return p if isinstance(p, PermissionLevel) else PermissionLevel[p]
+
+
+def get_subject_type_enum(subject_type):
+    """Like get_permission_level_enum()"""
+    s = subject_type
+    return s if isinstance(s, SubjectType) else SubjectType[s]
+
+
+class SubjectType(enum.Enum):
     PROFILE = 1
     GROUP = 2
 
@@ -111,7 +122,7 @@ class Rule(db.base.Base):
         sqlalchemy.Integer, sqlalchemy.ForeignKey('principal.id'), nullable=False, index=True
     )
     # The access level granted by this permission (enum of READ, WRITE or CHANGE).
-    level = sqlalchemy.Column(sqlalchemy.Enum(PermissionLevel), nullable=False, default=1)
+    permission = sqlalchemy.Column(sqlalchemy.Enum(PermissionLevel), nullable=False, default=1)
     # The date and time this permission was granted.
     granted_date = sqlalchemy.Column(
         sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now
@@ -140,11 +151,11 @@ class Principal(db.base.Base):
     __tablename__ = 'principal'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     # The user profile or user group represented by this principal.
-    entity_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, index=True)
+    subject_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, index=True)
     # The type of the entity (enum of PROFILE or GROUP).
-    entity_type = sqlalchemy.Column(sqlalchemy.Enum(EntityType), nullable=False, index=True)
+    subject_type = sqlalchemy.Column(sqlalchemy.Enum(SubjectType), nullable=False, index=True)
     __table_args__ = (
-        sqlalchemy.UniqueConstraint('entity_id', 'entity_type', name='entity_id_type_unique'),
+        sqlalchemy.UniqueConstraint('subject_id', 'subject_type', name='subject_id_type_unique'),
     )
     rules = sqlalchemy.orm.relationship(
         'Rule',
@@ -152,4 +163,3 @@ class Principal(db.base.Base):
         # cascade_backrefs=False,
         # cascade='all, delete-orphan',
     )
-
