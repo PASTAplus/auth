@@ -74,6 +74,11 @@ class Config(object):
 
     PUBLIC_EDI_ID = 'EDI-...'
     PUBLIC_NAME = 'Public Access'
+    PUBLIC_AVATAR_PATH = HERE_PATH / 'assets/public-avatar.svg'
+
+    AUTHENTICATED_EDI_ID = 'EDI-...'
+    AUTHENTICATED_NAME = 'Authenticated Access'
+    AUTHENTICATED_AVATAR_PATH = HERE_PATH / 'assets/authenticated-avatar.svg'
 
     SUPERUSER_LIST = [
         'EDI-...',

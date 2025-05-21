@@ -105,7 +105,15 @@ class PastaJwt:
 
 async def make_jwt(udb, identity_row, is_vetted):
     """Create a JWT for the given profile."""
+
+    # As we currently do not issue JWT tokens to public users, we can assume that the user is
+    # authenticated if they have a valid JWT.
+    # 'pastaIsAuthenticated': True,
     profile_row = identity_row.profile
+    principals_set = await udb.get_group_membership_edi_id_set(profile_row)
+    if not util.profile_cache.is_public_access(profile_row):
+        principals_set.add(Config.PUBLIC_EDI_ID)
+        principals_set.add(Config.AUTHENTICATED_EDI_ID)
     pasta_jwt = PastaJwt(
         {
             'sub': profile_row.edi_id,
@@ -116,17 +124,15 @@ async def make_jwt(udb, identity_row, is_vetted):
             'pastaGroups': await udb.get_group_membership_pasta_id_set(profile_row),
             'pastaIsEmailEnabled': profile_row.email_notifications,
             # We don't have an email verification procedure yet
-            'pastaIsEmailVerified': False,
-            'pastaIsVetted': is_vetted,
-            # As we currently do not issue JWT tokens to public users, we can assume
-            # that the user is authenticated if they have a valid JWT.
-            'pastaIsAuthenticated': True,
-            'pastaIdentityId': identity_row.id,
-            # This field should be deprecated in the future.
-            'pastaIdpName': identity_row.idp_name,
-            # Legacy behavior for Google was to use the email address as subject. This field should
-            # be deprecated in the future.
-            'pastaIdpUid': identity_row.email if identity_row.idp_name == 'google' else identity_row.idp_uid,
+            'isEmailVerified': False,
+            'identityId': identity_row.id,
+            # The remaining fields should be deprecated in the future.
+            'idpName': identity_row.idp_name,
+            # Legacy behavior for Google was to use the email address as subject
+            'idpUid': identity_row.email
+            if identity_row.idp_name == 'google'
+            else identity_row.idp_uid,
+            'idpCname': identity_row.common_name,
         }
     )
     log.info('Created PASTA JWT:')

@@ -41,7 +41,8 @@ async def get_ui_permission(
             'resource_type_list': await udb.get_resource_types(token_profile_row),
             # Page
             'request': request,
-            'public_pasta_id': Config.PUBLIC_EDI_ID,
+            'public_edi_id': Config.PUBLIC_EDI_ID,
+            'authenticated_edi_id': Config.AUTHENTICATED_EDI_ID,
             'resource_type': request.query_params.get('type', ''),
         },
     )

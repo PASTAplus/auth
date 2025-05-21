@@ -1,6 +1,7 @@
 let headerContainerEl = document.getElementsByClassName('header-container')[0];
 const ROOT_PATH = headerContainerEl.dataset.rootPath;
 const PUBLIC_EDI_ID = headerContainerEl.dataset.publicPastaId;
+const AUTHENTICATED_EDI_ID = headerContainerEl.dataset.authenticatedPastaId;
 const RESOURCE_TYPE = headerContainerEl.dataset.resourceType;
 const PERMISSION_LEVEL_LIST = ['None', 'Reader', 'Editor', 'Owner'];
 

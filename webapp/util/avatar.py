@@ -142,4 +142,12 @@ def init_public_avatar():
     with filelock.FileLock(dst_path.with_suffix('.lock')):
         if dst_path.exists():
             return
-    shutil.copy(Config.AVATAR_PUBLIC, dst_path)
+    shutil.copy(Config.PUBLIC_AVATAR_PATH, dst_path)
+
+def init_authenticated_avatar():
+    """Create an avatar image for the authenticated user."""
+    dst_path = get_avatar_path('profile', Config.AUTHENTICATED_EDI_ID)
+    with filelock.FileLock(dst_path.with_suffix('.lock')):
+        if dst_path.exists():
+            return
+    shutil.copy(Config.AUTHENTICATED_AVATAR_PATH, dst_path)
