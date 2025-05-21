@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-"""Fill the collection, resource and permission tables with random data.
+"""Fill the Resource and Rule tables with random data.
 """
+import asyncio
 import logging
 import pathlib
 import random
@@ -14,6 +15,7 @@ import sqlalchemy.exc
 ROOT_PATH = pathlib.Path(__file__).resolve().parent.parent
 sys.path.append((ROOT_PATH / 'webapp').as_posix())
 
+import util.dependency
 import db.profile
 import db.iface
 import db.permission
@@ -21,29 +23,22 @@ import db.permission
 log = daiquiri.getLogger(__name__)
 
 
-def main():
+async def main():
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
-    session = db.iface.SessionLocal()
 
-    try:
-        session.query(db.permission.Rule).delete()
-        session.query(db.permission.Resource).delete()
-        session.query(db.permission.Collection).delete()
-        add_permissions(session)
-    except sqlalchemy.exc.SQLAlchemyError as e:
-        log.error(f'Error: {e}')
-        session.rollback()
-        return 1
+    async with util.dependency.get_session() as session:
+        await session.execute(sqlalchemy.delete(db.permission.Rule))
+        await session.execute(sqlalchemy.delete(db.permission.Resource))
+        await add_permissions(session)
 
-    session.commit()
-
-    log.info('Collections, resources and permissions have been added')
+    log.info('Resources and permissions have been added')
 
     return 0
 
-def add_permissions(session):
+
+async def add_permissions(session):
     for scope in RANDOM_SCOPE_TUP:
         id_count = random.randrange(1, 10)
         id_ = random.randrange(1, 10000)
@@ -53,89 +48,74 @@ def add_permissions(session):
             for ver in range(1, ver_count):
                 label = f'{scope}.{id_}.{ver}'
                 log.info(label)
-                package_id = insert_package(session, label)
-                # quality report
-                insert_entity(
-                    session,
-                    package_id,
-                    uuid.uuid4().hex,
-                    'quality_report.xml',
-                    'metadata',
+
+                # Package (root resource)
+
+                package_id = await insert_resource(
+                    session, None, uuid.uuid4().hex, label, 'package'
                 )
-                # metadata
-                insert_entity(
-                    session,
-                    package_id,
-                    uuid.uuid4().hex,
-                    'metadata.eml',
-                    'metadata',
+
+                # Metadata
+
+                metadata_id = await insert_resource(
+                    session, package_id, uuid.uuid4().hex, 'Metadata', 'collection'
                 )
-                # data
+                await insert_resource(
+                    session, metadata_id, uuid.uuid4().hex, 'quality_report.xml', 'metadata'
+                )
+                await insert_resource(
+                    session, metadata_id, uuid.uuid4().hex, 'metadata.eml', 'metadata'
+                )
+
+                # Data
+
+                data_id = await insert_resource(
+                    session, package_id, uuid.uuid4().hex, 'Data', 'collection'
+                )
+
                 data_count = random.randrange(1, 10)
                 for j in range(data_count):
-                    insert_entity(
+                    await insert_resource(
                         session,
-                        package_id,
+                        data_id,
                         uuid.uuid4().hex,
                         random.choice(RANDOM_FILE_NAME_TUP)
                         + random.choice(('.csv', '.txt', '.jpg', '.tiff')),
                         'data',
                     )
+
         log.info('')
 
-    profile_id_list = get_profile_id_list(session)
-    resource_id_list = get_resource_id_list(session)
-    insert_permissions(session, resource_id_list, profile_id_list)
+    principal_row_list = await get_principal_row_list(session)
+    resource_row_list = await get_resource_row_list(session)
+    await insert_permissions(session, resource_row_list, principal_row_list)
 
 
-def insert_package(session, package_label):
-    new_collection = db.permission.Collection(
-        label=package_label,
-        type='package',
-    )
-    session.add(new_collection)
-    session.flush()
-    return new_collection.id
-
-
-def insert_entity(session, package_id, resource_key, resource_label, resource_type):
+async def insert_resource(session, parent_id, resource_key, resource_label, resource_type):
     new_resource = db.permission.Resource(
-        collection_id=package_id,
+        parent_id=parent_id,
         key=resource_key,
         label=resource_label,
         type=resource_type,
     )
     session.add(new_resource)
-    session.flush()
+    await session.flush()
     return new_resource.id
 
 
-def get_profile_id_list(session):
-    row_list = session.query(db.profile.Profile.id).all()
-    return [row[0] for row in row_list]
+async def get_principal_row_list(session):
+    return (await session.execute(sqlalchemy.select(db.permission.Principal))).scalars().all()
 
 
-def get_resource_id_list(session):
-    row_list = session.query(db.permission.Resource.id).all()
-    return [row[0] for row in row_list]
+async def get_resource_row_list(session):
+    return (await session.execute(sqlalchemy.select(db.permission.Resource))).scalars().all()
 
 
-def insert_permission(session, profile_id, resource_id, level):
-    new_permission = db.permission.Rule(
-        resource_id=resource_id,
-        principal_id=profile_id,
-        principal_type=db.permission.EntityType.PROFILE,
-        level=level,
-    )
-    session.add(new_permission)
-    session.flush()
-
-
-def insert_permissions(session, resource_id_list, profile_id_list):
-    for resource_id in resource_id_list:
+async def insert_permissions(session, resource_row_list, principal_row_list):
+    for resource_row in resource_row_list:
         permission_count = random.randrange(1, 3)
-        profile_list = random.sample(profile_id_list, permission_count)
-        for profile_id in profile_list:
+        sampled_principal_row_list = random.sample(principal_row_list, permission_count)
+        for principal_row in sampled_principal_row_list:
             level = random.choice(
                 (
                     db.permission.PermissionLevel.READ,
@@ -143,23 +123,33 @@ def insert_permissions(session, resource_id_list, profile_id_list):
                     db.permission.PermissionLevel.CHANGE,
                 )
             )
-            insert_permission(session, profile_id, resource_id, level)
+            await insert_rule(session, resource_row, principal_row, level)
+
+
+async def insert_rule(session, resource_row, principal_row, permission):
+    new_permission = db.permission.Rule(
+        resource=resource_row,
+        principal=principal_row,
+        permission=permission,
+    )
+    session.add(new_permission)
+    await session.flush()
 
 
 RANDOM_SCOPE_TUP = (
     'edi',
     'knb-lter-bes',
-    'knb-lter-ble',
-    'knb-lter-cap',
-    'knb-lter-jrn',
-    'knb-lter-kbs',
-    'knb-lter-mcm',
-    'knb-lter-nin',
-    'knb-lter-ntl',
-    'knb-lter-nwk',
-    'knb-lter-nwt',
-    'knb-lter-sbc',
-    'knb-lter-vcr',
+    # 'knb-lter-ble',
+    # 'knb-lter-cap',
+    # 'knb-lter-jrn',
+    # 'knb-lter-kbs',
+    # 'knb-lter-mcm',
+    # 'knb-lter-nin',
+    # 'knb-lter-ntl',
+    # 'knb-lter-nwk',
+    # 'knb-lter-nwt',
+    # 'knb-lter-sbc',
+    # 'knb-lter-vcr',
 )
 
 RANDOM_FILE_NAME_TUP = (
@@ -266,4 +256,4 @@ RANDOM_FILE_NAME_TUP = (
 )
 
 if __name__ == '__main__':
-    sys.exit(main())
+    sys.exit(asyncio.run(main()))

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-# Generate public and private key pair for ES256 (Elliptic Curve Digital Signature Algorithm using the P-256 curve)
+# Generate public and private key pair for ES256 (Elliptic Curve Digital Signature Algorithm using
+# the P-256 curve)
 
 SCRIPT_DIR=$(dirname "$(realpath "$0")")
 CERTS_DIR="$SCRIPT_DIR/../certs"
