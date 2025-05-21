@@ -32,26 +32,35 @@ import util.pasta_jwt
 import util.redirect
 import util.search_cache
 import util.url
-import db.user
-import db.iface
+import util.dependency
 
+from fastapi_app import app
 from config import Config
 
 daiquiri.setup(
     level=Config.LOG_LEVEL,
     outputs=[
-        daiquiri.output.File(Config.LOG_PATH / 'auth.log'),
-        'stdout',
+        daiquiri.output.File(
+            Config.LOG_PATH,
+            formatter=daiquiri.formatter.ColorExtrasFormatter(
+                fmt=Config.LOG_FORMAT,
+                datefmt=Config.LOG_DATE_FORMAT,
+            ),
+            level=Config.LOG_LEVEL,
+        ),
+        daiquiri.output.Stream(
+            formatter=daiquiri.formatter.ColorExtrasFormatter(
+                fmt=Config.LOG_FORMAT,
+                datefmt=Config.LOG_DATE_FORMAT,
+            ),
+            level=Config.LOG_LEVEL,
+        ),
     ],
-    # formatter=daiquiri.formatter.ColorExtrasFormatter(
-    #     # fmt=(Config.LOG_FORMAT),
-    #     # datefmt=Config.LOG_DATE_FORMAT,
-    # ),
 )
 
-# Mute noisy debug output from the `filelock` module
+# Mute noisy debug output from dependencies
 daiquiri.getLogger("filelock").setLevel(logging.WARNING)
-
+# daiquiri.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 log = daiquiri.getLogger(__name__)
 

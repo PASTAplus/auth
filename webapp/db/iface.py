@@ -2,9 +2,13 @@ import daiquiri
 import sqlalchemy.event
 import sqlalchemy.orm
 import sqlalchemy.pool
+import sqlalchemy.ext.asyncio
 
 import db.base
 import db.user
+
+
+# from fastapi_app import app
 from config import Config
 
 """Database interface.
@@ -14,7 +18,7 @@ from config import Config
 log = daiquiri.getLogger(__name__)
 
 
-engine = sqlalchemy.create_engine(
+async_engine = sqlalchemy.ext.asyncio.create_async_engine(
     sqlalchemy.engine.URL.create(
         Config.DB_DRIVER,
         host=Config.DB_HOST,
@@ -27,91 +31,22 @@ engine = sqlalchemy.create_engine(
     max_overflow=Config.DB_MAX_OVERFLOW,
 )
 
-# Use ./util/clear_database.py to drop all tables in the database.
 
-# Create the tables in the database
-db.base.Base.metadata.create_all(engine)
-
-SessionLocal = sqlalchemy.orm.sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# db.base.Base.metadata.create_all(engine)
 
 
-def create_sync_trigger(dbapi_connection, _connection_record):
-    """Create triggers to track table changes for synchronization with in-memory caches."""
-    cursor = dbapi_connection.cursor()
-    try:
-        # Create trigger function. This function is called by the triggers to update the sync table.
-        # A row for the given table name is created if it does not exist, or updated if it does.
-        # In both cases, the updated timestamp is set to the current datetime.
-        cursor.execute(
-            """
-            do $$
-            begin
-                if not exists (select 1 from pg_proc where proname = 'sync_trigger_func') then
-                    create or replace function sync_trigger_func()
-                    returns trigger
-                    language plpgsql
-                    as $body$
-                    begin
-                        RAISE NOTICE 'Sync trigger for table: %', TG_TABLE_NAME;
-        
-                        insert into sync (name, updated)
-                        values (TG_TABLE_NAME, now())
-                        on conflict (name)
-                        do update set updated = excluded.updated;
-                        
-                        return null;
-                    end;
-                    $body$;
-                end if;
-            end;
-            $$;
-            """
-        )
-
-        # Create triggers for each table
-        for trigger_name, table_name in (
-            ("sync_trigger_collection", "collection"),
-            ("sync_trigger_group", "\"group\""),
-            ("sync_trigger_group_member", "group_member"),
-            ("sync_trigger_identity", "identity"),
-            ("sync_trigger_rule", "rule"),
-            ("sync_trigger_profile", "profile"),
-            ("sync_trigger_resource", "resource"),
-        ):
-            cursor.execute(
-                f"""
-                do $$
-                begin
-                    if not exists (select 1 from pg_trigger where tgname = '{trigger_name}') then
-                        create trigger {trigger_name}
-                        after insert or update on {table_name}
-                        for each statement
-                        execute function sync_trigger_func();
-                    end if;
-                end;
-                $$;
-                """
-            )
-
-        dbapi_connection.commit()
-    finally:
-        cursor.close()
+# Session factory. Each request typically gets its own session object, which is created and closed
+# within the request lifecycle.
+AsyncSessionFactory = sqlalchemy.ext.asyncio.async_sessionmaker(
+    autocommit=False, autoflush=False, bind=async_engine
+)
 
 
-sqlalchemy.event.listen(engine, 'connect', create_sync_trigger)
 
 
-def get_session():
-    session = SessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
+# sqlalchemy.event.listen(engine, 'connect', create_db_objects)
 
-
-def get_udb():
-    session = SessionLocal()
-    try:
-        return db.user.UserDb(session)
-    finally:
-        session.close()
+# Apply event listener to the synchronous engine
+# @sqlalchemy.event.listens_for(async_engine.sync_engine, "connect")
+# def on_connect(dbapi_connection, connection_record):
+#     create_db_objects(dbapi_connection, connection_record)
