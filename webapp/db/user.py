@@ -152,7 +152,55 @@ class UserDb:
     async def set_privacy_policy_accepted(self, token_profile_row):
         token_profile_row.privacy_policy_accepted = True
         token_profile_row.privacy_policy_accepted_date = datetime.datetime.now()
-        self.session.commit()
+        await self.commit()
+
+    # System profiles
+
+    # async def create_authenticated_profile(self):
+    #     try:
+    #         await self.create_profile(
+    #             has_avatar=True,
+    #         )
+    #     except sqlalchemy.exc.IntegrityError:
+    #         # Multiple processes may try to create the authenticated profile at the same time, so we
+    #         # handle that here.
+    #         await self.rollback()
+    #     else:
+    #         util.avatar.init_authenticated_avatar()
+
+    async def get_public_profile(self):
+        """Get the profile for the public user."""
+        return await self.get_profile(Config.PUBLIC_EDI_ID)
+
+    async def get_authenticated_profile(self):
+        """Get the profile for the authenticated user."""
+        return await self.get_profile(Config.AUTHENTICATED_EDI_ID)
+
+    #
+    # Profile History
+    #
+
+    async def add_profile_history(
+        self,
+        token_profile_row,
+    ):
+        """Add a new profile history entry for the given profile."""
+        new_profile_history_row = db.profile.ProfileHistory(
+            profile_id=token_profile_row.id,
+            edi_id=token_profile_row.edi_id,
+            created_date=datetime.datetime.now(),
+        )
+        self._session.add(new_profile_history_row)
+        await self.commit()
+        return new_profile_history_row
+
+    async def get_profile_history(self, token_profile_row):
+        result = await self._session.execute(
+            sqlalchemy.select(db.profile.ProfileHistory).where(
+                db.profile.ProfileHistory.id == token_profile_row.id
+            )
+        )
+        return result.scalars().all()
 
     #
     # Identity
@@ -739,7 +787,97 @@ class UserDb:
     #                 permission_level,
     #             )
     #
-    #     self.session.commit()
+    #     await self.commit()
+
+    async def _merge_profiles(self, token_profile_row, from_profile_row):
+        """Merge from_profile into token_profile, then delete from_profile."""
+
+        # Move all permissions granted to from_profile to the token_profile. Since corresponding
+        # permissions may already exist for token_profile, we need to check if the permission
+        # already exists and update it instead of creating a new one. We also need to keep only the
+        # highest permission level.
+        async for rule_row in await self._session.stream(
+            (
+                sqlalchemy.select(
+                    db.permission.Rule,
+                )
+                .join(
+                    db.permission.Resource,
+                    db.permission.Resource.id == db.permission.Rule.resource_id,
+                )
+                .join(
+                    db.permission.Principal,
+                    db.permission.Principal.id == db.permission.Rule.principal_id,
+                )
+                .where(
+                    db.permission.Principal.subject_id == from_profile_row.id,
+                    db.permission.Principal.subject_type == db.permission.SubjectType.PROFILE,
+                )
+            )
+        ):
+            await self._merge_profiles_set_permission(
+                rule_row.resource, token_profile_row.principal, rule_row.permission
+            )
+
+        await self._delete_profile(from_profile_row)
+
+    async def _delete_profile(self, profile_row):
+        # Delete all rules for from_profile
+        await self._session.execute(
+            sqlalchemy.delete(db.permission.Rule).where(
+                db.permission.Rule.principal_id == profile_row.principal.id
+            )
+        )
+        # Delete all identities for from_profile
+        await self._session.execute(
+            sqlalchemy.delete(db.identity.Identity).where(
+                db.identity.Identity.profile_id == profile_row.id
+            )
+        )
+        # Delete all groups for from_profile
+        await self._session.execute(
+            sqlalchemy.delete(db.group.Group).where(db.group.Group.profile_id == profile_row.id)
+        )
+        # Delete all group memberships for from_profile
+        await self._session.execute(
+            sqlalchemy.delete(db.group.GroupMember).where(
+                db.group.GroupMember.profile_id == profile_row.id
+            )
+        )
+        # Delete the principal for from_profile
+        await self._session.delete(profile_row.principal)
+        # Delete the from_profile
+        await self._session.delete(profile_row)
+
+    async def _merge_profiles_set_permission(
+        self,
+        resource_row,
+        principal_row,
+        permission_level,
+    ):
+        """Ensure that principal_row has at least the given permission level on the resource.
+
+        This is a no-op if the principal_row already has the given permission level or greater on
+        the resource. This means that it is always a no-op if the permission level is 0 (NONE).
+
+        If principal_row has no permission on the resource, a new rule is added with the given
+        permission_level.
+        """
+
+        if permission_level == 0:
+            return
+
+        rule_row = await self._get_rule(resource_row, principal_row)
+
+        if rule_row is None:
+            rule_row = db.permission.Rule(
+                resource=resource_row,
+                principal=principal_row,
+                permission=permission_level,
+            )
+            self._session.add(rule_row)
+        else:
+            rule_row.permission = max(rule_row.permission, permission_level)
 
     async def _create_or_update_permission(
         self,

@@ -83,3 +83,16 @@ class Profile(db.base.Base):
     @property
     def avatar_url(self):
         return str(util.avatar.get_profile_avatar_url(self))
+
+
+class ProfileHistory(db.base.Base):
+    """History of merged user profiles."""
+
+    __tablename__ = 'profile_history'
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    # Reference the user's current profile
+    profile_id = sqlalchemy.Column(
+        sqlalchemy.Integer, sqlalchemy.ForeignKey('profile.id'), nullable=False, index=True
+    )
+    # EDI-ID of a profile that has been merged by the user referenced by profile_id.
+    edi_id = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True)
