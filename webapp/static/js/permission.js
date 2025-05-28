@@ -1,8 +1,11 @@
 let headerContainerEl = document.getElementsByClassName('header-container')[0];
+
+// Constants passed from the server
 const ROOT_PATH = headerContainerEl.dataset.rootPath;
 const PUBLIC_EDI_ID = headerContainerEl.dataset.publicPastaId;
 const AUTHENTICATED_EDI_ID = headerContainerEl.dataset.authenticatedPastaId;
 const RESOURCE_TYPE = headerContainerEl.dataset.resourceType;
+
 const PERMISSION_LEVEL_LIST = ['None', 'Reader', 'Editor', 'Owner'];
 
 // The filter input for resources
@@ -10,21 +13,21 @@ const resourceFilterEl = document.getElementById('resourceFilter');
 const resourceTreeEl = document.getElementById('resourceTree');
 let resourceFetchDelay = null;
 
+// Resource tree head checkboxes
 selectAllCheckboxEl = document.getElementById('selectAllCheckbox');
 showPermissionsCheckboxEl = document.getElementById('showPermissionsCheckbox');
 
+// List of permissions for the selected resources
 const permissionListEl = document.getElementById('permissionList');
 
-// The search input for principals
+// Search input for principals
 const principalSearchEl = document.getElementById('principalSearch');
-// The list of principal search results
+// List of principal search results
 const principalListEl = document.getElementById('principalList');
 let principalFetchDelay = null;
 
-// The list of resource/permission items in the resource tree
+// List of resource/permission items in the resource tree
 let treeArray = [];
-// Map for looking up resource Ids for selected resources in the tree
-const resourceMap = new Map();
 
 let permissionArray = [];
 let principalArray = [];
@@ -162,21 +165,8 @@ function fetchResources()
         }
         else {
           treeArray = resultObj.resources;
-
-          // resourceMap.clear();
-          // let mapIdx = 0;
-          // for (const resourceObj of resultObj.resources) {
-          //   for (const [_resourceType, resourceTypeDict] of
-          //       Object.entries(resourceObj.resource_dict)) {
-          //     resourceTypeDict.resource_map_idx = mapIdx;
-          //     const resourceIds = Object.keys(resourceTypeDict.resource_id_dict).map(Number);
-          //     resourceMap.set(mapIdx++, resourceIds);
-          //   }
-          // }
-
           clearTimeout(msgDelay);
           refreshResourceTree(treeArray);
-          // restoreCheckboxStates(checkboxStates);
           restoreTreeState(treeState);
           fetchSelectedResourcePermissions();
         }
@@ -471,24 +461,6 @@ function getSelectedResourceIds()
 //
 // Checkboxes
 //
-
-// function saveCheckboxStates()
-// {
-//   const states = [];
-//   states.push(selectAllCheckboxEl.checked);
-//   for (const checkboxEl of document.querySelectorAll('.tree-checkbox')) {
-//     states.push(checkboxEl.checked);
-//   }
-//   return states;
-// }
-//
-// function restoreCheckboxStates(checkboxStates)
-// {
-//   selectAllCheckboxEl.checked = checkboxStates.shift();
-//   for (const checkboxEl of document.querySelectorAll('.tree-checkbox')) {
-//     checkboxEl.checked = checkboxStates.shift();
-//   }
-// }
 
 function clearCheckboxStates()
 {

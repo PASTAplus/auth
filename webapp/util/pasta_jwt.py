@@ -52,7 +52,7 @@ class PastaJwt:
 
     @property
     def claims_pp(self) -> str:
-        """Return a pretty-printed version of the claims."""
+        """Pretty print the claims."""
         claims_dict = self._claims_dict.copy()
         for k in ['iat', 'nbf', 'exp']:
             self._add_dt(claims_dict, k)

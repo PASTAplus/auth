@@ -11,7 +11,7 @@ async def create_test_pasta_token(edi_id, pop_udb):
     # print(await get_edi_ids(pop_udb))
     profile_row = await pop_udb.get_profile(edi_id)
     if profile_row is None:
-        raise ValueError(f'Profile with EDI-ID {edi_id} not found in the database.')
+        raise ValueError(f"Profile '{edi_id}' not found in the database.")
     return await util.pasta_jwt.make_jwt(pop_udb, profile_row.identities[0], is_vetted=False)
 
 

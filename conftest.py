@@ -17,7 +17,8 @@ import main
 DB_DRIVER = 'postgresql+psycopg'
 DB_HOST = 'localhost'
 DB_PORT = 5432
-DB_NAME = 'auth_test'
+# DB_NAME = 'auth_test'
+DB_NAME = 'auth'
 DB_USER = 'auth'
 DB_PW = 'testpw'
 DB_POOL_SIZE = 10

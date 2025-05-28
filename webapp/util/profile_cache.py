@@ -17,7 +17,7 @@ async def get_public_access_profile_id(udb):
 
 
 async def get_authenticated_access_profile_id(udb):
-    """Get the authenticated access profile ID from the cache or database."""
+    """Get the authenticated access profile row ID from the cache or database."""
     return await _get_system_profile(udb, 'authenticated', udb.get_authenticated_profile)
 
 
@@ -35,8 +35,8 @@ def is_authenticated_access(profile_row):
     return profile_row.edi_id == Config.AUTHENTICATED_EDI_ID
 
 
-async def _get_system_profile(udb, key_str, func):
+async def _get_system_profile(udb, key_str, get_profile_func):
     if key_str not in profile_cache:
-        profile_row = await func(udb)
+        profile_row = await get_profile_func()
         profile_cache[key_str] = profile_row.id
     return profile_cache[key_str]

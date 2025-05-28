@@ -1526,7 +1526,6 @@
     ],
     "profile": [
         {
-            "association": null,
             "edi_id": "EDI-b2757fee12634ccca40d2d689f5c0543",
             "email": null,
             "email_notifications": false,
@@ -1534,12 +1533,10 @@
             "given_name": "Public Access",
             "has_avatar": true,
             "id": 1,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-d3fca9767ac54c22962896b01a1c01bd",
             "email": null,
             "email_notifications": false,
@@ -1547,12 +1544,10 @@
             "given_name": "Authenticated Access",
             "has_avatar": true,
             "id": 2,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
             "email": "john@smith.com",
             "email_notifications": false,
@@ -1560,12 +1555,10 @@
             "given_name": "John",
             "has_avatar": false,
             "id": 3,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-2a0458b1f4ba49bbba2a20885b06fb60",
             "email": "jane@doe.com",
             "email_notifications": false,
@@ -1573,12 +1566,10 @@
             "given_name": "Jane",
             "has_avatar": false,
             "id": 4,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-60ac317f66104542b3602e55593839ae",
             "email": "michael@johnson.com",
             "email_notifications": false,
@@ -1586,12 +1577,10 @@
             "given_name": "Michael",
             "has_avatar": false,
             "id": 5,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-a49d2fe4f8914643ab91e01c09055512",
             "email": "emily@davis.com",
             "email_notifications": false,
@@ -1599,12 +1588,10 @@
             "given_name": "Emily",
             "has_avatar": false,
             "id": 6,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-7066ab39e93b4d24b0840703974d3a02",
             "email": "james@brown.com",
             "email_notifications": false,
@@ -1612,12 +1599,10 @@
             "given_name": "James",
             "has_avatar": false,
             "id": 7,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-b3c7f5787db04935b434715f4a9d822a",
             "email": "mary@wilson.com",
             "email_notifications": false,
@@ -1625,12 +1610,10 @@
             "given_name": "Mary",
             "has_avatar": false,
             "id": 8,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-100bdcf47c724be88a77998b55d2dd8f",
             "email": "robert@taylor.com",
             "email_notifications": false,
@@ -1638,12 +1621,10 @@
             "given_name": "Robert",
             "has_avatar": false,
             "id": 9,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-a19c8248ccec4c07b1da507412224766",
             "email": "linda@anderson.com",
             "email_notifications": false,
@@ -1651,12 +1632,10 @@
             "given_name": "Linda",
             "has_avatar": false,
             "id": 10,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-82de8b029c7948f092bf592d143b5724",
             "email": "william@thomas.com",
             "email_notifications": false,
@@ -1664,12 +1643,10 @@
             "given_name": "William",
             "has_avatar": false,
             "id": 11,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-f5f6f9740b974ff28153be530b35d655",
             "email": "barbara@jackson.com",
             "email_notifications": false,
@@ -1677,12 +1654,10 @@
             "given_name": "Barbara",
             "has_avatar": false,
             "id": 12,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-6bfff85442404a65aa752d9958d7e694",
             "email": "david@white.com",
             "email_notifications": false,
@@ -1690,12 +1665,10 @@
             "given_name": "David",
             "has_avatar": false,
             "id": 13,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-b3fffb30968a4f4386fbce580aa0a039",
             "email": "susan@harris.com",
             "email_notifications": false,
@@ -1703,12 +1676,10 @@
             "given_name": "Susan",
             "has_avatar": false,
             "id": 14,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-84400cc860024a77a4fa534ca088b909",
             "email": "richard@martin.com",
             "email_notifications": false,
@@ -1716,12 +1687,10 @@
             "given_name": "Richard",
             "has_avatar": false,
             "id": 15,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-24dabd18ad8043918f3b4d24e721bdb9",
             "email": "jessica@thompson.com",
             "email_notifications": false,
@@ -1729,12 +1698,10 @@
             "given_name": "Jessica",
             "has_avatar": false,
             "id": 16,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-8986f1567f494d00bcba19fb01d182f5",
             "email": "charles@garcia.com",
             "email_notifications": false,
@@ -1742,12 +1709,10 @@
             "given_name": "Charles",
             "has_avatar": false,
             "id": 17,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-e3d2004572074df7a3a9f6f3a65e6bae",
             "email": "sarah@martinez.com",
             "email_notifications": false,
@@ -1755,12 +1720,10 @@
             "given_name": "Sarah",
             "has_avatar": false,
             "id": 18,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-ece1f722c52943479bdab6da07c66fbc",
             "email": "joseph@robinson.com",
             "email_notifications": false,
@@ -1768,12 +1731,10 @@
             "given_name": "Joseph",
             "has_avatar": false,
             "id": 19,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-7dbe89237c144850a0a421860a97da8b",
             "email": "karen@clark.com",
             "email_notifications": false,
@@ -1781,12 +1742,10 @@
             "given_name": "Karen",
             "has_avatar": false,
             "id": 20,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-225bb610e6f44caeabae38fe24037458",
             "email": "thomas@rodriguez.com",
             "email_notifications": false,
@@ -1794,12 +1753,10 @@
             "given_name": "Thomas",
             "has_avatar": false,
             "id": 21,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-6c55c51c244643cca67971b25a27b45c",
             "email": "nancy@lewis.com",
             "email_notifications": false,
@@ -1807,12 +1764,10 @@
             "given_name": "Nancy",
             "has_avatar": false,
             "id": 22,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-6a5ffba72dea4964832faac6c62a9728",
             "email": "christopher@lee.com",
             "email_notifications": false,
@@ -1820,12 +1775,10 @@
             "given_name": "Christopher",
             "has_avatar": false,
             "id": 23,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-27a86ea0f3b84c04aa5e3a9379647cf2",
             "email": "lisa@walker.com",
             "email_notifications": false,
@@ -1833,12 +1786,10 @@
             "given_name": "Lisa",
             "has_avatar": false,
             "id": 24,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-2c99066ecc5444389d47713fa7b3885a",
             "email": "daniel@hall.com",
             "email_notifications": false,
@@ -1846,12 +1797,10 @@
             "given_name": "Daniel",
             "has_avatar": false,
             "id": 25,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-e2957124b2ad404e9b5a5adc139a7094",
             "email": "betty@allen.com",
             "email_notifications": false,
@@ -1859,12 +1808,10 @@
             "given_name": "Betty",
             "has_avatar": false,
             "id": 26,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         },
         {
-            "association": null,
             "edi_id": "EDI-433a522b584f47a3942a574158ae0bf9",
             "email": "matthew@young.com",
             "email_notifications": false,
@@ -1872,7 +1819,6 @@
             "given_name": "Matthew",
             "has_avatar": false,
             "id": 27,
-            "organization": null,
             "privacy_policy_accepted": false,
             "privacy_policy_accepted_date": null
         }

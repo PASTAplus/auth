@@ -679,7 +679,7 @@ class UserDb:
         permission_level,
     ):
         """Securely set the permission level for a principal on a set of resources designated by
-         resource IDs.
+        resource IDs.
 
         Post-conditions:
             - permission_level == 0: No permission rows will exist for the principal on the
@@ -700,6 +700,31 @@ class UserDb:
         """
 
         permission_level = db.permission.permission_level_int_to_enum(permission_level)
+
+        parent_id_set = set()
+
+        # Recursively find all parent IDs of the resources in resource_ids.
+
+        async def _find_parent_ids(resource_id):
+            """Recursively find all parent IDs of the given resource ID."""
+            result = await self._session.execute(
+                sqlalchemy.select(db.permission.Resource.parent_id).where(
+                    db.permission.Resource.id == resource_id
+                )
+            )
+            parent_id = result.scalar_one_or_none()
+            if parent_id is not None:
+                parent_id_set.add(parent_id)
+                await _find_parent_ids(parent_id)
+
+        for resource_id in resource_ids:
+            await _find_parent_ids(resource_id)
+
+        resource_ids = list(set(resource_ids) | parent_id_set)
+
+        log.debug(f'resource_ids: {resource_ids}')
+        log.debug(f'parent_id_set: {parent_id_set}')
+
         # Databases have a limit to the number of parameters they can accept in a single query, so
         # we chunk the list of resource IDs, which then also limits the number of rows we attempt to
         # create or update in a single bulk query.
@@ -708,32 +733,41 @@ class UserDb:
             # Filter the resource_chunk_list to only include resources for which the
             # token_profile_row has CHANGE permission (which also filters out any non-existing
             # resource IDs).
-            result = await self._session.execute(
-                (
-                    sqlalchemy.select(db.permission.Resource.id)
-                    .join(
-                        db.permission.Rule,
-                        db.permission.Rule.resource_id == db.permission.Resource.id,
-                    )
-                    .join(
-                        db.permission.Principal,
-                        db.permission.Principal.id == db.permission.Rule.principal_id,
-                    )
-                    .where(
-                        db.permission.Resource.id.in_(resource_chunk_list),
-                        db.permission.Principal.subject_id == token_profile_row.id,
-                        db.permission.Principal.subject_type == db.permission.SubjectType.PROFILE,
-                        db.permission.Rule.permission >= db.permission.PermissionLevel.CHANGE,
+            # Superusers have permission on all resources, so we do not need to filter.
+            if util.profile_cache.is_superuser(token_profile_row):
+                change_resource_id_set = set(resource_chunk_list)
+            else:
+                # Get the resource IDs for which the token_profile_row has CHANGE permission.
+                result = await self._session.execute(
+                    (
+                        sqlalchemy.select(db.permission.Resource.id)
+                        .join(
+                            db.permission.Rule,
+                            db.permission.Rule.resource_id == db.permission.Resource.id,
+                        )
+                        .join(
+                            db.permission.Principal,
+                            db.permission.Principal.id == db.permission.Rule.principal_id,
+                        )
+                        .where(
+                            # db.permission.Resource.id.in_(resource_chunk_list),
+                            db.permission.Principal.subject_id == token_profile_row.id,
+                            db.permission.Principal.subject_type
+                            == db.permission.SubjectType.PROFILE,
+                            db.permission.Rule.permission >= db.permission.PermissionLevel.CHANGE,
+                        )
                     )
                 )
-            )
-            secure_resource_id_set = {row for row, in result.all()}
-            # log.debug(f'secure_resource_id_set: {secure_resource_id_set}')
+                change_resource_id_set = {row for row, in result.all()}
+
+                change_resource_id_set = set(resource_chunk_list)
+
+            log.debug(f'change_resource_id_set: {change_resource_id_set}')
             # If permission is NONE, all we need to do is delete any existing permission rows for
             # the principal on the given resources.
             if permission_level == db.permission.PermissionLevel.NONE:
                 delete_stmt = sqlalchemy.delete(db.permission.Rule).where(
-                    db.permission.Rule.resource_id.in_(secure_resource_id_set),
+                    db.permission.Rule.resource_id.in_(change_resource_id_set),
                     db.permission.Rule.principal_id == principal_id,
                 )
                 await self._session.execute(delete_stmt)
@@ -743,23 +777,24 @@ class UserDb:
             # for the principal.
             # We start by creating a subquery which returns the resource IDs for which the principal
             # already has a permission row.
-            resource_has_permission_subquery = (
-                sqlalchemy.select(db.permission.Resource.id)
-                .join(db.permission.Rule)
-                .where(
-                    db.permission.Resource.id.in_(secure_resource_id_set),
-                    db.permission.Rule.principal_id == principal_id,
-                )
-            )
             result = await self._session.execute(
                 sqlalchemy.select(db.permission.Resource.id).where(
-                    db.permission.Resource.id.in_(secure_resource_id_set),
-                    ~db.permission.Resource.id.in_(resource_has_permission_subquery),
+                    db.permission.Resource.id.in_(change_resource_id_set),
+                    ~db.permission.Resource.id.in_(
+                        (
+                            sqlalchemy.select(db.permission.Resource.id)
+                            .join(db.permission.Rule)
+                            .where(
+                                db.permission.Resource.id.in_(change_resource_id_set),
+                                db.permission.Rule.principal_id == principal_id,
+                            )
+                        )
+                    ),
                 )
             )
-            insert_resource_id_set = {row for row, in result.all()}
-            # log.debug(f'insert_resource_id_set: {insert_resource_id_set}')
             # Insert any absent permission rows for the principal.
+            insert_resource_id_set = {row for row, in result.all()}
+            log.debug(f'insert_resource_id_set: {insert_resource_id_set}')
             if insert_resource_id_set:
                 await self._session.execute(
                     sqlalchemy.insert(db.permission.Rule),
@@ -767,14 +802,14 @@ class UserDb:
                         {
                             "resource_id": resource_id,
                             "principal_id": principal_id,
-                            "level": permission_level,
+                            "permission": permission_level,
                         }
                         for resource_id in insert_resource_id_set
                     ],
                 )
             # Update any existing permission rows for the principal.
-            update_resource_id_set = secure_resource_id_set - insert_resource_id_set
-            # log.debug(f'update_resource_id_set: {update_resource_id_set}')
+            update_resource_id_set = change_resource_id_set - insert_resource_id_set
+            log.debug(f'update_resource_id_set: {update_resource_id_set}')
             if update_resource_id_set:
                 update_stmt = (
                     sqlalchemy.update(db.permission.Rule)
@@ -782,11 +817,13 @@ class UserDb:
                         db.permission.Rule.resource_id.in_(update_resource_id_set),
                         db.permission.Rule.principal_id == principal_id,
                     )
-                    .values(permissionpermission_level)
+                    .values(permission=permission_level)
                 )
                 await self._session.execute(update_stmt)
 
-            await self.commit()
+            # await self._session.flush()
+            # await self._session.commit()
+            # await self.commit()
 
     # async def set_permission_on_resource_list(
     #     self,
@@ -1039,16 +1076,16 @@ class UserDb:
         )
 
         # Filter by resource type if provided
-        # if resource_type is not None:
-        #     stmt = stmt.where(db.permission.Resource.type == resource_type)
+        if resource_type is not None:
+            stmt = stmt.where(db.permission.Resource.type == resource_type)
 
         # Add ordering to the query
-        # stmt = stmt.order_by(
-        #     db.permission.Resource.type,
-        #     db.permission.Resource.label,
-        #     db.profile.Profile.given_name,
-        #     db.profile.Profile.family_name,
-        # )
+        stmt = stmt.order_by(
+            db.permission.Resource.type,
+            db.permission.Resource.label,
+            db.profile.Profile.given_name,
+            db.profile.Profile.family_name,
+        )
 
         result = await self._session.execute(stmt)
         return result.all()
@@ -1096,15 +1133,21 @@ class UserDb:
             async for row in result:
                 yield row
 
-    async def get_ownership_filter_subquery(self, token_profile_row):
-        """Return a subquery that returns all principal IDs belonging to this profile.
+    #
+    # Principal
+    #
 
-        The returned list includes:
-            - The principal ID of the profile
-            - The principal IDs of all groups in which this profile is a member
-            - The principal ID of the Public Access profile
+    async def get_principal_id_query(self, token_profile_row):
+        """Return a query that returns the principal IDs for all principals that the profile has
+        access to.
+
+        The returned list includes the principal IDs of:
+            - The profile itself (the 'sub' field)
+            - All groups in which this profile is a member (included in 'principals' field)
+            - the Public Access profile  (included in 'principals' field)
+            - the Authenticated Access profile  (included in 'principals' field)
         """
-        stmt = (
+        return (
             sqlalchemy.select(db.permission.Principal.id)
             .outerjoin(
                 db.profile.Profile,
@@ -1140,15 +1183,59 @@ class UserDb:
                         == await util.profile_cache.get_public_access_profile_id(self),
                         db.permission.Principal.subject_type == db.permission.SubjectType.PROFILE,
                     ),
+                    # Authorized access
+                    sqlalchemy.and_(
+                        db.permission.Principal.subject_id
+                        == await util.profile_cache.get_authenticated_access_profile_id(self),
+                        db.permission.Principal.subject_type == db.permission.SubjectType.PROFILE,
+                    ),
+                    # Groups in which the profile is a member
+                    db.group.GroupMember.profile_id == token_profile_row.id,
                 )
             )
         )
-        # TODO: Check if unique filter is needed here
-        return stmt.subquery()
 
-    #
-    # Principal
-    #
+    async def get_equivalent_principal_edi_id_set(self, token_profile_row):
+        """Get a set of EDI-IDs for all principals that the profile has access to.
+
+        Note: This includes the EDI-ID for the profile itself, which should not be included in
+        the 'principals' field of the JWT.
+        """
+        principal_ids = (
+            (await self._session.execute(await self.get_principal_id_query(token_profile_row)))
+            .scalars()
+            .all()
+        )
+
+        stmt = (
+            sqlalchemy.select(
+                sqlalchemy.case(
+                    (
+                        db.permission.Principal.subject_type == db.permission.SubjectType.GROUP,
+                        db.group.Group.edi_id,
+                    ),
+                    else_=db.profile.Profile.edi_id,
+                )
+            )
+            .select_from(db.permission.Principal)
+            .outerjoin(
+                db.group.Group,
+                sqlalchemy.and_(
+                    db.group.Group.id == db.permission.Principal.subject_id,
+                    db.permission.Principal.subject_type == db.permission.SubjectType.GROUP,
+                ),
+            )
+            .outerjoin(
+                db.profile.Profile,
+                sqlalchemy.and_(
+                    db.profile.Profile.id == db.permission.Principal.subject_id,
+                    db.permission.Principal.subject_type == db.permission.SubjectType.PROFILE,
+                ),
+            )
+            .where(db.permission.Principal.id.in_(principal_ids))
+        )
+
+        return set((await self._session.execute(stmt)).scalars().all())
 
     async def _add_principal(self, subject_id, subject_type):
         """Insert a principal into the database.

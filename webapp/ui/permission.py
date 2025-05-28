@@ -163,7 +163,7 @@ async def post_permission_principal_search(
     request: starlette.requests.Request,
     # udb: util.dependency.UserDb = fastapi.Depends(db.iface.udb),
     # Prevent this from being called by anyone not logged in
-    # token: util.dependency.PastaJwt | None = fastapi.Depends(util.pasta_jwt.token),
+    _token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """Called when user types in the principal search box."""
     query_dict = await request.json()
