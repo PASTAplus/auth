@@ -35,11 +35,11 @@ async def get_ui_identity(
                 'idp_uid': identity_row.idp_uid,
                 'avatar_url': util.avatar.get_identity_avatar_url(identity_row),
                 'idp_logo_url': util.url.get_idp_logo_url(identity_row.idp_name),
-                'full_name': identity_row.email,
+                'common_name': identity_row.email,
             }
         )
 
-    identity_list.sort(key=lambda x: (x['idp_name'], x['full_name']))
+    identity_list.sort(key=lambda x: (x['idp_name'], x['common_name']))
 
     return util.template.templates.TemplateResponse(
         'identity.html',

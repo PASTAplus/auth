@@ -1,6 +1,6 @@
 import daiquiri
 
-from webapp.config import Config
+from config import Config
 from util import pasta_ldap
 
 # sys.path.insert(0, os.path.abspath("../webapp"))

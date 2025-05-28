@@ -9,38 +9,28 @@ import sys
 import uuid
 
 import daiquiri
-import sqlalchemy.exc
 
 ROOT_PATH = pathlib.Path(__file__).resolve().parent.parent
 sys.path.append((ROOT_PATH / 'webapp').as_posix())
 
-import db.iface
-import db.user
+import util.dependency
 
 log = daiquiri.getLogger(__name__)
-udb: db.user.UserDb = db.iface.get_udb()
-session = db.iface.SessionLocal()
 
 
 async def main():
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
-    try:
-        await fill_profile()
-    except sqlalchemy.exc.SQLAlchemyError as e:
-        log.error(f'Error: {e}')
-        session.rollback()
-        return 1
-
-    session.commit()
+    async with util.dependency.get_udb() as udb:
+        await fill_profile(udb)
 
     log.info('Profiles have been added')
 
     return 0
 
 
-async def fill_profile():
+async def fill_profile(udb):
     for s in RANDOM_PERSON_NAME_LIST:
         edi_id = f'EDI-{uuid.uuid4().hex}'
         given_name, family_name = s.split(' ')
@@ -153,4 +143,4 @@ RANDOM_PERSON_NAME_LIST = [
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    sys.exit(asyncio.run(main()))

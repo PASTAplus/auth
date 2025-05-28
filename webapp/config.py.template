@@ -9,13 +9,15 @@ class Config(object):
     DEBUG = True
 
     # Logging
-    LOG_PATH = pathlib.Path('/var/log/pasta')
+    LOG_PATH = pathlib.Path('/var/log/pasta/auth.log')
     LOG_LEVEL = logging.DEBUG
     LOG_DB_QUERIES = False
+    LOG_FORMAT = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+    LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
     # SSL/TLS
-    TLS_CERT_PATH = '/path/to/server_tls_cert.crt'
-    TLS_KEY_PATH = '/path/to/server_tls_key.key'
+    TLS_CERT_PATH = '/path/to/server.crt'
+    TLS_KEY_PATH = '/path/to/server.key'
 
     # JWT
     JWT_PUBLIC_KEY_PATH = HERE_PATH / 'path/to/jwt_public_key.pem'
@@ -27,7 +29,7 @@ class Config(object):
     JWT_HOSTED_DOMAIN = 'edirepository.org'
 
     # Database
-    DB_DRIVER = 'postgresql+psycopg2'
+    DB_DRIVER = 'postgresql+psycopg'
     DB_HOST = 'localhost'
     DB_PORT = 5432
     DB_NAME = 'auth'
@@ -45,8 +47,7 @@ class Config(object):
 
     # URLs
     SERVICE_BASE_URL = 'https://localhost:5443/auth'
-    # The path under which the auth service is available. Must match settings in the
-    # reverse proxy.
+    # The path under which the auth service is available. Must match settings in the reverse proxy.
     ROOT_PATH = '/auth'
     # For testing ORCID, the entire app must be running from 127.0.0.1. This is because ORCID does
     # not allow localhost as a redirect URI, and because the base URL must match the redirect URI in
@@ -74,6 +75,11 @@ class Config(object):
 
     PUBLIC_EDI_ID = 'EDI-...'
     PUBLIC_NAME = 'Public Access'
+    PUBLIC_AVATAR_PATH = HERE_PATH / 'assets/public-avatar.svg'
+
+    AUTHENTICATED_EDI_ID = 'EDI-...'
+    AUTHENTICATED_NAME = 'Authenticated Access'
+    AUTHENTICATED_AVATAR_PATH = HERE_PATH / 'assets/authenticated-avatar.svg'
 
     SUPERUSER_LIST = [
         'EDI-...',
@@ -89,7 +95,7 @@ class Config(object):
     AVATAR_FONT_HEIGHT = 0.5
     AVATAR_BG_COLOR = (197, 197, 197, 255)
     AVATAR_TEXT_COLOR = (0, 0, 0, 255)
-    AVATAR_PUBLIC = HERE_PATH / 'assets/public-avatar.svg'
+    PUBLIC_AVATAR_PATH = HERE_PATH / 'assets/public-avatar.svg'
 
     # Maximum number of results that can be returned in search for user and group members.
     SEARCH_LIMIT = 5
@@ -122,7 +128,7 @@ class Config(object):
     GOOGLE_DISCOVERY_URL = 'https://accounts.google.com/.well-known/openid-configuration'
     # GOOGLE_LOGOUT_ENDPOINT = 'https://accounts.google.com/Logout'
 
-    # Orcid OAuth client
+    # ORCID OAuth client
     ORCID_CLIENT_ID = 'orcid-client-id'
     ORCID_CLIENT_SECRET = 'orcid-client-secret'
     ORCID_DNS = 'https://orcid.org/'

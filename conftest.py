@@ -1,39 +1,44 @@
-import datetime
-import functools
 import json
 import logging
 import pathlib
-import warnings
 
 import daiquiri
 import fastapi.testclient
-import pytest
+import pytest_asyncio
 import sqlalchemy
 import sqlalchemy.exc
+import sqlalchemy.ext.asyncio
 import sqlalchemy.orm
 
-import db.iface
+import db.base
 import db.user
-import webapp.main
-import webapp.db.iface
-import webapp.db.base
-import webapp.db
-# from webapp.config import Config
+import main
 
-app = fastapi.FastAPI()
+DB_DRIVER = 'postgresql+psycopg'
+DB_HOST = 'localhost'
+DB_PORT = 5432
+# DB_NAME = 'auth_test'
+DB_NAME = 'auth'
+DB_USER = 'auth'
+DB_PW = 'testpw'
+DB_POOL_SIZE = 10
+DB_MAX_OVERFLOW = 20
+DB_YIELD_ROWS = 1000
+DB_CHUNK_SIZE = 10  # 8192
+LOG_DB_QUERIES = False
 
 HERE_PATH = pathlib.Path(__file__).parent.resolve()
-PROFILE_PATH = HERE_PATH / 'tests/test_files/profile.json'
-IDENTITY_PATH = HERE_PATH / 'tests/test_files/identity.json'
+DB_FIXTURE_JSON_PATH = HERE_PATH / 'tests/test_files/db_fixture.json'
+# PROFILE_PATH = HERE_PATH / 'tests/test_files/profile.json'
+# IDENTITY_PATH = HERE_PATH / 'tests/test_files/identity.json'
 
 daiquiri.setup(
     level=logging.DEBUG,
     outputs=(
-        daiquiri.output.File(HERE_PATH / 'test.log'),
+        daiquiri.output.File(HERE_PATH / 'test.log', 'a'),
         'stdout',
     ),
 )
-
 
 # @pytest.fixture(scope="session")
 # def anyio_backend():
@@ -41,116 +46,116 @@ daiquiri.setup(
 #     return "asyncio"
 
 
-@pytest.fixture(scope='session')
-def db_engine():
-    """Create a fresh DB in RAM for each test session."""
-    # Use an in-memory SQLite database for tests
-    engine = sqlalchemy.create_engine(
-        'sqlite:///:memory:',
-        echo=False,
-        connect_args={
-            'check_same_thread': False,
-        },
+@pytest_asyncio.fixture(scope='session')
+async def db_engine():
+    """Create an async Postgres DB engine for each test session. Ensure that all tables are
+    created."""
+    async_engine = sqlalchemy.ext.asyncio.create_async_engine(
+        sqlalchemy.engine.URL.create(
+            DB_DRIVER,
+            host=DB_HOST,
+            database=DB_NAME,
+            username=DB_USER,
+            password=DB_PW,
+        ),
+        echo=LOG_DB_QUERIES,
+        pool_size=DB_POOL_SIZE,
+        max_overflow=DB_MAX_OVERFLOW,
     )
-    # Create all tables
-    webapp.db.base.Base.metadata.create_all(engine)
-    return engine
+    try:
+        async with async_engine.begin() as conn:
+            await conn.run_sync(lambda sync_conn: db.base.Base.metadata.create_all(bind=sync_conn))
+        yield async_engine
+    finally:
+        await async_engine.dispose()
 
 
-@pytest.fixture
-def db_session(db_engine):
-    """Start a new DB session"""
-    # The connection is pulled from the pool of existing connections
-    with db_engine.connect() as conn:
-        with conn.begin() as tran:
-            yield sqlalchemy.orm.sessionmaker(bind=conn)()
-            tran.rollback()
+@pytest_asyncio.fixture(scope='session')
+async def db_session(db_engine):
+    """Create a fresh async Postgres DB session for each test session.
+    The session is rolled back regardless of success or failure.
+    """
+    AsyncSessionFactory = sqlalchemy.ext.asyncio.async_sessionmaker(
+        bind=db_engine,
+        autocommit=False,
+        autoflush=False,
+    )
+    async with AsyncSessionFactory() as async_session:
+        try:
+            yield async_session
+        finally:
+            await async_session.rollback()
+            await async_session.close()
 
 
-@pytest.fixture
-def db_session_populated(db_session):
-    #     "id": 4,
-    #     "edi_id": "EDI-e851e1a4b19c4b78992455807fe79534",
-    #     "given_name": "Given1",
-    #     "family_name": "Family1",
-    #     "email": "testuser@github.com",
-    #     "privacy_policy_accepted": 1,
-    #     "privacy_policy_accepted_date": "2024-07-17 22:41:09.699175"
-    profile_list = json.loads(PROFILE_PATH.read_text())
-    #     "id": 4,
-    #     "profile_id": 4,
-    #     "idp_name": "github",
-    #     "uid": "https://github.com/testuser",
-    #     "email": "testuser@github.com",
-    #     "pasta_token": "aHR0cHM6Ly9naXRodWIuY29tL3JvZ2VyZGFobCpodHRwczovL3Bhc3RhLmVkaXJlcG9zaXRvcnkub3JnL2F1dGhlbnRpY2F0aW9uKjE3MjE4MTAwNjUyODcqYXV0aGVudGljYXRlZA==-T57+LlHbgyk1OGn4kJy+O4MSqBMnvbYPUa5g+QlE5Mnhpt8OhRdjOq7YhQ3NRJ4oHfhnrZERRsYQ2NP5BD6oW4LXLHKfUG8mX/h6aOrzuYiyqtvGHnDqZ5pwxtOjTH111HjaI1pPbK6xysHfen8iku4UTETbywMzdSozNiwVm03aeFUEIu+aKaaTjrjZ9GGCKdYt6SLUOdiZV2KBFWdibORZHnWL9jblde2FOlvnjokYhifi2UHqms6NJCHefFGcWfvKnAe4fYctpUcyfNt96i1fgx1WWozoCOXhOpcHCwJvAAmKFrem46EWALtaX0g+vMjFzzxBB61OB8rqGaUUhA==",
-    #     "first_auth": "2024-07-17 22:41:07.246722",
-    #     "last_auth": "2024-07-23 18:34:25.518037"
-    identity_list = json.loads(IDENTITY_PATH.read_text())
-    for profile_dict in profile_list:
-        # webapp.util.pp(profile_dict)
-        accepted_date = profile_dict['privacy_policy_accepted_date']
-        profile_row = db.user.Profile(
-            edi_id=profile_dict['edi_id'],
-            given_name=profile_dict['given_name'],
-            family_name=profile_dict['family_name'],
-            email=profile_dict['email'],
-            privacy_policy_accepted=profile_dict['privacy_policy_accepted'],
-            privacy_policy_accepted_date=(_from_iso(accepted_date)),
-        )
-        db_session.add(profile_row)
-
-    for identity_dict in identity_list:
-        identity_row = db.user.Identity(
-            profile_id=identity_dict['profile_id'],
-            idp_name=identity_dict['idp_name'],
-            uid=identity_dict['uid'],
-            email=identity_dict['email'],
-            pasta_token=identity_dict['pasta_token'],
-            first_auth=(_from_iso(identity_dict['first_auth'])),
-            last_auth=(_from_iso(identity_dict['last_auth'])),
-        )
-        db_session.add(identity_row)
-
-    db_session.commit()
-
+@pytest_asyncio.fixture(scope='session')
+async def pop_session(db_session):
+    """Create a populated async Postgres DB session for each test session.
+    The database is populated with data from the JSON DB fixture file.
+    """
+    fixture_dict = json.loads(DB_FIXTURE_JSON_PATH.read_text())
+    table_to_class_dict = {
+        mapper.local_table.name: mapper.class_ for mapper in db.base.Base.registry.mappers
+    }
+    for table_name, rows in fixture_dict.items():
+        assert table_name in db.base.Base.metadata.tables, f'Table not found: {table_name}'
+        print(f'Importing {table_name}...')
+        cls = table_to_class_dict[table_name]
+        for row in rows:
+            new_row = cls(**row)
+            db_session.add(new_row)
+    await db_session.flush()
     yield db_session
 
 
+@pytest_asyncio.fixture(scope='session')
+async def udb(db_session):
+    """Create a UserDb instance for the test session."""
+    yield db.user.UserDb(db_session)
 
 
-@pytest.fixture
-def user_db_populated(db_session_populated):
-    return db.iface.UserDb(db_session_populated)
+@pytest_asyncio.fixture(scope='session')
+async def pop_udb(pop_session):
+    """Create a populated UserDb instance for the test session."""
+    yield db.user.UserDb(pop_session)
 
 
-def udb_override(session: sqlalchemy.orm.Session):
-    try:
-        yield db.iface.UserDb(session)
-    finally:
-        session.close()
-
-
-@pytest.fixture
-def client(db_session_populated):
-    # noinspection PyUnresolvedReferences
-    webapp.main.app.dependency_overrides[util.dependency.udb] = functools.partial(
-        udb_override, db_session_populated
-    )
-    with fastapi.testclient.TestClient(webapp.main.app) as client:
+@pytest_asyncio.fixture(scope='function')
+async def client(db_session):
+    """Create a test client for the FastAPI app."""
+    with fastapi.testclient.TestClient(main.app) as client:
         yield client
 
 
-@pytest.fixture(autouse=True)
-def disable_warnings():
-    """Disable: SAWarning: transaction already deassociated from connection"""
-    with warnings.catch_warnings():
-        warnings.filterwarnings('ignore', category=sqlalchemy.exc.SAWarning)
-        yield
+@pytest_asyncio.fixture(scope='function')
+async def profile_row(pop_udb):
+    yield await pop_udb.get_profile('EDI-900e4dcb0c224dcda973ff3cb60a0d53')
 
 
-def _from_iso(iso_date_str):
-    return (
-        datetime.datetime.fromisoformat(iso_date_str)
-        if isinstance(iso_date_str, str)
-        else None
-    )
+# @pytest_asyncio.fixture(scope='function')
+# def token(edi_id=None):
+#     token = PastaToken()
+#     token.system = Config.SYSTEM
+#     token.uid = uid
+#     token.groups = groups
+#     private_key = pasta_crypto.import_key(Config.PRIVATE_KEY_PATH)
+#     log.debug(f'Creating token: {token.to_string()}')
+#     auth_token = pasta_crypto.create_auth_token(private_key, token.to_string())
+#     return auth_token
+
+
+# Example on how to override a dependency injection in FastAPI.
+# main.app.dependency_overrides[util.dependency.udb] = functools.partial(
+#     udb_override, db_session_populated
+# )
+
+
+# @pytest.fixture(autouse=True)
+# def disable_warnings():
+#     """Globally suppress warnings during tests."""
+#     with warnings.catch_warnings():
+#         warnings.filterwarnings('ignore', category=DeprecationWarning)
+#         warnings.filterwarnings('ignore', category=sqlalchemy.exc.SAWarning)
+#         warnings.filterwarnings('ignore')
+#         warnings.simplefilter('ignore')
+#         yield

@@ -46,16 +46,6 @@
                name='email-notifications' {{ 'checked' if profile.email_notifications else '' }}>
       </div>
       <div class='form-group'>
-        <label for='modalOrganization'>Organization</label>
-        <input type='text' class='form-control' id='modalOrganization' name='organization'
-               value='{{ profile.organization or '' }}'>
-      </div>
-      <div class='form-group'>
-        <label for='modalAssociation'>Association</label>
-        <input type='text' class='form-control' id='modalAssociation' name='association'
-               value='{{ profile.association or '' }}'>
-      </div>
-      <div class='form-group'>
         <button type='submit' class='btn btn-primary' id='saveProfileButton'>Save Changes</button>
       </div>
     </form>

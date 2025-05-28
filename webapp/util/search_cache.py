@@ -8,9 +8,9 @@ import re
 
 import daiquiri
 
-import db.iface
 import util.avatar
 from config import Config
+import util.dependency
 
 log = daiquiri.getLogger(__name__)
 
@@ -21,8 +21,7 @@ cache = {
 }
 
 
-async def init_cache():
-    udb = db.iface.get_udb()
+async def init_cache(udb):
     cache['sync_ts'] = await udb.get_sync_ts()
     await init_profiles(udb)
     await init_groups(udb)
@@ -40,13 +39,14 @@ async def init_profiles(udb):
             profile_row.family_name,
             profile_row.email,
             profile_row.edi_id,
-            # Enable searching for the EDI ID without the 'EDI-' prefix
+            # Enable searching for the EDI-ID without the 'EDI-' prefix
             re.sub(r'^EDI-', '', profile_row.edi_id),
         )
         profile_list.append(
             (
                 tuple(k.lower() for k in key_tup if k is not None),
                 {
+                    'profile_id': profile_row.id,
                     'principal_id': principal_row.id,
                     'principal_type': 'profile',
                     'edi_id': profile_row.edi_id,
@@ -91,9 +91,10 @@ async def search(query_str, include_groups):
     Matches are returned with profiles first, then groups. Within the profiles and groups, the order
     is determined by the order_by() statements in the profile and group generators.
     """
-    sync_ts = await db.iface.get_udb().get_sync_ts()
-    if sync_ts != cache.get('sync_ts'):
-        await init_cache()
+    async with util.dependency.get_udb() as udb:
+        sync_ts = await udb.get_sync_ts()
+        if sync_ts != cache.get('sync_ts'):
+            await init_cache(udb)
 
     match_list = []
 

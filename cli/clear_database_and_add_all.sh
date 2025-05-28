@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 
-set -e # exit on error
+# exit on error
+set -e
 
-./cli/clear_database.py
+./cli/drop_and_create_db.py
 ./cli/add_test_profiles.py
 ./cli/add_test_groups.py
-./cli/add_test_permissions.py
-./cli/add_test_groups.py
-
+./cli/add_test_resources.py

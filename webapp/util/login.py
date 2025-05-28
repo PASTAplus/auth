@@ -11,9 +11,9 @@ async def handle_successful_login(
     udb,
     login_type,
     target_url,
-    full_name,
     idp_name,
     idp_uid,
+    common_name,
     email,
     has_avatar,
     is_vetted,
@@ -23,21 +23,30 @@ async def handle_successful_login(
     """
     if login_type == 'client':
         return await handle_client_login(
-            udb, target_url, full_name, idp_name, idp_uid, email, has_avatar, is_vetted
+            udb,
+            target_url,
+            idp_name,
+            idp_uid,
+            common_name,
+            email,
+            has_avatar,
+            is_vetted,
         )
     elif login_type == 'link':
-        return await handle_link_account(request, udb, idp_name, idp_uid, email, has_avatar)
+        return await handle_link_account(
+            request, udb, idp_name, idp_uid, common_name, email, has_avatar
+        )
     else:
         raise ValueError(f'Unknown login_type: {login_type}')
 
 
 async def handle_client_login(
-    udb, target_url, full_name, idp_name, idp_uid, email, has_avatar, is_vetted
+    udb, target_url, idp_name, idp_uid, common_name, email, has_avatar, is_vetted
 ):
     """We are currently signed out, and are signing in to a new or existing account."""
     target_url = target_url
     identity_row = await udb.create_or_update_profile_and_identity(
-        full_name, idp_name, idp_uid, email, has_avatar
+        idp_name, idp_uid, common_name, email, has_avatar
     )
     if idp_name == 'google':
         old_uid = email
@@ -52,7 +61,7 @@ async def handle_client_login(
         token=old_token_,
         pasta_token=pasta_token,
         edi_id=identity_row.profile.edi_id,
-        full_name=identity_row.profile.full_name,
+        common_name=identity_row.common_name,
         email=identity_row.profile.email,
         idp_uid=identity_row.idp_uid,
         idp_name=identity_row.idp_name,
@@ -60,7 +69,7 @@ async def handle_client_login(
     )
 
 
-async def handle_link_account(request, udb, idp_name, idp_uid, email, has_avatar):
+async def handle_link_account(request, udb, idp_name, idp_uid, common_name, email, has_avatar):
     """We are currently signed in, and are linking a new account to the profile to which we are
     signed in.
     """
@@ -84,7 +93,7 @@ async def handle_link_account(request, udb, idp_name, idp_uid, email, has_avatar
                 'please sign in to the other profile and unlink it there first.'
             )
     else:
-        await udb.create_identity(profile_row, idp_name, idp_uid, email, has_avatar)
+        await udb.create_identity(profile_row, idp_name, idp_uid, common_name, email, has_avatar)
         success_msg_str = 'Account linked successfully.'
     return util.redirect.internal(
         '/ui/identity', error_msg=error_msg_str, success_msg=success_msg_str

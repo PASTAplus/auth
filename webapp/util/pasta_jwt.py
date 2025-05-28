@@ -4,6 +4,9 @@ import pprint
 import daiquiri
 import jwt
 
+import util.profile_cache
+
+
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -32,7 +35,7 @@ class PastaJwt:
                 'iat': int(now_dt.timestamp()),
                 'nbf': int(now_dt.timestamp()),
                 'exp': int((now_dt + Config.JWT_EXPIRATION_DELTA).timestamp()),
-                'pastaGroups': set(claims_dict.get('pastaGroups', [])),
+                'principals': set(claims_dict.get('principals', [])),
             }
         )
 
@@ -49,7 +52,7 @@ class PastaJwt:
 
     @property
     def claims_pp(self) -> str:
-        """Return a pretty-printed version of the claims."""
+        """Pretty print the claims."""
         claims_dict = self._claims_dict.copy()
         for k in ['iat', 'nbf', 'exp']:
             self._add_dt(claims_dict, k)
@@ -64,7 +67,7 @@ class PastaJwt:
     def encode(self) -> str:
         """Encode the PastaJwt to a string for sending to client."""
         claims_dict = self._claims_dict.copy()
-        claims_dict['pastaGroups'] = list(claims_dict['pastaGroups'])
+        claims_dict['principals'] = list(sorted(claims_dict['principals']))
         log.info(f'Encoding token: {claims_dict}')
         return jwt.encode(claims_dict, PRIVATE_KEY_STR, algorithm=Config.JWT_ALGORITHM)
 
@@ -105,7 +108,15 @@ class PastaJwt:
 
 async def make_jwt(udb, identity_row, is_vetted):
     """Create a JWT for the given profile."""
+
+    # As we currently do not issue JWT tokens to public users, we can assume that the user is
+    # authenticated if they have a valid JWT.
+    # 'pastaIsAuthenticated': True,
     profile_row = identity_row.profile
+    principals_set = await udb.get_group_membership_edi_id_set(profile_row)
+    if not util.profile_cache.is_public_access(profile_row):
+        principals_set.add(Config.PUBLIC_EDI_ID)
+        principals_set.add(Config.AUTHENTICATED_EDI_ID)
     pasta_jwt = PastaJwt(
         {
             'sub': profile_row.edi_id,
@@ -113,20 +124,18 @@ async def make_jwt(udb, identity_row, is_vetted):
             'gn': profile_row.given_name,
             'email': profile_row.email,
             'sn': profile_row.family_name,
-            'pastaGroups': await udb.get_group_membership_pasta_id_set(profile_row),
-            'pastaIsEmailEnabled': profile_row.email_notifications,
+            'principals': principals_set,
+            'isEmailEnabled': profile_row.email_notifications,
             # We don't have an email verification procedure yet
-            'pastaIsEmailVerified': False,
-            'pastaIsVetted': is_vetted,
-            # As we currently do not issue JWT tokens to public users, we can assume
-            # that the user is authenticated if they have a valid JWT.
-            'pastaIsAuthenticated': True,
-            'pastaIdentityId': identity_row.id,
-            # This field should be deprecated in the future.
-            'pastaIdpName': identity_row.idp_name,
-            # Legacy behavior for Google was to use the email address as subject. This field should
-            # be deprecated in the future.
-            'pastaIdpUid': identity_row.email if identity_row.idp_name == 'google' else identity_row.idp_uid,
+            'isEmailVerified': False,
+            'identityId': identity_row.id,
+            # The remaining fields should be deprecated in the future.
+            'idpName': identity_row.idp_name,
+            # Legacy behavior for Google was to use the email address as subject
+            'idpUid': identity_row.email
+            if identity_row.idp_name == 'google'
+            else identity_row.idp_uid,
+            'idpCname': identity_row.common_name,
         }
     )
     log.info('Created PASTA JWT:')

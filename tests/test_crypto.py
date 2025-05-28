@@ -2,7 +2,7 @@ import Crypto.PublicKey.RSA
 import daiquiri
 
 from util import pasta_crypto
-from webapp.config import Config
+from config import Config
 
 # sys.path.insert(0, os.path.abspath("../src"))
 log = daiquiri.getLogger(__name__)
