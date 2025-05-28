@@ -35,8 +35,6 @@ class Profile(db.base.Base):
     privacy_policy_accepted = sqlalchemy.Column(sqlalchemy.Boolean(), nullable=False, default=False)
     # The date when the user accepted the privacy policy.
     privacy_policy_accepted_date = sqlalchemy.Column(sqlalchemy.DateTime(), nullable=True)
-    organization = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    association = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     has_avatar = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False, default=False)
 
     # cascade_backrefs=False:

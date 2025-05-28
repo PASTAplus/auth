@@ -89,8 +89,6 @@ async def post_profile_edit_update(
         full_name=form_data.get('full-name'),
         email=form_data.get('email'),
         email_notifications='email-notifications' in form_data,
-        organization=form_data.get('organization'),
-        association=form_data.get('association'),
     )
     return util.redirect.internal('/ui/profile/edit', msg='Profile updated')
 
