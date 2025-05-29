@@ -10,6 +10,35 @@ Multiverse authentication service for the PASTA+ Data Repository environment.
 - LDAP accounts are managed by EDI and provide membership in the `vetted` group
 - All users that sign in (via LDAP or OAuth2) become members of the `authenticated` group
 
+### Strategy for dealing with Google emails historically used as identifiers
+
+This procedure describes how we'll handle the IdP UID (stored in Identity.idp_uid) in a way that lets us migrate away from using Google emails as identifiers, while still allowing users to log in with their Google accounts, and moving to using Google's OAuth2 UID as the unique identifier for users.
+
+- When a new profile is created through the API:
+  - Always use whatever unique user identifier string provided by the client, as the IdP UID
+  - If the unique string already exists in the identity IdP uid field:
+    - The new profile creation fails and returns an error
+  - If not:
+    - If the unique string is in the Identity.email field:
+      - The user profile already exists from someone who logs in through Google
+      - Return an error
+    - If not:
+      - Create the new identity record with the IdP identity string and enter it into the identity IdP identity field; create new profile and return profile identifier
+- When someone logs in with an IdP other than Google:
+  - Follow regular logic, which is to create an identity and profile if one doesn't exist, and then log in the user.
+- When someone logs in with Google as their IdP:
+  - If an identity exists under the Google IdP UID in the identity IdP uid field:
+    - Log the user in as normal.
+  - If not:
+    - If the Google email matches the identity IdP uid:
+      - Overwrite the email in the identity with the Google IdP UID
+      - Set all other fields
+      - Log the user in as normal
+    - If not:
+      - Create a new identity and profile using the Google IdP UID
+      - Set all other fields
+      - Log the user into the new profile
+
 ### Supported Identity Providers (IdPs)
 
 ### EDI LDAP (Lightweight Directory Access Protocol)
