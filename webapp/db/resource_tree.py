@@ -130,7 +130,7 @@ def _get_resource_tree(resource_query):
             {
                 'principal_type': 'profile',
                 'edi_id': profile_row.edi_id,
-                'title': profile_row.full_name,
+                'title': profile_row.common_name,
                 'description': profile_row.email,
                 'permission': db.permission.get_permission_level_enum(rule_row.permission).name,
             }

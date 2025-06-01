@@ -86,7 +86,7 @@ async def post_profile_edit_update(
     util.pretty.log_dict(log.info, 'Updating profile', dict(form_data))
     await udb.update_profile(
         token_profile_row,
-        full_name=form_data.get('full-name'),
+        common_name=form_data.get('common-name'),
         email=form_data.get('email'),
         email_notifications='email-notifications' in form_data,
     )

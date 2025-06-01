@@ -144,7 +144,7 @@ async def get_group_member_list(
 ):
     group_row = await udb.get_group(token_profile_row, group_id)
     member_list = await udb.get_group_member_list(token_profile_row, group_row.id)
-    member_list = sorted(member_list, key=lambda x: x.profile.full_name)
+    member_list = sorted(member_list, key=lambda x: x.profile.common_name)
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',
@@ -152,7 +152,7 @@ async def get_group_member_list(
                 {
                     'profile_id': p.id,
                     'edi_id': p.edi_id,
-                    'title': p.full_name,
+                    'title': p.common_name,
                     'description': p.email,
                     'avatar_url': p.avatar_url,
                 }

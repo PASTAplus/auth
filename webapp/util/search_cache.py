@@ -35,8 +35,7 @@ async def init_profiles(udb):
         if profile_row.edi_id in Config.SUPERUSER_LIST:
             continue
         key_tup = (
-            profile_row.full_name,
-            profile_row.family_name,
+            profile_row.common_name,
             profile_row.email,
             profile_row.edi_id,
             # Enable searching for the EDI-ID without the 'EDI-' prefix
@@ -50,7 +49,7 @@ async def init_profiles(udb):
                     'principal_id': principal_row.id,
                     'principal_type': 'profile',
                     'edi_id': profile_row.edi_id,
-                    'title': profile_row.full_name,
+                    'title': profile_row.common_name,
                     'description': profile_row.email,
                     'avatar_url': profile_row.avatar_url,
                 },

@@ -50,7 +50,7 @@ async def add_groups(udb):
 async def insert_groups(udb, profile_row, profile_row_list):
     group_count = random.randrange(0, 5)
     for group_idx in range(group_count):
-        group_name = f'{profile_row.given_name}\'s group #{group_idx}'
+        group_name = f'{profile_row.common_name}\'s group #{group_idx}'
         group_row = await udb.create_group(profile_row, group_name, None)
         await insert_members(udb, group_row, profile_row_list)
         await insert_permission(udb, group_row, profile_row)
@@ -87,7 +87,7 @@ async def insert_permission(udb, group_row, profile_row):
         parent_id=None,
         key=group_row.edi_id,
         label='group',
-        type=f'Owner: {profile_row.full_name}',
+        type=f'Owner: {profile_row.common_name}',
     )
     await udb.session.flush()
 

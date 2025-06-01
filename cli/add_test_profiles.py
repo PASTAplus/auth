@@ -31,11 +31,11 @@ async def main():
 
 
 async def fill_profile(udb):
-    for s in RANDOM_PERSON_NAME_LIST:
+    for common_name in RANDOM_PERSON_NAME_LIST:
         edi_id = f'EDI-{uuid.uuid4().hex}'
-        given_name, family_name = s.split(' ')
+        given_name, family_name = common_name.split(' ')
         email = f'{given_name.lower()}@{family_name.lower()}.com'
-        await udb.create_profile(edi_id, given_name, family_name, email)
+        await udb.create_profile(edi_id, common_name, email)
 
 
 RANDOM_PERSON_NAME_LIST = [

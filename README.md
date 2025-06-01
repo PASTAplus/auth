@@ -16,7 +16,7 @@ This procedure describes how we'll handle the IdP UID (stored in Identity.idp_ui
 
 - When a new profile is created through the API:
   - Always use whatever unique user identifier string provided by the client, as the IdP UID
-  - If the unique string already exists in the identity IdP uid field:
+  - If the unique string already exists in the identity IdP UID field:
     - The new profile creation fails and returns an error
   - If not:
     - If the unique string is in the Identity.email field:
@@ -27,7 +27,7 @@ This procedure describes how we'll handle the IdP UID (stored in Identity.idp_ui
 - When someone logs in with an IdP other than Google:
   - Follow regular logic, which is to create an identity and profile if one doesn't exist, and then log in the user.
 - When someone logs in with Google as their IdP:
-  - If an identity exists under the Google IdP UID in the identity IdP uid field:
+  - If an identity exists under the Google IdP UID in the identity IdP UID field:
     - Log the user in as normal.
   - If not:
     - If the Google email matches the identity IdP uid:

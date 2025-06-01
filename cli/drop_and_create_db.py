@@ -66,7 +66,7 @@ async def create_system_profiles(session):
     profiles that already exist.
     """
     udb = db.user.UserDb(session)
-    for edi_id, given_name, init_avatar_func in (
+    for edi_id, common_name, init_avatar_func in (
         (
             Config.PUBLIC_EDI_ID,
             Config.PUBLIC_NAME,
@@ -87,7 +87,7 @@ async def create_system_profiles(session):
         ).scalar():
             await udb.create_profile(
                 edi_id=edi_id,
-                given_name=given_name,
+                common_name=common_name,
                 has_avatar=True,
             )
             init_avatar_func()

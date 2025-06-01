@@ -112,7 +112,7 @@ async def get_aggregate_permission_list(udb, permission_generator):
                 'principal_id': principal_row.id,
                 'principal_type': 'profile',
                 'edi_id': profile_row.edi_id,
-                'title': profile_row.full_name,
+                'title': profile_row.common_name,
                 'description': profile_row.email,
                 'avatar_url': profile_row.avatar_url,
             }
@@ -150,9 +150,9 @@ async def get_aggregate_permission_list(udb, permission_generator):
             ).id,
             'principal_type': 'profile',
             'edi_id': public_row.edi_id,
-            'title': public_row.full_name,
+            'title': public_row.common_name,
             'description': (public_row.email or ''),
-            'avatar_url': public_row.avatar_url,  # str(util.avatar.get_public_avatar_url()),
+            'avatar_url': public_row.avatar_url,
         }
 
     return sorted(principal_dict.values(), key=db.resource_tree._get_principal_sort_key)

@@ -30,8 +30,8 @@
     >
       <div class='form-group'>
         <label for='modalName'>Name</label>
-        <input type='text' class='form-control' id='modalName' name='full-name' required pattern='.{3,}'
-               value='{{ profile.full_name or '' }}'>
+        <input type='text' class='form-control' id='modalName' name='common-name' required pattern='.{3,}'
+               value='{{ profile.common_name or '' }}'>
         <div class='invalid-feedback'>
           Name must be at least 3 characters long.
         </div>

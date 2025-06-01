@@ -51,17 +51,10 @@ class UserDb:
         fields.
         """
         identity_row = await self.get_identity(idp_name=idp_name, idp_uid=idp_uid)
-        # Split a full name in to given name and family name. If common_name is a single
-        # word, family_name will be None. If common_name is multiple words, the first word
-        # will be given_name and the remaining words will be family_name.
-        given_name, family_name = (
-            common_name.split(' ', 1) if ' ' in common_name else (common_name, None)
-        )
         if identity_row is None:
             profile_row = await self.create_profile(
                 edi_id=self.get_new_edi_id(),
-                given_name=given_name,
-                family_name=family_name,
+                common_name=common_name,
                 email=email,
                 has_avatar=has_avatar,
             )
@@ -96,15 +89,13 @@ class UserDb:
     async def create_profile(
         self,
         edi_id: str,
-        given_name: str = None,
-        family_name: str = None,
+        common_name: str = None,
         email: str = None,
         has_avatar: bool = False,
     ):
         new_profile_row = db.profile.Profile(
             edi_id=edi_id,
-            given_name=given_name,
-            family_name=family_name,
+            common_name=common_name,
             email=email,
             has_avatar=has_avatar,
         )
@@ -298,8 +289,7 @@ class UserDb:
                     ),
                 )
                 .order_by(
-                    db.profile.Profile.given_name,
-                    db.profile.Profile.family_name,
+                    db.profile.Profile.common_name,
                     db.profile.Profile.email,
                     db.profile.Profile.id,
                 )
@@ -1083,8 +1073,8 @@ class UserDb:
         stmt = stmt.order_by(
             db.permission.Resource.type,
             db.permission.Resource.label,
-            db.profile.Profile.given_name,
-            db.profile.Profile.family_name,
+            db.profile.Profile.common_name,
+            db.profile.Profile.email,
         )
 
         result = await self._session.execute(stmt)

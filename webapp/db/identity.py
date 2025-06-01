@@ -32,12 +32,13 @@ class Identity(db.base.Base):
     # form. The value is unique within the IdP's namespace. It is only unique within our system when
     # combined with the idp_name.
     idp_uid = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
+    # The user's common (full) name provided by the IdP. In US, Europe, parts of Asia, this is
+    # typically given name and family name, but any string is accepted. This can change if the user
+    # updates their profile with the IdP.
+    common_name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     # The email address provided by the IdP. This will change if the user updates their email
     # address with the IdP.
     email = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    # The common (full) name provided by the IdP. This can change if the user updates their profile
-    # with the IdP.
-    common_name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     # The date and time of the first successful authentication with this identity.
     first_auth = sqlalchemy.Column(
         sqlalchemy.DateTime, nullable=True, default=datetime.datetime.now

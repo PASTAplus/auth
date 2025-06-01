@@ -54,7 +54,7 @@
                     data-bs-target='#leaveGroupModal'
                     data-group-id='{{ group_row.id }}'
                     data-group-name='{{ group_row.name }}'
-                    data-group-owner='{{ group_row.profile.full_name }}'
+                    data-group-owner='{{ group_row.profile.common_name }}'
                     data-group-owner-email='{{ group_row.profile.email }}'
             >
               <span><img src='{{ url('/static/svg/leave-group.svg') }}' alt='Leave Group'></span>

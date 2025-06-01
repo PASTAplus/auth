@@ -15,8 +15,7 @@
     <thead>
     <tr>
       <td>edi_id</td>
-      <td>Given Name</td>
-      <td>Family Name</td>
+      <td>Common Name</td>
       <td>Email</td>
       <td>Privacy Policy Accepted</td>
       <td>Privacy Policy Accepted Date</td>
@@ -27,8 +26,7 @@
     {% for profile in profile_list %}
       <tr>
       <td>{{ profile.edi_id }}</td>
-      <td>{{ profile.given_name }}</td>
-      <td>{{ profile.family_name }}</td>
+      <td>{{ profile.common_name }}</td>
       <td>{{ profile.email }}</td>
       <td>{{ profile.privacy_policy_accepted }}</td>
       <td>{{ profile.privacy_policy_accepted_date }}</td>

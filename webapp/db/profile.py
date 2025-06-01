@@ -22,10 +22,9 @@ class Profile(db.base.Base):
     # don't use it as a primary key in the DB, however, since it's a string, and string
     # indexes are less efficient than integer indexes.
     edi_id = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True)
-    # The user's given and family names. Initially set to the values provided by the
-    # IdP.
-    given_name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    family_name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    # The user's common (full) name. In US, Europe, parts of Asia, this is typically given name and
+    # family name, but any string is accepted.
+    common_name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     # The email address that the user has chosen as their contact email. Initially set
     # to the email address provided by the IdP.
     email = sqlalchemy.Column(sqlalchemy.String, nullable=True)
@@ -72,29 +71,9 @@ class Profile(db.base.Base):
         ),
     )
 
-    # permissions = sqlalchemy.orm.relationship(
-    #     'Rule',
-    #     back_populates='profile',
-    #     cascade_backrefs=False,
-    #     cascade='all, delete-orphan',
-    # )
-
-    @property
-    def full_name(self):
-        if self.family_name is None:
-            return self.given_name
-        return f'{self.given_name} {self.family_name}'
-
-    @full_name.setter
-    def full_name(self, full_name):
-        try:
-            self.given_name, self.family_name = full_name.split(' ', 1)
-        except ValueError:
-            self.given_name, self.family_name = full_name, None
-
     @property
     def initials(self):
-        return ''.join(s[0].upper() for s in self.full_name.split())
+        return ''.join(s[0].upper() for s in self.common_name.split())
 
     @property
     def avatar_url(self):

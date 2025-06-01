@@ -120,10 +120,8 @@ async def make_jwt(udb, identity_row, is_vetted):
     pasta_jwt = PastaJwt(
         {
             'sub': profile_row.edi_id,
-            'cn': profile_row.full_name,
-            'gn': profile_row.given_name,
+            'cn': profile_row.common_name,
             'email': profile_row.email,
-            'sn': profile_row.family_name,
             'principals': principals_set,
             'isEmailEnabled': profile_row.email_notifications,
             # We don't have an email verification procedure yet
