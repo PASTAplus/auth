@@ -72,13 +72,23 @@ class PastaJwt:
         return jwt.encode(claims_dict, PRIVATE_KEY_STR, algorithm=Config.JWT_ALGORITHM)
 
     @classmethod
-    def decode(cls, token_str: str):
+    async def decode(cls, udb, token_str: str):
         """Decode a token and return a PastaJwt instance.
 
         If the token is invalid, return None.
         """
         try:
             claims_dict = jwt.decode(token_str, PUBLIC_KEY_STR, algorithms=[Config.JWT_ALGORITHM])
+            if claims_dict.get('iss') != Config.JWT_ISSUER:
+                log.error(f'Invalid issuer in token: {claims_dict.get("iss")}')
+                return None
+            if claims_dict.get('hd') != Config.JWT_HOSTED_DOMAIN:
+                log.error(f'Invalid hosted domain in token: {claims_dict.get("hd")}')
+                return None
+            profile_row = await udb.get_profile(claims_dict.get('sub'))
+            if profile_row is None:
+                log.error(f'Profile not found for EDI ID: {claims_dict.get("sub")}')
+                return None
             return cls(claims_dict)
         except jwt.ExpiredSignatureError:
             bad_claims_dict = jwt.decode(
@@ -94,16 +104,9 @@ class PastaJwt:
             return None
 
     @classmethod
-    def is_valid(cls, token_str: str | None):
+    async def is_valid(cls, udb, token_str: str | None):
         """Check if a token is valid."""
-        if token_str is None:
-            return False
-        try:
-            jwt.decode(token_str, PUBLIC_KEY_STR, algorithms=[Config.JWT_ALGORITHM])
-            return True
-        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError) as e:
-            log.error(f'Invalid token: {e}: {token_str}')
-            return False
+        return await cls.decode(udb, token_str) is not None
 
 
 async def make_jwt(udb, identity_row, is_vetted):
@@ -130,9 +133,9 @@ async def make_jwt(udb, identity_row, is_vetted):
             # The remaining fields should be deprecated in the future.
             'idpName': identity_row.idp_name,
             # Legacy behavior for Google was to use the email address as subject
-            'idpUid': identity_row.email
-            if identity_row.idp_name == 'google'
-            else identity_row.idp_uid,
+            'idpUid': (
+                identity_row.email if identity_row.idp_name == 'google' else identity_row.idp_uid
+            ),
             'idpCname': identity_row.common_name,
         }
     )

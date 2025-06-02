@@ -136,13 +136,14 @@ class RootPathMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
 class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     async def dispatch(self, request: starlette.requests.Request, call_next):
         # If the request is for a /ui path, redirect to signin if the token is invalid
-        if (
-            request.url.path.startswith(str(util.url.url('/ui')))
-            and not request.url.path.startswith(str(util.url.url('/ui/signin')))
-            and not util.pasta_jwt.PastaJwt.is_valid(request.cookies.get('pasta_token'))
-        ):
-            log.debug('Redirecting to /ui/signin: UI page requested without valid token')
-            return util.redirect.internal('/ui/signin')
+        async with util.dependency.get_udb() as udb:
+            if (
+                request.url.path.startswith(str(util.url.url('/ui')))
+                and not request.url.path.startswith(str(util.url.url('/ui/signin')))
+                and not await util.pasta_jwt.PastaJwt.is_valid(udb, request.cookies.get('pasta_token'))
+            ):
+                log.debug('Redirecting to /ui/signin: UI page requested without valid token')
+                return util.redirect.internal('/signout')
         return await call_next(request)
 
 

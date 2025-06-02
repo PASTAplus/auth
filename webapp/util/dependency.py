@@ -55,13 +55,14 @@ async def udb() -> typing.AsyncGenerator[UserDb, typing.Any]:
 
 async def token(
     request: starlette.requests.Request,
+    udb_: UserDb = fastapi.Depends(udb),
 ):
     """Get token from the request cookie.
     :returns: PASTA token if pasta_token cookie present in Request
     :rtype: PastaJwt
     """
     token_str = request.cookies.get('pasta_token')
-    token_obj = util.pasta_jwt.PastaJwt.decode(token_str) if token_str else None
+    token_obj = await util.pasta_jwt.PastaJwt.decode(udb_, token_str) if token_str else None
     yield token_obj
 
 
