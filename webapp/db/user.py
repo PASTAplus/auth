@@ -138,8 +138,50 @@ class UserDb:
         await self.commit()
 
     async def delete_profile(self, token_profile_row):
+        """Delete a profile and all associated data."""
+        # Delete all identities associated with the profile.
+        await self._session.execute(
+            sqlalchemy.delete(db.identity.Identity).where(
+                db.identity.Identity.profile_id == token_profile_row.id
+            )
+        )
+        # Delete all group memberships associated with the profile.
+        await self._session.execute(
+            sqlalchemy.delete(db.group.GroupMember).where(
+                db.group.GroupMember.profile_id == token_profile_row.id
+            )
+        )
+        # TODO: Delete any orphaned groups.
+        # await self._session.execute(
+        #     sqlalchemy.delete(db.group.Group).where(db.group.Group.profile_id == token_profile_row.id)
+        # )
+        # Delete rules for the profile.
+        await self._session.execute(
+            sqlalchemy.delete(db.permission.Rule)
+            .execution_options(synchronize_session="fetch")
+            .where(
+                db.permission.Rule.id.in_(
+                    (
+                        await self._session.execute(
+                            sqlalchemy.select(db.permission.Rule.id)
+                            .join(
+                                db.permission.Principal,
+                                db.permission.Principal.id == db.permission.Rule.principal_id,
+                            )
+                            .where(
+                                db.permission.Principal.subject_id == token_profile_row.id,
+                                db.permission.Principal.subject_type
+                                == db.permission.SubjectType.PROFILE,
+                            )
+                        )
+                    ).scalars()
+                )
+            )
+        )
+        # TODO: Delete any orphaned resources.
+        # Delete the profile itself.
         await self._session.delete(token_profile_row)
-        await self.commit()
+        # await self.commit()
 
     async def set_privacy_policy_accepted(self, token_profile_row):
         token_profile_row.privacy_policy_accepted = True
