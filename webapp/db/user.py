@@ -102,7 +102,7 @@ class UserDb:
         self._session.add(new_profile_row)
         await self._session.flush()
         await self._add_principal(new_profile_row.id, db.permission.SubjectType.PROFILE)
-        await self.commit()
+        await self.flush()
         return new_profile_row
 
     async def get_profile(self, edi_id):
@@ -135,7 +135,6 @@ class UserDb:
     async def update_profile(self, token_profile_row, **kwargs):
         for key, value in kwargs.items():
             setattr(token_profile_row, key, value)
-        await self.commit()
 
     async def delete_profile(self, token_profile_row):
         """Delete a profile and all associated data."""
@@ -181,12 +180,10 @@ class UserDb:
         # TODO: Delete any orphaned resources.
         # Delete the profile itself.
         await self._session.delete(token_profile_row)
-        # await self.commit()
 
     async def set_privacy_policy_accepted(self, token_profile_row):
         token_profile_row.privacy_policy_accepted = True
         token_profile_row.privacy_policy_accepted_date = datetime.datetime.now()
-        await self.commit()
 
     # System profiles
 
@@ -225,7 +222,7 @@ class UserDb:
             created_date=datetime.datetime.now(),
         )
         self._session.add(new_profile_history_row)
-        await self.commit()
+        await self.flush()
         return new_profile_history_row
 
     async def get_profile_history(self, token_profile_row):
@@ -259,7 +256,7 @@ class UserDb:
             has_avatar=has_avatar,
         )
         self._session.add(new_identity_row)
-        await self.commit()
+        await self.flush()
         return new_identity_row
 
     async def update_identity(
@@ -279,7 +276,6 @@ class UserDb:
         # True to False, if the user removes their avatar at the IdP. In this latter case, the
         # avatar image in the filesystem will be orphaned here.
         identity_row.has_avatar = has_avatar
-        await self.commit()
 
     async def get_identity(self, idp_name: str, idp_uid: str):
         result = await self._session.execute(
@@ -306,7 +302,6 @@ class UserDb:
         if identity_row not in token_profile_row.identities:
             raise ValueError(f'Identity {idp_name} {idp_uid} does not belong to profile')
         await self._session.delete(identity_row)
-        await self.commit()
 
     @staticmethod
     def get_new_edi_id():
@@ -378,7 +373,7 @@ class UserDb:
             principal_row,
             db.permission.PermissionLevel.CHANGE,
         )
-        await self.commit()
+        await self.flush()
         return new_group_row
 
     # async def assert_has_group_ownership(self, token_profile_row, group_row):
@@ -427,7 +422,6 @@ class UserDb:
         group_row.name = name
         group_row.description = description or None
         await self._set_resource_label_by_key(group_row.edi_id, name)
-        await self.commit()
 
     async def delete_group(self, token_profile_row, group_id):
         """Delete a group by its ID.
@@ -443,7 +437,6 @@ class UserDb:
         await self._session.delete(group_row)
         # Remove associated resource
         await self._remove_resource_by_key(group_row.edi_id)
-        await self.commit()
 
     async def add_group_member(self, token_profile_row, group_id, member_profile_id):
         """Add a member to a group.
@@ -457,7 +450,6 @@ class UserDb:
         )
         self._session.add(new_member_row)
         group_row.updated = datetime.datetime.now()
-        await self.commit()
 
     async def delete_group_member(self, token_profile_row, group_id, member_profile_id):
         """Delete a member from a group.
@@ -476,7 +468,6 @@ class UserDb:
             raise ValueError(f'Member {member_profile_id} not found in group {group_id}')
         await self._session.delete(member_row)
         group_row.updated = datetime.datetime.now()
-        await self.commit()
 
     async def get_group_member_list(self, token_profile_row, group_id):
         """Get the members of a group. Only profiles can be group members, so group members are
@@ -539,7 +530,6 @@ class UserDb:
             raise ValueError(f'Member {token_profile_row.id} not found in group {group_id}')
         member_row.group.updated = datetime.datetime.now()
         await self._session.delete(member_row)
-        await self.commit()
 
     async def get_all_groups_generator(self):
         result = await self._session.stream(
@@ -602,7 +592,7 @@ class UserDb:
             type=type,
         )
         self._session.add(new_resource_row)
-        await self.commit()
+        await self.flush()
         return new_resource_row
 
     async def update_resource(
@@ -635,8 +625,6 @@ class UserDb:
                     f'parent_resource_id={parent_resource_row.id}'
                 )
 
-        await self.commit()
-
     async def _get_owned_resource_by_key(self, token_profile_row, key):
         """Get a resource by its key. The resource must have CHANGE permission for the profile, or a
         group of which the profile is a member.
@@ -655,8 +643,6 @@ class UserDb:
 
     async def _set_resource_label_by_key(self, key, label):
         """Set the label of a resource by its key.
-        This, and other methods of this class starting with underscore do not perform their own
-        commit.
         """
         result = await self._session.execute(
             sqlalchemy.select(db.permission.Resource).where(db.permission.Resource.key == key)
@@ -668,8 +654,6 @@ class UserDb:
 
     async def _remove_resource_by_key(self, key):
         """Remove a resource by its key.
-        This, and other methods of this class starting with underscore do not perform their own
-        commit.
         """
         result = await self._session.execute(
             sqlalchemy.select(db.permission.Resource).where(db.permission.Resource.key == key)
@@ -803,7 +787,6 @@ class UserDb:
                     db.permission.Rule.principal_id == principal_id,
                 )
                 await self._session.execute(delete_stmt)
-                await self.commit()
                 return
             # Create a set of secure resource IDs for which there are no existing permission rows
             # for the principal.
@@ -853,10 +836,6 @@ class UserDb:
                 )
                 await self._session.execute(update_stmt)
 
-            # await self._session.flush()
-            # await self._session.commit()
-            # await self.commit()
-
     # async def set_permission_on_resource_list(
     #     self,
     #     token_profile_row,
@@ -893,8 +872,6 @@ class UserDb:
     #                 principal_type,
     #                 permission_level,
     #             )
-    #
-    #     await self.commit()
 
     async def _merge_profiles(self, token_profile_row, from_profile_row):
         """Merge from_profile into token_profile, then delete from_profile."""
@@ -996,9 +973,6 @@ class UserDb:
 
         CHANGE permission on the resource must already have been validated before calling this
         method.
-
-        This, and other methods of this class starting with underscore do not perform their own
-        commit.
         """
         rule_row = await self._get_rule(resource_row, principal_row)
 
@@ -1325,7 +1299,6 @@ class UserDb:
             self._session.add(sync_row)
         # No-op update to trigger onupdate
         sync_row.name = sync_row.name
-        await self.commit()
 
     async def get_sync_ts(self):
         """Get the latest timestamp."""
@@ -1344,5 +1317,5 @@ class UserDb:
 
     async def commit(self):
         """Commit the current transaction."""
-        log.debug('# COMMIT #')
-        # return await self._session.commit()
+        # log.debug('#### COMMIT ####')
+        return await self._session.commit()

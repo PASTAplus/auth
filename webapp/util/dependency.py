@@ -30,6 +30,7 @@ async def get_session():
                 await session.rollback()
                 raise
             else:
+                # TODO: Check if the DB engine autocommit setting is a better fit here
                 await session.commit()
             finally:
                 await session.close()
