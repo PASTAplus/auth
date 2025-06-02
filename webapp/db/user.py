@@ -100,8 +100,6 @@ class UserDb:
             has_avatar=has_avatar,
         )
         self._session.add(new_profile_row)
-        await self._session.flush()
-        await self._add_principal(new_profile_row.id, db.permission.SubjectType.PROFILE)
         await self.flush()
         return new_profile_row
 
@@ -353,7 +351,7 @@ class UserDb:
             description=description or None,
         )
         self._session.add(new_group_row)
-        await self._session.flush()
+        await self.flush()
         # Create the principal for the group.
         # The principal gives us a single ID, the principal ID, to use when referencing the group in
         # rules for other resources. This principal is not needed when creating the group and
@@ -1252,7 +1250,7 @@ class UserDb:
             subject_id=subject_id, subject_type=subject_type
         )
         self._session.add(new_principal_row)
-        await self._session.flush()
+        await self.flush()
         return new_principal_row
 
     async def get_principal(self, principal_id):
@@ -1310,6 +1308,11 @@ class UserDb:
     #
     # Util
     #
+
+    async def flush(self):
+        """Flush the current session."""
+        # log.debug('#### FLUSH ####')
+        return await self._session.flush()
 
     async def rollback(self):
         """Roll back the current transaction."""

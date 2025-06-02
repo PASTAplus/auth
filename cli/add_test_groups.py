@@ -89,7 +89,7 @@ async def insert_permission(udb, group_row, profile_row):
         label='group',
         type=f'Owner: {profile_row.common_name}',
     )
-    await udb.session.flush()
+    await udb.flush()
 
     principal_row = await udb.get_principal_by_profile(profile_row)
 
