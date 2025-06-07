@@ -1,14 +1,6 @@
 import daiquiri
-import sqlalchemy.event
-import sqlalchemy.orm
-import sqlalchemy.pool
 import sqlalchemy.ext.asyncio
 
-import db.base
-import db.user
-
-
-# from fastapi_app import app
 from config import Config
 
 """Database interface.
@@ -17,7 +9,7 @@ from config import Config
 
 log = daiquiri.getLogger(__name__)
 
-
+# The engine holds the database connection pool and states.
 async_engine = sqlalchemy.ext.asyncio.create_async_engine(
     sqlalchemy.engine.URL.create(
         Config.DB_DRIVER,
@@ -31,22 +23,8 @@ async_engine = sqlalchemy.ext.asyncio.create_async_engine(
     max_overflow=Config.DB_MAX_OVERFLOW,
 )
 
-
-# db.base.Base.metadata.create_all(engine)
-
-
-# Session factory. Each request typically gets its own session object, which is created and closed
-# within the request lifecycle.
+# Session factory. Each request gets its own session object, which is created and closed within the
+# request lifecycle.
 AsyncSessionFactory = sqlalchemy.ext.asyncio.async_sessionmaker(
     autocommit=False, autoflush=False, bind=async_engine
 )
-
-
-
-
-# sqlalchemy.event.listen(engine, 'connect', create_db_objects)
-
-# Apply event listener to the synchronous engine
-# @sqlalchemy.event.listens_for(async_engine.sync_engine, "connect")
-# def on_connect(dbapi_connection, connection_record):
-#     create_db_objects(dbapi_connection, connection_record)

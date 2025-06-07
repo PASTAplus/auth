@@ -38,8 +38,8 @@ import sqlalchemy.ext.asyncio
 ROOT_PATH = pathlib.Path(__file__).resolve().parent.parent
 sys.path.append((ROOT_PATH / 'webapp').as_posix())
 
-import db.permission
-import db.base
+import db.models.permission
+import db.models.base
 import util.dependency
 
 DB_FIXTURE_PATH = ROOT_PATH / 'tests/test_files/db_fixture.json'
@@ -58,9 +58,9 @@ class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime.datetime):
             return obj.isoformat()
-        elif isinstance(obj, db.permission.SubjectType):
+        elif isinstance(obj, db.models.permission.SubjectType):
             return obj.name
-        elif isinstance(obj, db.permission.PermissionLevel):
+        elif isinstance(obj, db.models.permission.PermissionLevel):
             return obj.name
         return super().default(obj)
 
@@ -71,7 +71,7 @@ async def export_database_to_json(
 ):
     """Export entire database to JSON"""
     fixture_dict = {}
-    for table_name, table in db.base.Base.metadata.tables.items():
+    for table_name, table in db.models.base.Base.metadata.tables.items():
         print(f'Exporting {table_name}...')
         result = await session.execute(sqlalchemy.select(table))
         rows = result.fetchall()

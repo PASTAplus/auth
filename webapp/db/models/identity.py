@@ -4,18 +4,17 @@ import daiquiri
 import sqlalchemy.orm
 import sqlalchemy.pool
 
-import db.base
-# import db.permission
+import db.models.base
 
 log = daiquiri.getLogger(__name__)
 
 
-class Identity(db.base.Base):
+class Identity(db.models.base.Base):
     __tablename__ = 'identity'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    # Identities have a many-to-one relationship with Profiles. This allows us to find the one
-    # Profile that corresponds to a given Identity, and to find all Identities that correspond to a
-    # given Profile. The latter is referenced via the backref 'identities' in the Profile. The
+    # Identities have a many-to-one relationship with db.models.profile.Profiles. This allows us to find the one
+    # db.models.profile.Profile that corresponds to a given Identity, and to find all Identities that correspond to a
+    # given db.models.profile.Profile. The latter is referenced via the backref 'identities' in the db.models.profile.Profile. The
     # 'profile_id' declaration creates the physical column in the table which tracks the
     # relationship. Setting 'profile_id' nullable to False forces the identity to be linked to an
     # existing profile. The 'profile' declaration specifies the relationship for use only in the ORM
@@ -32,9 +31,9 @@ class Identity(db.base.Base):
     # form. The value is unique within the IdP's namespace. It is only unique within our system when
     # combined with the idp_name.
     idp_uid = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
-    # The user's common (full) name provided by the IdP. In US, Europe, parts of Asia, this is
-    # typically given name and family name, but any string is accepted. This can change if the user
-    # updates their profile with the IdP.
+    # The user's common (full) name provided by the IdP. This is typically given name and family
+    # name when using Western naming conventions, but any string is accepted. This value can change
+    # if the user updates their profile with the IdP.
     common_name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     # The email address provided by the IdP. This will change if the user updates their email
     # address with the IdP.
@@ -55,7 +54,7 @@ class Identity(db.base.Base):
     has_avatar = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False, default=False)
 
     profile = sqlalchemy.orm.relationship(
-        'Profile',
+        'db.models.profile.Profile',
         back_populates='identities',
         cascade_backrefs=False,
     )

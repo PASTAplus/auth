@@ -25,7 +25,7 @@ router = fastapi.APIRouter()
 @router.api_route('/ui/profile', methods=['GET', 'POST'])
 async def get_post_ui_profile(
     request: starlette.requests.Request,
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
@@ -39,7 +39,7 @@ async def get_post_ui_profile(
                 refresh=request.query_params.get('refresh') == 'true',
             ),
             'profile': token_profile_row,
-            'resource_type_list': await udb.get_resource_types(token_profile_row),
+            'resource_type_list': await dbi.get_resource_types(token_profile_row),
             # Page
             'request': request,
         },
@@ -49,7 +49,7 @@ async def get_post_ui_profile(
 @router.get('/ui/profile/edit')
 async def get_ui_profile_edit(
     request: starlette.requests.Request,
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
@@ -63,7 +63,7 @@ async def get_ui_profile_edit(
                 refresh=request.query_params.get('refresh') == 'true',
             ),
             'profile': token_profile_row,
-            'resource_type_list': await udb.get_resource_types(token_profile_row),
+            'resource_type_list': await dbi.get_resource_types(token_profile_row),
             # Page
             'request': request,
             'msg': request.query_params.get('msg'),
@@ -79,12 +79,12 @@ async def get_ui_profile_edit(
 @router.post('/profile/edit/update')
 async def post_profile_edit_update(
     request: starlette.requests.Request,
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     form_data = await request.form()
     util.pretty.log_dict(log.info, 'Updating profile', dict(form_data))
-    await udb.update_profile(
+    await dbi.update_profile(
         token_profile_row,
         common_name=form_data.get('common-name'),
         email=form_data.get('email'),
@@ -95,8 +95,8 @@ async def post_profile_edit_update(
 
 @router.post('/profile/edit/delete')
 async def post_profile_edit_delete(
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    await udb.delete_profile(token_profile_row)
+    await dbi.delete_profile(token_profile_row)
     return util.redirect.internal('/signout')

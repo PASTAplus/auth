@@ -51,7 +51,7 @@ async def get_ui_signin(
 @router.get('/ui/signin/link')
 async def get_ui_signin_link(
     request: starlette.requests.Request,
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
@@ -62,7 +62,7 @@ async def get_ui_signin_link(
             'token': token,
             'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
             'profile': None,
-            'resource_type_list': await udb.get_resource_types(token_profile_row),
+            'resource_type_list': await dbi.get_resource_types(token_profile_row),
             # Page
             'request': request,
             'login_type': 'link',
@@ -114,7 +114,7 @@ async def get_ui_signin_reset(
 @router.post('/signin/ldap')
 async def post_signin_ldap(
     request: starlette.requests.Request,
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
 ):
     """Handle LDAP sign in from the Auth sign in page. This duplicates some of the logic in
     idp/ldap.py, but interacts with the browser instead of a server side client.
@@ -132,7 +132,7 @@ async def post_signin_ldap(
 
     return await util.login.handle_successful_login(
         request=request,
-        udb=udb,
+        dbi=dbi,
         login_type=login_type,
         target_url=str(util.url.url('/ui/profile')),
         idp_name='ldap',

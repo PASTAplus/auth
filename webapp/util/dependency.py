@@ -4,14 +4,14 @@ import typing
 import fastapi
 import starlette.requests
 
-import db.iface
-import db.profile
-import db.user
+import db.session
+import db.models.profile
+import db.db_interface
 import util.pasta_jwt
 
 # Create class refs here to use as type hints
-Profile = db.profile.Profile
-UserDb = db.user.UserDb
+Profile = db.models.profile.Profile
+DbInterface = db.db_interface.DbInterface
 PastaJwt = util.pasta_jwt.PastaJwt
 
 #
@@ -21,7 +21,7 @@ PastaJwt = util.pasta_jwt.PastaJwt
 
 @contextlib.asynccontextmanager
 async def get_session():
-    async with db.iface.AsyncSessionFactory() as session:
+    async with db.session.AsyncSessionFactory() as session:
         async with session.begin():
             try:
                 yield session
@@ -37,9 +37,9 @@ async def get_session():
 
 
 @contextlib.asynccontextmanager
-async def get_udb() -> typing.AsyncGenerator[UserDb, typing.Any]:
+async def get_udb() -> typing.AsyncGenerator[DbInterface, typing.Any]:
     async with get_session() as session:
-        yield db.user.UserDb(session)
+        yield db.db_interface.DbInterface(session)
 
 
 #
@@ -47,27 +47,27 @@ async def get_udb() -> typing.AsyncGenerator[UserDb, typing.Any]:
 #
 
 
-async def udb() -> typing.AsyncGenerator[UserDb, typing.Any]:
-    """Get a UserDb instance."""
-    async with get_udb() as udb:
-        yield udb
+async def dbi() -> typing.AsyncGenerator[DbInterface, typing.Any]:
+    """Get a DbInterface instance."""
+    async with get_udb() as dbi:
+        yield dbi
 
 
 async def token(
     request: starlette.requests.Request,
-    udb_: UserDb = fastapi.Depends(udb),
+    dbi_: DbInterface = fastapi.Depends(dbi),
 ):
     """Get token from the request cookie.
     :returns: PASTA token if pasta_token cookie present in Request
     :rtype: PastaJwt
     """
     token_str = request.cookies.get('pasta_token')
-    token_obj = await util.pasta_jwt.PastaJwt.decode(udb_, token_str) if token_str else None
+    token_obj = await util.pasta_jwt.PastaJwt.decode(dbi_, token_str) if token_str else None
     yield token_obj
 
 
 async def token_profile_row(
-    udb_: UserDb = fastapi.Depends(udb),
+    dbi_: DbInterface = fastapi.Depends(dbi),
     token_: PastaJwt | None = fastapi.Depends(token),
 ):
     """Get the profile row associated with the token.
@@ -75,5 +75,5 @@ async def token_profile_row(
     :rtype: Profile | None
     """
     if token_ is not None:
-        return await udb_.get_profile(token_.edi_id)
+        return await dbi_.get_profile(token_.edi_id)
     return None

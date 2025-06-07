@@ -10,8 +10,8 @@ import sqlalchemy.exc
 import sqlalchemy.ext.asyncio
 import sqlalchemy.orm
 
-import db.base
-import db.user
+import db.models.base
+import db.db_interface
 import main
 
 DB_DRIVER = 'postgresql+psycopg'
@@ -64,7 +64,9 @@ async def db_engine():
     )
     try:
         async with async_engine.begin() as conn:
-            await conn.run_sync(lambda sync_conn: db.base.Base.metadata.create_all(bind=sync_conn))
+            await conn.run_sync(
+                lambda sync_conn: db.models.base.Base.metadata.create_all(bind=sync_conn)
+            )
         yield async_engine
     finally:
         await async_engine.dispose()
@@ -95,10 +97,10 @@ async def pop_session(db_session):
     """
     fixture_dict = json.loads(DB_FIXTURE_JSON_PATH.read_text())
     table_to_class_dict = {
-        mapper.local_table.name: mapper.class_ for mapper in db.base.Base.registry.mappers
+        mapper.local_table.name: mapper.class_ for mapper in db.models.base.Base.registry.mappers
     }
     for table_name, rows in fixture_dict.items():
-        assert table_name in db.base.Base.metadata.tables, f'Table not found: {table_name}'
+        assert table_name in db.models.base.Base.metadata.tables, f'Table not found: {table_name}'
         print(f'Importing {table_name}...')
         cls = table_to_class_dict[table_name]
         for row in rows:
@@ -109,15 +111,15 @@ async def pop_session(db_session):
 
 
 @pytest_asyncio.fixture(scope='session')
-async def udb(db_session):
-    """Create a UserDb instance for the test session."""
-    yield db.user.UserDb(db_session)
+async def dbi(db_session):
+    """Create a DbInterface instance for the test session."""
+    yield db.db_interface.DbInterface(db_session)
 
 
 @pytest_asyncio.fixture(scope='session')
 async def pop_udb(pop_session):
-    """Create a populated UserDb instance for the test session."""
-    yield db.user.UserDb(pop_session)
+    """Create a populated DbInterface instance for the test session."""
+    yield db.db_interface.DbInterface(pop_session)
 
 
 @pytest_asyncio.fixture(scope='function')
@@ -145,7 +147,7 @@ async def profile_row(pop_udb):
 
 
 # Example on how to override a dependency injection in FastAPI.
-# main.app.dependency_overrides[util.dependency.udb] = functools.partial(
+# main.app.dependency_overrides[util.dependency.dbi] = functools.partial(
 #     udb_override, db_session_populated
 # )
 

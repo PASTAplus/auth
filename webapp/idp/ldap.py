@@ -27,7 +27,7 @@ router = fastapi.APIRouter()
 @router.get('/login/pasta')
 async def get_login_pasta(
     request: starlette.requests.Request,
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
 ):
     """Accept LDAP credentials, validate them against an external LDAP service, and
     return a response with cookie containing the old style token.
@@ -65,7 +65,7 @@ async def get_login_pasta(
 
     log.debug(f'login_pasta() - login successful: {ldap_dn}')
 
-    identity_row = await udb.create_or_update_profile_and_identity(
+    identity_row = await dbi.create_or_update_profile_and_identity(
         idp_name='ldap',
         idp_uid=ldap_dn,
         common_name=dn_uid,
@@ -76,7 +76,7 @@ async def get_login_pasta(
     # As described in the docstr, this response goes to the server side web app, so we create a
     # limited response that contains only the items checked for by the server.
     old_token_ = util.old_token.make_old_token(uid=ldap_dn, groups=Config.VETTED)
-    pasta_token = await util.pasta_jwt.make_jwt(udb, identity_row, is_vetted=True)
+    pasta_token = await util.pasta_jwt.make_jwt(dbi, identity_row)
     response = starlette.responses.Response('Login successful')
     response.set_cookie('auth-token', old_token_)
     response.set_cookie('pasta-token', pasta_token)

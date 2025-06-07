@@ -22,20 +22,20 @@ async def main():
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
-    async with util.dependency.get_udb() as udb:
-        await fill_profile(udb)
+    async with util.dependency.get_udb() as dbi:
+        await fill_profile(dbi)
 
     log.info('Profiles have been added')
 
     return 0
 
 
-async def fill_profile(udb):
+async def fill_profile(dbi):
     for common_name in RANDOM_PERSON_NAME_LIST:
         edi_id = f'EDI-{uuid.uuid4().hex}'
         given_name, family_name = common_name.split(' ')
         email = f'{given_name.lower()}@{family_name.lower()}.com'
-        await udb.create_profile(edi_id, common_name, email)
+        await dbi.create_profile(edi_id, common_name, email)
 
 
 RANDOM_PERSON_NAME_LIST = [

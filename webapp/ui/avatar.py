@@ -25,7 +25,7 @@ router = fastapi.APIRouter()
 @router.get('/ui/avatar')
 async def get_ui_avatar(
     request: starlette.requests.Request,
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
@@ -53,7 +53,7 @@ async def get_ui_avatar(
             'token': token,
             'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
             'profile': token_profile_row,
-            'resource_type_list': await udb.get_resource_types(token_profile_row),
+            'resource_type_list': await dbi.get_resource_types(token_profile_row),
             # Page
             'request': request,
             'avatar_list': avatar_list,
@@ -69,7 +69,7 @@ async def get_ui_avatar(
 @router.post('/avatar/update')
 async def post_avatar_update(
     request: starlette.requests.Request,
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     form_data = await request.form()
@@ -87,7 +87,7 @@ async def post_avatar_update(
         avatar_img = util.avatar.get_avatar_path(idp_name, idp_uid).read_bytes()
         util.avatar.save_avatar(avatar_img, 'profile', token_profile_row.edi_id)
 
-    await udb.update_profile(token_profile_row, has_avatar=idp_uid != '')
+    await dbi.update_profile(token_profile_row, has_avatar=idp_uid != '')
 
     return util.redirect.internal('/ui/profile', refresh='true')
 

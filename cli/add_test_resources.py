@@ -16,9 +16,9 @@ ROOT_PATH = pathlib.Path(__file__).resolve().parent.parent
 sys.path.append((ROOT_PATH / 'webapp').as_posix())
 
 import util.dependency
-import db.profile
-import db.iface
-import db.permission
+import db.models.profile
+import db.session
+import db.models.permission
 
 log = daiquiri.getLogger(__name__)
 
@@ -29,8 +29,8 @@ async def main():
 
 
     async with util.dependency.get_session() as session:
-        await session.execute(sqlalchemy.delete(db.permission.Rule))
-        await session.execute(sqlalchemy.delete(db.permission.Resource))
+        await session.execute(sqlalchemy.delete(db.models.permission.Rule))
+        await session.execute(sqlalchemy.delete(db.models.permission.Resource))
         await add_permissions(session)
 
     log.info('Resources and permissions have been added')
@@ -92,7 +92,7 @@ async def add_permissions(session):
 
 
 async def insert_resource(session, parent_id, resource_key, resource_label, resource_type):
-    new_resource = db.permission.Resource(
+    new_resource = db.models.permission.Resource(
         parent_id=parent_id,
         key=resource_key,
         label=resource_label,
@@ -104,11 +104,13 @@ async def insert_resource(session, parent_id, resource_key, resource_label, reso
 
 
 async def get_principal_row_list(session):
-    return (await session.execute(sqlalchemy.select(db.permission.Principal))).scalars().all()
+    return (
+        (await session.execute(sqlalchemy.select(db.models.permission.Principal))).scalars().all()
+    )
 
 
 async def get_resource_row_list(session):
-    return (await session.execute(sqlalchemy.select(db.permission.Resource))).scalars().all()
+    return (await session.execute(sqlalchemy.select(db.models.permission.Resource))).scalars().all()
 
 
 async def insert_permissions(session, resource_row_list, principal_row_list):
@@ -118,16 +120,16 @@ async def insert_permissions(session, resource_row_list, principal_row_list):
         for principal_row in sampled_principal_row_list:
             level = random.choice(
                 (
-                    db.permission.PermissionLevel.READ,
-                    db.permission.PermissionLevel.WRITE,
-                    db.permission.PermissionLevel.CHANGE,
+                    db.models.permission.PermissionLevel.READ,
+                    db.models.permission.PermissionLevel.WRITE,
+                    db.models.permission.PermissionLevel.CHANGE,
                 )
             )
             await insert_rule(session, resource_row, principal_row, level)
 
 
 async def insert_rule(session, resource_row, principal_row, permission):
-    new_permission = db.permission.Rule(
+    new_permission = db.models.permission.Rule(
         resource=resource_row,
         principal=principal_row,
         permission=permission,

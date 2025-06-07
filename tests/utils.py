@@ -2,7 +2,7 @@ import sqlalchemy
 
 import util.pasta_jwt
 
-import db.profile
+import db.models.profile
 
 from config import Config
 
@@ -17,7 +17,7 @@ async def create_test_pasta_token(edi_id, pop_udb):
 
 async def get_edi_ids(pop_udb):
     """List all EDI-IDs in the database."""
-    result = await pop_udb.session.execute(sqlalchemy.select(db.profile.Profile))
+    result = await pop_udb.session.execute(sqlalchemy.select(db.models.profile.Profile))
     return result.scalars().all()
 
 

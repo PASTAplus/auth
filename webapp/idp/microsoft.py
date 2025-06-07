@@ -53,7 +53,7 @@ async def get_login_microsoft(
 @router.get('/callback/microsoft')
 async def get_callback_microsoft(
     request: starlette.requests.Request,
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
 ):
     """On successful login, redeem a code for an access token. Otherwise, just redirect to the
     target URL.
@@ -128,7 +128,7 @@ async def get_callback_microsoft(
 
     return await util.login.handle_successful_login(
         request=request,
-        udb=udb,
+        dbi=dbi,
         login_type=login_type,
         target_url=target_url,
         idp_name='microsoft',

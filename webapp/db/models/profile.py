@@ -4,14 +4,13 @@ import daiquiri
 import sqlalchemy.orm
 import sqlalchemy.pool
 
-import db.base
-import db.permission
+import db.models.base
 import util.avatar
 
 log = daiquiri.getLogger(__name__)
 
 
-class Profile(db.base.Base):
+class Profile(db.models.base.Base):
     """Currently active user profiles."""
 
     __tablename__ = 'profile'
@@ -22,8 +21,8 @@ class Profile(db.base.Base):
     # don't use it as a primary key in the DB, however, since it's a string, and string
     # indexes are less efficient than integer indexes.
     edi_id = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True)
-    # The user's common (full) name. In US, Europe, parts of Asia, this is typically given name and
-    # family name, but any string is accepted.
+    # The user's common (full) name. This is typically given name and family name when using Western
+    # naming conventions, but any string is accepted.
     common_name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     # The email address that the user has chosen as their contact email. Initially set
     # to the email address provided by the IdP.
@@ -60,14 +59,14 @@ class Profile(db.base.Base):
         cascade_backrefs=False,
         cascade='all, delete-orphan',
     )
-    # One-way relationship to the Principal table.
+    # One-way relationship to the db.models.permission.Principal table.
     principal = sqlalchemy.orm.relationship(
-        'Principal',
+        'db.models.permission.Principal',
         cascade_backrefs=False,
         cascade='all, delete-orphan',
-        foreign_keys='Principal.subject_id',
+        foreign_keys='db.models.permission.Principal.subject_id',
         primaryjoin=(
-            "and_(Principal.subject_id == Profile.id, Principal.subject_type == 'PROFILE')"
+            "and_(db.models.permission.Principal.subject_id == db.models.profile.Profile.id, db.models.permission.Principal.subject_type == 'PROFILE')"
         ),
     )
 
@@ -80,7 +79,7 @@ class Profile(db.base.Base):
         return str(util.avatar.get_profile_avatar_url(self))
 
 
-class ProfileHistory(db.base.Base):
+class ProfileHistory(db.models.base.Base):
     """History of merged user profiles."""
 
     __tablename__ = 'profile_history'

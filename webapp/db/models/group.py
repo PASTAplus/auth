@@ -1,21 +1,15 @@
 import datetime
 
 import daiquiri
-import sqlalchemy.ext.hybrid
 import sqlalchemy.orm
 import sqlalchemy.pool
 
-import db.base
+import db.models.base
 
 log = daiquiri.getLogger(__name__)
 
 
-#
-# Tables
-#
-
-
-class Group(db.base.Base):
+class Group(db.models.base.Base):
     __tablename__ = 'group'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     # The group EDI-ID. This is the unique reference for the group in PASTA.
@@ -48,7 +42,7 @@ class Group(db.base.Base):
         cascade='all, delete-orphan',
     )
     profile = sqlalchemy.orm.relationship(
-        'Profile',
+        'db.models.profile.Profile',
         back_populates='groups',
         cascade_backrefs=False,
     )
@@ -67,7 +61,7 @@ class Group(db.base.Base):
     #     )
 
 
-class GroupMember(db.base.Base):
+class GroupMember(db.models.base.Base):
     __tablename__ = 'group_member'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     # The group to which the member belongs.
@@ -87,7 +81,7 @@ class GroupMember(db.base.Base):
         cascade_backrefs=False,
     )
     profile = sqlalchemy.orm.relationship(
-        'Profile',
+        'db.models.profile.Profile',
         back_populates='group_members',
         cascade_backrefs=False,
     )

@@ -72,7 +72,7 @@ class PastaJwt:
         return jwt.encode(claims_dict, PRIVATE_KEY_STR, algorithm=Config.JWT_ALGORITHM)
 
     @classmethod
-    async def decode(cls, udb, token_str: str):
+    async def decode(cls, dbi, token_str: str):
         """Decode a token and return a PastaJwt instance.
 
         If the token is invalid, return None.
@@ -85,7 +85,7 @@ class PastaJwt:
             if claims_dict.get('hd') != Config.JWT_HOSTED_DOMAIN:
                 log.error(f'Invalid hosted domain in token: {claims_dict.get("hd")}')
                 return None
-            profile_row = await udb.get_profile(claims_dict.get('sub'))
+            profile_row = await dbi.get_profile(claims_dict.get('sub'))
             if profile_row is None:
                 log.error(f'Profile not found for EDI ID: {claims_dict.get("sub")}')
                 return None
@@ -104,22 +104,21 @@ class PastaJwt:
             return None
 
     @classmethod
-    async def is_valid(cls, udb, token_str: str | None):
+    async def is_valid(cls, dbi, token_str: str | None):
         """Check if a token is valid."""
-        return await cls.decode(udb, token_str) is not None
+        return await cls.decode(dbi, token_str) is not None
 
 
-async def make_jwt(udb, identity_row, is_vetted):
+async def make_jwt(dbi, identity_row):
     """Create a JWT for the given profile."""
 
     # As we currently do not issue JWT tokens to public users, we can assume that the user is
     # authenticated if they have a valid JWT.
     # 'pastaIsAuthenticated': True,
     profile_row = identity_row.profile
-    principals_set = await udb.get_group_membership_edi_id_set(profile_row)
-    if not util.profile_cache.is_public_access(profile_row):
-        principals_set.add(Config.PUBLIC_EDI_ID)
-        principals_set.add(Config.AUTHENTICATED_EDI_ID)
+    principals_set = await dbi.get_equivalent_principal_edi_id_set(profile_row)
+    # Remove the profile's own EDI-ID from the principals set, as it's available in the 'sub' claim.
+    principals_set.remove(profile_row.edi_id)
     pasta_jwt = PastaJwt(
         {
             'sub': profile_row.edi_id,

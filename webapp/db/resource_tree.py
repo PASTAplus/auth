@@ -1,6 +1,6 @@
 import pprint
 
-import db.permission
+import db.models.permission
 from config import Config
 
 
@@ -31,7 +31,7 @@ def get_resource_tree_for_ui(resource_query):
         )
 
         for principal_dict in resource_dict['principals']:
-            principal_dict['permission_level'] = db.permission.get_permission_level_enum(
+            principal_dict['permission_level'] = db.models.permission.get_permission_level_enum(
                 principal_dict['rule_row'].permission
             ).value
 
@@ -111,9 +111,13 @@ def _get_resource_tree(resource_query):
         profile_row,
         group_row,
     ) in resource_query:
-        assert (profile_row is None) != (group_row is None), 'Profile OR Group must be present'
+        assert (profile_row is None) != (
+            group_row is None
+        ), 'db.models.profile.Profile OR Group must be present'
 
-        rule_row.permission = db.permission.get_permission_level_enum(rule_row.permission).name
+        rule_row.permission = db.models.permission.get_permission_level_enum(
+            rule_row.permission
+        ).name
 
         resource_dict = tree_dict.setdefault(
             resource_row.id,
@@ -132,7 +136,9 @@ def _get_resource_tree(resource_query):
                 'edi_id': profile_row.edi_id,
                 'title': profile_row.common_name,
                 'description': profile_row.email,
-                'permission': db.permission.get_permission_level_enum(rule_row.permission).name,
+                'permission': db.models.permission.get_permission_level_enum(
+                    rule_row.permission
+                ).name,
             }
             if principal_type == 'profile'
             else {
@@ -140,7 +146,9 @@ def _get_resource_tree(resource_query):
                 "edi_id": group_row.edi_id,
                 "title": group_row.name,
                 "description": group_row.description,
-                'permission': db.permission.get_permission_level_enum(rule_row.permission).name,
+                'permission': db.models.permission.get_permission_level_enum(
+                    rule_row.permission
+                ).name,
             }
         )
 

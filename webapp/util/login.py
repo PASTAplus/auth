@@ -8,7 +8,7 @@ from config import Config
 
 async def handle_successful_login(
     request,
-    udb,
+    dbi,
     login_type,
     target_url,
     idp_name,
@@ -23,7 +23,7 @@ async def handle_successful_login(
     """
     if login_type == 'client':
         return await handle_client_login(
-            udb,
+            dbi,
             target_url,
             idp_name,
             idp_uid,
@@ -34,18 +34,18 @@ async def handle_successful_login(
         )
     elif login_type == 'link':
         return await handle_link_account(
-            request, udb, idp_name, idp_uid, common_name, email, has_avatar
+            request, dbi, idp_name, idp_uid, common_name, email, has_avatar
         )
     else:
         raise ValueError(f'Unknown login_type: {login_type}')
 
 
 async def handle_client_login(
-    udb, target_url, idp_name, idp_uid, common_name, email, has_avatar, is_vetted
+    dbi, target_url, idp_name, idp_uid, common_name, email, has_avatar, is_vetted
 ):
     """We are currently signed out, and are signing in to a new or existing account."""
     target_url = target_url
-    identity_row = await udb.create_or_update_profile_and_identity(
+    identity_row = await dbi.create_or_update_profile_and_identity(
         idp_name, idp_uid, common_name, email, has_avatar
     )
     if idp_name == 'google':
@@ -55,7 +55,7 @@ async def handle_client_login(
     old_token_ = util.old_token.make_old_token(
         uid=old_uid, groups=Config.VETTED if is_vetted else Config.AUTHENTICATED
     )
-    pasta_token = await util.pasta_jwt.make_jwt(udb, identity_row, is_vetted=is_vetted)
+    pasta_token = await util.pasta_jwt.make_jwt(dbi, identity_row)
     return util.redirect.target(
         target_url,
         token=old_token_,
@@ -69,16 +69,16 @@ async def handle_client_login(
     )
 
 
-async def handle_link_account(request, udb, idp_name, idp_uid, common_name, email, has_avatar):
+async def handle_link_account(request, dbi, idp_name, idp_uid, common_name, email, has_avatar):
     """We are currently signed in, and are linking a new account to the profile to which we are
     signed in.
     """
     # Link new account to the profile associated with the token.
     token_str = request.cookies.get('pasta_token')
-    token_obj = await util.pasta_jwt.PastaJwt.decode(udb, token_str)
-    profile_row = await udb.get_profile(token_obj.edi_id)
+    token_obj = await util.pasta_jwt.PastaJwt.decode(dbi, token_str)
+    profile_row = await dbi.get_profile(token_obj.edi_id)
     # Prevent linking an account that is already linked.
-    identity_row = await udb.get_identity(idp_name, idp_uid)
+    identity_row = await dbi.get_identity(idp_name, idp_uid)
     error_msg_str = None
     success_msg_str = None
     if identity_row:
@@ -93,7 +93,7 @@ async def handle_link_account(request, udb, idp_name, idp_uid, common_name, emai
                 'please sign in to the other profile and unlink it there first.'
             )
     else:
-        await udb.create_identity(profile_row, idp_name, idp_uid, common_name, email, has_avatar)
+        await dbi.create_identity(profile_row, idp_name, idp_uid, common_name, email, has_avatar)
         success_msg_str = 'Account linked successfully.'
     return util.redirect.internal(
         '/ui/identity', error_msg=error_msg_str, success_msg=success_msg_str

@@ -4,17 +4,17 @@ import enum
 import daiquiri
 import sqlalchemy.orm
 
-import db.base
+import db.models.base
 
 log = daiquiri.getLogger(__name__)
 
 
 #
-# Tables for tracking permissions on resources.
+# Tables for tracking resources and permissions.
 #
 
 
-class Resource(db.base.Base):
+class Resource(db.models.base.Base):
     """A resource is anything for which permissions can be tracked individually.
 
     Resources can be addressed directly by their key. They also form a tree structure (acyclic
@@ -86,7 +86,7 @@ def get_permission_level_enum(permission_level):
     To reproduce the bug:
 
     rows = (
-        await pop_udb.session.execute(sqlalchemy.select(db.permission.Rule))
+        await pop_udb.session.execute(sqlalchemy.select(Rule))
     ).scalars().all()
     for row in rows:
         # With bug still present, the permission level on the last row will be a string here.
@@ -107,7 +107,7 @@ class SubjectType(enum.Enum):
     GROUP = 2
 
 
-class Rule(db.base.Base):
+class Rule(db.models.base.Base):
     """A rule is a permission granted to a principal (user profile or user group) on a resource."""
 
     __tablename__ = 'rule'
@@ -145,7 +145,7 @@ class Rule(db.base.Base):
     )
 
 
-class Principal(db.base.Base):
+class Principal(db.models.base.Base):
     """A principal maps a principal identifier to a user profile or user group."""
 
     __tablename__ = 'principal'

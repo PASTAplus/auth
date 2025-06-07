@@ -1,0 +1,38 @@
+import daiquiri
+import sqlalchemy
+import sqlalchemy.ext.asyncio
+import sqlalchemy.orm
+
+import db.interface.util
+import db.models.sync
+
+log = daiquiri.getLogger(__name__)
+
+
+# noinspection PyTypeChecker,PyUnresolvedReferences
+class SyncDb:
+    def __init__(self, session: sqlalchemy.ext.asyncio.AsyncSession):
+        self._session = session
+
+    @property
+    def session(self):
+        return self._session
+
+    async def sync_update(self, name):
+        """Update or create a sync row with the given name."""
+        result = await self.execute(
+            sqlalchemy.select(db.models.sync.Sync).where(db.models.sync.Sync.name == name)
+        )
+        sync_row = result.scalars().first()
+        if sync_row is None:
+            sync_row = db.models.sync.Sync(name=name)
+            self._session.add(sync_row)
+        # No-op update to trigger onupdate
+        sync_row.name = sync_row.name
+
+    async def get_sync_ts(self):
+        """Get the latest timestamp."""
+        result = await self.execute(
+            sqlalchemy.select(sqlalchemy.func.max(db.models.sync.Sync.updated))
+        )
+        return result.scalar()

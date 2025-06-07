@@ -12,7 +12,7 @@ import util.pasta_jwt
 import util.search_cache
 import util.template
 
-import db.permission
+import db.models.permission
 
 from config import Config
 
@@ -30,7 +30,7 @@ router = fastapi.APIRouter()
 @router.get('/ui/permission')
 async def get_ui_permission(
     request: starlette.requests.Request,
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
@@ -42,7 +42,7 @@ async def get_ui_permission(
             'token': token,
             'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
             'profile': token_profile_row,
-            'resource_type_list': await udb.get_resource_types(token_profile_row),
+            'resource_type_list': await dbi.get_resource_types(token_profile_row),
             # Page
             'request': request,
             'public_edi_id': Config.PUBLIC_EDI_ID,
@@ -60,12 +60,12 @@ async def get_ui_permission(
 @router.post('/permission/resource/filter')
 async def post_permission_resource_filter(
     request: starlette.requests.Request,
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """Called when user types in the resource search filter and when the page is first opened."""
     query_dict = await request.json()
-    resource_query = await udb.get_resource_list(
+    resource_query = await dbi.get_resource_list(
         token_profile_row, query_dict.get('query'), query_dict.get('type') or None
     )
     resource_tree = db.resource_tree.get_resource_tree_for_ui(resource_query)
@@ -81,12 +81,12 @@ async def post_permission_resource_filter(
 @router.post('/permission/aggregate/get')
 async def post_permission_aggregate_get(
     request: starlette.requests.Request,
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
 ):
     """Called when the user changes a resource check box in the resource tree."""
     resource_list = await request.json()
-    permission_generator = udb.get_permission_generator(resource_list)
-    permission_list = await get_aggregate_permission_list(udb, permission_generator)
+    permission_generator = dbi.get_permission_generator(resource_list)
+    permission_list = await get_aggregate_permission_list(dbi, permission_generator)
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',
@@ -95,7 +95,7 @@ async def post_permission_aggregate_get(
     )
 
 
-async def get_aggregate_permission_list(udb, permission_generator):
+async def get_aggregate_permission_list(dbi, permission_generator):
     principal_dict = {}
 
     async for (
@@ -136,16 +136,16 @@ async def get_aggregate_permission_list(udb, permission_generator):
 
         principal_info_dict['permission_level'] = max(
             principal_info_dict['permission_level'],
-            db.permission.get_permission_level_enum(rule_row.permission).value,
+            db.models.permission.get_permission_level_enum(rule_row.permission).value,
         )
 
     # If the query did not include the public user, add it
     if Config.PUBLIC_EDI_ID not in {p['edi_id'] for p in principal_dict.values()}:
-        public_row = await udb.get_public_profile()
+        public_row = await dbi.get_public_profile()
         principal_dict[(Config.PUBLIC_EDI_ID, 'profile')] = {
             'principal_id': (
-                await udb.get_principal_by_subject(
-                    public_row.id, db.permission.subject_type_string_to_enum('profile')
+                await dbi.get_principal_by_subject(
+                    public_row.id, db.models.permission.subject_type_string_to_enum('profile')
                 )
             ).id,
             'principal_type': 'profile',
@@ -161,7 +161,7 @@ async def get_aggregate_permission_list(udb, permission_generator):
 @router.post('/permission/principal/search')
 async def post_permission_principal_search(
     request: starlette.requests.Request,
-    # udb: util.dependency.UserDb = fastapi.Depends(db.iface.udb),
+    # dbi: util.dependency.DbInterface = fastapi.Depends(db.session.dbi),
     # Prevent this from being called by anyone not logged in
     _token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
@@ -185,7 +185,7 @@ async def post_permission_principal_search(
 @router.post('/permission/update')
 async def post_permission_update(
     request: starlette.requests.Request,
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """Called when the user changes the permission level dropdown for a profile. """
@@ -196,7 +196,7 @@ async def post_permission_update(
     # side, or by setting a very low bandwidth limit in the browser dev tools.
     update_dict = await request.json()
     try:
-        await udb.set_permissions(
+        await dbi.set_permissions(
             token_profile_row,
             update_dict['resources'],
             update_dict['principalId'],

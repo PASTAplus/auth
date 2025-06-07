@@ -14,9 +14,11 @@ import sqlalchemy.exc
 ROOT_PATH = pathlib.Path(__file__).resolve().parent.parent
 sys.path.append((ROOT_PATH / 'webapp').as_posix())
 
-import db.base
-import db.iface
-import db.user
+import db.models.base
+import db.models.group
+import db.session
+import db.models.profile
+import db.db_interface
 import util.avatar
 import db.profile
 import util.dependency
@@ -37,12 +39,13 @@ async def main():
         log.info('Cancelled')
         return 1
 
-    async with util.dependency.get_session() as session:
-        await drop_and_create_tables(session)
-        await create_function_get_resource_tree(session)
-        await create_function_get_resource_parents(session)
-        await create_sync_triggers(session)
-        await create_system_profiles(session)
+    async with util.dependency.get_udb() as dbi:
+        await drop_and_create_tables(dbi)
+        await create_function_get_resource_tree(dbi)
+        await create_function_get_resource_parents(dbi)
+        await create_sync_triggers(dbi)
+        await create_system_profiles(dbi)
+        await create_system_groups(dbi)
 
     log.info('Success!')
     log.info('Sequences have been reset to start at 1.')
@@ -50,19 +53,19 @@ async def main():
     return 0
 
 
-async def drop_and_create_tables(session):
-    # for table_name in db.base.Base.metadata.tables.values():
-    #     await session.execute(sqlalchemy.text(f'drop table if exists "{table_name.name}" cascade'))
-    await session.run_sync(
-        lambda sync_session: db.base.Base.metadata.drop_all(bind=sync_session.bind)
+async def drop_and_create_tables(dbi):
+    # for table_name in db.models.base.Base.metadata.tables.values():
+    #     await dbi.execute(sqlalchemy.text(f'drop table if exists "{table_name.name}" cascade'))
+    await dbi.session.run_sync(
+        lambda sync_session: db.models.base.Base.metadata.drop_all(bind=sync_session.bind)
     )
-    await session.run_sync(
-        lambda sync_session: db.base.Base.metadata.create_all(bind=sync_session.bind)
+    await dbi.session.run_sync(
+        lambda sync_session: db.models.base.Base.metadata.create_all(bind=sync_session.bind)
     )
 
 
-async def create_system_profiles(session):
-    """Create the system profiles for public and authenticated users. This is a no-op for
+async def create_system_profiles(dbi):
+    """Create the system profiles for the Public and Authenticated users. This is a no-op for
     profiles that already exist.
     """
     udb = db.user.UserDb(session)
@@ -78,23 +81,33 @@ async def create_system_profiles(session):
             util.avatar.init_authenticated_avatar,
         ),
     ):
-        if not (
-            await session.execute(
-                sqlalchemy.select(
-                    sqlalchemy.exists().where(db.profile.Profile.edi_id == edi_id)
-                )
-            )
-        ).scalar():
-            await udb.create_profile(
-                edi_id=edi_id,
-                common_name=common_name,
-                has_avatar=True,
-            )
-            init_avatar_func()
+        await dbi.create_profile(
+            edi_id=edi_id,
+            common_name=common_name,
+            has_avatar=True,
+        )
+        util.avatar.init_system_avatar(edi_id, avatar_path)
 
 
-async def create_function_get_resource_tree(session):
-    await session.execute(
+async def create_system_groups(dbi):
+    """Create the system groups for the Public and Authenticated users. This is a no-op for
+    groups that already exist.
+    """
+    for owner_edi_id, group_edi_id, name, description, avatar_path in (
+        (
+            Config.SERVICE_EDI_ID,
+            Config.VETTED_GROUP_EDI_ID,
+            Config.VETTED_GROUP_NAME,
+            Config.VETTED_GROUP_DESCRIPTION,
+            Config.VETTED_GROUP_AVATAR_PATH,
+        ),
+    ):
+        profile_row = await dbi.get_profile(owner_edi_id)
+        await dbi.create_group(profile_row, name, description, owner_edi_id)
+
+
+async def create_function_get_resource_tree(dbi):
+    await dbi.execute(
         sqlalchemy.text(
             """
             do $$
@@ -126,8 +139,43 @@ async def create_function_get_resource_tree(session):
     )
 
 
-async def create_function_get_resource_parents(session):
-    await session.execute(
+# async def create_function_get_resource_parents(dbi):
+#     """Create a function to get all parents of a resource in the tree."""
+#     await dbi.execute(
+#         sqlalchemy.text(
+#             """
+#             do $$
+#             begin
+#                 if not exists (select 1 from pg_proc where proname = 'get_resource_parents') then
+#                     create or replace function get_resource_parents(node_id integer)
+#                     returns table(id integer, label varchar, type varchar, parent_id integer)
+#                     language plpgsql
+#                     as $body$
+#                     begin
+#                         return query
+#                         with recursive parent_tree as (
+#                             select r.id, r.label, r.type, r.parent_id
+#                             from resource r
+#                             where r.id = node_id
+#                             union all
+#                             select r.id, r.label, r.type, r.parent_id
+#                             from resource r
+#                             inner join parent_tree pt on r.id = pt.parent_id
+#                         )
+#                         select * from parent_tree;
+#                     end;
+#                     $body$;
+#                 end if;
+#             end;
+#             $$;
+#             """
+#         )
+#     )
+
+
+async def create_function_get_resource_parents(dbi):
+    """Create a function to get all ascendants of a list of resources in the tree."""
+    await dbi.execute(
         sqlalchemy.text(
             """
             do $$
@@ -159,12 +207,12 @@ async def create_function_get_resource_parents(session):
     )
 
 
-async def create_sync_triggers(session):
+async def create_sync_triggers(dbi):
     """Create triggers to track table changes for synchronization with in-memory caches."""
     # Create trigger function. This function is called by the triggers to update the sync table.
     # A row for the given table name is created if it does not exist, or updated if it does.
     # In both cases, the updated timestamp is set to the current datetime.
-    await session.execute(
+    await dbi.execute(
         sqlalchemy.text(
             """
             do $$
@@ -202,7 +250,7 @@ async def create_sync_triggers(session):
         ("sync_trigger_resource", "resource"),
         ("sync_trigger_rule", "rule"),
     ):
-        await session.execute(
+        await dbi.execute(
             sqlalchemy.text(
                 f"""
                 do $$

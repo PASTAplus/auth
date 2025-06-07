@@ -3,12 +3,12 @@ import datetime
 import daiquiri
 import sqlalchemy.pool
 
-import db.base
+import db.models.base
 
 log = daiquiri.getLogger(__name__)
 
 
-class Sync(db.base.Base):
+class Sync(db.models.base.Base):
     """Track table changes for synchronization with in-memory caches."""
 
     __tablename__ = 'sync'

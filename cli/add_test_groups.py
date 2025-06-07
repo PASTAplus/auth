@@ -14,10 +14,10 @@ import sqlalchemy.exc
 ROOT_PATH = pathlib.Path(__file__).resolve().parent.parent
 sys.path.append((ROOT_PATH / 'webapp').as_posix())
 
-import db.profile
-import db.group
+import db.models.profile
+import db.models.group
 import util.dependency
-import db.permission
+import db.models.permission
 
 from config import Config
 
@@ -33,46 +33,46 @@ async def main():
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
-    async with util.dependency.get_udb() as udb:
-        await add_groups(udb)
+    async with util.dependency.get_udb() as dbi:
+        await add_groups(dbi)
 
     log.info('Groups and group members have been added')
 
     return 0
 
 
-async def add_groups(udb):
-    profile_row_list = await get_profile_rows(udb)
+async def add_groups(dbi):
+    profile_row_list = await get_profile_rows(dbi)
     for profile_row in profile_row_list:
-        await insert_groups(udb, profile_row, profile_row_list)
+        await insert_groups(dbi, profile_row, profile_row_list)
 
 
-async def insert_groups(udb, profile_row, profile_row_list):
+async def insert_groups(dbi, profile_row, profile_row_list):
     group_count = random.randrange(0, 5)
     for group_idx in range(group_count):
         group_name = f'{profile_row.common_name}\'s group #{group_idx}'
-        group_row = await udb.create_group(profile_row, group_name, None)
-        await insert_members(udb, group_row, profile_row_list)
-        await insert_permission(udb, group_row, profile_row)
+        group_row = await dbi.create_group(profile_row, group_name, None)
+        await insert_members(dbi, group_row, profile_row_list)
+        await insert_permission(dbi, group_row, profile_row)
 
 
-async def insert_members(udb, group_row, profile_row_list):
+async def insert_members(dbi, group_row, profile_row_list):
     member_count = random.randrange(1, 5)
     sampled_profile_row_list = random.sample(profile_row_list, member_count)
     for profile_row in sampled_profile_row_list:
-        new_group_member = db.group.GroupMember(
+        new_group_member = db.models.group.GroupMember(
             group=group_row,
             profile=profile_row,
         )
-        udb.session.add(new_group_member)
+        dbi.session.add(new_group_member)
 
 
-async def get_profile_rows(udb):
+async def get_profile_rows(dbi):
     return (
         (
-            await udb.session.execute(
-                sqlalchemy.select(db.profile.Profile).where(
-                    ~db.profile.Profile.edi_id.in_(SYSTEM_EDI_ID_LIST)
+            await dbi.session.execute(
+                sqlalchemy.select(db.models.profile.Profile).where(
+                    ~db.models.profile.Profile.edi_id.in_(SYSTEM_EDI_ID_LIST)
                 )
             )
         )
@@ -81,22 +81,22 @@ async def get_profile_rows(udb):
     )
 
 
-async def insert_permission(udb, group_row, profile_row):
+async def insert_permission(dbi, group_row, profile_row):
     """Insert a resource and rule for tracking permissions for a group."""
-    new_resource_row = udb.create_resource(
+    new_resource_row = await dbi.create_resource(
         parent_id=None,
         key=group_row.edi_id,
         label='group',
         type=f'Owner: {profile_row.common_name}',
     )
-    await udb.flush()
+    await dbi.flush()
 
-    principal_row = await udb.get_principal_by_profile(profile_row)
+    principal_row = await dbi.get_principal_by_profile(profile_row)
 
-    udb._create_or_update_permission(
+    dbi._create_or_update_permission(
         new_resource_row,
         principal_row,
-        db.permission.PermissionLevel.CHANGE,
+        db.models.permission.PermissionLevel.CHANGE,
     )
 
 

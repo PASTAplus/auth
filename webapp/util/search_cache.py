@@ -21,17 +21,17 @@ cache = {
 }
 
 
-async def init_cache(udb):
-    cache['sync_ts'] = await udb.get_sync_ts()
-    await init_profiles(udb)
-    await init_groups(udb)
+async def init_cache(dbi):
+    cache['sync_ts'] = await dbi.get_sync_ts()
+    await init_profiles(dbi)
+    await init_groups(dbi)
     # pprint.pp(cache)
 
 
-async def init_profiles(udb):
+async def init_profiles(dbi):
     profile_list = cache['profile_list']
     profile_list.clear()
-    async for (profile_row, principal_row) in udb.get_all_profiles_generator():
+    async for (profile_row, principal_row) in dbi.get_all_profiles_generator():
         if profile_row.edi_id in Config.SUPERUSER_LIST:
             continue
         key_tup = (
@@ -57,10 +57,10 @@ async def init_profiles(udb):
         )
 
 
-async def init_groups(udb):
+async def init_groups(dbi):
     group_list = cache['group_list']
     group_list.clear()
-    async for group_row in udb.get_all_groups_generator():
+    async for group_row in dbi.get_all_groups_generator():
         key_tup = (
             group_row.name,
             group_row.description,
@@ -90,10 +90,10 @@ async def search(query_str, include_groups):
     Matches are returned with profiles first, then groups. Within the profiles and groups, the order
     is determined by the order_by() statements in the profile and group generators.
     """
-    async with util.dependency.get_udb() as udb:
-        sync_ts = await udb.get_sync_ts()
+    async with util.dependency.get_udb() as dbi:
+        sync_ts = await dbi.get_sync_ts()
         if sync_ts != cache.get('sync_ts'):
-            await init_cache(udb)
+            await init_cache(dbi)
 
     match_list = []
 

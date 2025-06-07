@@ -48,7 +48,7 @@ async def get_login_github(
 @router.get('/callback/github')
 async def get_callback_github(
     request: starlette.requests.Request,
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
 ):
     login_type, target_url = util.login.unpack_state(request.query_params.get('state'))
     log.debug(f'callback_github() login_type="{login_type}" target_url="{target_url}"')
@@ -136,7 +136,7 @@ async def get_callback_github(
 
     return await util.login.handle_successful_login(
         request=request,
-        udb=udb,
+        dbi=dbi,
         login_type=login_type,
         target_url=target_url,
         idp_name='github',

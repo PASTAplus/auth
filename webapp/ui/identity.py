@@ -23,7 +23,7 @@ router = fastapi.APIRouter()
 @router.get('/ui/identity')
 async def get_ui_identity(
     request: starlette.requests.Request,
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
@@ -48,7 +48,7 @@ async def get_ui_identity(
             'token': token,
             'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
             'profile': token_profile_row,
-            'resource_type_list': await udb.get_resource_types(token_profile_row),
+            'resource_type_list': await dbi.get_resource_types(token_profile_row),
             # Page
             'request': request,
             'identity_list': identity_list,
@@ -66,7 +66,7 @@ async def get_ui_identity(
 @router.post('/identity/unlink')
 async def post_identity_unlink(
     request: starlette.requests.Request,
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     form_data = await request.form()
@@ -75,6 +75,6 @@ async def post_identity_unlink(
 
     log.info(f'Unlinking identity: idp_name={idp_name}, idp_uid={idp_uid}')
 
-    await udb.delete_identity(token_profile_row, idp_name, idp_uid)
+    await dbi.delete_identity(token_profile_row, idp_name, idp_uid)
 
     return util.redirect.internal('/ui/identity', success_msg='Account unlinked successfully.')
