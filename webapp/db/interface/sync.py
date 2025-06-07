@@ -10,7 +10,7 @@ log = daiquiri.getLogger(__name__)
 
 
 # noinspection PyTypeChecker,PyUnresolvedReferences
-class SyncDb:
+class SyncInterface:
     def __init__(self, session: sqlalchemy.ext.asyncio.AsyncSession):
         self._session = session
 
