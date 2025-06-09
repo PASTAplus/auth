@@ -9,6 +9,7 @@ import starlette.requests
 import starlette.responses
 import starlette.status
 
+import db.models.identity
 import util.dependency
 import util.old_token
 import util.pasta_ldap
@@ -66,7 +67,7 @@ async def get_login_pasta(
     log.debug(f'login_pasta() - login successful: {ldap_dn}')
 
     identity_row = await dbi.create_or_update_profile_and_identity(
-        idp_name='ldap',
+        idp_name=db.models.identity.IdpName.LDAP,
         idp_uid=ldap_dn,
         common_name=dn_uid,
         email=None,

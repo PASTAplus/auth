@@ -6,6 +6,7 @@ import requests
 import starlette.requests
 import starlette.status
 
+import db.models.identity
 import util.avatar
 import util.dependency
 import util.login
@@ -48,7 +49,7 @@ async def get_login_google(
 
     return util.redirect.idp(
         google_provider_cfg['authorization_endpoint'],
-        'google',
+        db.models.identity.IdpName.GOOGLE,
         login_type,
         target_url,
         client_id=Config.GOOGLE_CLIENT_ID,
@@ -148,7 +149,7 @@ async def get_callback_google(
         dbi=dbi,
         login_type=login_type,
         target_url=target_url,
-        idp_name='google',
+        idp_name=db.models.identity.IdpName.GOOGLE,
         idp_uid=user_dict['sub'],
         common_name=user_dict["name"],
         email=user_dict['email'],

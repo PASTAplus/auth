@@ -3,6 +3,7 @@ import fastapi
 import requests
 import starlette.requests
 
+import db.models.identity
 import util.dependency
 import util.login
 import util.pretty
@@ -91,7 +92,7 @@ async def get_callback_orcid(
         dbi=dbi,
         login_type=login_type,
         target_url=target_url,
-        idp_name='orcid',
+        idp_name=db.models.identity.IdpName.ORCID,
         idp_uid=Config.ORCID_DNS + token_dict['orcid'],
         common_name=token_dict['name'],
         email=token_dict.get('email'),

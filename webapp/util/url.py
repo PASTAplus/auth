@@ -3,6 +3,7 @@ import urllib.parse
 import daiquiri
 import starlette.datastructures
 
+import db.models.identity
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -25,6 +26,6 @@ def build_query_string(**query_param_dict) -> str:
     return urllib.parse.urlencode(query_param_dict)
 
 
-def get_idp_logo_url(idp_name: str):
+def get_idp_logo_url(idp_name: db.models.identity.IdpName):
     """Return the URL to the logo image for the given IdP."""
-    return f'/static/idp-logos/{idp_name}.svg'
+    return f'/static/idp-logos/{idp_name.name.lower()}.svg'

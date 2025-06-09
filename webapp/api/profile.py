@@ -5,6 +5,7 @@ import starlette.responses
 import util.dependency
 import util.old_token
 import util.pretty
+import db.models.identity
 
 log = daiquiri.getLogger(__name__)
 router = fastapi.APIRouter()
@@ -78,7 +79,7 @@ async def profile_disable(
 @router.post('/v1/identity/drop')
 async def identity_drop(
     token_str: str,
-    idp_name: str,
+    idp_name: db.models.identity.IdpName,
     idp_uid: str,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
 ):
@@ -92,7 +93,7 @@ async def identity_drop(
     """
     token = util.old_token.OldToken()
     token.from_auth_token(token_str)
-    await dbi.drop_identity(token.idp_uid, idp_name, idp_uid)
+    await dbi.drop_identity(token.uid, idp_name, idp_uid)
 
 
 # 4. list_identities (profile_id, authtoken)
@@ -106,6 +107,6 @@ async def identity_list(
     token = util.old_token.OldToken()
     token.from_auth_token(token_str)
     identity_list = []
-    for identity_row in await dbi.get_identity_list(token.idp_uid):
+    for identity_row in await dbi.get_identity_list(token.uid):
         identity_list.append(identity_row.as_dict())
     return starlette.responses.Response(util.pretty.to_pretty_json(identity_list))

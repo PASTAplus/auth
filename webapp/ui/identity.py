@@ -3,6 +3,7 @@ import fastapi
 import starlette.requests
 import starlette.templating
 
+import db.models.identity
 import util.avatar
 import util.dependency
 import util.pasta_jwt
@@ -70,11 +71,11 @@ async def post_identity_unlink(
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     form_data = await request.form()
-    idp_name = form_data.get('idp_name')
+    idp_name_str = form_data.get('idp_name')
     idp_uid = form_data.get('idp_uid')
 
-    log.info(f'Unlinking identity: idp_name={idp_name}, idp_uid={idp_uid}')
+    log.info(f'Unlinking identity: idp_name_str={idp_name_str}, idp_uid={idp_uid}')
 
-    await dbi.delete_identity(token_profile_row, idp_name, idp_uid)
+    await dbi.delete_identity(token_profile_row, db.models.identity.IdpName[idp_name_str], idp_uid)
 
     return util.redirect.internal('/ui/identity', success_msg='Account unlinked successfully.')

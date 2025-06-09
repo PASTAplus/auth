@@ -22,7 +22,7 @@ class IdentityInterface:
     async def create_identity(
         self,
         profile,
-        idp_name: str,
+        idp_name: db.models.identity.IdpName,
         idp_uid: str,
         common_name: str,
         email: str,
@@ -59,7 +59,7 @@ class IdentityInterface:
         # avatar image in the filesystem will be orphaned here.
         identity_row.has_avatar = has_avatar
 
-    async def get_identity(self, idp_name: str, idp_uid: str):
+    async def get_identity(self, idp_name: db.models.identity.IdpName, idp_uid: str):
         result = await self.execute(
             (
                 sqlalchemy.select(db.models.identity.Identity)
@@ -68,6 +68,20 @@ class IdentityInterface:
                     db.models.identity.Identity.idp_name == idp_name,
                     db.models.identity.Identity.idp_uid == idp_uid,
                 )
+            )
+        )
+        return result.scalars().first()
+
+    async def get_identity_by_idp_uid(self, idp_uid: str):
+        """Get an identity by its IdP UID, while ignoring the IdP name.
+        An identity is guaranteed to be unique only for IdP UID + IdP name, but in practice, the
+        IdP UID is unique by itself.
+        """
+        result = await self.execute(
+            (
+                sqlalchemy.select(db.models.identity.Identity)
+                .options(sqlalchemy.orm.selectinload(db.models.identity.Identity.profile))
+                .where(db.models.identity.Identity.idp_uid == idp_uid)
             )
         )
         return result.scalars().first()
@@ -94,9 +108,13 @@ class IdentityInterface:
         )
         return result.scalars().first()
 
-    async def delete_identity(self, token_profile_row, idp_name: str, idp_uid: str):
+    async def delete_identity(
+        self, token_profile_row, idp_name: db.models.identity.IdpName, idp_uid: str
+    ):
         """Delete an identity from a profile."""
         identity_row = await self.get_identity(idp_name, idp_uid)
         if identity_row not in token_profile_row.identities:
-            raise ValueError(f'Identity {idp_name} {idp_uid} does not belong to profile')
+            raise ValueError(
+                f"Identity does not belong to profile. idp_name='{idp_name}' idp_uid='{idp_uid}'"
+            )
         await self._session.delete(identity_row)

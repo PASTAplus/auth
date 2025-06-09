@@ -6,6 +6,7 @@ import requests
 import starlette.requests
 import starlette.status
 
+import db.models.identity
 import util.avatar
 import util.dependency
 import util.login
@@ -139,7 +140,7 @@ async def get_callback_github(
         dbi=dbi,
         login_type=login_type,
         target_url=target_url,
-        idp_name='github',
+        idp_name=db.models.identity.IdpName.GITHUB,
         idp_uid=idp_uid,
         common_name=common_name,
         email=user_dict.get('email'),

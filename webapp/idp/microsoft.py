@@ -7,6 +7,7 @@ import requests
 import starlette.requests
 import starlette.responses
 
+import db.models.identity
 import util.avatar
 import util.dependency
 import util.login
@@ -36,7 +37,7 @@ async def get_login_microsoft(
 
     return util.redirect.idp(
         Config.MICROSOFT_AUTH_ENDPOINT,
-        'microsoft',
+        db.models.identity.IdpName.MICROSOFT,
         login_type,
         target_url,
         client_id=Config.MICROSOFT_CLIENT_ID,
@@ -131,7 +132,7 @@ async def get_callback_microsoft(
         dbi=dbi,
         login_type=login_type,
         target_url=target_url,
-        idp_name='microsoft',
+        idp_name=db.models.identity.IdpName.MICROSOFT,
         idp_uid=user_dict['sub'],
         common_name=user_dict['name'],
         email=user_dict['email'],

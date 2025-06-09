@@ -9,22 +9,54 @@ import db.models.base
 log = daiquiri.getLogger(__name__)
 
 
+class PermissionLevel(enum.Enum):
+    NONE = 0
+    READ = 1
+    WRITE = 2
+    CHANGE = 3  # changePermission
+
+
+class IdpName(enum.Enum):
+    UNKNOWN = 0
+    LDAP = 1
+    GITHUB = 2
+    GOOGLE = 3
+    MICROSOFT = 4
+    ORCID = 5
+
+
+IDP_NAME_ENUM_TO_DISPLAY_DICT = {
+    IdpName.GITHUB: 'GitHub',
+    IdpName.GOOGLE: 'Google',
+    IdpName.LDAP: 'LDAP',
+    IdpName.MICROSOFT: 'Microsoft',
+    IdpName.ORCID: 'ORCID',
+}
+
+
+def idp_name_enum_to_display(idp_name: IdpName) -> str:
+    """Convert an IdPName enum to a display string."""
+    try:
+        return IDP_NAME_ENUM_TO_DISPLAY_DICT[idp_name]
+    except KeyError:
+        raise ValueError(f'Unknown IdPName enum value: {idp_name}') from None
+
+
 class Identity(db.models.base.Base):
     __tablename__ = 'identity'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    # Identities have a many-to-one relationship with db.models.profile.Profiles. This allows us to find the one
-    # db.models.profile.Profile that corresponds to a given Identity, and to find all Identities that correspond to a
-    # given db.models.profile.Profile. The latter is referenced via the backref 'identities' in the db.models.profile.Profile. The
-    # 'profile_id' declaration creates the physical column in the table which tracks the
-    # relationship. Setting 'profile_id' nullable to False forces the identity to be linked to an
-    # existing profile. The 'profile' declaration specifies the relationship for use only in the ORM
-    # layer.
+    # Identities have a many-to-one relationship with db.models.profile.Profiles. This allows us to
+    # find the one db.models.profile.Profile that corresponds to a given Identity, and to find all
+    # Identities that correspond to a given db.models.profile.Profile. The latter is referenced via
+    # the backref 'identities' in the db.models.profile.Profile. The 'profile_id' declaration
+    # creates the physical column in the table which tracks the relationship. Setting 'profile_id'
+    # nullable to False forces the identity to be linked to an existing profile. The 'profile'
+    # declaration specifies the relationship for use only in the ORM layer.
     profile_id = sqlalchemy.Column(
         sqlalchemy.Integer, sqlalchemy.ForeignKey('profile.id'), nullable=False, index=True
     )
-    # Our name for the IdP. Currently one of 'github', 'google', 'ldap', 'microsoft', 'orcid'.
-    # This acts as a namespace for the subject (sub) provided by the IdP.
-    idp_name = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
+    # Our name for the IdP. This acts as a namespace for the subject (sub) provided by the IdP.
+    idp_name = sqlalchemy.Column(sqlalchemy.Enum(IdpName), nullable=True, index=True)
     # The idp_uid is the unique user ID provided by the IdP, not to be confused with the UID that is
     # part of a LDAP DN, which we usually reference as `dn_uid`. The source of this value varies
     # with the IdP. E.g., for Google, it's the 'sub' (subject) and for ORCID, it's an ORCID on URL
@@ -59,12 +91,7 @@ class Identity(db.models.base.Base):
         cascade_backrefs=False,
     )
     __table_args__ = (
-        # Ensure that idp_name and idp_uid are unique together (each IdP has its own
-        # namespace for unique identifiers)
+        # Ensure that idp_name and idp_uid are unique together (each IdP has its own namespace for
+        # unique identifiers)
         sqlalchemy.UniqueConstraint('idp_name', 'idp_uid', name='idp_name_uid_unique'),
-        # Ensure that the idp_name is the name of one of our supported IdPs
-        sqlalchemy.CheckConstraint(
-            "idp_name IN ('github', 'google', 'ldap', 'microsoft', 'orcid')",
-            name='idp_name_check',
-        ),
     )

@@ -68,7 +68,7 @@ def get_identity_avatar_url(identity_row, refresh=False):
         '/'.join(
             (
                 Config.AVATARS_URL,
-                identity_row.idp_name,
+                identity_row.idp_name.name.lower(),
                 urllib.parse.quote(
                     util.filesystem.get_safe_reversible_path_element(identity_row.idp_uid)
                 ),

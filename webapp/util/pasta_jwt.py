@@ -4,9 +4,7 @@ import pprint
 import daiquiri
 import jwt
 
-import util.profile_cache
-
-
+import db.models.identity
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -130,10 +128,12 @@ async def make_jwt(dbi, identity_row):
             'isEmailVerified': False,
             'identityId': identity_row.id,
             # The remaining fields should be deprecated in the future.
-            'idpName': identity_row.idp_name,
+            'idpName': identity_row.idp_name.name.lower(),
             # Legacy behavior for Google was to use the email address as subject
             'idpUid': (
-                identity_row.email if identity_row.idp_name == 'google' else identity_row.idp_uid
+                identity_row.email
+                if identity_row.idp_name == db.models.identity.IdpName.GOOGLE
+                else identity_row.idp_uid
             ),
             'idpCname': identity_row.common_name,
         }

@@ -1,5 +1,6 @@
 import starlette.datastructures
 
+import db.models.identity
 import util.old_token
 import util.pasta_jwt
 import util.redirect
@@ -48,7 +49,7 @@ async def handle_client_login(
     identity_row = await dbi.create_or_update_profile_and_identity(
         idp_name, idp_uid, common_name, email, has_avatar
     )
-    if idp_name == 'google':
+    if idp_name == db.models.identity.IdpName.GOOGLE:
         old_uid = email
     else:
         old_uid = idp_uid
@@ -100,9 +101,9 @@ async def handle_link_account(request, dbi, idp_name, idp_uid, common_name, emai
     )
 
 
-def get_redirect_uri(idp_name):
+def get_redirect_uri(idp_name_str):
     url_obj = starlette.datastructures.URL(Config.SERVICE_BASE_URL)
-    return url_obj.replace(path=f'{url_obj.path}/callback/{idp_name}')
+    return url_obj.replace(path=f'{url_obj.path}/callback/{idp_name_str}')
 
 
 def pack_state(login_type, target_url):

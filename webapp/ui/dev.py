@@ -9,6 +9,7 @@ import starlette.responses
 import starlette.status
 import starlette.templating
 
+import db.models.identity
 import util.avatar
 import util.dependency
 import util.pasta_jwt
@@ -93,7 +94,7 @@ async def get_dev_profiles(
 @router.get('/dev/signin/{idp_name}/{idp_uid}')
 @assert_dev_enabled
 async def get_dev_signin(
-    idp_name: str,
+    idp_name: db.models.identity.IdpName,
     idp_uid: str,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
 ):

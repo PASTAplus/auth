@@ -3,6 +3,7 @@ import starlette.datastructures
 import starlette.responses
 import starlette.status
 
+import db.models.identity
 import util.login
 import util.pretty
 from config import Config
@@ -35,7 +36,7 @@ def internal(
 
 def idp(
     idp_auth_url: str,
-    idp_name: str,
+    idp_name: db.models.identity.IdpName,
     login_type: str,
     target_url: str,
     **query_param_dict,
@@ -45,7 +46,7 @@ def idp(
     """
     url_obj = starlette.datastructures.URL(idp_auth_url)
     url_obj = url_obj.replace_query_params(
-        redirect_uri=util.login.get_redirect_uri(idp_name),
+        redirect_uri=util.login.get_redirect_uri(idp_name.name.lower()),
         state=util.login.pack_state(login_type, target_url),
         **query_param_dict,
     )
@@ -70,7 +71,7 @@ def target(
     common_name: str,
     email: str,
     idp_uid: str,
-    idp_name: str,
+    idp_name: db.models.identity.IdpName,
     sub: str,
 ):
     """Create Response that redirects to the final target URL, providing the old style and new style
@@ -94,7 +95,7 @@ def target(
         full_name=common_name,
         email=email,
         idp_uid=idp_uid,
-        idp_name=idp_name,
+        idp_name=idp_name.name.lower(),
         # For ezEML
         common_name=common_name,
         sub=sub,

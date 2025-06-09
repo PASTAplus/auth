@@ -3,6 +3,7 @@ import fastapi
 import starlette.requests
 import starlette.status
 
+import db.models.identity
 import util.avatar
 import util.dependency
 import util.login
@@ -135,7 +136,7 @@ async def post_signin_ldap(
         dbi=dbi,
         login_type=login_type,
         target_url=str(util.url.url('/ui/profile')),
-        idp_name='ldap',
+        idp_name=db.models.identity.IdpName.LDAP,
         idp_uid=ldap_dn,
         common_name=username,
         email=None,

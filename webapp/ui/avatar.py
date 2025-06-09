@@ -6,6 +6,7 @@ import starlette.responses
 import starlette.status
 import starlette.templating
 
+import db.models.identity
 import util.avatar
 import util.dependency
 import util.pasta_jwt
@@ -41,7 +42,7 @@ async def get_ui_avatar(
             avatar_list.append(
                 {
                     'url': util.avatar.get_identity_avatar_url(identity_row),
-                    'idp_name': identity_row.idp_name,
+                    'idp_name': identity_row.idp_name.name,
                     'idp_uid': identity_row.idp_uid,
                 }
             )
@@ -73,10 +74,12 @@ async def post_avatar_update(
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     form_data = await request.form()
-    idp_name = form_data.get('idp_name')
+    idp_name_str = form_data.get('idp_name')
     idp_uid = form_data.get('idp_uid')
 
-    log.info(f'Updating avatar: idp_name={idp_name}, idp_uid={idp_uid}')
+    log.info(f'Updating avatar: idp_name_str={idp_name_str}, idp_uid={idp_uid}')
+
+    idp_name = db.models.identity.IdpName[idp_name_str]
 
     if idp_uid == '':
         token_profile_row.has_avatar = False
@@ -84,7 +87,7 @@ async def post_avatar_update(
         avatar_path.unlink(missing_ok=True)
     else:
         token_profile_row.has_avatar = True
-        avatar_img = util.avatar.get_avatar_path(idp_name, idp_uid).read_bytes()
+        avatar_img = util.avatar.get_avatar_path(idp_name.name.lower(), idp_uid).read_bytes()
         util.avatar.save_avatar(avatar_img, 'profile', token_profile_row.edi_id)
 
     await dbi.update_profile(token_profile_row, has_avatar=idp_uid != '')

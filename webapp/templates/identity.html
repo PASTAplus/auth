@@ -50,19 +50,19 @@
             </div>
             <div class='grid-child'>
               <div class='idp-logo'>
-                {% if identity.idp_name == 'google' %}
+                {% if identity.idp_name == IdpName.GOOGLE %}
                   <img class='idp-logo-google' src='{{ url('/static/svg/idp/google-text.svg') }}' alt='Google'>
-                {% elif identity.idp_name == 'microsoft' %}
+                {% elif identity.idp_name == IdpName.MICROSOFT %}
                   <img class='idp-logo-microsoft' src='{{ url('/static/svg/idp/microsoft.svg') }}' alt='Microsoft'>
-                {% elif identity.idp_name == 'github' %}
+                {% elif identity.idp_name == IdpName.GITHUB %}
                   <img class='idp-logo-github-symbol' src='{{ url('/static/svg/idp/github-symbol.svg') }}' alt='GitHub'>
                   <img class='idp-logo-github-text' src='{{ url('/static/svg/idp/github-text.svg') }}' alt='GitHub'>
-                {% elif identity.idp_name == 'orcid' %}
+                {% elif identity.idp_name == IdpName.ORCID %}
                   <img class='idp-logo-orcid' src='{{ url('/static/svg/idp/orcid.svg') }}' alt='ORCID'>
-                {% elif identity.idp_name == 'ldap' %}
+                {% elif identity.idp_name == IdpName.LDAP %}
                   <img class='idp-logo-edi-ldap' src='{{ url('/static/svg/idp/edi-logo.svg') }}' alt='EDI LDAP'>
                 {% else %}
-                  {{ identity.idp_name | upper }}
+                  {{ identity.idp_name }}
                 {% endif %}
               </div>
             </div>

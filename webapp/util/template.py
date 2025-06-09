@@ -3,6 +3,8 @@ import starlette.templating
 import util.url
 from config import Config
 
+import db.models.identity
+
 templates = starlette.templating.Jinja2Templates(Config.TEMPLATES_PATH)
 templates.env.globals.update(
     {
@@ -10,5 +12,6 @@ templates.env.globals.update(
         'url': util.url.url,
         # Parameters for base.html
         'dev_menu': Config.ENABLE_DEV_MENU,
+        'IdpName': db.models.identity.IdpName,
     }
 )

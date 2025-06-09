@@ -5,6 +5,7 @@ import pytest
 import sqlalchemy.exc
 
 import db
+import db.models.identity
 
 
 def _check_edi_id(edi_id):
@@ -31,17 +32,13 @@ def test_get_profile(db):
     assert profile_row.common_name == 'Given2 Family2'
 
 
-def test_create_identity_invalid_idp(db):
-    """Attempt to create an identity with an invalid IdP."""
-    profile_row = db.create_profile(common_name='Given Family')
-    with pytest.raises(sqlalchemy.exc.IntegrityError):
-        db.create_identity(profile_row, idp_name='invalid_idp', uid='test_uid')
-
-
 def test_create_identity(db):
     profile_row = db.create_profile(common_name='Given Family')
     identity = db.create_identity(
-        profile_row, idp_name='google', uid='test_uid', email='test@test.com'
+        profile_row,
+        idp_name=db.models.identity.IdpName.GOOGLE,
+        uid='test_uid',
+        email='test@test.com',
     )
     assert identity is not None
     assert identity.uid == 'test_uid'
@@ -51,23 +48,23 @@ def test_create_identity(db):
 
 def test_create_identity_duplicate_idp(db):
     profile_row = db.create_profile(common_name='Given Family')
-    db.create_identity(profile_row, idp_name='google', uid='test_uid')
+    db.create_identity(profile_row, idp_name=db.models.identity.IdpName.GOOGLE, uid='test_uid')
     with pytest.raises(sqlalchemy.exc.IntegrityError):
-        db.create_identity(profile_row, idp_name='google', uid='test_uid')
+        db.create_identity(profile_row, idp_name=db.models.identity.IdpName.GOOGLE, uid='test_uid')
 
 
 def test_create_identity_duplicate_idp_with_unique_uid(db):
     """We can have multiple identities with the same IDP as long as the UID is unique,
     meaning the user has multiple accounts with the IdP"""
     profile_row = db.create_profile(common_name='Given Family')
-    db.create_identity(profile_row, idp_name='google', uid='test_uid_1')
-    db.create_identity(profile_row, idp_name='google', uid='test_uid_2')
+    db.create_identity(profile_row, idp_name=db.models.identity.IdpName.GOOGLE, uid='test_uid_1')
+    db.create_identity(profile_row, idp_name=db.models.identity.IdpName.GOOGLE, uid='test_uid_2')
 
 
 def test_create_or_update_profile_and_identity(db):
     identity_row = db.create_or_update_profile_and_identity(
         common_name='Given Family',
-        idp_name='google',
+        idp_name=db.models.identity.IdpName.GOOGLE,
         uid='test_uid',
         email='test@test.test',
         has_avatar=False,
@@ -82,7 +79,7 @@ def test_get_all_profiles_with_identity_mapping(db):
     for i in range(10):
         db.create_or_update_profile_and_identity(
             common_name='Given Family',
-            idp_name='google',
+            idp_name=db.models.identity.IdpName.GOOGLE,
             uid=f'test_uid_{i}',
             email='test@test.test',
             has_avatar=False,
