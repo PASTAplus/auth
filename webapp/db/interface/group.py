@@ -49,7 +49,7 @@ class GroupInterface:
         principal_row = await self.get_principal_by_subject(
             token_profile_row.id, db.models.permission.SubjectType.PROFILE
         )
-        await self._create_or_update_permission(
+        await self.create_or_update_permission(
             resource_row,
             principal_row,
             db.models.permission.PermissionLevel.CHANGE,
