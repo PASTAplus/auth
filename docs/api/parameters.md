@@ -49,12 +49,13 @@ The following status codes may be returned by the API methods. If a status code 
         - The body JSON had incorrect structure or was missing a required field
         - An unsupported MIME type was specified in the Accept header
 - `401 Unauthorized`
-    - The client did not provide a valid authentication token
+    - The user could not be authenticated
+    - The user did not provide an authentication token, or the token was expired or otherwise invalid
 - `403 Forbidden`
-    - The client is not authorized to execute method or access resource
+    - The user is authenticated but does not have the necessary permissions to perform the requested action
 - `5xx Internal Server Error`
     - An unexpected error occurred on the server
-    - The response body may not be well-formed JSON or XML in this case.
+    - The response body may not be well-formed JSON or XML in this case
 
 # Examples
 
@@ -71,7 +72,7 @@ Example JSON response body for `createProfile() -> 200 OK`:
 ```json
 {
   "method": "createProfile",
-  "edi_id": "edi-1234567890abcdef1234567890abcdef",
+  "edi_id": "EDI-1234567890abcdef1234567890abcdef",
   "msg": "A new profile was created"
 }
 ```
@@ -82,7 +83,7 @@ Or as XML:
 <?xml version="1.0" encoding="UTF-8"?>
 <result>
     <method>createProfile</method>
-    <edi_id>edi-1234567890abcdef1234567890abcdef</edi_id>
+    <edi_id>EDI-1234567890abcdef1234567890abcdef</edi_id>
     <msg>A new profile was created.</msg>
 </result>
 ```

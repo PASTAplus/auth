@@ -43,7 +43,7 @@ curl -X POST https://auth.edirepository.org/auth/v1/rule \
 -H "Cookie: jwt_token=$(<myjwt.txt)" \
 -d '{
   "resource_key": "https://pasta.lternet.edu/package/data/eml/edi/643/4/87c390495ad405e705c09e62ac6f58f0",
-  "principal": "edi-1234567890abcdef1234567890abcdef",
+  "principal": "EDI-1234567890abcdef1234567890abcdef",
   "permission": "changePermission"
 }'
 ```
@@ -60,13 +60,13 @@ Example JSON `200 OK` response:
 ### Status codes
 
 - `200 OK`
-  - A new rule was created.
+  - A new rule was created
 
 - `400 Bad Request`
   - In addition to possible reasons outlined in [Parameters](parameters.md):
     - A rule already exists on the resource for the principal
     - The resource key does not exist
-    - The principal is not a valid EDI profile identifier
+    - The principal is not a valid EDI-ID
     - The permission is not a valid permission level (must be 'read', 'write', or 'changePermission')
 
 ---

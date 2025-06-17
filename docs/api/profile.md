@@ -12,7 +12,7 @@ This document describes the API for managing user profiles.
 
 ``Create a 'skeleton' EDI profile that can be used in permissions. This method is idempotent, meaning that if a profile already exists for the provided `idp_uid`, it will return the existing profile identifier instead of creating a new one.
 
-The first time a user logs into the profile, the profile and identity are updated from 'skeleton' to regular with the information provided by the IdP.
+If and when a user logs into the profile for the first time, the profile and identity are updated from 'skeleton' to regular with the information provided by the IdP.
 
 ```
 POST: /auth/v1/profile
