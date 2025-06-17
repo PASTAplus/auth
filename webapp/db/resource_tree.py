@@ -222,6 +222,10 @@ def _get_principal_sort_key(principal_dict):
     """Key for sorting principals"""
     p = principal_dict
     title, description, edi_id = p['title'], p['description'], p['edi_id']
+    # Sort principals with no title at the end by prepending \uffff, a high unicode character, to
+    # the edi_id.
+    if not title:
+        title = '\uffff' + edi_id
     # Sort the Public user to the top
     if p['edi_id'] == Config.PUBLIC_EDI_ID:
         title = ''

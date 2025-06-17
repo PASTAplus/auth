@@ -1,3 +1,5 @@
+import datetime
+
 import daiquiri
 import sqlalchemy
 import sqlalchemy.ext.asyncio
@@ -44,7 +46,7 @@ class IdentityInterface:
     async def update_identity(
         self, identity_row, idp_name, idp_uid, common_name, email, has_avatar
     ):
-        assert identity_row.idp_name == idp_name
+        assert identity_row.idp_name in (idp_name, db.models.identity.IdpName.UNKNOWN)
         assert identity_row.idp_uid == idp_uid
         # We always update the email address and common name in the identity row, but only set these
         # in the profile when the profile is first created. So if the user has updated their info
@@ -52,6 +54,8 @@ class IdentityInterface:
         # the profile remains unchanged.
         identity_row.common_name = common_name
         identity_row.email = email
+        identity_row.first_auth = identity_row.first_auth or datetime.datetime.now()
+        identity_row.last_auth = datetime.datetime.now()
         # Normally, has_avatar will be True from the first time the user logs in with the identity.
         # More rarely, it will go from False to True, if a user did not initially have an avatar at
         # the IdP, but then creates one. More rarely still (if at all possible), this may go from
@@ -88,9 +92,9 @@ class IdentityInterface:
 
     async def get_identity_by_id(self, identity_id):
         result = await self.execute(
-            sqlalchemy.select(db.models.identity.Identity).where(
-                db.models.identity.Identity.id == identity_id
-            )
+            sqlalchemy.select(db.models.identity.Identity)
+            .options(sqlalchemy.orm.selectinload(db.models.identity.Identity.profile))
+            .where(db.models.identity.Identity.id == identity_id)
         )
         return result.scalars().first()
 

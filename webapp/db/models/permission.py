@@ -56,6 +56,22 @@ class PermissionLevel(enum.Enum):
     CHANGE = 3  # changePermission
 
 
+PERMISSION_LEVEL_STRING_TO_ENUM_DICT = {
+    'none': PermissionLevel.NONE,
+    'read': PermissionLevel.READ,
+    'write': PermissionLevel.WRITE,
+    'changePermission': PermissionLevel.CHANGE,
+}
+
+
+PERMISSION_LEVEL_ENUM_TO_STRING_DICT = {
+    PermissionLevel.NONE: 'none',
+    PermissionLevel.READ: 'read',
+    PermissionLevel.WRITE: 'write',
+    PermissionLevel.CHANGE: 'changePermission',
+}
+
+
 def subject_type_string_to_enum(subject_type):
     """Convert a string to a SubjectType enum."""
     return SubjectType[subject_type.upper()]
@@ -66,11 +82,27 @@ def permission_level_int_to_enum(permission_level):
     return PermissionLevel(permission_level)
 
 
+def permission_level_string_to_enum(permission_level_str):
+    """Convert a string to a PermissionLevel enum."""
+    try:
+        return PERMISSION_LEVEL_STRING_TO_ENUM_DICT[permission_level_str]
+    except KeyError:
+        raise ValueError(
+            f'Permission level must be one of: read, write, or changePermission. '
+            f'Received: {permission_level_str}'
+        )
+
+
+def permission_level_enum_to_string(permission_level_enum):
+    """Convert a PermissionLevel enum to a string."""
+    return PERMISSION_LEVEL_ENUM_TO_STRING_DICT[permission_level_enum]
+
+
 def get_permission_level_enum(permission_level):
-    """This is a workaround for a bug in SQLAlchemy, psycopg or Postgres that can cause ENUM
-    type columns to be returned as strings instead of enum objects. If `permission_level`
-    already is a PermissionLevel ENUM, it is returned unchanged. If it is a string, it is converted
-    to the corresponding ENUM.
+    """This is a workaround for a bug in SQLAlchemy, psycopg or Postgres that can cause ENUM type
+    columns to be returned as strings instead of enum objects. If `permission_level` already is a
+    PermissionLevel ENUM, it is returned unchanged. If it is a string, it is converted to the
+    corresponding ENUM.
 
     TODO: Later in 2025, check if this is still needed.
 
@@ -86,7 +118,7 @@ def get_permission_level_enum(permission_level):
     To reproduce the bug:
 
     rows = (
-        await pop_udb.session.execute(sqlalchemy.select(Rule))
+        await pop_dbi.session.execute(sqlalchemy.select(Rule))
     ).scalars().all()
     for row in rows:
         # With bug still present, the permission level on the last row will be a string here.

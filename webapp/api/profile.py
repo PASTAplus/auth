@@ -33,7 +33,7 @@ async def profile_get(
     """Get a profile."""
     token = util.old_token.OldToken()
     token.from_auth_token(token_str)
-    profile_row = await dbi.get_profile(token.idp_uid)
+    profile_row = await dbi.get_profile(token.uid)
     return starlette.responses.Response(util.pretty.to_pretty_json(profile_row.as_dict()))
 
 
@@ -71,7 +71,7 @@ async def profile_disable(
     """
     token = util.old_token.OldToken()
     token.from_auth_token(token_str)
-    await dbi.disable_profile(token.idp_uid)
+    await dbi.disable_profile(token.uid)
 
 
 # 3. drop_identity (token, IdP)
@@ -85,11 +85,11 @@ async def identity_drop(
 ):
     """Drop an identity from a profile.
 
-    Dropping an identity removes the identity from the profile, making it impossible to
-    sign in to the profile with the identity.
+    Dropping an identity removes the identity from the profile, making it impossible to sign in to
+    the profile with the identity.
 
-    If the identity is used again, it will be mapped to a new profile. The user is then free to
-    map the new profile to an existing profile if they wish.
+    If the identity is used again, it will be mapped to a new profile. The user is then free to map
+    the new profile to an existing profile if they wish.
     """
     token = util.old_token.OldToken()
     token.from_auth_token(token_str)
