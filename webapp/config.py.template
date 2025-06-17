@@ -74,7 +74,7 @@ class Config(object):
     # System principals
     #
 
-    SERVICE_EDI_ID = 'EDI-376d4d3e43554771a1dd0a0c52050508'
+    SERVICE_EDI_ID = 'EDI-...'
     SERVICE_NAME = 'EDI Authentication Service'
     SERVICE_AVATAR_PATH = ASSETS_PATH / 'shield-edi.svg'
 
