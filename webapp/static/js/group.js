@@ -302,7 +302,7 @@ function addPrincipalDiv(parentEl, principalObj)
       <img src='${p.avatar_url}' alt='Avatar' class='avatar avatar-smaller'>
     </div>
     <div class='principal-child principal-info'>
-      <div class='principal-title'>${p.title}</div>
+      <div class='principal-title'>${p.title || ''}</div>
       <div class='principal-description'>${p.description || ''}</div>
       <div class='edi-id-parent'>
         <div class='edi-id-child-text'>

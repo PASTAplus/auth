@@ -2,8 +2,8 @@ let headerContainerEl = document.getElementsByClassName('header-container')[0];
 
 // Constants passed from the server
 const ROOT_PATH = headerContainerEl.dataset.rootPath;
-const PUBLIC_EDI_ID = headerContainerEl.dataset.publicPastaId;
-const AUTHENTICATED_EDI_ID = headerContainerEl.dataset.authenticatedPastaId;
+const PUBLIC_EDI_ID = headerContainerEl.dataset.publicEdiId;
+const AUTHENTICATED_EDI_ID = headerContainerEl.dataset.authenticatedEdiId;
 const RESOURCE_TYPE = headerContainerEl.dataset.resourceType;
 
 const PERMISSION_LEVEL_LIST = ['None', 'Reader', 'Editor', 'Owner'];
@@ -313,7 +313,7 @@ function formatTreePrincipalDiv(principalList)
   for (const principalObj of principalList) {
     htmlArray.push(`
       <div class='tree-principal'>
-        <div class='tree-principal-name'>${principalObj.title}</div>
+        <div class='tree-principal-name'>${principalObj.title || ''}</div>
         <div class='tree-principal-edi-id'>${principalObj.edi_id}</div>
         <div class='tree-principal-permission-level'>
           ${formatTreePermissionLevelDiv(principalObj.permission_level)}
@@ -398,7 +398,7 @@ function addPrincipalDiv(parentEl, principalObj)
       <img src='${c.avatar_url}' alt='Avatar' class='avatar avatar-smaller'>
     </div>
     <div class='principal-child principal-info'>
-      <div class='principal-title'>${c.title}</div>
+      <div class='principal-title'>${c.title || ''}</div>
       <div class='principal-description'>${c.description || ''}</div>
       <div class='edi-id-parent'>
         <div class='edi-id-child-text'>

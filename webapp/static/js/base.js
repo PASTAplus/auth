@@ -6,13 +6,15 @@ for (let el of el_arr) {
     el.classList.add('active');
     // ARIA is an accessibility standard. It helps with screen readers.
     el.setAttribute('aria-current', 'page');
-  } else {
+  }
+  else {
     el.classList.remove('active');
     el.setAttribute('aria-current', 'false');
   }
 }
 
-function getPageName() {
+function getPageName()
+{
   const url = window.location.pathname;
   const split_list = url.split('/');
   return split_list[split_list.length - 1];
@@ -20,7 +22,7 @@ function getPageName() {
 
 // Handle EDI-ID copy buttons
 // This is a global event listener in order to handle dynamically created elements.
-document.addEventListener('click', function(ev) {
+document.addEventListener('click', function (ev) {
   if (ev.target.matches('.edi-id-copy-button')) {
     const idEl = ev.target.closest('.edi-id-parent');
     const textEl = idEl.querySelector('.edi-id-child-text');
@@ -28,13 +30,24 @@ document.addEventListener('click', function(ev) {
     navigator.clipboard.writeText(pastaIdStr).catch(function (error) {
       errorDialog(error);
     });
+    // Create a floating div that says "Copied"
+    const copiedDiv = document.createElement('div');
+    copiedDiv.textContent = 'Copied';
+    copiedDiv.className = 'edi-id-copied-box';
+    const parentContainer = ev.target.parentElement;
+    parentContainer.appendChild(copiedDiv);
+    // Remove the floating div after 2 seconds
+    setTimeout(() => {
+      copiedDiv.remove();
+    }, 2000);
   }
 });
 
 // Keep track of the height of the navbar, for use in CSS that limits
 // the height of the main content area.
 
-function updateNavbarHeight() {
+function updateNavbarHeight()
+{
   const navbar = document.querySelector('.navbar');
   const navbarHeight = navbar.offsetHeight;
   document.documentElement.style.setProperty('--navbar-height', `${navbarHeight}px`);
@@ -49,13 +62,15 @@ window.addEventListener('resize', updateNavbarHeight);
 
 // Privacy Policy
 let privacyPolicyModal = document.getElementById('privacyPolicyModal');
-if (privacyPolicyModal.dataset.profileId !== undefined && privacyPolicyModal.dataset.policyAccepted !== 'true') {
+if (privacyPolicyModal.dataset.profileId !== undefined &&
+    privacyPolicyModal.dataset.policyAccepted !== 'true') {
   new bootstrap.Modal(privacyPolicyModal).show();
 }
 
 // Error dialog
 
-function errorDialog(error) {
+function errorDialog(error)
+{
   // If the error is a string, convert it to an object.
   const errorMsg = typeof error === 'string' ? `Error: ${error}` :
       error.stack || error || JSON.stringify(error, null, 2);
@@ -64,13 +79,13 @@ function errorDialog(error) {
   throw error;
 }
 
-document.getElementById('copyErrorButton').addEventListener('click', function() {
+document.getElementById('copyErrorButton').addEventListener('click', function () {
   const errorMsg = document.getElementById('errorMsg').innerText;
   navigator.clipboard.writeText(errorMsg).then(
-    function () {
-      const copyErrorButton = document.getElementById('copyErrorButton');
-      copyErrorButton.value = 'Copied';
-    }
+      function () {
+        const copyErrorButton = document.getElementById('copyErrorButton');
+        copyErrorButton.value = 'Copied';
+      }
   ).catch(function (error) {
     alert(error);
   });

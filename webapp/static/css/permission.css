@@ -147,7 +147,9 @@ Resource Tree (left side)
     gap: 1rem;
 }
 
-.tree-principal-name {
+.tree-principal-name:empty {
+    /* Hide the principal name if it is empty */
+    display: none;
 }
 
 
