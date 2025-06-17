@@ -29,8 +29,8 @@
         <p>
           Groups allow you to organize access to your data objects efficiently. Instead of granting
           access to individuals one by one, you can add them to a group and manage access
-          collectively. Adding a member to an existing group grants them immediate access to all
-          resources the group has access to, while removing them revokes that access.
+          collectively. Adding a member to a group grants them immediate access to all resources the
+          group has access to, while removing them revokes that access.
         </p>
       </div>
 
@@ -62,31 +62,29 @@
 
               <div class='group-details'>
 
-                <div class='child-grid'>
+                <div class=''>
                   <div class='row-center-parent'>
                     {# Edit group name and description #}
-                    <div class='child-grid-child'>
-                      <button class='icon-button'
-                              data-bs-toggle='modal'
-                              data-bs-target='#groupModal'
-                              data-form-target='{{ url('/group/edit') }}'
-                              data-title='Edit group'
-                              data-group-id='{{ group.id }}'
-                              data-group-name='{{ group.name }}'
-                              data-group-description='{{ group.description or '' }}'
-                              data-submit-text='Save'
-                      >
-                        <img src='{{ url('/static/svg/edit-pencil.svg') }}' alt='Edit'>
-                      </button>
-                    </div>
+                    <button class='icon-button'
+                            data-bs-toggle='modal'
+                            data-bs-target='#groupModal'
+                            data-form-target='{{ url('/group/edit') }}'
+                            data-title='Edit group'
+                            data-group-id='{{ group.id }}'
+                            data-group-name='{{ group.name }}'
+                            data-group-description='{{ group.description or '' }}'
+                            data-submit-text='Save'
+                    >
+                      <img src='{{ url('/static/svg/edit-pencil.svg') }}' alt='Edit'>
+                    </button>
                     {# Name #}
-                    <div class='child-grid-child grid-child-title'>{{ group.name }}</div>
+                    <div class='grid-child-title'>{{ group.name }}</div>
                   </div>
 
                   {# Description #}
-                  <div class='child-grid-child description'>{{ group.description or '' }}</div>
+                  <div class='grid-child-description'>{{ group.description or '' }}</div>
 
-                  {# Member count, EDI ID button, Remove button #}
+                  {# Row: Member count, EDI ID button, Remove button #}
                   <div class='row-center-parent button-row'>
                     {# Member count #}
                     <div>
@@ -99,28 +97,28 @@
                         </span>
                     </div>
                     {# Copy ID #}
-                    <div class='row-center-child'>
-                      <div class='edi-id-parent'>
-                        <div class='edi-id-child-text'>
-                          {{ group.edi_id }}
-                        </div>
-                        <div class='edi-id-child-icon'>
-                          <img src='{{ url('/static/svg/copy.svg') }}'
-                               alt='Copy Group Identifier'>
-                        </div>
+                    <div class='edi-id-parent'>
+                      <div class='edi-id-child-text'>
+                        {{ group.edi_id }}
+                      </div>
+                      <div class='edi-id-child-icon'>
+                        <img src='{{ url('/static/svg/copy.svg') }}'
+                             alt='Copy Group Identifier'
+                            class='edi-id-copy-button'
+                        >
                       </div>
                     </div>
-                  </div>
-                  {# Remove button #}
-                  <div class='row-center-child'>
-                    <button class='icon-text-button' data-bs-toggle='modal'
-                            data-bs-target='#deleteGroupModal'
-                            data-group-id='{{ group.id }}'
-                            data-group-name='{{ group.name }}'
-                    >
-                      <span><img src='{{ url('/static/svg/trash.svg') }}' alt='Unlink'></span>
-                      <span>Remove</span>
-                    </button>
+                    {# Remove button #}
+                    <div class='row-center-child'>
+                      <button class='icon-text-button' data-bs-toggle='modal'
+                              data-bs-target='#deleteGroupModal'
+                              data-group-id='{{ group.id }}'
+                              data-group-name='{{ group.name }}'
+                      >
+                        <span><img src='{{ url('/static/svg/trash.svg') }}' alt='Unlink'></span>
+                        <span>Remove</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

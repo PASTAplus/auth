@@ -28,6 +28,17 @@ def save_avatar(avatar_img: bytes, namespace_str: str, id_str: str, ext=None):
     return avatar_path
 
 
+async def copy_identity_to_profile_avatar(identity_row):
+    """Copy the avatar image from the identity to the profile."""
+    assert identity_row.has_avatar
+    identity_avatar_path = get_avatar_path(identity_row.idp_name.name.lower(), identity_row.idp_uid)
+    assert identity_avatar_path.exists()
+    profile_avatar_path = get_avatar_path('profile', identity_row.profile.edi_id)
+    with filelock.FileLock(profile_avatar_path.with_suffix('.lock')):
+        shutil.copy(identity_avatar_path, profile_avatar_path)
+    identity_row.profile.has_avatar = True
+
+
 def get_avatar_path(namespace_str, id_str, ext=None):
     avatar_path = (
         Config.AVATARS_PATH
@@ -41,7 +52,11 @@ def get_avatar_path(namespace_str, id_str, ext=None):
 
 def get_profile_avatar_url(profile_row, refresh=False):
     """Return the URL to the avatar image for the given IdP and idp_uid."""
+    # TODO: The refresh function does not work correctly, as next time the avatar is requested
+    # without the refresh parameter, the browser will revert to the cached version.
     if not profile_row.has_avatar:
+        if profile_row.initials is None:
+            return get_anon_avatar_url()
         return get_initials_avatar_url(profile_row.initials)
     avatar_url = util.url.url(
         '/'.join(
@@ -100,7 +115,7 @@ def get_initials_avatar_path(initials: str):
     with filelock.FileLock(initials_avatar_path.with_suffix('.lock')):
         if initials_avatar_path.exists():
             return initials_avatar_path
-    avatar_img = generate_initials_avatar(initials)
+        avatar_img = generate_initials_avatar(initials)
     return save_avatar(avatar_img, 'initials', initials, '.png')
 
 
@@ -136,18 +151,13 @@ def get_public_avatar_url():
     return util.url.url(f'/static/svg/public.svg')
 
 
-def init_public_avatar():
-    """Create an avatar image for the public user."""
-    dst_path = get_avatar_path('profile', Config.PUBLIC_EDI_ID)
-    with filelock.FileLock(dst_path.with_suffix('.lock')):
-        if dst_path.exists():
-            return
-    shutil.copy(Config.PUBLIC_AVATAR_PATH, dst_path)
+def init_system_avatar(edi_id: str, asset_fname: str):
+    """Create an avatar image for a system profile.
 
-def init_authenticated_avatar():
-    """Create an avatar image for the authenticated user."""
-    dst_path = get_avatar_path('profile', Config.AUTHENTICATED_EDI_ID)
+    This copies the avatar image from the assets directory to the profile avatar directory.
+    """
+    src_path = Config.ASSETS_PATH / asset_fname
+    dst_path = get_avatar_path('profile', edi_id)
     with filelock.FileLock(dst_path.with_suffix('.lock')):
-        if dst_path.exists():
-            return
-    shutil.copy(Config.AUTHENTICATED_AVATAR_PATH, dst_path)
+        if not dst_path.exists():
+            shutil.copy(src_path, dst_path)

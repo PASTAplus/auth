@@ -61,7 +61,7 @@ async def token(
     :returns: PASTA token if pasta_token cookie present in Request
     :rtype: PastaJwt
     """
-    token_str = request.cookies.get('pasta_token')
+    token_str = request.cookies.get('pasta_token') or request.cookies.get('jwt_token')
     token_obj = await util.pasta_jwt.PastaJwt.decode(dbi_, token_str) if token_str else None
     yield token_obj
 

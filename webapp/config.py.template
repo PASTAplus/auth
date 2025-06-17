@@ -44,6 +44,7 @@ class Config(object):
     STATIC_PATH = HERE_PATH / 'static'
     AVATARS_PATH = HERE_PATH / '../avatars'
     TEMPLATES_PATH = HERE_PATH / 'templates'
+    ASSETS_PATH = HERE_PATH / 'assets'
 
     # URLs
     SERVICE_BASE_URL = 'https://localhost:5443/auth'
@@ -75,11 +76,11 @@ class Config(object):
 
     PUBLIC_EDI_ID = 'EDI-...'
     PUBLIC_NAME = 'Public Access'
-    PUBLIC_AVATAR_PATH = HERE_PATH / 'assets/public-avatar.svg'
+    PUBLIC_AVATAR_PATH = ASSETS_PATH / 'public-avatar.svg'
 
     AUTHENTICATED_EDI_ID = 'EDI-...'
     AUTHENTICATED_NAME = 'Authenticated Access'
-    AUTHENTICATED_AVATAR_PATH = HERE_PATH / 'assets/authenticated-avatar.svg'
+    AUTHENTICATED_AVATAR_PATH = ASSETS_PATH / 'authenticated-avatar.svg'
 
     SUPERUSER_LIST = [
         'EDI-...',
@@ -91,11 +92,11 @@ class Config(object):
     #
 
     AVATAR_WIDTH, AVATAR_HEIGHT = 200, 200
-    AVATAR_FONT_PATH = HERE_PATH / 'assets/NimbusRoman-BoldItalic.otf'
+    AVATAR_FONT_PATH = ASSETS_PATH / 'NimbusRoman-BoldItalic.otf'
     AVATAR_FONT_HEIGHT = 0.5
     AVATAR_BG_COLOR = (197, 197, 197, 255)
     AVATAR_TEXT_COLOR = (0, 0, 0, 255)
-    PUBLIC_AVATAR_PATH = HERE_PATH / 'assets/public-avatar.svg'
+    PUBLIC_AVATAR_PATH = ASSETS_PATH / 'public-avatar.svg'
 
     # Maximum number of results that can be returned in search for user and group members.
     SEARCH_LIMIT = 5

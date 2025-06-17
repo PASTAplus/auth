@@ -1,5 +1,5 @@
-"""Cache frequently used values for system profiles
-"""
+"""Cache frequently used values for system profiles"""
+
 import daiquiri
 
 from config import Config

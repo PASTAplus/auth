@@ -71,7 +71,7 @@ async def get_ui_signin_link(
             'title': 'Link Account',
             'text':
             # language=html
-                f"""
+            f"""
             <p>
             Sign in to the account you wish to link to this profile.
             </p>

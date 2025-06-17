@@ -12,9 +12,8 @@ import starlette.status
 import db.models.identity
 import util.dependency
 import util.old_token
-import util.pasta_ldap
 import util.pasta_jwt
-
+import util.pasta_ldap
 from config import Config
 
 log = daiquiri.getLogger(__name__)

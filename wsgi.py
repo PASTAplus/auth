@@ -2,6 +2,7 @@
 
 See run.py for the main entry point for development and testing.
 """
+
 import daiquiri
 
 from config import Config

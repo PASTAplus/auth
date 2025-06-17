@@ -79,14 +79,13 @@ async def post_avatar_update(
 
     log.info(f'Updating avatar: idp_name_str={idp_name_str}, idp_uid={idp_uid}')
 
-    idp_name = db.models.identity.IdpName[idp_name_str]
-
     if idp_uid == '':
         token_profile_row.has_avatar = False
         avatar_path = util.avatar.get_avatar_path('profile', token_profile_row.edi_id)
         avatar_path.unlink(missing_ok=True)
     else:
         token_profile_row.has_avatar = True
+        idp_name = db.models.identity.IdpName[idp_name_str]
         avatar_img = util.avatar.get_avatar_path(idp_name.name.lower(), idp_uid).read_bytes()
         util.avatar.save_avatar(avatar_img, 'profile', token_profile_row.edi_id)
 

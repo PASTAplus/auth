@@ -4,6 +4,7 @@ We dynamically update search results as the user types in the search box. In ord
 search and avoid hitting the database each time the user presses a key, we cache the profiles and
 groups in memory.
 """
+
 import re
 
 import daiquiri
@@ -31,7 +32,7 @@ async def init_cache(dbi):
 async def init_profiles(dbi):
     profile_list = cache['profile_list']
     profile_list.clear()
-    async for (profile_row, principal_row) in dbi.get_all_profiles_generator():
+    async for profile_row, principal_row in dbi.get_all_profiles_generator():
         if profile_row.edi_id in Config.SUPERUSER_LIST:
             continue
         key_tup = (
@@ -50,7 +51,7 @@ async def init_profiles(dbi):
         )
         profile_list.append(
             (
-                tuple(k.lower() for k in key_tup if k is not None),
+                tuple(s.lower() for s in key_tup if s is not None),
                 {
                     'profile_id': profile_row.id,
                     'principal_id': principal_row.id,
@@ -77,7 +78,7 @@ async def init_groups(dbi):
         )
         group_list.append(
             (
-                tuple(k.lower() for k in key_tup if k is not None),
+                tuple(s.lower() for s in key_tup if s is not None),
                 {
                     'principal_id': group_row.id,
                     'principal_type': 'group',
@@ -106,6 +107,7 @@ async def search(query_str, include_groups):
 
     # The keys are stored in lower case.
     lower_str = query_str.lower()
+
     for key_tup, principal_dict in cache['profile_list']:
         if len(match_list) >= Config.SEARCH_LIMIT:
             break

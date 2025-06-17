@@ -1,6 +1,5 @@
-import contextlib
-import pathlib
 import logging
+import pathlib
 
 import daiquiri.formatter
 import fastapi
@@ -12,6 +11,7 @@ import starlette.status
 
 import api.ping
 import api.refresh_token
+import api.v1
 import idp.github
 import idp.google
 import idp.ldap
@@ -27,15 +27,15 @@ import ui.permission
 import ui.privacy_policy
 import ui.profile
 import ui.signin
+import ui.token
 import util.avatar
+import util.dependency
 import util.pasta_jwt
 import util.redirect
 import util.search_cache
 import util.url
-import util.dependency
-
-from fastapi_app import app
 from config import Config
+from fastapi_app import app
 
 daiquiri.setup(
     level=Config.LOG_LEVEL,
@@ -71,6 +71,7 @@ app.mount(
     fastapi.staticfiles.StaticFiles(directory=Config.STATIC_PATH),
     name='static',
 )
+
 
 # Custom StaticFiles class to set MIME type
 class AvatarFiles(fastapi.staticfiles.StaticFiles):
@@ -145,6 +146,8 @@ class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
                 )
             ):
                 log.debug('Redirecting to /ui/signin: UI page requested without valid token')
+                # We redirect to signout to remove the invalid token cookie. signout will then
+                # redirect to /ui/signin.
                 return util.redirect.internal('/signout')
         return await call_next(request)
 
@@ -178,7 +181,7 @@ app.add_middleware(RedirectToSigninMiddleware)
 
 app.include_router(api.refresh_token.router)
 app.include_router(api.ping.router)
-# app.include_router(api.user.router)
+app.include_router(api.v1.router)
 app.include_router(idp.github.router)
 app.include_router(idp.google.router)
 app.include_router(idp.ldap.router)
@@ -194,3 +197,4 @@ app.include_router(ui.permission.router)
 app.include_router(ui.privacy_policy.router)
 app.include_router(ui.profile.router)
 app.include_router(ui.signin.router)
+app.include_router(ui.token.router)

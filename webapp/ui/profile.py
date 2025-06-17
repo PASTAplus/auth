@@ -20,6 +20,7 @@ router = fastapi.APIRouter()
 # UI routes
 #
 
+
 # We allow opening the profile via POST in addition to GET, to be compliant with what
 # other clients except. TODO: Still needed?
 @router.api_route('/ui/profile', methods=['GET', 'POST'])

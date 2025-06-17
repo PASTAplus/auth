@@ -163,7 +163,9 @@ async def post_permission_principal_search(
     request: starlette.requests.Request,
     # dbi: util.dependency.DbInterface = fastapi.Depends(db.session.dbi),
     # Prevent this from being called by anyone not logged in
-    _token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
+    _token_profile_row: util.dependency.Profile = fastapi.Depends(
+        util.dependency.token_profile_row
+    ),
 ):
     """Called when user types in the principal search box."""
     query_dict = await request.json()
@@ -188,7 +190,7 @@ async def post_permission_update(
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    """Called when the user changes the permission level dropdown for a profile. """
+    """Called when the user changes the permission level dropdown for a profile."""
     # TODO: There is a race condition where changes can be lost if the user changes multiple times
     # quickly for the same profile. This probably happens because the change is asynchronously sent
     # to the server, and the list is then async updated while the old list still exists and is still

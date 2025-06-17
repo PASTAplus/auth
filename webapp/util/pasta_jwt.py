@@ -109,10 +109,6 @@ class PastaJwt:
 
 async def make_jwt(dbi, identity_row):
     """Create a JWT for the given profile."""
-
-    # As we currently do not issue JWT tokens to public users, we can assume that the user is
-    # authenticated if they have a valid JWT.
-    # 'pastaIsAuthenticated': True,
     profile_row = identity_row.profile
     principals_set = await dbi.get_equivalent_principal_edi_id_set(profile_row)
     # Remove the profile's own EDI-ID from the principals set, as it's available in the 'sub' claim.
