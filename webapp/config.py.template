@@ -74,6 +74,10 @@ class Config(object):
     # System principals
     #
 
+    SERVICE_EDI_ID = 'EDI-376d4d3e43554771a1dd0a0c52050508'
+    SERVICE_NAME = 'EDI Authentication Service'
+    SERVICE_AVATAR_PATH = ASSETS_PATH / 'shield-edi.svg'
+
     PUBLIC_EDI_ID = 'EDI-...'
     PUBLIC_NAME = 'Public Access'
     PUBLIC_AVATAR_PATH = ASSETS_PATH / 'public-avatar.svg'
@@ -86,6 +90,11 @@ class Config(object):
         'EDI-...',
         'EDI-...',
     ]
+
+    VETTED_GROUP_EDI_ID = 'EDI-...'
+    VETTED_GROUP_NAME = 'Vetted Access'
+    VETTED_GROUP_DESCRIPTION = 'Group for users who have been vetted by EDI'
+    VETTED_GROUP_AVATAR_PATH = ASSETS_PATH / 'checkmark.svg'
 
     #
     # UI
