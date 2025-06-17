@@ -2,14 +2,51 @@
 {% set active_page = 'profile' %}
 
 {% block title %}
-  Token
+  EDI Authentication Token
+{% endblock %}
+
+{% block head %}
+  <link rel='stylesheet' href='{{ url('/static/css/token.css') }}'>
 {% endblock %}
 
 {% block content %}
-  <h1 aria-label>Token</h1>
+  <h1 aria-label>EDI Authentication Token</h1>
 
   <div class='indent'>
-    <pre>{{ token_pp }}</pre>
+    <p>
+      The EDI Authentication Token is your personal access token for the EDI repository. It's a JSON
+      Web Token (JWT), containing user profile information and permissions. When you sign in to an
+      EDI service, your browser receives the token as a cookie.
+    </p>
   </div>
 
+  <h2>Payload</h2>
+
+  <div class='indent'>
+    <p>
+      The following is the payload of the token with which you are currently signed in:
+    </p>
+    <div class='indent'>
+      <pre>{{ token_pp }}</pre>
+    </div>
+  </div>
+
+  <h2>Download for API access</h2>
+
+  <div class='indent'>
+    <p>
+      In order to authenticate your requests to the EDI repository API and programmatically access
+      your resources, download the token and pass it in the HTTP header of your requests.
+    </p>
+    <p>
+      The downloaded token is valid for <span class='highlight'>{{ lifetime }} hours</span>. After
+      that, you will need to sign in again to obtain a new token.
+    </p>
+    <div class='indent'>
+      <p>
+        Filename: <span class='highlight'>{{ filename }}</span>.
+      </p>
+      <a href="{{ url('/token/download') }}" class='btn btn-primary'>Download Token</a>
+    </div>
+  </div>
 {% endblock %}
