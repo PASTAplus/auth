@@ -72,7 +72,9 @@ class Profile(db.models.base.Base):
 
     @property
     def initials(self):
-        return ''.join(s[0].upper() for s in self.common_name.split())
+        if not self.common_name:
+            return None
+        return ''.join(s[0] for s in self.common_name.split()).upper()
 
     @property
     def avatar_url(self):

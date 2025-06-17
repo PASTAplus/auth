@@ -68,8 +68,12 @@ async def create_system_profiles(dbi):
     """Create the system profiles for the Public and Authenticated users. This is a no-op for
     profiles that already exist.
     """
-    udb = db.user.UserDb(session)
-    for edi_id, common_name, init_avatar_func in (
+    for edi_id, common_name, avatar_path in (
+        (
+            Config.SERVICE_EDI_ID,
+            Config.SERVICE_NAME,
+            Config.SERVICE_AVATAR_PATH,
+        ),
         (
             Config.PUBLIC_EDI_ID,
             Config.PUBLIC_NAME,

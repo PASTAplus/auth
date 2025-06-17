@@ -81,23 +81,25 @@ async def get_profile_rows(dbi):
     )
 
 
-async def insert_permission(dbi, group_row, profile_row):
-    """Insert a resource and rule for tracking permissions for a group."""
-    new_resource_row = await dbi.create_resource(
-        parent_id=None,
-        key=group_row.edi_id,
-        label='group',
-        type=f'Owner: {profile_row.common_name}',
-    )
-    await dbi.flush()
-
-    principal_row = await dbi.get_principal_by_profile(profile_row)
-
-    dbi._create_or_update_permission(
-        new_resource_row,
-        principal_row,
-        db.models.permission.PermissionLevel.CHANGE,
-    )
+# async def insert_permission(dbi, group_row, profile_row):
+#     """Insert a resource and rule for tracking permissions for a group."""
+#     new_resource_row = await dbi.create_resource(
+#         parent_id=None,
+#         key=group_row.edi_id,
+#         # type_str='group',
+#         # label=f'Owner: {profile_row.common_name}',
+#         type_str=f'Owner: {profile_row.common_name}',
+#         label='group',
+#     )
+#     await dbi.flush()
+#
+#     principal_row = await dbi.get_principal_by_profile(profile_row)
+#
+#     dbi._create_or_update_permission(
+#         new_resource_row,
+#         principal_row,
+#         db.models.permission.PermissionLevel.CHANGE,
+#     )
 
 
 if __name__ == '__main__':

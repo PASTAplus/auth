@@ -47,7 +47,7 @@ class DbInterface(
         self,
         idp_name: str,
         idp_uid: str,
-        common_name: str,
+        common_name: str | None,
         email: str | None,
         has_avatar: bool,
     ) -> db.models.identity.Identity:
@@ -56,6 +56,22 @@ class DbInterface(
         See the table definitions for db.models.profile.Profile and Identity for more information on the
         fields.
         """
+        # If the identity exists, but the IdPName is UNKNOWN, this is the first login into a
+        # skeleton profile and identity which was created via the API. We can now convert these to
+        # regular profile and identity by updating both with values from the IdP.
+        identity_row = await self.get_identity_by_idp_uid(idp_uid=idp_uid)
+
+        if identity_row is not None and identity_row.idp_name == db.models.identity.IdpName.UNKNOWN:
+            assert idp_name != db.models.identity.IdpName.UNKNOWN
+            identity_row.idp_name = idp_name
+            identity_row.has_avatar = has_avatar
+            await self.flush()
+            await self.update_profile(
+                identity_row.profile, common_name=common_name, email=email, has_avatar=has_avatar
+            )
+            if has_avatar:
+                await util.avatar.copy_identity_to_profile_avatar(identity_row)
+
         identity_row = await self.get_identity(idp_name=idp_name, idp_uid=idp_uid)
         if identity_row is None:
             profile_row = await self.create_profile(
@@ -206,40 +222,15 @@ class DbInterface(
 
         subject_id and subject_type are unique together.
         """
-        new_principal_row = db.models.permission.Principal(
-            subject_id=subject_id, subject_type=subject_type
-        )
-        self._session.add(new_principal_row)
-        await self.flush()
-        return new_principal_row
-
-    async def get_principal(self, principal_id):
-        """Get a principal by its ID."""
-        result = await self.execute(
-            sqlalchemy.select(db.models.permission.Principal).where(
-                db.models.permission.Principal.id == principal_id
-            )
-        )
-        return result.scalars().first()
-
-    async def get_principal_by_subject(self, subject_id, subject_type):
-        """Get a principal by its entity ID and type."""
-        result = await self.execute(
-            sqlalchemy.select(db.models.permission.Principal).where(
-                db.models.permission.Principal.subject_id == subject_id,
-                db.models.permission.Principal.subject_type == subject_type,
-            )
-        )
-        return result.scalars().first()
-
-    async def get_principal_by_profile(self, profile_row):
-        """Get the principal for a profile."""
-        result = await self.execute(
-            sqlalchemy.select(db.models.permission.Principal).where(
-                db.models.permission.Principal.subject_id == profile_row.id,
-                db.models.permission.Principal.subject_type
-                == db.models.permission.SubjectType.PROFILE,
-            )
+        identity_row = await self.get_identity_by_idp_uid(idp_uid)
+        if identity_row is not None:
+            return identity_row
+        return await self.create_or_update_profile_and_identity(
+            idp_name=db.models.identity.IdpName.UNKNOWN,
+            idp_uid=idp_uid,
+            common_name=None,
+            email=None,
+            has_avatar=False,
         )
         return result.scalars().first()
 

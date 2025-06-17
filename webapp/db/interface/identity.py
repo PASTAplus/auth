@@ -24,8 +24,8 @@ class IdentityInterface:
         profile,
         idp_name: db.models.identity.IdpName,
         idp_uid: str,
-        common_name: str,
-        email: str,
+        common_name: str | None,
+        email: str | None,
         has_avatar: bool,
     ):
         """Create a new identity for a given profile."""

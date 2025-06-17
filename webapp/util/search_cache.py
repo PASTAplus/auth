@@ -36,6 +36,13 @@ async def init_profiles(dbi):
             continue
         key_tup = (
             profile_row.common_name,
+            # Support search starting at second word in common name (family name in Western
+            # cultures)
+            (
+                profile_row.common_name.split(' ', 1)[1]
+                if ' ' in (profile_row.common_name or '')
+                else None
+            ),
             profile_row.email,
             profile_row.edi_id,
             # Enable searching for the EDI-ID without the 'EDI-' prefix

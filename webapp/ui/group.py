@@ -144,7 +144,11 @@ async def get_group_member_list(
 ):
     group_row = await dbi.get_group(token_profile_row, group_id)
     member_list = await dbi.get_group_member_list(token_profile_row, group_row.id)
-    member_list = sorted(member_list, key=lambda x: x.profile.common_name)
+    member_list.sort(
+        # Sort members by common name, or by edi_id if common_name is None. We sort edi_id after
+        # common name by prepending \uffff, a high unicode character, to the edi_id key.
+        key=lambda x: x.profile.common_name or ('\uffff' + x.profile.edi_id)
+    )
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',

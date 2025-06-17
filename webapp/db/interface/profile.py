@@ -27,8 +27,8 @@ class ProfileInterface:
     async def create_profile(
         self,
         edi_id: str,
-        common_name: str = None,
-        email: str = None,
+        common_name: str | None = None,
+        email: str | None = None,
         has_avatar: bool = False,
     ):
         new_profile_row = db.models.profile.Profile(
