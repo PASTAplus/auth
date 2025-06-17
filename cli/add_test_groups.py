@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-"""Fill the group and group member tables with random data.
-"""
+"""Fill the group and group member tables with random data."""
 import asyncio
 import logging
 import pathlib
@@ -53,7 +52,7 @@ async def insert_groups(dbi, profile_row, profile_row_list):
         group_name = f'{profile_row.common_name}\'s group #{group_idx}'
         group_row = await dbi.create_group(profile_row, group_name, None)
         await insert_members(dbi, group_row, profile_row_list)
-        await insert_permission(dbi, group_row, profile_row)
+        # await insert_permission(dbi, group_row, profile_row)
 
 
 async def insert_members(dbi, group_row, profile_row_list):

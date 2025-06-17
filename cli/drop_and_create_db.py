@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-"""Drop all tables in the database.
-"""
+"""Drop all tables in the database."""
 
 import asyncio
 import logging
@@ -20,7 +19,6 @@ import db.session
 import db.models.profile
 import db.db_interface
 import util.avatar
-import db.profile
 import util.dependency
 
 from config import Config
@@ -47,8 +45,8 @@ async def main():
         await create_system_profiles(dbi)
         await create_system_groups(dbi)
 
-    log.info('Success!')
     log.info('Sequences have been reset to start at 1.')
+    log.info('Success!')
 
     return 0
 
@@ -77,12 +75,12 @@ async def create_system_profiles(dbi):
         (
             Config.PUBLIC_EDI_ID,
             Config.PUBLIC_NAME,
-            util.avatar.init_public_avatar,
+            Config.PUBLIC_AVATAR_PATH,
         ),
         (
             Config.AUTHENTICATED_EDI_ID,
             Config.AUTHENTICATED_NAME,
-            util.avatar.init_authenticated_avatar,
+            Config.AUTHENTICATED_AVATAR_PATH,
         ),
     ):
         await dbi.create_profile(
@@ -185,7 +183,7 @@ async def create_function_get_resource_parents(dbi):
             do $$
             begin
                 if not exists (select 1 from pg_proc where proname = 'get_resource_parents') then
-                    create or replace function get_resource_parents(node_id integer)
+                    create or replace function get_resource_parents(node_ids integer[])
                     returns table(id integer, label varchar, type varchar, parent_id integer)
                     language plpgsql
                     as $body$
@@ -194,13 +192,14 @@ async def create_function_get_resource_parents(dbi):
                         with recursive parent_tree as (
                             select r.id, r.label, r.type, r.parent_id
                             from resource r
-                            where r.id = node_id
+                            where r.id = any(node_ids)
                             union all
                             select r.id, r.label, r.type, r.parent_id
                             from resource r
                             inner join parent_tree pt on r.id = pt.parent_id
                         )
-                        select * from parent_tree;
+                        select * from parent_tree
+                        where id != all(node_ids);
                     end;
                     $body$;
                 end if;

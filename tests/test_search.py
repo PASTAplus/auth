@@ -21,8 +21,7 @@ def count_shared_chars(search_str, key_tup):
         print(k, sum(100 for c1, c2 in zip(search_str, k) if c1 == c2) - len(search_str))
 
     return max(
-        sum(100 for c1, c2 in zip(k, search_str) if c1 == c2) - len(search_str)
-        for k in key_tup
+        sum(100 for c1, c2 in zip(k, search_str) if c1 == c2) - len(search_str) for k in key_tup
     )
 
 
@@ -32,7 +31,6 @@ def main():
     print(n)
 
     # h = heapq.
-
 
     # while True:
     #     print(KEY_TUP)

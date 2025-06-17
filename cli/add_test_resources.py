@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-"""Fill the Resource and Rule tables with random data.
-"""
+"""Fill the Resource and Rule tables with random data."""
 import asyncio
 import logging
 import pathlib
@@ -26,7 +25,6 @@ log = daiquiri.getLogger(__name__)
 async def main():
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
-
 
     async with util.dependency.get_session() as session:
         await session.execute(sqlalchemy.delete(db.models.permission.Rule))

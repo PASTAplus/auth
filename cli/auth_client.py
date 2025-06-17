@@ -1,5 +1,6 @@
 import requests
 
+
 class AuthClient:
     def __init__(self, base_url):
         self.base_url = base_url
@@ -9,4 +10,3 @@ class AuthClient:
         response = requests.get(url)
         response.raise_for_status()
         return response.text
-

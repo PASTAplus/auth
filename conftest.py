@@ -1,6 +1,7 @@
 import json
 import logging
 import pathlib
+import typing
 
 import daiquiri
 import fastapi.testclient
@@ -17,8 +18,8 @@ import main
 DB_DRIVER = 'postgresql+psycopg'
 DB_HOST = 'localhost'
 DB_PORT = 5432
-# DB_NAME = 'auth_test'
-DB_NAME = 'auth'
+DB_NAME = 'auth_test'
+# DB_NAME = 'auth'
 DB_USER = 'auth'
 DB_PW = 'testpw'
 DB_POOL_SIZE = 10
@@ -35,7 +36,7 @@ DB_FIXTURE_JSON_PATH = HERE_PATH / 'tests/test_files/db_fixture.json'
 daiquiri.setup(
     level=logging.DEBUG,
     outputs=(
-        daiquiri.output.File(HERE_PATH / 'test.log', 'a'),
+        daiquiri.output.File(HERE_PATH / 'test.log'),
         'stdout',
     ),
 )
@@ -117,21 +118,40 @@ async def dbi(db_session):
 
 
 @pytest_asyncio.fixture(scope='session')
-async def pop_udb(pop_session):
+async def pop_dbi(pop_session):
     """Create a populated DbInterface instance for the test session."""
     yield db.db_interface.DbInterface(pop_session)
 
 
 @pytest_asyncio.fixture(scope='function')
-async def client(db_session):
+async def client(db_session) -> typing.AsyncGenerator[fastapi.testclient.TestClient, None]:
     """Create a test client for the FastAPI app."""
     with fastapi.testclient.TestClient(main.app) as client:
         yield client
 
 
 @pytest_asyncio.fixture(scope='function')
-async def profile_row(pop_udb):
-    yield await pop_udb.get_profile('EDI-900e4dcb0c224dcda973ff3cb60a0d53')
+async def public_access_profile_row(pop_dbi):
+    """Public Access"""
+    yield await pop_dbi.get_profile('EDI-b2757fee12634ccca40d2d689f5c0543')
+
+
+@pytest_asyncio.fixture(scope='function')
+async def authenticated_access_profile_row(pop_dbi):
+    """Authenticated Access"""
+    yield await pop_dbi.get_profile('EDI-d3fca9767ac54c22962896b01a1c01bd')
+
+
+@pytest_asyncio.fixture(scope='function')
+async def john_smith_profile_row(pop_dbi):
+    """john@smith.com"""
+    yield await pop_dbi.get_profile('EDI-147dd745c653451d9ef588aeb1d6a188')
+
+
+@pytest_asyncio.fixture(scope='function')
+async def jane_doe_profile_row(pop_dbi):
+    """jane@doe.com"""
+    yield await pop_dbi.get_profile('EDI-2a0458b1f4ba49bbba2a20885b06fb60')
 
 
 # @pytest_asyncio.fixture(scope='function')

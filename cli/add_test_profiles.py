@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-"""Fill profile table with random data.
-"""
+"""Fill profile table with random data."""
 import asyncio
 import logging
 import pathlib
