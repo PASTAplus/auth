@@ -33,7 +33,6 @@ This procedure describes how we'll handle the IdP UID (stored in Identity.idp_ui
     - If not:
       - Create the new identity record with the IdP UID and enter it into the Identity.idp_uid field; create new profile and return profile identifier
 
-
 - When someone logs in with an IdP other than Google:
   - Follow regular logic, which is to create an identity and profile if one doesn't exist, and then log in the user.
 - When someone logs in with Google as their IdP:

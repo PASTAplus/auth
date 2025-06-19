@@ -54,6 +54,7 @@ async def post_v1_profile(
     # Check token
     if token_profile_row is None:
         return api.utils.get_response_401_unauthorized(request, api_method)
+    # Check that the request body is valid JSON
     try:
         request_dict = await api.utils.request_body_to_dict(request)
     except ValueError as e:
@@ -70,6 +71,9 @@ async def post_v1_profile(
     try:
         # Check if the identity already exists
         identity_row = await dbi.get_identity_by_idp_uid(idp_uid)
+        # See README.md: Strategy for dealing with Google emails historically used as identifiers
+        if not identity_row:
+            identity_row = await dbi.get_identity_by_email(idp_uid)
         if identity_row:
             return api.utils.get_response_200_ok(
                 request,
@@ -99,6 +103,7 @@ async def post_v1_resource(
     # Check token
     if token_profile_row is None:
         return api.utils.get_response_401_unauthorized(request, api_method)
+    # Check that the request body is valid JSON
     try:
         request_dict = await api.utils.request_body_to_dict(request)
     except ValueError as e:

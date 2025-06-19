@@ -40,7 +40,7 @@ Example request using curl and JSON:
 
 ```shell
 curl -X POST https://auth.edirepository.org/auth/v1/rule \
--H "Cookie: jwt_token=$(<myjwt.txt)" \
+-H "Cookie: jwt_token=$(<~/Downloads/token-EDI-<my-token>.jwt)" \
 -d '{
   "resource_key": "https://pasta.lternet.edu/package/data/eml/edi/643/4/87c390495ad405e705c09e62ac6f58f0",
   "principal": "EDI-1234567890abcdef1234567890abcdef",

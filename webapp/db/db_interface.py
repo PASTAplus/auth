@@ -57,11 +57,25 @@ class DbInterface(
         See the table definitions for db.models.profile.Profile and Identity for more information on
         the fields.
         """
+        identity_row = await self.get_identity_by_idp_uid(idp_uid)
+
+        # See README.md: Strategy for dealing with Google emails historically used as identifiers
+        # If an identity does not exist under the IdP UID, we check if there is an identity with the
+        # same email.
+        if identity_row is None:
+            if idp_name == db.models.identity.IdpName.GOOGLE:
+                if email:
+                    # Check if the IdP UID contains an email address (Google legacy support)
+                    identity_row = await self.get_identity_by_idp_uid(email)
+                    if identity_row is not None:
+                        # We have a legacy case where the IdP UID is an email address. Fix up the
+                        # record now.
+                        identity_row.idp_uid = idp_uid
+                        await self.flush()
+
         # If the identity exists, but the IdPName is UNKNOWN, this is the first login into a
         # skeleton profile and identity which was created via the API. We can now convert these to
         # regular profile and identity by updating both with values from the IdP.
-        identity_row = await self.get_identity_by_idp_uid(idp_uid=idp_uid)
-
         if identity_row is not None and identity_row.idp_name == db.models.identity.IdpName.UNKNOWN:
             assert idp_name != db.models.identity.IdpName.UNKNOWN
             identity_row.idp_name = idp_name

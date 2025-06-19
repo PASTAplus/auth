@@ -50,7 +50,7 @@ Example request using curl and JSON:
 
 ```shell
 curl -X POST https://auth.edirepository.org/auth/v1/resource \
--H "Cookie: jwt_token=$(<myjwt.txt)" \
+-H "Cookie: jwt_token=$(<~/Downloads/token-EDI-<my-token>.jwt)" \
 -d '{
   "resource_key": "https://pasta.lternet.edu/package/data/eml/edi/643/4/87c390495ad405e705c09e62ac6f58f0",
   "resource_label": "edi.643.4",
@@ -73,7 +73,7 @@ Example request using curl and XML:
 
 ```shell
 curl -X POST https://auth.edirepository.org/auth/v1/resource \
--H "Cookie: jwt_token=$(<myjwt.txt)" \
+-H "Cookie: jwt_token=$(<~/Downloads/token-EDI-<my-token>.jwt)" \
 -H "Content-Type: text/xml" \
 -d '{
   "resource_key": "https://pasta.lternet.edu/package/data/eml/edi/643/4/87c390495ad405e705c09e62ac6f58f0",

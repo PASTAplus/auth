@@ -90,6 +90,18 @@ class IdentityInterface:
         )
         return result.scalars().first()
 
+    async def get_identity_by_email(self, email: str):
+        """Get an identity by its email address."""
+        result = await self.execute(
+            (
+                sqlalchemy.select(db.models.identity.Identity)
+                .options(sqlalchemy.orm.selectinload(db.models.identity.Identity.profile))
+                .where(db.models.identity.Identity.email == email)
+            )
+        )
+        return result.scalars().first()
+
+
     async def get_identity_by_id(self, identity_id):
         result = await self.execute(
             sqlalchemy.select(db.models.identity.Identity)

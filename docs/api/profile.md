@@ -10,7 +10,7 @@ This document describes the API for managing user profiles.
 
 ## Create Profile
 
-``Create a 'skeleton' EDI profile that can be used in permissions. This method is idempotent, meaning that if a profile already exists for the provided `idp_uid`, it will return the existing profile identifier instead of creating a new one.
+Create a 'skeleton' EDI profile that can be used in permissions. This method is idempotent, meaning that if a profile already exists for the provided `idp_uid`, it will return the existing profile identifier instead of creating a new one.
 
 If and when a user logs into the profile for the first time, the profile and identity are updated from 'skeleton' to regular with the information provided by the IdP.
 
@@ -43,7 +43,7 @@ Example request using curl and JSON:
 
 ```shell
 curl -X POST https://auth.edirepository.org/auth/v1/profile \
--H "Cookie: jwt_token=$(<myjwt.txt)" \
+-H "Cookie: jwt_token=$(<~/Downloads/token-EDI-<my-token>.jwt)" \
 -d '{
   "idp_uid": "uid=username,o=EDI,dc=edirepository,dc=org"
 }'

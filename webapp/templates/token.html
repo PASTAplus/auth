@@ -36,7 +36,9 @@
   <div class='indent'>
     <p>
       In order to authenticate your requests to the EDI repository API and programmatically access
-      your resources, download the token and pass it in the HTTP header of your requests.
+      your resources, download the token and pass it in a
+      <span class='highlight'>Cookie: jwt_token=...</span>
+      header of your requests.
     </p>
     <p>
       The downloaded token is valid for <span class='highlight'>{{ lifetime }} hours</span>. After
