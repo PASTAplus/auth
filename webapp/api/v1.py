@@ -137,7 +137,7 @@ async def post_v1_resource(
                 parent_resource_key=parent_key,
             )
     # Check that the resource does not already exist
-    resource_row = await dbi.get_resource_by_key(token_profile_row, key)
+    resource_row = await dbi.get_resource_by_key(key)
     if resource_row:
         return api.utils.get_response_400_bad_request(
             request, api_method, f'Resource already exists', resource_key=key
