@@ -2,9 +2,9 @@
 
 - [Index](index.md) - API Documentation
 - [Parameters](parameters.md) - API Parameter Details
-- [Profiles](profile.md) - Create and manage user profiles
-- [Resources](resource.md) - Create and manage resources
-- [Rules](rule.md) - Create and manage the ACRs for resources
+- [Profiles](profile.md) - Manage user profiles
+- [Resources](resource.md) - Manage resources
+- [Rules](rule.md) - Manage access control rules (ACRs) for the resources
 
 This document describes the API for managing user profiles.
 
@@ -35,11 +35,14 @@ Permissions:
 ### Status codes
 
 - `200 OK`
-  - A new profile was created or an existing profile was used. The `msg` field in the response body will indicate which.
+  - A new profile was created or an existing profile was used.
+  - Response body:
+    - `msg` - A message indicating if a new profile was created or an existing one was used.
+    - `edi_id` - EDI-ID of the new or existing profile.
 
 ### Examples
 
-Example request using curl and JSON:
+Example request using cURL and JSON:
 
 ```shell
 curl -X POST https://auth.edirepository.org/auth/v1/profile \
@@ -54,9 +57,130 @@ Example JSON `200 OK` response:
 ```json
 {
   "method": "createProfile",
-  "msg": "A new profile was created"
+  "msg": "A new profile was created",
+  "edi_id": "EDI-1234567890abcdef1234567890abcdef"
 }
 ```
 
 ---
 
+## Read Profile
+
+Return the EDI profile associated with an EDI profile identifier.
+
+When the profile is owned by the requesting user, additional information such as email, avatar URL, and privacy policy acceptance status is included in the response.
+
+```
+GET: /auth/v1/profile/<edi_id>
+
+readProfile(
+  jwt_token 
+  edi_id
+)
+
+Returns:
+    200 OK
+    401 Unauthorized
+    403 Forbidden
+    404 Not Found
+
+Permissions:
+  authenticated: changePermission
+```
+
+### Status codes
+
+- `200 OK`
+  - Always included in response body:
+    - `msg` - A message indicating that the profile was retrieved successfully
+    - `edi_id` - EDI-ID of the profile (will match the one provided in the request)
+    - `common_name` - Common name of the user who owns the profile
+  - Included in response body when the profile is owned by the requesting user:
+    - `email` - Email address of the user who owns the profile
+    - `avatar_url` - URL of the user's avatar image
+    - `email_notifications` - Boolean indicating if the user has opted in to receive email notifications
+    - `privacy_policy_accepted` - Boolean indicating if the user has accepted the privacy policy
+    - `privacy_policy_accepted_date` - Date when the user accepted the privacy policy
+
+Example JSON `200 OK` response, when the profile is owned by the requesting user:
+
+```json
+{
+  "method": "readProfile",
+  "msg": "Profile retrieved successfully",
+  "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+  "common_name": "John Smith",
+  "email": "john@smith.com",
+  "avatar_url": "https://localhost:5443/auth/avatar/gen/JS",
+}
+```
+
+Example JSON `200 OK` response, when the profile is **not** owned by the requesting user:
+
+```json
+{
+  "method": "readProfile",
+  "msg": "Profile retrieved successfully",
+  "edi_id": "EDI-1234567890abcdef1234567890abcdef",
+  "common_name": "John Smith"
+}
+```
+
+---
+
+## Update Profile
+
+Update the attributes of a user profile associated with an EDI profile identifier.
+
+Only profiles owned by the requesting user can be updated. The `common_name` and `email` fields can be modified, but other fields are read-only. If neither `common_name` nor `email` is provided, the profile remains unchanged.
+
+```
+PUT: /auth/v1/profile/<edi_id>
+
+updateProfile(
+    jwt_token: the token of the requesting client
+    edi_id: the EDI profile identifier
+    common_name (optional): The user's new common name
+    email (optional): The user's new preferred email address
+)
+
+Returns:
+  200 OK if successful
+  401 Unauthorized if the client does not provide a valid authentication token
+  403 Forbidden if client is not authorized to execute method or access resource
+  404 If EDI profile identifier not found
+
+Permissions:
+    authenticated: changePermission
+```
+
+Example request using cURL and JSON:
+
+```shell
+
+curl -X PUT https://auth.edirepository.org/auth/v1/profile/EDI-1234567890abcdef1234567890abcdef \
+
+
+
+---
+
+## Delete Profile
+
+Delete a user profile associated with an EDI profile identifier.
+
+```
+DELETE: /auth/v1/profile/<edi_id>
+
+deleteProfile(jwt_token, edi_id)
+    jwt_token: the token of the requesting client
+    edi_id: the EDI profile identifier
+    return:
+        200 OK if successful
+        401 Unauthorized if the client does not provide a valid authentication token
+        403 Forbidden if client is not authorized to execute method or access resource
+        404 If EDI profile identifier not found
+    body:
+        Empty if 200 OK, error message otherwise
+    permissions:
+        authenticated: changePermission
+```
