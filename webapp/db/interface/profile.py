@@ -125,7 +125,7 @@ class ProfileInterface:
         # Delete rules for the profile.
         await self.execute(
             sqlalchemy.delete(db.models.permission.Rule)
-            .execution_options(synchronize_session="fetch")
+            .execution_options(synchronize_session='fetch')
             .where(
                 db.models.permission.Rule.id.in_(
                     (

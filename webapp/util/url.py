@@ -15,6 +15,11 @@ def url(path_str: str, **query_param_dict) -> starlette.datastructures.URL:
     )
 
 
+def get_abs_url(rel_url):
+    """Return the absolute URL for the given relative URL."""
+    return starlette.datastructures.URL(f'{Config.SERVICE_BASE_URL}').replace(path=rel_url)
+
+
 def urlenc(url_str: str) -> str:
     return urllib.parse.quote(url_str, safe='')
 

@@ -143,9 +143,9 @@ def _get_resource_tree(resource_query):
             if principal_type == 'profile'
             else {
                 'principal_type': 'group',
-                "edi_id": group_row.edi_id,
-                "title": group_row.name,
-                "description": group_row.description,
+                'edi_id': group_row.edi_id,
+                'title': group_row.name,
+                'description': group_row.description,
                 'permission': db.models.permission.get_permission_level_enum(
                     rule_row.permission
                 ).name,

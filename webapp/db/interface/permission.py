@@ -101,6 +101,35 @@ class PermissionInterface:
         )
         return result.scalars().first()
 
+    async def get_resource_list_by_key(self, key, include_parents=False, include_children=False):
+        """Get a list of resources by their key.
+
+        If include_parents is True, the chain of the resource's parents (up to the root), will be
+        included in the result.
+
+        If include_children is True, all the resource's children will be included in the result.
+        """
+        stmt = sqlalchemy.select(db.models.permission.Resource).where(
+            db.models.permission.Resource.key == key
+        )
+        # if include_parents or include_children:
+        #     stmt = db.resource_tree.get_resource_tree_for_ui(
+        #         db.models.permission.Resource.id,
+        #         include_parents=include_parents,
+        #         include_children=include_children,
+        #     ).where(db.models.permission.Resource.key == key)
+        result = await self.execute(stmt)
+        return result.scalars().all()
+
+    async def get_all_resource_keys(self):
+        """Get all resource keys."""
+        result = await self.execute(
+            sqlalchemy.select(db.models.permission.Resource.key).order_by(
+                db.models.permission.Resource.key
+            )
+        )
+        return result.scalars().all()
+
     async def _set_resource_label_by_key(self, key, label):
         """Set the label of a resource by its key."""
         result = await self.execute(
@@ -282,9 +311,9 @@ class PermissionInterface:
                     sqlalchemy.insert(db.models.permission.Rule),
                     [
                         {
-                            "resource_id": resource_id,
-                            "principal_id": principal_id,
-                            "permission": permission_level,
+                            'resource_id': resource_id,
+                            'principal_id': principal_id,
+                            'permission': permission_level,
                         }
                         for resource_id in insert_resource_id_set
                     ],

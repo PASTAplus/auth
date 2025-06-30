@@ -83,9 +83,17 @@ class PastaJwt:
             if claims_dict.get('hd') != Config.JWT_HOSTED_DOMAIN:
                 log.error(f'Invalid hosted domain in token: {claims_dict.get("hd")}')
                 return None
-            profile_row = await dbi.get_profile(claims_dict.get('sub'))
+            profile_row = await dbi.get_profile(claims_dict.get("sub"))
             if profile_row is None:
-                log.error(f'Profile not found for EDI ID: {claims_dict.get("sub")}')
+                log.error(f'Profile not found for EDI-ID: {claims_dict.get("sub")}')
+                # # Print all profiles
+                # all_profiles = await dbi.get_all_profiles()
+                # log.error('#'*100)
+                # log.error('Available profiles:')
+                # for profile in all_profiles:
+                #     log.error(f'  - {profile.edi_id} ({profile.common_name})')
+                # else:
+                #     log.error('NONE')
                 return None
             return cls(claims_dict)
         except jwt.ExpiredSignatureError:

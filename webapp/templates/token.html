@@ -41,8 +41,10 @@
       header of your requests.
     </p>
     <p>
-      The downloaded token is valid for <span class='highlight'>{{ lifetime }} hours</span>. After
-      that, you will need to sign in again to obtain a new token.
+      The downloaded token is valid for <span class='highlight'>{{ lifetime }} hours</span>. You may
+      refresh your token programmatically any time before it expires, by passing it to the
+      token_refresh() API method. After your token expires, however, you will not be able to refresh
+      it, and you will need to sign in again to obtain a new token.
     </p>
     <div class='indent'>
       <p>

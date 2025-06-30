@@ -58,8 +58,8 @@ daiquiri.setup(
     ],
 )
 
-# Mute noisy debug output from dependencies
-daiquiri.getLogger("filelock").setLevel(logging.WARNING)
+# Suppress noisy debug logs from specific dependencies
+daiquiri.getLogger('filelock').setLevel(logging.WARNING)
 # daiquiri.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 log = daiquiri.getLogger(__name__)
@@ -78,9 +78,13 @@ class AvatarFiles(fastapi.staticfiles.StaticFiles):
     """Custom StaticFiles class to set the mimetype for SVG files."""
 
     async def get_response(self, path, scope):
+        """
+        Serve a file with the appropriate MIME type.
+        If the file is an SVG, set the MIME type to 'image/svg+xml'.
+        """
         full_path, stat_result = self.lookup_path(path)
         if stat_result is None:
-            raise fastapi.HTTPException(status_code=404, detail="File not found")
+            raise fastapi.HTTPException(status_code=404, detail='File not found')
         return starlette.responses.FileResponse(
             full_path,
             stat_result=stat_result,
@@ -111,7 +115,7 @@ def create_route(file_path: pathlib.Path):
                 status_code=starlette.status.HTTP_404_NOT_FOUND, detail='File not found'
             )
 
-
+# Add routes for all files in the 'site' directory under the static path
 for file_path in (Config.STATIC_PATH / 'site').iterdir():
     create_route(file_path)
 
@@ -135,6 +139,13 @@ class RootPathMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
 
 
 class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
+    """
+    Middleware to redirect unauthenticated users to the sign-in page.
+
+    If a request is made to a '/ui' path without a valid token, the user is redirected to
+    '/signout', which removes the invalid (usually expired) cookie, and which then redirects to
+    '/ui/signin'.
+    """
     async def dispatch(self, request: starlette.requests.Request, call_next):
         # If the request is for a /ui path, redirect to signin if the token is invalid
         async with util.dependency.get_udb() as dbi:
@@ -151,26 +162,7 @@ class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
                 return util.redirect.internal('/signout')
         return await call_next(request)
 
-
-# class RouterLoggingMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
-#     async def dispatch(self, request: starlette.requests.Request, call_next):
-#         log.info(f'>>> {request.method} {request.url}')
-#         response = await call_next(request)
-#         log.info(f'<<< {response.status_code}')
-#         return response
-
-
-# class SuppressGetLoggingMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
-#     async def dispatch(self, request: starlette.requests.Request, call_next):
-#         if request.method == "GET":
-#             # Suppress logging for GET requests
-#             return await call_next(request)
-#         # Log other requests
-#         log.info(f"{request.method} {request.url}")
-#         return await call_next(request)
-
-
-# noinspection PyTypeChecker
+# Add middleware to the application
 app.add_middleware(RootPathMiddleware)
 # noinspection PyTypeChecker
 # app.add_middleware(RouterLoggingMiddleware)

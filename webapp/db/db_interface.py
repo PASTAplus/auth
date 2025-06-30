@@ -164,5 +164,10 @@ class DbInterface(
 
     async def execute(self, stmt, params=None):
         """Execute a SQL statement."""
-        # log.debug(f'Executing statement: {stmt}')
+        # log.debug(f'#### EXECUTE: {stmt} ####')
         return await self._session.execute(stmt, params)
+
+    async def delete(self, row):
+        """Delete a row"""
+        # log.debug('#### DELETE ####')
+        return await self._session.delete(row)

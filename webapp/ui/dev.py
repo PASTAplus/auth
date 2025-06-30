@@ -33,43 +33,6 @@ def assert_dev_enabled(func):
     return wrapper
 
 
-@router.get('/dev/token')
-@assert_dev_enabled
-async def get_dev_token(
-    request: starlette.requests.Request,
-    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
-    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
-    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
-):
-    if token is None:
-        return util.template.templates.TemplateResponse(
-            'token.html',
-            {
-                # Base
-                'token': token,
-                'avatar_url': util.avatar.get_anon_avatar_url(),
-                'profile': None,
-                'resource_type_list': await dbi.get_resource_types(token_profile_row),
-                # Page
-                'request': request,
-                'token_pp': 'NO TOKEN',
-            },
-        )
-    return util.template.templates.TemplateResponse(
-        'token.html',
-        {
-            # Base
-            'token': token,
-            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
-            'profile': token_profile_row,
-            'resource_type_list': await dbi.get_resource_types(token_profile_row),
-            # Page
-            'request': request,
-            'token_pp': token.claims_pp,
-        },
-    )
-
-
 @router.get('/dev/profiles')
 @assert_dev_enabled
 async def get_dev_profiles(

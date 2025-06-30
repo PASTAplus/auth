@@ -151,7 +151,7 @@ async def get_callback_google(
         target_url=target_url,
         idp_name=db.models.identity.IdpName.GOOGLE,
         idp_uid=user_dict['sub'],
-        common_name=user_dict["name"],
+        common_name=user_dict['name'],
         email=user_dict['email'],
         has_avatar=has_avatar,
         is_vetted=False,

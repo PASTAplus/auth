@@ -5,7 +5,7 @@ import re
 import sys
 import urllib.parse
 
-FILENAME_SAFE_CHARS = " @$,~*&"
+FILENAME_SAFE_CHARS = ' @$,~*&'
 
 
 def get_safe_reversible_path(*path_list):
@@ -42,9 +42,9 @@ def get_safe_reversible_path_element(s):
      Returns:
          str: A string safe for use as a file- or directory name.
     """
-    out_str = urllib.parse.quote(s.encode("utf-8"), safe=FILENAME_SAFE_CHARS)
-    if out_str.startswith("."):
-        out_str = f"%2e{out_str[1:]}"
+    out_str = urllib.parse.quote(s.encode('utf-8'), safe=FILENAME_SAFE_CHARS)
+    if out_str.startswith('.'):
+        out_str = f'%2e{out_str[1:]}'
     return out_str
 
 
@@ -64,7 +64,7 @@ def get_safe_lossy_path_element(s):
     """Like :func:`get_safe_reversible_path_element`, but generates a string that is not reversible,
     instead prioritizing readability.
     """
-    return pathlib.Path(re.sub("[^\w.]+", "-", s.strip(" .\n\t/\\")))
+    return pathlib.Path(re.sub('[^\w.]+', '-', s.strip(' .\n\t/\\')))
 
 
 def get_safe_lossy_path(*path_list):
@@ -163,6 +163,6 @@ def safe_path_exists(o):
         if len(o) > 1024:
             return False
         if isinstance(o, bytes):
-            o = o.decode("utf-8")
+            o = o.decode('utf-8')
         return pathlib.Path(o).is_file()
     return False

@@ -12,11 +12,11 @@ log = daiquiri.getLogger(__name__)
 @contextlib.asynccontextmanager
 async def lifespan(
     _app: fastapi.FastAPI,
-    # dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
 ):
     log.info('Application starting...')
 
-    async with util.dependency.get_udb() as dbi:
+    async with util.dependency.get_dbi() as dbi:
         # Initialize the profile and group search cache
         await util.search_cache.init_cache(dbi)
 

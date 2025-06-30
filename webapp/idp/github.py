@@ -74,7 +74,7 @@ async def get_callback_github(
                 client_secret=Config.GITHUB_CLIENT_SECRET,
                 code=code_str,
                 authorization_response=str(
-                    util.login.get_redirect_uri("github").replace_query_params(code=code_str)
+                    util.login.get_redirect_uri('github').replace_query_params(code=code_str)
                 ),
                 redirect_uri=util.login.get_redirect_uri('github'),
                 grant_type='authorization_code',
