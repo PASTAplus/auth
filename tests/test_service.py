@@ -2,15 +2,6 @@ import json
 import pprint
 
 import pytest
-import sqlalchemy
-import starlette.status
-
-import db.models.profile
-import sample
-import tests.utils
-import db.resource_tree
-import db.models.permission
-import sqlalchemy.ext.asyncio
 
 import util.service
 

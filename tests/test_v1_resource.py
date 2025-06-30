@@ -3,7 +3,7 @@ import logging
 import pytest
 import starlette.status
 
-import sample
+import tests.sample
 import tests.edi_id
 import tests.utils
 
@@ -66,7 +66,7 @@ async def test_read_resource_with_valid_token(populated_dbi, john_client):
     response = john_client.get('/v1/resource/john_resource_key')
     assert response.status_code == starlette.status.HTTP_200_OK
     response_dict = response.json()
-    sample.assert_equal_json(response_dict, 'test_read_resource_with_valid_token.json')
+    tests.sample.assert_equal_json(response_dict, 'test_read_resource_with_valid_token.json')
 
 
 @pytest.mark.asyncio
@@ -89,7 +89,7 @@ async def test_read_resource_include_parents(populated_dbi, john_client):
     response = john_client.get('/v1/resource/john_resource_key')
     assert response.status_code == starlette.status.HTTP_200_OK
     response_dict = response.json()
-    sample.assert_equal_json(response_dict, 'test_read_resource_with_valid_token.json')
+    tests.sample.assert_equal_json(response_dict, 'test_read_resource_with_valid_token.json')
 
 
 
@@ -116,4 +116,4 @@ async def test_read_resource_include_parents(populated_dbi, john_client):
 # assert response.status_code == starlette.status.HTTP_403_FORBIDDEN
 # print(public_access_token)
 
-# sample.assert_equal_json(response.text, 'list_profiles.json')
+# tests.sample.assert_equal_json(response.text, 'list_profiles.json')

@@ -6,7 +6,7 @@ import sqlalchemy
 import starlette.status
 
 import db.models.profile
-import sample
+import tests.sample
 import tests.utils
 import db.resource_tree
 import db.models.permission
@@ -40,7 +40,7 @@ async def test_list_profiles(client, populated_dbi):
     # profile_row = populated_dbi.get_profile(user_edi_id)
     # response = client.get('/v1/profile/list')
     # assert response.status_code == starlette.status.HTTP_200_OK
-    # sample.assert_equal_json(response.text, 'list_profiles.json')
+    # tests.sample.assert_equal_json(response.text, 'list_profiles.json')
 
 
 @pytest.mark.skip
@@ -90,7 +90,7 @@ async def test_4(client, populated_dbi):
 #     )
 #     assert response.status_code == starlette.status.HTTP_200_OK
 #     db_json = tests.util.get_db_as_json(populated_dbi)
-#     sample.assert_equal_json(db_json, 'map_identity.json')
+#     tests.sample.assert_equal_json(db_json, 'map_identity.json')
 #
 #
 # def test_get_profile(client, populated_dbi):
@@ -99,7 +99,7 @@ async def test_4(client, populated_dbi):
 #     )
 #     response = client.get('/v1/profile/get', params={'token_str': token})
 #     assert response.status_code == starlette.status.HTTP_200_OK
-#     sample.assert_equal_json(response.text, 'get_profile.json')
+#     tests.sample.assert_equal_json(response.text, 'get_profile.json')
 #
 #
 # def test_profile_disable(client, populated_dbi):
@@ -109,7 +109,7 @@ async def test_4(client, populated_dbi):
 #     response = client.post('/v1/profile/disable', params={'token_str': token})
 #     assert response.status_code == starlette.status.HTTP_200_OK
 #     db_json = tests.util.get_db_as_json(populated_dbi)
-#     sample.assert_equal_json(db_json, 'profile_disable.json')
+#     tests.sample.assert_equal_json(db_json, 'profile_disable.json')
 #
 #
 # def test_identity_drop(client, populated_dbi):
@@ -126,7 +126,7 @@ async def test_4(client, populated_dbi):
 #     )
 #     assert response.status_code == starlette.status.HTTP_200_OK
 #     db_json = tests.util.get_db_as_json(populated_dbi)
-#     sample.assert_equal_json(db_json, 'profile_drop.json')
+#     tests.sample.assert_equal_json(db_json, 'profile_drop.json')
 #
 #
 # def test_identity_list(client, populated_dbi):
@@ -135,4 +135,4 @@ async def test_4(client, populated_dbi):
 #     )
 #     response = client.get('/v1/identity/list', params={'token_str': token})
 #     assert response.status_code == starlette.status.HTTP_200_OK
-#     sample.assert_equal_json(response.text, 'identity_list.json')
+#     tests.sample.assert_equal_json(response.text, 'identity_list.json')

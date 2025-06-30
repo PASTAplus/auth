@@ -4,7 +4,7 @@ import xml.etree.ElementTree
 
 import pytest
 
-import sample
+import tests.sample
 import util.pretty
 
 
@@ -19,5 +19,5 @@ async def test_to_pretty_xml():
     root = xml.etree.ElementTree.fromstring(xml_output)
     d_rundtrip = {child.tag: child.text for child in root}
     assert d_rundtrip == d
-    sample.assert_equal(xml_output, 'to_pretty_xml.xml')
+    tests.sample.assert_equal(xml_output, 'to_pretty_xml.xml')
 
