@@ -1,6 +1,3 @@
-import json
-import pprint
-
 import pytest
 
 import util.service

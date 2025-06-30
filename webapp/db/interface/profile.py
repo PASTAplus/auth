@@ -109,13 +109,13 @@ class ProfileInterface:
         # Delete all identities associated with the profile.
         await self.execute(
             sqlalchemy.delete(db.models.identity.Identity).where(
-                db.models.identity.Identity.profile_id == token_profile_row.id
+                db.models.identity.Identity.profile == token_profile_row
             )
         )
         # Delete all group memberships associated with the profile.
         await self.execute(
             sqlalchemy.delete(db.models.group.GroupMember).where(
-                db.models.group.GroupMember.profile_id == token_profile_row.id
+                db.models.group.GroupMember.profile == token_profile_row
             )
         )
         # TODO: Delete any orphaned groups.
@@ -148,7 +148,9 @@ class ProfileInterface:
         )
         # TODO: Delete any orphaned resources.
         # Delete the profile itself.
-        await self._session.delete(token_profile_row)
+        await self.delete(token_profile_row)
+        await self.flush()
+
 
     async def set_privacy_policy_accepted(self, token_profile_row):
         token_profile_row.privacy_policy_accepted = True

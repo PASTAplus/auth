@@ -5,8 +5,8 @@
 *.key
 *.pem
 *.sqlite
+*.log
 __RD.md
-auth.log
 config.py
 avatars/
 webapp/static/lib/

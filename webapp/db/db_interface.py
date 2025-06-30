@@ -144,7 +144,7 @@ class DbInterface(
         )
 
     #
-    # Util
+    # Session management
     #
 
     async def flush(self):

@@ -16,7 +16,7 @@ Auth provides a REST API for managing user profiles, identities, and access cont
 - [Parameters](./docs/api/parameters.md) - API Parameter Details
 - [Profiles](./docs/api/profile.md) - Create and manage user profiles
 - [Resources](./docs/api/resource.md) - Create and manage resources
-- [Rules](./docs/api/rule.md) - Create and manage the ACRs for resources
+- [Rules](./docs/api/rule.md) - Create and manage access control rules (ACRs) for the resources
 
 ## Strategy for dealing with Google emails historically used as identifiers
 

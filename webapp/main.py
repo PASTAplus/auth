@@ -9,9 +9,12 @@ import starlette.requests
 import starlette.responses
 import starlette.status
 
-import api.ping
-import api.refresh_token
-import api.v1
+import api.v1.ping
+import api.v1.profile
+import api.v1.refresh_token
+import api.v1.resource
+import api.v1.rule
+import api.v1.token
 import idp.github
 import idp.google
 import idp.ldap
@@ -37,9 +40,11 @@ import util.url
 from config import Config
 from fastapi_app import app
 
+# Configure logging using the daiquiri library
 daiquiri.setup(
     level=Config.LOG_LEVEL,
     outputs=[
+        # Log to a file with a custom formatter
         daiquiri.output.File(
             Config.LOG_PATH,
             formatter=daiquiri.formatter.ColorExtrasFormatter(
@@ -48,6 +53,7 @@ daiquiri.setup(
             ),
             level=Config.LOG_LEVEL,
         ),
+        # Log to the console with a custom formatter
         daiquiri.output.Stream(
             formatter=daiquiri.formatter.ColorExtrasFormatter(
                 fmt=Config.LOG_FORMAT,
@@ -64,18 +70,16 @@ daiquiri.getLogger('filelock').setLevel(logging.WARNING)
 
 log = daiquiri.getLogger(__name__)
 
-
-# Set up serving of static files
+# Serve static files from the configured static path
 app.mount(
     '/static',
     fastapi.staticfiles.StaticFiles(directory=Config.STATIC_PATH),
     name='static',
 )
 
-
-# Custom StaticFiles class to set MIME type
+# Custom StaticFiles class to set MIME type for SVG files
 class AvatarFiles(fastapi.staticfiles.StaticFiles):
-    """Custom StaticFiles class to set the mimetype for SVG files."""
+    """Custom StaticFiles class to set the MIME type for SVG files."""
 
     async def get_response(self, path, scope):
         """
@@ -92,20 +96,25 @@ class AvatarFiles(fastapi.staticfiles.StaticFiles):
         )
 
     async def is_svg(self, path):
+        """
+        Check if the file is an SVG by reading its first few bytes.
+        """
         with open(path, 'rb') as f:
             return b'<?xml' in f.read(16).lower()
 
-
-# Set up serving of avatars
+# Serve avatar files from the configured avatars path
 app.mount(
     Config.AVATARS_URL,
     AvatarFiles(directory=Config.AVATARS_PATH),
     name='avatars',
 )
 
-
-# Set up favicon and manifest routes, served from the root
+# Dynamically create routes for serving specific static files
 def create_route(file_path: pathlib.Path):
+    """
+    Create a route to serve a specific static file.
+    If the file is not found, return a 404 error.
+    """
     @app.get(f'/{file_path.name}')
     async def serve_file():
         try:
@@ -119,24 +128,20 @@ def create_route(file_path: pathlib.Path):
 for file_path in (Config.STATIC_PATH / 'site').iterdir():
     create_route(file_path)
 
-
-#
 # Middleware
-#
-
 
 class RootPathMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
+    """
+    Middleware to set the root path for the application.
+
+    This middleware ensures that the application routes are agnostic of the root path
+    it is being served from. It sets the root_path in the ASGI request scope.
+    """
     async def dispatch(self, request: starlette.requests.Request, call_next):
         if not request.url.path.startswith(Config.ROOT_PATH):
             return util.redirect.internal(request.url.path)
-        # Setting the root_path here has the same effect as setting it in the reverse proxy (e.g.,
-        # nginx). We just set it here so that we can avoid special nginx configuration. The
-        # root_path setting is part of the ASGI spec, and is used by FastAPI to properly route
-        # requests. With this, we can keep routes agnostic of the root path the app is being served
-        # from.
         request.scope['root_path'] = Config.ROOT_PATH
         return await call_next(request)
-
 
 class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     """
@@ -147,8 +152,7 @@ class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     '/ui/signin'.
     """
     async def dispatch(self, request: starlette.requests.Request, call_next):
-        # If the request is for a /ui path, redirect to signin if the token is invalid
-        async with util.dependency.get_udb() as dbi:
+        async with util.dependency.get_dbi() as dbi:
             if (
                 request.url.path.startswith(str(util.url.url('/ui')))
                 and not request.url.path.startswith(str(util.url.url('/ui/signin')))
@@ -157,23 +161,20 @@ class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
                 )
             ):
                 log.debug('Redirecting to /ui/signin: UI page requested without valid token')
-                # We redirect to signout to remove the invalid token cookie. signout will then
-                # redirect to /ui/signin.
                 return util.redirect.internal('/signout')
         return await call_next(request)
 
 # Add middleware to the application
 app.add_middleware(RootPathMiddleware)
-# noinspection PyTypeChecker
-# app.add_middleware(RouterLoggingMiddleware)
-# noinspection PyTypeChecker
 app.add_middleware(RedirectToSigninMiddleware)
-# noinspection PyTypeChecker
-# app.add_middleware(SuppressGetLoggingMiddleware)
 
-app.include_router(api.refresh_token.router)
-app.include_router(api.ping.router)
-app.include_router(api.v1.router)
+# Include all routers
+app.include_router(api.v1.ping.router)
+app.include_router(api.v1.profile.router)
+app.include_router(api.v1.refresh_token.router)
+app.include_router(api.v1.resource.router)
+app.include_router(api.v1.rule.router)
+app.include_router(api.v1.token.router)
 app.include_router(idp.github.router)
 app.include_router(idp.google.router)
 app.include_router(idp.ldap.router)

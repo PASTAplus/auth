@@ -610,7 +610,7 @@ class PermissionInterface:
                         db.models.permission.Principal.subject_type
                         == db.models.permission.SubjectType.PROFILE,
                     ),
-                    # Authorized access
+                    # Authenticated access
                     sqlalchemy.and_(
                         db.models.permission.Principal.subject_id
                         == await util.profile_cache.get_authenticated_access_profile_id(self),

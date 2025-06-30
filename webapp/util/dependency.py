@@ -2,11 +2,12 @@ import contextlib
 import typing
 
 import fastapi
+import sqlalchemy.ext.asyncio
 import starlette.requests
 
-import db.session
-import db.models.profile
 import db.db_interface
+import db.models.profile
+import db.session
 import util.pasta_jwt
 
 # Create class refs here to use as type hints
@@ -37,7 +38,7 @@ async def get_session():
 
 
 @contextlib.asynccontextmanager
-async def get_udb() -> typing.AsyncGenerator[DbInterface, typing.Any]:
+async def get_dbi() -> typing.AsyncGenerator[DbInterface, typing.Any]:
     async with get_session() as session:
         yield db.db_interface.DbInterface(session)
 
@@ -47,9 +48,15 @@ async def get_udb() -> typing.AsyncGenerator[DbInterface, typing.Any]:
 #
 
 
+async def session() -> typing.AsyncGenerator[sqlalchemy.ext.asyncio.AsyncSession, typing.Any]:
+    """Get a SQLAlchemy AsyncSession instance."""
+    async with get_session() as session:
+        yield session
+
+
 async def dbi() -> typing.AsyncGenerator[DbInterface, typing.Any]:
     """Get a DbInterface instance."""
-    async with get_udb() as dbi:
+    async with get_dbi() as dbi:
         yield dbi
 
 

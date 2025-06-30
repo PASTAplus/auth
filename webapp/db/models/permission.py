@@ -118,7 +118,7 @@ def get_permission_level_enum(permission_level):
     To reproduce the bug:
 
     rows = (
-        await pop_dbi.session.execute(sqlalchemy.select(Rule))
+        await populated_dbi.session.execute(sqlalchemy.select(Rule))
     ).scalars().all()
     for row in rows:
         # With bug still present, the permission level on the last row will be a string here.

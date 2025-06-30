@@ -256,15 +256,10 @@ Member dropdown
 */
 
 .row-center-parent {
-    /* gap: 1rem; */
+    justify-content: flex-start;
 }
 
 .button-row {
-    display: flex;
-    flex-wrap: wrap;
+    padding-top: .5rem;
     gap: 1rem;
-    justify-content: left;
-    align-content: center;
-    margin-top: 1rem;
-    row-gap: .5rem;
 }

@@ -98,7 +98,7 @@ async def search(query_str, include_groups):
     Matches are returned with profiles first, then groups. Within the profiles and groups, the order
     is determined by the order_by() statements in the profile and group generators.
     """
-    async with util.dependency.get_udb() as dbi:
+    async with util.dependency.get_dbi() as dbi:
         sync_ts = await dbi.get_sync_ts()
         if sync_ts != cache.get('sync_ts'):
             await init_cache(dbi)

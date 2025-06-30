@@ -2,21 +2,24 @@ import datetime
 import json
 import pprint
 import typing
-
-import xml.etree.ElementTree
 import xml.dom
 import xml.dom.minidom
+import xml.etree.ElementTree
+
+import starlette.datastructures
 
 
 class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime.datetime):
             return obj.isoformat()
+        elif isinstance(obj, starlette.datastructures.URL):
+            return str(obj)
         return super().default(obj)
 
 
 def to_pretty_json(obj: list | dict) -> str:
-    json_str = json.dumps(obj, indent=2, sort_keys=True, cls=CustomJSONEncoder)
+    json_str = json.dumps(obj, indent=2, sort_keys=False, cls=CustomJSONEncoder)
     return json_str
 
 
