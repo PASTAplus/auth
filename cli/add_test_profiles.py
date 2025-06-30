@@ -21,7 +21,7 @@ async def main():
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
-    async with util.dependency.get_udb() as dbi:
+    async with util.dependency.get_dbi() as dbi:
         await fill_profile(dbi)
 
     log.info('Profiles have been added')
@@ -39,10 +39,10 @@ async def fill_profile(dbi):
 
 RANDOM_PERSON_NAME_LIST = [
     'John Smith',
-    'Jane Doe',
+    'Jane Brown',
     'Michael Johnson',
     'Emily Davis',
-    'James Brown',
+    'James Miller',
     'Mary Wilson',
     'Robert Taylor',
     'Linda Anderson',

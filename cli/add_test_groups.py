@@ -32,7 +32,7 @@ async def main():
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
-    async with util.dependency.get_udb() as dbi:
+    async with util.dependency.get_dbi() as dbi:
         await add_groups(dbi)
 
     log.info('Groups and group members have been added')

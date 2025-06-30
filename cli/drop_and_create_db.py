@@ -37,7 +37,7 @@ async def main():
         log.info('Cancelled')
         return 1
 
-    async with util.dependency.get_udb() as dbi:
+    async with util.dependency.get_dbi() as dbi:
         await drop_and_create_tables(dbi)
         await create_function_get_resource_tree(dbi)
         await create_function_get_resource_parents(dbi)
