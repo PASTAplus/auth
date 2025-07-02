@@ -1,15 +1,19 @@
 import logging
 import subprocess
+import sys
 import tempfile
 import json
 import pathlib
 
 HERE_PATH = pathlib.Path(__file__).parent.resolve()
-TEST_FILES_PATH = HERE_PATH / 'tests' / 'test_files'
+TEST_FILES_PATH = HERE_PATH / 'test_files'
 
 RUN_MELD = True
 
 log = logging.getLogger(__name__)
+
+
+active_test_files = set()
 
 
 def assert_equal(received_str, filename):
@@ -50,6 +54,7 @@ def assert_equal_json(received_json: str | dict, filename: str):
 
 
 def _read_file(filename):
+    active_test_files.add(filename)
     file_path = TEST_FILES_PATH / filename
     if not file_path.exists():
         file_path.touch()
@@ -73,3 +78,13 @@ def meld(left_str, filename):
         subprocess.run(('meld', tmp_file.name, (TEST_FILES_PATH / filename).as_posix()))
         tmp_file.seek(0)
         return tmp_file.read() == (TEST_FILES_PATH / filename).read_bytes()
+
+
+def reset():
+    global active_test_files
+    active_test_files = set()
+
+def status():
+    log.info('Sample files used:')
+    for filename in active_test_files:
+        log.info('  {}'.format(filename))

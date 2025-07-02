@@ -13892,37 +13892,5 @@
             "principal_id": 65,
             "resource_id": 743
         }
-    ],
-    "sync": [
-        {
-            "id": 1,
-            "name": "profile",
-            "updated": "2025-05-21T09:41:12.599958"
-        },
-        {
-            "id": 55,
-            "name": "group",
-            "updated": "2025-05-21T09:41:16.988335"
-        },
-        {
-            "id": 2,
-            "name": "principal",
-            "updated": "2025-05-21T09:41:16.988335"
-        },
-        {
-            "id": 58,
-            "name": "group_member",
-            "updated": "2025-05-21T09:41:16.988335"
-        },
-        {
-            "id": 57,
-            "name": "resource",
-            "updated": "2025-05-21T09:41:21.198683"
-        },
-        {
-            "id": 59,
-            "name": "rule",
-            "updated": "2025-05-21T09:41:21.198683"
-        }
     ]
 }

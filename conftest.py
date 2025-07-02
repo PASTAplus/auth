@@ -15,6 +15,7 @@ import main
 import tests.edi_id
 import tests.utils
 import util.dependency
+import tests.sample
 
 TEST_SERVER_BASE_URL = 'http://testserver/auth'
 
@@ -52,7 +53,12 @@ async def override_session_dependency(session_scope_populated_dbi):
     main.app.dependency_overrides.clear()
 
 
-# Fixture to override the system principal EDI-IDs in config.py.
+@pytest_asyncio.fixture(scope='session', autouse=True)
+async def track_sample_file_usage(session_scope_populated_dbi):
+    """Track the usage of sample files in tests."""
+    tests.sample.reset()
+    yield
+    tests.sample.status()
 
 
 @pytest_asyncio.fixture(scope='session', autouse=True)
@@ -124,6 +130,21 @@ async def populated_test_session(test_session):
     """Create a populated async Postgres DB session for the test session.
     The database is populated with data from the JSON DB fixture file.
     """
+    for table_name in (
+        'group_member',
+        'group',
+        'rule',
+        'resource',
+        'identity',
+        'principal',
+        'profile',
+        'profile_history',
+    ):
+        try:
+            await test_session.execute(sqlalchemy.text(f'truncate table "{table_name}" cascade'))
+        except sqlalchemy.exc.ProgrammingError as e:
+            log.warning(f'Failed to truncate table {table_name}: {e}')
+
     fixture_dict = json.loads(DB_FIXTURE_JSON_PATH.read_text())
     table_to_class_dict = {
         mapper.local_table.name: mapper.class_ for mapper in db.models.base.Base.registry.mappers
@@ -142,7 +163,7 @@ async def populated_test_session(test_session):
     for table_name, rows in fixture_dict.items():
         result = await test_session.execute(sqlalchemy.text(f'select max(id) from "{table_name}"'))
         max_id = result.scalars().first()
-        # log.info(f'Serial sequence for {table_name}: {max_id}')
+        log.info(f'Serial sequence for {table_name}: {max_id}')
         await test_session.execute(
             sqlalchemy.text(
                 'select setval(pg_get_serial_sequence(:table_name, :id_column), :max_id)'
@@ -167,9 +188,11 @@ async def session_scope_populated_dbi(populated_test_session):
     """
     yield db.db_interface.DbInterface(populated_test_session)
 
+
 #
 # Fixtures: scope="function", autouse=False (the default)
 #
+
 
 @pytest_asyncio.fixture(scope='function')
 async def populated_dbi(session_scope_populated_dbi, populated_test_session):
@@ -193,7 +216,7 @@ async def populated_dbi(session_scope_populated_dbi, populated_test_session):
 # DB profile rows
 
 
-@pytest_asyncio.fixture(scope='function')
+# @pytest_asyncio.fixture(scope='function')
 async def service_profile_row(populated_dbi):
     """System profile: Service profile row"""
     yield await populated_dbi.get_profile('EDI-b2757fee12634ccca40d2d689f5c0543')
@@ -226,7 +249,7 @@ async def jane_profile_row(populated_dbi):
 # Valid tokens
 
 
-@pytest_asyncio.fixture(scope='function')
+# @pytest_asyncio.fixture(scope='function')
 async def service_token(populated_dbi, service_profile_row):
     """System profile: Service token"""
     yield await tests.utils.make_jwt(populated_dbi, service_profile_row)
@@ -275,7 +298,7 @@ async def anon_client(populated_dbi):
 # leaking client state between tests.
 
 
-@pytest_asyncio.fixture(scope='function')
+# @pytest_asyncio.fixture(scope='function')
 async def service_client(service_token):
     """System profile: Service client"""
     yield _create_test_client(service_token)
