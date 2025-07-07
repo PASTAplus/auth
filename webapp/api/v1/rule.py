@@ -107,7 +107,7 @@ async def post_v1_rule(
     )
 
 
-@router.get('/rule/{resource_key}/{principal}')
+@router.get('/rule/{resource_key:path}/{principal}')
 async def read_v1_rule(
     resource_key: str,
     principal: str,
@@ -164,7 +164,7 @@ async def read_v1_rule(
     )
 
 
-@router.put('/rule/{resource_key}/{principal}')
+@router.put('/rule/{resource_key:path}/{principal}')
 async def update_v1_rule(
     resource_key: str,
     principal: str,
@@ -246,7 +246,7 @@ async def update_v1_rule(
     )
 
 
-@router.delete('/rule/{resource_key}/{principal}')
+@router.delete('/rule/{resource_key:path}/{principal}')
 async def delete_v1_rule(
     resource_key: str,
     principal: str,
