@@ -8,52 +8,99 @@
                     "children": [
                         {
                             "children": [],
-                            "key": "5d15561b4d3a41ba9855315f825f05e6",
+                            "key": "495124c36bfe4bcba6751bbb5c571176",
                             "principals": [
                                 {
                                     "description": null,
-                                    "edi_id": "EDI-98d3b0e725344a2caf1745b8772c1fcc",
-                                    "permission": "CHANGE",
+                                    "edi_id": "EDI-95a3c2eca47a48b1918531c725fe3dac",
+                                    "permission": "READ",
                                     "principal_type": "group",
-                                    "title": "David's group #2"
-                                },
+                                    "title": "James's group #0"
+                                }
+                            ]
+                        },
+                        {
+                            "children": [],
+                            "key": "bbe73363f7cf4bc99fd175be0637dfb2",
+                            "principals": [
                                 {
-                                    "description": "susan@harris.com",
-                                    "edi_id": "EDI-b3fffb30968a4f4386fbce580aa0a039",
+                                    "description": null,
+                                    "edi_id": "EDI-b2757fee12634ccca40d2d689f5c0543",
                                     "permission": "READ",
                                     "principal_type": "profile",
-                                    "title": "Susan Harris"
+                                    "title": "Public Access"
                                 }
                             ]
                         }
                     ],
-                    "key": "9aad4c65801f4feb9373e7b3281955cf",
+                    "key": "86587b17b3ae484fa73de72a839dd45b",
                     "principals": [
                         {
-                            "description": "karen@clark.com",
-                            "edi_id": "EDI-7dbe89237c144850a0a421860a97da8b",
-                            "permission": "READ",
-                            "principal_type": "profile",
-                            "title": "Karen Clark"
+                            "description": null,
+                            "edi_id": "EDI-1f3eef6edbef46c78a0ccd82fdfcdce3",
+                            "permission": "WRITE",
+                            "principal_type": "group",
+                            "title": "James's group #3"
                         },
                         {
                             "description": null,
-                            "edi_id": "EDI-59ff04a36ead4e23b135ef629f06df77",
-                            "permission": "WRITE",
+                            "edi_id": "EDI-55cb3c75e8724c19928943785308ea7b",
+                            "permission": "CHANGE",
                             "principal_type": "group",
-                            "title": "Michael's group #0"
+                            "title": "Robert's group #2"
+                        }
+                    ]
+                },
+                {
+                    "children": [
+                        {
+                            "children": [],
+                            "key": "9e308ee5132944828dc9ac54ab4d90f3",
+                            "principals": [
+                                {
+                                    "description": null,
+                                    "edi_id": "EDI-c585e017d9a149c1aab52befc71ad6ac",
+                                    "permission": "CHANGE",
+                                    "principal_type": "group",
+                                    "title": "Joseph's group #0"
+                                }
+                            ]
+                        }
+                    ],
+                    "key": "406be7d80f7f4b75bf9f0b62d114eba0",
+                    "principals": [
+                        {
+                            "description": null,
+                            "edi_id": "EDI-3283b7a42aad43bdbb581be31e4e16b1",
+                            "permission": "CHANGE",
+                            "principal_type": "group",
+                            "title": "Christopher's group #2"
+                        },
+                        {
+                            "description": null,
+                            "edi_id": "EDI-4dd9bcf4c9bd4952aad63c55c29f75cb",
+                            "permission": "CHANGE",
+                            "principal_type": "group",
+                            "title": "Nancy's group #0"
                         }
                     ]
                 }
             ],
-            "key": "623e07e2ab7c400eab9b572e9abc3733",
+            "key": "2b22d840a07643d897588820343f8ac3",
             "principals": [
                 {
-                    "description": null,
-                    "edi_id": "EDI-1f3eef6edbef46c78a0ccd82fdfcdce3",
-                    "permission": "WRITE",
-                    "principal_type": "group",
-                    "title": "James's group #3"
+                    "description": "john@smith.com",
+                    "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                    "permission": "CHANGE",
+                    "principal_type": "profile",
+                    "title": "John Smith"
+                },
+                {
+                    "description": "sarah@martinez.com",
+                    "edi_id": "EDI-e3d2004572074df7a3a9f6f3a65e6bae",
+                    "permission": "CHANGE",
+                    "principal_type": "profile",
+                    "title": "Sarah Martinez"
                 }
             ]
         }

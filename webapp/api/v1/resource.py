@@ -144,7 +144,7 @@ async def get_v1_resource(
     )
 
 
-@router.get('/resource/tree/{resource_key:path}')
+@router.get('/resourcetree/{resource_key:path}')
 async def get_v1_resource(
     resource_key: str,
     request: starlette.requests.Request,
@@ -169,9 +169,9 @@ async def get_v1_resource(
         return api.utils.get_response_403_forbidden(request, api_method, resource_key=resource_key)
     # Find all ancestors and descendants of the resource
     resource_id_list = []
-    for ancestor_id in await dbi.get_resource_ancestors(token_profile_row, [resource_id.id]):
+    for ancestor_id in await dbi.get_resource_ancestors(token_profile_row, [resource_row.id]):
         resource_id_list.append(ancestor_id)
-    for descendant_id in await dbi.get_resource_descendants(token_profile_row, [resource_id.id]):
+    for descendant_id in await dbi.get_resource_descendants(token_profile_row, [resource_row.id]):
         resource_id_list.append(descendant_id)
     resource_list = [r async for r in dbi.get_permission_generator(resource_id_list)]
     resource_tree = db.resource_tree.get_resource_tree_for_api(resource_list)

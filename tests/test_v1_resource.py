@@ -131,7 +131,7 @@ async def test_read_resource_tree_1(john_client):
     -> Full tree of resources that includes the given resource.
     """
     # Get a level-2 child resource (quality_report.xml, metadata)
-    response = john_client.get('/v1/resource/2b22d840a07643d897588820343f8ac3')
-    response = john_client.get('/v1/resource/tree/2b22d840a07643d897588820343f8ac3')
+    # response = john_client.get('/v1/resource/2b22d840a07643d897588820343f8ac3')
+    response = john_client.get('/v1/resourcetree/2b22d840a07643d897588820343f8ac3')
     assert response.status_code == starlette.status.HTTP_200_OK
     tests.sample.assert_equal_json(response.json(), 'read_resource_tree_1.json')
