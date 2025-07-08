@@ -143,9 +143,7 @@ class DbInterface(
             has_avatar=False,
         )
 
-    #
     # Session management
-    #
 
     async def flush(self):
         """Flush the current session."""
@@ -162,6 +160,8 @@ class DbInterface(
         # log.debug('#### COMMIT ####')
         return await self._session.commit()
 
+    # Util
+
     async def execute(self, stmt, params=None):
         """Execute a SQL statement."""
         # log.debug(f'#### EXECUTE: {stmt} ####')
@@ -171,3 +171,22 @@ class DbInterface(
         """Delete a row"""
         # log.debug('#### DELETE ####')
         return await self._session.delete(row)
+
+    # Debug
+
+    async def dump_raw_query(self, query_str, params=None):
+        """Execute a raw SQL query and dump the result to log.
+
+        This is intended for quickly inspecting the state of the database as seen from inside the
+        current transaction.
+
+        Example: dump_raw_query('select * from principal')
+        """
+        result = await self._session.execute(sqlalchemy.text(query_str, params))
+        header_str = '#' * 30 + 'RAW QUERY' + '#' * 30
+        log.info(header_str)
+        log.info(f'Query: {query_str}')
+        log.info(f'Params: {params}')
+        for row in result:
+            log.info(row)
+        log.info('#' * len(header_str))

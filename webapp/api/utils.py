@@ -71,7 +71,7 @@ def get_response_400_bad_request(request, api_method, msg=None, **response_dict)
         request,
         400,
         method=api_method,
-        msg=msg or 'The request was malformed or invalid',
+        msg=msg or 'Bad request: The request was malformed or invalid',
         **response_dict,
     )
 
@@ -82,12 +82,7 @@ def get_response_401_unauthorized(request, api_method, msg=None, **response_dict
         request,
         401,
         method=api_method,
-        msg=msg
-        or (
-            'The user could not be authenticated: '
-            'An authentication token was not provided, '
-            'or the token was expired or otherwise invalid'
-        ),
+        msg=msg or 'Unauthorized: Authentication token is missing or invalid',
         **response_dict,
     )
 
@@ -98,11 +93,7 @@ def get_response_403_forbidden(request, api_method, msg=None, **response_dict):
         request,
         403,
         method=api_method,
-        msg=msg
-        or (
-            'The user is not authorized to perform this action: '
-            'The user does not have the required permissions'
-        ),
+        msg=msg or 'Access denied: Required permissions are missing.',
         **response_dict,
     )
 
@@ -113,7 +104,7 @@ def get_response_404_not_found(request, api_method, msg=None, **response_dict):
         request,
         404,
         method=api_method,
-        msg=msg or 'The requested resource was not found',
+        msg=msg or 'Not found: The requested item does not exist',
         **response_dict,
     )
 
@@ -129,7 +120,7 @@ def _dict_to_response(request, status_code, **response_dict):
         body_str = util.pretty.to_pretty_xml(response_dict)
     else:
         body_str = util.pretty.to_pretty_json(response_dict)
-    log.debug(f'API response: {body_str}')
+    # log.debug(f'API response: {body_str}')
     return starlette.responses.Response(
         body_str,
         status_code=status_code,

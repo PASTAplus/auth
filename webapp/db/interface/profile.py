@@ -151,7 +151,6 @@ class ProfileInterface:
         await self.delete(token_profile_row)
         await self.flush()
 
-
     async def set_privacy_policy_accepted(self, token_profile_row):
         token_profile_row.privacy_policy_accepted = True
         token_profile_row.privacy_policy_accepted_date = datetime.datetime.now()
@@ -172,11 +171,15 @@ class ProfileInterface:
 
     async def get_public_profile(self):
         """Get the profile for the public user."""
-        return await self.get_profile(Config.PUBLIC_EDI_ID)
+        profile_row = await self.get_profile(Config.PUBLIC_EDI_ID)
+        assert profile_row is not None
+        return profile_row
 
     async def get_authenticated_profile(self):
         """Get the profile for the authenticated user."""
-        return await self.get_profile(Config.AUTHENTICATED_EDI_ID)
+        profile_row = await self.get_profile(Config.AUTHENTICATED_EDI_ID)
+        assert profile_row is not None
+        return profile_row
 
     #
     # db.models.profile.Profile History

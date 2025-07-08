@@ -8,7 +8,7 @@ import starlette.responses
 
 import api.utils
 import db.models.permission
-import db.models.permission
+import db.resource_tree
 import util.dependency
 import util.exc
 import util.pasta_jwt
@@ -108,51 +108,85 @@ async def post_v1_resource(
 #     permissions:
 #         authenticated: changePermission
 
-@router.get('/resource/{resource_key}')
+
+@router.get('/resource/{resource_key:path}')
 async def get_v1_resource(
     resource_key: str,
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    """getResource(): Retrieve a resource by its key
+    """readResource(): Retrieve a resource by its key
     ./docs/api/resource.md
     """
     api_method = 'readResource'
     # Check token
     if token_profile_row is None:
         return api.utils.get_response_401_unauthorized(request, api_method)
-
-    # Check that the resource key is valid
-
-    include_all = request.query_params.get('all', False)
-    include_ancestors = request.query_params.get('ancestors', False) or include_all
-    include_descendants = request.query_params.get('descendants', False) or include_all
-
-    print(include_ancestors)
-    print(include_descendants)
-
-
-    resource_list = []
-
-    # Retrieve the resource(s)
-    try:
-        resource_row = await dbi.get_resource_by_key(resource_key)
-        if not resource_row:
-            return api.utils.get_response_404_not_found(
-                request, api_method, f'Resource not found', resource_key=resource_key
-            )
-        resource_list.append(resource_row)
-    except (util.exc.AuthDBError, Exception) as e:
-        return api.utils.get_response_400_bad_request(request, api_method, str(e))
-
+    # Retrieve if exists
+    resource_row = await dbi.get_resource_by_key(resource_key)
+    if not resource_row:
+        return api.utils.get_response_404_not_found(request, api_method, resource_key=resource_key)
+    # Check permission
+    if not await dbi.is_authorized(
+        token_profile_row, resource_row, db.models.permission.PermissionLevel.READ
+    ):
+        return api.utils.get_response_403_forbidden(request, api_method, resource_key=resource_key)
+    # Success
     return api.utils.get_response_200_ok(
-        request, api_method, 'Resource retrieved successfully',
-        key=resource_row.key, label=resource_row.label, type=resource_row.type,
+        request,
+        api_method,
+        'Resource retrieved successfully',
+        key=resource_row.key,
+        parent_key=resource_row.parent.key if resource_row.parent else None,
+        label=resource_row.label,
+        type=resource_row.type,
     )
 
 
-@router.put('/resource/{resource_key}')
+@router.get('/resource/tree/{resource_key:path}')
+async def get_v1_resource(
+    resource_key: str,
+    request: starlette.requests.Request,
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
+):
+    """readResourceTree(): Retrieve a resource tree by the key of one of its resources
+    ./docs/api/resource.md
+    """
+    api_method = 'readResourceTree'
+    # Check token
+    if token_profile_row is None:
+        return api.utils.get_response_401_unauthorized(request, api_method)
+    # Retrieve if exists
+    resource_row = await dbi.get_resource_by_key(resource_key)
+    if not resource_row:
+        return api.utils.get_response_404_not_found(request, api_method, resource_key=resource_key)
+    # Check permission
+    if not await dbi.is_authorized(
+        token_profile_row, resource_row, db.models.permission.PermissionLevel.READ
+    ):
+        return api.utils.get_response_403_forbidden(request, api_method, resource_key=resource_key)
+    # Find all ancestors and descendants of the resource
+    resource_id_list = []
+    for ancestor_id in await dbi.get_resource_ancestors(token_profile_row, [resource_id.id]):
+        resource_id_list.append(ancestor_id)
+    for descendant_id in await dbi.get_resource_descendants(token_profile_row, [resource_id.id]):
+        resource_id_list.append(descendant_id)
+    resource_list = [r async for r in dbi.get_permission_generator(resource_id_list)]
+    resource_tree = db.resource_tree.get_resource_tree_for_api(resource_list)
+
+    # pprint.pp(resource_tree)
+    # log.error(json.dumps(resource_tree, indent=2))
+    return api.utils.get_response_200_ok(
+        request,
+        api_method,
+        'Resource tree retrieved successfully',
+        tree=resource_tree,
+    )
+
+
+@router.put('/resource/{resource_key:path}')
 async def update_v1_resource(
     resource_key: str,
     request: starlette.requests.Request,
@@ -201,7 +235,7 @@ async def update_v1_resource(
     )
 
 
-@router.put('/resource/{resource_key}')
+@router.put('/resource/{resource_key:path}')
 async def update_v1_profile(
     edi_id: str,
     request: starlette.requests.Request,
@@ -256,7 +290,7 @@ async def update_v1_profile(
     )
 
 
-@router.delete('/resource/{resource_key}')
+@router.delete('/resource/{resource_key:path}')
 async def delete_v1_resource(
     resource_key: str,
     request: starlette.requests.Request,

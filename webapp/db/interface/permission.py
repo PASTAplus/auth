@@ -63,7 +63,7 @@ class PermissionInterface:
                     f'parent_resource_id={parent_resource_row.id}'
                 )
 
-    # async def has_permission(self, principal_row, resource_row):
+    # async def is_authorized(self, principal_row, resource_row):
     #     """Check if a principal has permission on a resource."""
     #     result = await self.execute(
     #         sqlalchemy.select(db.models.permission.Rule).where(
@@ -95,27 +95,51 @@ class PermissionInterface:
         if resource_row is None:
             return None
 
-        if not self.has_permission(token_profile_row, resource_row, db.models.permission.PermissionLevel.CHANGE):
+        if not self.is_authorized(
+            token_profile_row, resource_row, db.models.permission.PermissionLevel.CHANGE
+        ):
             raise ValueError(
                 f'Profile {token_profile_row.id} does not have CHANGE permission on resource {key}'
             )
 
         return result.scalars().first()
 
+    async def is_authorized(self, token_profile_row, resource_row, permission_level):
+        """Check if a profile has a specific permission or better on a resource.
 
-    async def has_permission(self, token_profile_row, resource_row, permission_level):
-        """Check if a profile has a specific permission level on a resource."""
+        This method implements the logic equivalent of the following pseudocode:
+
+        def is_authorized(principal, resource, permission_level):
+            acl = getAcl(resource)
+            principals = getPrincipals(profile)
+            for principal in principals:
+                for acr in acl:
+                    if acr.principal == principal:
+                        if acr.permission_level >= permission_level:
+                            return True
+            return False
+
+        A profile may have a number of equivalents. These always include the Public Access profile,
+        and will often include one or more groups to which profile is a member. This method checks
+        if the profile, or any of its equivalents, has the required permission or better on the
+        resource.
+
+        E.g., if the token profile has no permissions on the resource, but is a member of a group
+        that has WRITE permission on the resource, this method will return True when checking for
+        either READ or WRITE on the resource
+        """
         result = await self.execute(
-            sqlalchemy.select(db.models.permission.Rule).where(
-                db.models.permission.Rule.resource_id == resource_row.id,
-                db.models.permission.Rule.principal_id == token_profile_row.id,
+            sqlalchemy.select(
+                sqlalchemy.exists().where(
+                    db.models.permission.Rule.resource == resource_row,
+                    db.models.permission.Rule.principal_id.in_(
+                        await self._get_equivalent_principal_id_query(token_profile_row)
+                    ),
+                    db.models.permission.Rule.permission >= permission_level,
+                )
             )
         )
-        rule_row = result.scalars().first()
-        if rule_row is None:
-            return False
-        return rule_row.permission >= permission_level
-
+        return result.scalar()
 
     async def get_resource_by_key(self, key):
         """Get a resource by its key."""
@@ -606,15 +630,18 @@ class PermissionInterface:
     # Principal
     #
 
-    async def get_principal_id_query(self, token_profile_row):
+    async def _get_equivalent_principal_id_query(self, token_profile_row):
         """Return a query that returns the principal IDs for all principals that the profile has
-        access to.
+        access to. We refer to these as the profile's equivalent principals. These principals,
+        except for the profile itself, are included in the 'principals' field of the JWT.
 
         The returned list includes the principal IDs of:
             - The profile itself (the 'sub' field)
-            - All groups in which this profile is a member (included in 'principals' field)
-            - the Public Access profile  (included in 'principals' field)
-            - the Authenticated Access profile  (included in 'principals' field)
+            - All groups in which this profile is a member
+            - the Public Access profile
+            - the Authenticated Access profile
+
+        :returns: Query object for use in sqlalchem_in() filter for rules.
         """
         return (
             sqlalchemy.select(db.models.permission.Principal.id)
@@ -677,7 +704,7 @@ class PermissionInterface:
         """
         # Get the principal IDs for all principals that the profile has access to.
         principal_ids = (
-            (await self.execute(await self.get_principal_id_query(token_profile_row)))
+            (await self.execute(await self._get_equivalent_principal_id_query(token_profile_row)))
             .scalars()
             .all()
         )
