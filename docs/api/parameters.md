@@ -12,8 +12,8 @@ While parameters are listed in a generic way in the individual API endpoints, th
 
 ## Header Parameters
 
-- `jwt_token`: The authentication token of the requesting client
-  - Passed in the request header as `Cookie: jwt_token=<token>`
+- `edi-token`: The authentication token of the requesting client
+  - Passed in the request header as `Cookie: edi-token=<token>`
 - `accept`: Set the desired response format
   - When unset, the default response format is JSON (`Accept: application/json`)
   - When set to `application/xml` or `text/xml`, the response will be in XML format

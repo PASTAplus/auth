@@ -1,7 +1,7 @@
 import daiquiri
 
 from config import Config
-from pasta_token import PastaToken
+from edi_token import PastaToken
 
 # sys.path.insert(0, os.path.abspath("../src"))
 log = daiquiri.getLogger(__name__)

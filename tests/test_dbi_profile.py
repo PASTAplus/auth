@@ -20,7 +20,7 @@ def test_create_or_update_profile_and_identity(db):
     assert identity_row is not None
     assert identity_row.uid == 'test_uid'
     assert identity_row.email == 'test@test.test'
-    assert identity_row.pasta_token == 'test_token'
+    assert identity_row.edi_token == 'test_token'
 
 
 def test_get_all_profiles_with_identity_mapping(db):

@@ -32,11 +32,11 @@ async def post_token(
         )
 
     identity_row = await dbi.get_identity_by_edi_id(edi_id)
-    pasta_token = await util.pasta_jwt.make_jwt(dbi, identity_row)
+    edi_token = await util.pasta_jwt.make_jwt(dbi, identity_row)
 
     return starlette.responses.JSONResponse(
         status_code=200,
         content={
-            'token': pasta_token,
+            'token': edi_token,
         },
     )

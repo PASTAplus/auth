@@ -35,7 +35,7 @@ async def test_populated_session(populated_session):
 @pytest.mark.asyncio
 async def test_list_profiles(client, populated_dbi):
     roger_edi_id = 'EDI-cfc6ddd2c43849559f0186331c44faac'
-    token = await tests.utils.create_test_pasta_token(roger_edi_id, populated_dbi)
+    token = await tests.utils.create_test_edi_token(roger_edi_id, populated_dbi)
     print(token)
     # profile_row = populated_dbi.get_profile(user_edi_id)
     # response = client.get('/v1/profile/list')
@@ -79,10 +79,10 @@ async def test_4(client, populated_dbi):
 
 # # @pytest.mark.skip
 # def test_map_identity(client, populated_dbi):
-#     token_a = tests.util.create_test_pasta_token(
+#     token_a = tests.util.create_test_edi_token(
 #         'EDI-e851e1a4b19c4b78992455807fe79534', populated_dbi
 #     )
-#     token_b = tests.util.create_test_pasta_token(
+#     token_b = tests.util.create_test_edi_token(
 #         'EDI-61b8b8872c13469faf4a44e3ff50b848', populated_dbi
 #     )
 #     response = client.post(
@@ -94,7 +94,7 @@ async def test_4(client, populated_dbi):
 #
 #
 # def test_get_profile(client, populated_dbi):
-#     token = tests.util.create_test_pasta_token(
+#     token = tests.util.create_test_edi_token(
 #         'EDI-61b8b8872c13469faf4a44e3ff50b848', populated_dbi
 #     )
 #     response = client.get('/v1/profile/get', params={'token_str': token})
@@ -103,7 +103,7 @@ async def test_4(client, populated_dbi):
 #
 #
 # def test_profile_disable(client, populated_dbi):
-#     token = tests.util.create_test_pasta_token(
+#     token = tests.util.create_test_edi_token(
 #         'EDI-61b8b8872c13469faf4a44e3ff50b848', populated_dbi
 #     )
 #     response = client.post('/v1/profile/disable', params={'token_str': token})
@@ -113,7 +113,7 @@ async def test_4(client, populated_dbi):
 #
 #
 # def test_identity_drop(client, populated_dbi):
-#     token = tests.util.create_test_pasta_token(
+#     token = tests.util.create_test_edi_token(
 #         'EDI-c422bd31545b4d7080a84ef1ba4a6a67', populated_dbi
 #     )
 #     response = client.post(
@@ -130,7 +130,7 @@ async def test_4(client, populated_dbi):
 #
 #
 # def test_identity_list(client, populated_dbi):
-#     token = tests.util.create_test_pasta_token(
+#     token = tests.util.create_test_edi_token(
 #         'EDI-61b8b8872c13469faf4a44e3ff50b848', populated_dbi
 #     )
 #     response = client.get('/v1/identity/list', params={'token_str': token})

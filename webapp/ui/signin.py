@@ -152,6 +152,6 @@ def get_ldap_dn(idp_uid: str) -> str:
 @router.get('/signout')
 async def signout(request: starlette.requests.Request):
     response = util.redirect.internal('/ui/signin', **request.query_params)
-    response.delete_cookie('pasta_token')
+    response.delete_cookie('edi-token')
     response.delete_cookie('auth-token')
     return response

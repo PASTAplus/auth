@@ -9,7 +9,7 @@ def test_create_identity(db):
     assert identity is not None
     assert identity.uid == 'test_uid'
     assert identity.email == 'test@test.com'
-    assert identity.pasta_token == 'test_token'
+    assert identity.edi_token == 'test_token'
 
 
 def test_create_identity_duplicate_idp(db):

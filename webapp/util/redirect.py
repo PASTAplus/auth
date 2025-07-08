@@ -63,7 +63,7 @@ def idp(
 def target(
     target_url: str,
     token: str,
-    pasta_token: str,
+    edi_token: str,
     # TODO: All the following query parameters should be removed from the redirect
     # URI when the transition to the new authentication system is complete, since
     # they are effectively unsigned claims.
@@ -86,8 +86,8 @@ def target(
         target_url,
         # The old token is passed in 'token'
         token=token,
-        # The new token is passed in 'pasta_token'
-        pasta_token=pasta_token,
+        # The new token is passed in 'edi_token'
+        edi_token=edi_token,
         # TODO: All the following query parameters should be removed from the redirect
         # URI when the transition to the new authentication system is complete, since
         # they are effectively unsigned claims.
@@ -102,8 +102,8 @@ def target(
     )
     # auth-token is the location of the old proprietary token
     response.set_cookie('auth-token', token)
-    # pasta_token is the location of the new JWT token
-    response.set_cookie('pasta_token', pasta_token)
+    # edi-token is the location of the new JWT token
+    response.set_cookie('edi-token', edi_token)
     return response
 
 

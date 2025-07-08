@@ -330,5 +330,5 @@ async def jane_client(jane_token):
 
 def _create_test_client(token):
     return fastapi.testclient.TestClient(
-        main.app, cookies={'pasta_token': token}, base_url=TEST_SERVER_BASE_URL
+        main.app, cookies={'edi-token': token}, base_url=TEST_SERVER_BASE_URL
     )

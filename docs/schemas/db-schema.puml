@@ -9,7 +9,7 @@ class identity {
    idp_name: varchar
    uid: varchar
    email: varchar
-   pasta_token: varchar
+   edi_token: varchar
    first_auth: datetime
    last_auth: datetime
    id: integer

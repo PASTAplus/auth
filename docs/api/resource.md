@@ -18,7 +18,7 @@ The token profile becomes the owner of the resource.
 POST: /auth/v1/resource
 
 createResource(
-  jwt_token
+  edi_token
   resource_key: Unique resource key of the resource
   resource_label: Human readable name of the resource
   resource_type: Type of resource
@@ -50,7 +50,7 @@ Example request using cURL and JSON:
 
 ```shell
 curl -X POST https://auth.edirepository.org/auth/v1/resource \
--H "Cookie: jwt_token=$(<~/Downloads/token-EDI-<my-token>.jwt)" \
+-H "Cookie: edi-token=$(<~/Downloads/token-EDI-<my-token>.jwt)" \
 -d '{
   "resource_key": "https://pasta.lternet.edu/package/data/eml/edi/643/4/87c390495ad405e705c09e62ac6f58f0",
   "resource_label": "edi.643.4",
@@ -73,7 +73,7 @@ Example request using cURL and XML:
 
 ```shell
 curl -X POST https://auth.edirepository.org/auth/v1/resource \
--H "Cookie: jwt_token=$(<~/Downloads/token-EDI-<my-token>.jwt)" \
+-H "Cookie: edi-token=$(<~/Downloads/token-EDI-<my-token>.jwt)" \
 -H "Content-Type: text/xml" \
 -d '{
   "resource_key": "https://pasta.lternet.edu/package/data/eml/edi/643/4/87c390495ad405e705c09e62ac6f58f0",
@@ -101,7 +101,7 @@ Return the resource associated with a resource key.
 GET : /auth/v1/resource/<resource_key>?(descendants|ancestors|all))
 
 readResource(
-    jwt_token: The token of the requesting client
+    edi_token: The token of the requesting client
     resource_key: The unique resource key of the resource
     ancestor (optional): Include the resource's ancestors
     descendants (optional): Include the resource's descendants
@@ -117,7 +117,27 @@ Permissions:
   authenticated: changePermission
 ```
 
-- If `all` is specified, `descendants` and `ancestors` are ignored.
+
+## Read Resource Tree
+
+Return the full tree to which the resource belongs. The tree includes the resource itself, it's ancestors, and descendants.
+
+```
+GET : /auth/v1/resource/tree/<resource_key>
+
+readResourceTree(
+    edi_token: The token of the requesting client
+    resource_key: The unique resource key of the resource
+)
+
+Returns:        
+  401 Unauthorized if the client does not provide a valid authentication token
+  403 Forbidden if client is not authorized to execute method or access resource
+  404 If resource is not found
+
+Permissions:
+  authenticated: changePermission
+```
 
 
 ## Update Resource
@@ -128,7 +148,7 @@ Update the attributes of a resource.
 PUT: /auth/v1/resource/<resource_key>
 
 updateResource(
-    jwt_token: the token of the requesting client
+    edi_token: the token of the requesting client
     resource_key: The unique resource key of the resource
     resource_label (optional): The human readable name of the resource
     resource_type (optional): The type of resource
@@ -156,7 +176,7 @@ Delete a resource.
 DELETE: /auth/v1/resource/<resource_key>
 
 deleteResource(
-    jwt_token: The token of the requesting client
+    edi_token: The token of the requesting client
     resource_key: The unique resource key of the resource
 )
 

@@ -18,7 +18,7 @@ The token profile must be an owner of the resource.
 POST: /auth/v1/rule
 
 createRule(
-    jwt_token: the token of the requesting client
+    edi_token: the token of the requesting client
     resource_key: the unique resource key of the resource
     principal: the principal of the ACR
     permission: the permission level of the ACR
@@ -40,7 +40,7 @@ Example request using cURL and JSON:
 
 ```shell
 curl -X POST https://auth.edirepository.org/auth/v1/rule \
--H "Cookie: jwt_token=$(<~/Downloads/token-EDI-<my-token>.jwt)" \
+-H "Cookie: edi-token=$(<~/Downloads/token-EDI-<my-token>.jwt)" \
 -d '{
   "resource_key": "https://pasta.lternet.edu/package/data/eml/edi/643/4/87c390495ad405e705c09e62ac6f58f0",
   "principal": "EDI-1234567890abcdef1234567890abcdef",
@@ -80,9 +80,9 @@ Read the access control rule for principal on a resource.
 GET: /auth/v1/rule/<resource_key>/<principal_edi_id>
 
 readRule(
-    jwt_token: the token of the requesting client
-    resource_key: the unique resource key of the resource
-    principal_edi_id: the principal of the ACR
+    edi_token
+    resource_key: The unique resource key of the resource
+    principal_edi_id: The EDI-ID of the principal granted access through this rule
 )
 
 Returns:
@@ -106,7 +106,7 @@ Update the access control rule for a principal on a resource.
 PUT: /auth/v1/rule/<resource_key>/<principal>
 
 updateRule(
-    jwt_token: the token of the requesting client
+    edi_token
     resource_key: the unique resource key of the resource
     principal: the principal of the ACR
     permission: the permission of the ACR (may be `None` if DELETE)
@@ -132,7 +132,7 @@ Delete the access control rule for a principal on a resource.
 DELETE: /auth/v1/resource/<resource_key>/<principal_edi_id>
 
 deleteResource(
-    jwt_token: the token of the requesting client
+    edi_token: the token of the requesting client
     resource_key: the unique resource key of the resource
     principal_edi_id: the principal of the ACR
 )

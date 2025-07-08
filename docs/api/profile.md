@@ -18,7 +18,7 @@ If and when a user logs into the profile for the first time, the profile and ide
 POST: /auth/v1/profile
 
 createProfile(
-  jwt_token
+  edi_token
   idp_uid
 )
 
@@ -46,7 +46,7 @@ Example request using cURL and JSON:
 
 ```shell
 curl -X POST https://auth.edirepository.org/auth/v1/profile \
--H "Cookie: jwt_token=$(<~/Downloads/token-EDI-<my-token>.jwt)" \
+-H "Cookie: edi-token=$(<~/Downloads/token-EDI-<my-token>.jwt)" \
 -d '{
   "idp_uid": "uid=username,o=EDI,dc=edirepository,dc=org"
 }'
@@ -74,7 +74,7 @@ When the profile is owned by the requesting user, additional information such as
 GET: /auth/v1/profile/<edi_id>
 
 readProfile(
-  jwt_token 
+  edi_token 
   edi_id
 )
 
@@ -138,7 +138,7 @@ Only profiles owned by the requesting user can be updated. The `common_name` and
 PUT: /auth/v1/profile/<edi_id>
 
 updateProfile(
-    jwt_token: the token of the requesting client
+    edi_token: the token of the requesting client
     edi_id: the EDI profile identifier
     common_name (optional): The user's new common name
     email (optional): The user's new preferred email address
@@ -171,8 +171,8 @@ Delete a user profile associated with an EDI profile identifier.
 ```
 DELETE: /auth/v1/profile/<edi_id>
 
-deleteProfile(jwt_token, edi_id)
-    jwt_token: the token of the requesting client
+deleteProfile(edi_token, edi_id)
+    edi_token: the token of the requesting client
     edi_id: the EDI profile identifier
     return:
         200 OK if successful

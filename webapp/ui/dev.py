@@ -63,6 +63,6 @@ async def get_dev_signin(
 ):
     response = util.redirect.internal('/ui/profile')
     identity_row = await dbi.get_identity(idp_name, idp_uid)
-    pasta_token = await util.pasta_jwt.make_jwt(dbi, identity_row)
-    response.set_cookie(key='pasta_token', value=pasta_token)
+    edi_token = await util.pasta_jwt.make_jwt(dbi, identity_row)
+    response.set_cookie(key='edi-token', value=edi_token)
     return response

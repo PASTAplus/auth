@@ -10,7 +10,7 @@ import util.pretty
 log = logging.getLogger(__name__)
 
 
-async def create_test_pasta_token(edi_id, populated_dbi):
+async def create_test_edi_token(edi_id, populated_dbi):
     # print(await get_edi_ids(populated_dbi))
     profile_row = await populated_dbi.get_profile(edi_id)
     if profile_row is None:

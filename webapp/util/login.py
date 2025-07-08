@@ -56,11 +56,11 @@ async def handle_client_login(
     old_token_ = util.old_token.make_old_token(
         uid=old_uid, groups=Config.VETTED if is_vetted else Config.AUTHENTICATED
     )
-    pasta_token = await util.pasta_jwt.make_jwt(dbi, identity_row)
+    edi_token = await util.pasta_jwt.make_jwt(dbi, identity_row)
     return util.redirect.target(
         target_url,
         token=old_token_,
-        pasta_token=pasta_token,
+        edi_token=edi_token,
         edi_id=identity_row.profile.edi_id,
         common_name=identity_row.common_name,
         email=identity_row.profile.email,
@@ -75,7 +75,7 @@ async def handle_link_account(request, dbi, idp_name, idp_uid, common_name, emai
     signed in.
     """
     # Link new account to the profile associated with the token.
-    token_str = request.cookies.get('pasta_token')
+    token_str = request.cookies.get('edi-token')
     token_obj = await util.pasta_jwt.PastaJwt.decode(dbi, token_str)
     profile_row = await dbi.get_profile(token_obj.edi_id)
     # Prevent linking an account that is already linked.
