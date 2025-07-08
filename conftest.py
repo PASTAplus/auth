@@ -67,9 +67,9 @@ async def override_system_principals():
     """Override the system principal EDI-IDs in config.py, to match those in db_fixture.json."""
     from config import Config
 
-    Config.SERVICE_PROFILE_EDI_ID = tests.edi_id.SERVICE_ACCESS
-    Config.PUBLIC_ACCESS_PROFILE_EDI_ID = tests.edi_id.PUBLIC_ACCESS
-    Config.AUTHENTICATED_ACCESS_PROFILE_EDI_ID = tests.edi_id.AUTHENTICATED_ACCESS
+    Config.SERVICE_EDI_ID = tests.edi_id.SERVICE_ACCESS
+    Config.PUBLIC_PROFILE_EDI_ID = tests.edi_id.PUBLIC_ACCESS
+    Config.AUTHENTICATED_PROFILE_EDI_ID = tests.edi_id.AUTHENTICATED_ACCESS
     yield
 
 
@@ -107,7 +107,7 @@ async def test_engine():
 
 
 @pytest_asyncio.fixture(scope='session')
-async def test_session(test_engine):
+async def test_session(test_engine, override_system_principals):
     """Create a fresh async Postgres DB session for the test session.
     Roll back changes after each test while keeping the session scoped to the session.
     """
@@ -117,10 +117,6 @@ async def test_session(test_engine):
         autoflush=False,
     )
     async with AsyncSessionFactory() as async_test_session:
-        # Initialize system objects in the database
-        dbi = db.db_interface.DbInterface(session=async_test_session)
-        await db.system_object.init_system_objects(dbi)
-
         try:
             yield async_test_session
         except Exception as e:
@@ -135,28 +131,34 @@ async def populated_test_session(test_session):
     """Create a populated async Postgres DB session for the test session.
     The database is populated with data from the JSON DB fixture file.
     """
-    for table_name in (
-        'group_member',
-        'group',
-        'rule',
-        'resource',
-        'identity',
-        'principal',
-        'profile_history',
-        'profile',
-    ):
-        try:
-            await test_session.execute(sqlalchemy.text(f'truncate table "{table_name}" cascade'))
-        except sqlalchemy.exc.ProgrammingError as e:
-            log.warning(f'Failed to truncate table {table_name}: {e}')
+    # Initialize system objects in the database
+    dbi = db.db_interface.DbInterface(session=test_session)
+    await db.system_object.init_system_objects(dbi)
+    await test_session.flush()
 
     fixture_dict = json.loads(DB_FIXTURE_JSON_PATH.read_text())
+
     table_to_class_dict = {
         mapper.local_table.name: mapper.class_ for mapper in db.models.base.Base.registry.mappers
     }
-    for table_name, rows in fixture_dict.items():
+
+    # We populate the tables in order of their foreign key dependencies.
+    table_tup = (
+        'profile',
+        'identity',
+        'profile_history',
+        'group',
+        'group_member',
+        'principal',
+        'resource',
+        'rule',
+    )
+
+    # Populate the tables with data from the fixture file.
+    for table_name in table_tup:
+        rows = fixture_dict.get(table_name, [])
         assert table_name in db.models.base.Base.metadata.tables, f'Table not found: {table_name}'
-        # log.info(f'Importing {table_name}...')
+        # log.debug(f'Importing {table_name}...')
         cls = table_to_class_dict[table_name]
         for row in rows:
             new_row = cls(**row)
@@ -164,11 +166,10 @@ async def populated_test_session(test_session):
 
     await test_session.flush()
 
-    # Set the serial counter to start after the highest inserted ID
-    for table_name, rows in fixture_dict.items():
+    for table_name in table_tup:
         result = await test_session.execute(sqlalchemy.text(f'select max(id) from "{table_name}"'))
-        max_id = result.scalars().first()
-        log.info(f'Serial sequence for {table_name}: {max_id}')
+        max_id = result.scalar()
+        # log.debug(f'Serial sequence for {table_name}: {max_id}')
         await test_session.execute(
             sqlalchemy.text(
                 'select setval(pg_get_serial_sequence(:table_name, :id_column), :max_id)'
@@ -177,6 +178,7 @@ async def populated_test_session(test_session):
         )
 
     await test_session.flush()
+
     yield test_session
 
 
