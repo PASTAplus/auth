@@ -2,3 +2,9 @@
     background-color: #00000020;
     padding: .2rem;
 }
+
+.copy-status {
+    display: inline-block;
+    margin-left: 0.5rem;
+    color: #888;
+}

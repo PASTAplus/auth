@@ -9,8 +9,16 @@
   <link rel='stylesheet' href='{{ url('/static/css/token.css') }}'>
 {% endblock %}
 
+{% block scripts %}
+  <script src='{{ url('/static/js/token.js') }}'></script>
+{% endblock %}
+
 {% block content %}
-  <h1 aria-label>EDI Authentication Token</h1>
+  <div class='header-container'
+       data-root-path='{{ url('') }}'
+  >
+    <h1 aria-label>EDI Authentication Token</h1>
+  </div>
 
   <div class='indent'>
     <p>
@@ -41,21 +49,20 @@
       header of your requests.
     </p>
     <p>
-      The downloaded token is valid for <span class='highlight'>{{ lifetime }} hours</span>. You may
-      refresh your token programmatically any time before it expires, by passing it to the
-      token_refresh() API method. After your token expires, however, you will not be able to refresh
-      it, and you will need to sign in again to obtain a new token.
+      The token is valid for <span class='highlight'>{{ lifetime }} hours</span>. You may refresh
+      your token programmatically any time before it expires, by passing it to the refreshToken()
+      API method. After your token expires, however, you will not be able to refresh it, and you
+      will need to sign in again to obtain a new token.
     </p>
   </div>
 
   <div class='indent'>
-  <h3>Copy to clipboard</h3>
+    <h3>Copy to clipboard</h3>
     <div class='indent'>
-      <p>
-        Click the button below to copy the token to your clipboard. You can then paste it into your
-        application or API client.
-      </p>
-      <button id='copyTokenButton' class='btn btn-secondary'>Copy Token</button>
+      <span>
+        <button id='copyTokenButton' class='btn btn-primary'>Copy Token</button>
+        <span id='copyStatus' class='copy-status'></span>
+      </span>
     </div>
   </div>
 
