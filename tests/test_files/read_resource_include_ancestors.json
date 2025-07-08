@@ -1,0 +1,22 @@
+{
+    "key": "alskdfj",
+    "label": "quality_report.xml",
+    "resource_id": 48,
+    "type": "metadata",
+    "parent_key": null,
+    "resource_tree": [
+        {
+            "label": "edi.7842.1",
+            "resource_id": 46,
+            "type": "package"
+            "children": [
+                {
+                    "label": "Metadata",
+                    "resource_id": 47,
+                    "type": "collection"
+                }
+            ],
+        }
+    ],
+    "type": "package"
+}

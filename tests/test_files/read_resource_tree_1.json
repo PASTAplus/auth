@@ -1,0 +1,61 @@
+{
+    "method": "readResourceTree",
+    "msg": "Resource tree retrieved successfully",
+    "tree": [
+        {
+            "children": [
+                {
+                    "children": [
+                        {
+                            "children": [],
+                            "key": "5d15561b4d3a41ba9855315f825f05e6",
+                            "principals": [
+                                {
+                                    "description": null,
+                                    "edi_id": "EDI-98d3b0e725344a2caf1745b8772c1fcc",
+                                    "permission": "CHANGE",
+                                    "principal_type": "group",
+                                    "title": "David's group #2"
+                                },
+                                {
+                                    "description": "susan@harris.com",
+                                    "edi_id": "EDI-b3fffb30968a4f4386fbce580aa0a039",
+                                    "permission": "READ",
+                                    "principal_type": "profile",
+                                    "title": "Susan Harris"
+                                }
+                            ]
+                        }
+                    ],
+                    "key": "9aad4c65801f4feb9373e7b3281955cf",
+                    "principals": [
+                        {
+                            "description": "karen@clark.com",
+                            "edi_id": "EDI-7dbe89237c144850a0a421860a97da8b",
+                            "permission": "READ",
+                            "principal_type": "profile",
+                            "title": "Karen Clark"
+                        },
+                        {
+                            "description": null,
+                            "edi_id": "EDI-59ff04a36ead4e23b135ef629f06df77",
+                            "permission": "WRITE",
+                            "principal_type": "group",
+                            "title": "Michael's group #0"
+                        }
+                    ]
+                }
+            ],
+            "key": "623e07e2ab7c400eab9b572e9abc3733",
+            "principals": [
+                {
+                    "description": null,
+                    "edi_id": "EDI-1f3eef6edbef46c78a0ccd82fdfcdce3",
+                    "permission": "WRITE",
+                    "principal_type": "group",
+                    "title": "James's group #3"
+                }
+            ]
+        }
+    ]
+}
