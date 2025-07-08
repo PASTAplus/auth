@@ -1,4 +1,5 @@
 import logging
+import re
 import subprocess
 import sys
 import tempfile
@@ -25,7 +26,7 @@ def assert_equal(received_str, filename):
         log.error('Expected:')
         log.error(expected_str)
         if RUN_MELD:
-            is_identical = meld(received_str, filename)
+            is_identical = _meld(received_str, filename)
         else:
             is_identical = False
         assert is_identical, 'The received string does not match the expected string'
@@ -47,13 +48,33 @@ def assert_equal_json(received_json: str | dict, filename: str):
         log.error('Expected JSON:')
         log.error(expected_json_str)
         if RUN_MELD:
-            is_identical = meld(norm_json_str, filename)
+            is_identical = _meld(norm_json_str, filename)
         else:
             is_identical = False
         assert is_identical, 'The received string does not match the expected string'
 
 
+def reset():
+    global active_test_files
+    active_test_files = set()
+
+
+def status():
+    log.info('Sample files used:')
+    for filename in active_test_files:
+        log.info('  {}'.format(filename))
+    else:
+        log.info('None')
+
+
 def _read_file(filename):
+    assert not re.match(r'test_', filename), (
+        'filename should match the name of the test method, but without the "test_" prefix. '
+        f'Received: "{filename}"'
+    )
+    assert re.search(
+        r'\.json$', filename
+    ), f'filename should have ".json" suffix. Received: "{filename}"'
     active_test_files.add(filename)
     file_path = TEST_FILES_PATH / filename
     if not file_path.exists():
@@ -65,9 +86,9 @@ def _normalize_json(json_str):
     return json.dumps(json.loads(json_str), indent=4, sort_keys=True).strip() + '\n'
 
 
-def meld(left_str, filename):
-    """Open the meld command, with the contents of left_str in the left pane, and the contents of
-    the named sample file in the right pane.
+def _meld(left_str, filename):
+    """Open the meld command (apt install meld), with the contents of left_str in the left pane, and
+    the contents of the named sample file in the right pane.
 
     :returns: The function waits until the user closes the meld window, and then returns True if the
     contents are identical, or False if not.
@@ -78,13 +99,3 @@ def meld(left_str, filename):
         subprocess.run(('meld', tmp_file.name, (TEST_FILES_PATH / filename).as_posix()))
         tmp_file.seek(0)
         return tmp_file.read() == (TEST_FILES_PATH / filename).read_bytes()
-
-
-def reset():
-    global active_test_files
-    active_test_files = set()
-
-def status():
-    log.info('Sample files used:')
-    for filename in active_test_files:
-        log.info('  {}'.format(filename))

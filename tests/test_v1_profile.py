@@ -47,7 +47,7 @@ async def test_create_profile_with_valid_token(populated_dbi, service_client):
     # We set edi_id to a fixed value here, so that the sample file does not change.
     response_dict['edi_id'] = '<Random EDI-ID'
     del response_dict['edi_id']
-    tests.sample.assert_equal_json(response_dict, 'test_create_profile_with_valid_token.json')
+    tests.sample.assert_equal_json(response_dict, 'create_profile_with_valid_token.json')
 
 
 @pytest.mark.asyncio

@@ -1,5 +1,0 @@
-{
-    "common_name": null,
-    "method": "readProfile",
-    "msg": "Profile retrieved by non-owner. Only public fields returned."
-}

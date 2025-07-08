@@ -60,7 +60,7 @@ async def test_3(client, populated_dbi, profile_row):
     #         print(row)
     #         print(row.id)
     #         print(row.permission)
-    resource_query = await populated_dbi.get_resource_parents(
+    resource_query = await populated_dbi.get_resource_ancestors(
         profile_row, (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
     )
     resource_tree = db.resource_tree.get_resource_tree_for_ui(resource_query)

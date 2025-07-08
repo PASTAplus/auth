@@ -1,8 +1,0 @@
-{
-    "key": "john_resource_key",
-    "label": "Resource created by John Smith",
-    "method": "readResource",
-    "msg": "Resource retrieved successfully",
-    "parent": null,
-    "type": "testResource"
-}
