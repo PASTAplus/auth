@@ -41,8 +41,7 @@ def idp(
     target_url: str,
     **query_param_dict,
 ):
-    """Create a Response that redirects to the IdP with which we will be authenticating, and include
-    a cookie with the client's final target.
+    """Create a Response that redirects to the IdP with which we will be authenticating.
     """
     url_obj = starlette.datastructures.URL(idp_auth_url)
     url_obj = url_obj.replace_query_params(

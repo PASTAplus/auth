@@ -36,7 +36,7 @@ async def get_login_github(
 
     return util.redirect.idp(
         Config.GITHUB_AUTH_ENDPOINT,
-        'github',
+        db.models.identity.IdpName.GITHUB,
         login_type,
         target_url,
         client_id=Config.GITHUB_CLIENT_ID,

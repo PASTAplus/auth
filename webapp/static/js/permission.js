@@ -289,6 +289,7 @@ function refreshResourceTreeRecursive(resourceArray)
                     data-resource-id='${resourceObj.resource_id}'
                   />
                   <span class='tree-resource-title'>${resourceObj.label}</span>
+                  <!--<span class='tree-resource-title'>${resourceObj.key}</span>-->
                   <span class='tree-resource-type'>${resourceObj.type}</span>
                 </span>
               </summary>

@@ -192,7 +192,7 @@ async def get_logout_microsoft(
     )
 
 
-@router.get('/logout/microsoft/callback/{target_url:path}')
+@router.get('/logout/microsoft/callback/{target_url}')
 async def get_logout_microsoft_callback(target_url):
     """Receive the callback from the Microsoft logout endpoint and redirect to the
     target URL.

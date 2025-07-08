@@ -15,7 +15,9 @@ import util.redirect
 import util.url
 from config import Config
 
-log = daiquiri.getLogger(__name__)
+import logging
+
+log = logging.getLogger(__name__)
 router = fastapi.APIRouter()
 
 # https://developers.google.com/identity/protocols/oauth2
@@ -45,7 +47,7 @@ async def get_login_google(
         )
         return util.redirect.client_error(target_url, 'Login unsuccessful')
 
-    util.pretty.log_dict(log.debug, 'google_provider_cfg', google_provider_cfg)
+    # util.pretty.log_dict(log.debug, 'google_provider_cfg', google_provider_cfg)
 
     return util.redirect.idp(
         google_provider_cfg['authorization_endpoint'],
@@ -83,15 +85,17 @@ async def get_callback_google(
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Accept': 'application/json',
             },
-            data=util.url.build_query_string(
-                client_id=Config.GOOGLE_CLIENT_ID,
-                client_secret=Config.GOOGLE_CLIENT_SECRET,
-                code=code_str,
-                authorization_response=str(
-                    util.login.get_redirect_uri('google').replace_query_params(code=code_str)
-                ),
-                redirect_uri=util.login.get_redirect_uri('google'),
-                grant_type='authorization_code',
+            data=(
+                util.url.build_query_string(
+                    client_id=Config.GOOGLE_CLIENT_ID,
+                    client_secret=Config.GOOGLE_CLIENT_SECRET,
+                    code=code_str,
+                    authorization_response=str(
+                        util.login.get_redirect_uri('google').replace_query_params(code=code_str)
+                    ),
+                    redirect_uri=util.login.get_redirect_uri('google'),
+                    grant_type='authorization_code',
+                )
             ),
         )
     except requests.RequestException:

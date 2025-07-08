@@ -16,6 +16,7 @@ import tests.edi_id
 import tests.utils
 import util.dependency
 import tests.sample
+import db.system_object
 
 TEST_SERVER_BASE_URL = 'http://testserver/auth'
 
@@ -116,6 +117,10 @@ async def test_session(test_engine):
         autoflush=False,
     )
     async with AsyncSessionFactory() as async_test_session:
+        # Initialize system objects in the database
+        dbi = db.db_interface.DbInterface(session=async_test_session)
+        await db.system_object.init_system_objects(dbi)
+
         try:
             yield async_test_session
         except Exception as e:
@@ -137,8 +142,8 @@ async def populated_test_session(test_session):
         'resource',
         'identity',
         'principal',
-        'profile',
         'profile_history',
+        'profile',
     ):
         try:
             await test_session.execute(sqlalchemy.text(f'truncate table "{table_name}" cascade'))
@@ -219,7 +224,7 @@ async def populated_dbi(session_scope_populated_dbi, populated_test_session):
 # @pytest_asyncio.fixture(scope='function')
 async def service_profile_row(populated_dbi):
     """System profile: Service profile row"""
-    yield await populated_dbi.get_profile('EDI-b2757fee12634ccca40d2d689f5c0543')
+    yield await populated_dbi.get_profile(tests.edi_id.SERVICE_ACCESS)
 
 
 @pytest_asyncio.fixture(scope='function')

@@ -112,6 +112,8 @@ class PastaJwt:
     @classmethod
     async def is_valid(cls, dbi, token_str: str | None):
         """Check if a token is valid."""
+        if not token_str:
+            return False
         return await cls.decode(dbi, token_str) is not None
 
 

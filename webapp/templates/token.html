@@ -31,7 +31,7 @@
     </div>
   </div>
 
-  <h2>Download for API access</h2>
+  <h2>API access</h2>
 
   <div class='indent'>
     <p>
@@ -46,6 +46,21 @@
       token_refresh() API method. After your token expires, however, you will not be able to refresh
       it, and you will need to sign in again to obtain a new token.
     </p>
+  </div>
+
+  <div class='indent'>
+  <h3>Copy to clipboard</h3>
+    <div class='indent'>
+      <p>
+        Click the button below to copy the token to your clipboard. You can then paste it into your
+        application or API client.
+      </p>
+      <button id='copyTokenButton' class='btn btn-secondary'>Copy Token</button>
+    </div>
+  </div>
+
+  <div class='indent'>
+    <h3>Download</h3>
     <div class='indent'>
       <p>
         Filename: <span class='highlight'>{{ filename }}</span>.

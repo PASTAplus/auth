@@ -32,7 +32,7 @@ async def get_login_orcid(
 
     return util.redirect.idp(
         Config.ORCID_AUTH_ENDPOINT,
-        'orcid',
+        db.models.identity.IdpName.ORCID,
         login_type,
         target_url,
         client_id=Config.ORCID_CLIENT_ID,

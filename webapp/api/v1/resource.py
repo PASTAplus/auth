@@ -108,7 +108,7 @@ async def post_v1_resource(
 #     permissions:
 #         authenticated: changePermission
 
-@router.get('/resource/{resource_key:path}')
+@router.get('/resource/{resource_key}')
 async def get_v1_resource(
     resource_key: str,
     request: starlette.requests.Request,
@@ -152,7 +152,7 @@ async def get_v1_resource(
     )
 
 
-@router.put('/resource/{resource_key:path}')
+@router.put('/resource/{resource_key}')
 async def update_v1_resource(
     resource_key: str,
     request: starlette.requests.Request,
@@ -201,7 +201,7 @@ async def update_v1_resource(
     )
 
 
-@router.put('/resource/{resource_key:path}')
+@router.put('/resource/{resource_key}')
 async def update_v1_profile(
     edi_id: str,
     request: starlette.requests.Request,
@@ -256,7 +256,7 @@ async def update_v1_profile(
     )
 
 
-@router.delete('/resource/{resource_key:path}')
+@router.delete('/resource/{resource_key}')
 async def delete_v1_resource(
     resource_key: str,
     request: starlette.requests.Request,

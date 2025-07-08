@@ -47,7 +47,9 @@ class Resource(db.models.base.Base):
         cascade_backrefs=False,
         cascade='all, delete-orphan',
     )
-
+    parent = sqlalchemy.orm.relationship(
+        'Resource', remote_side=[id], lazy='select'
+    )
 
 class PermissionLevel(enum.Enum):
     NONE = 0

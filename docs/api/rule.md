@@ -6,7 +6,7 @@
 - [Resources](resource.md) - Create and manage resources
 - [Rules](rule.md) - Create and manage the ACRs for resources
 
-This document describes the API for managing permission rules.
+This document describes the API for managing access control rules.
 
 ## Create Rule
 
@@ -74,7 +74,7 @@ Example JSON `200 OK` response:
 
 ## Read Rule
 
-Read the access control rule for principal on a resource.
+Read the access control rule (ACR) for a principal on a resource.
 
 ```
 GET: /auth/v1/rule/<resource_key>/<principal_edi_id>
@@ -86,11 +86,11 @@ readRule(
 )
 
 Returns:
-  200 OK if successful
-  400 Bad Request if ACR is invalid
-  401 Unauthorized if the client does not provide a valid authentication token
-  403 Forbidden if client is not authorized to execute method or access ACR
-  404 If rule is not found
+  200 OK
+  400 Bad Request - ACR is invalid
+  401 Unauthorized
+  403 Forbidden
+  404 Not Found
 
 Permissions:
   authenticated: changePermission
@@ -98,27 +98,28 @@ Permissions:
 
 ## Update Rule
 
-Update the access control rule for a principal on a resource.
+Update the access control rule (ACR) for a principal on a resource.
 
 - Note: It is an error if the client attempts to modify the `changePermission` permission of a principal if no other principal has `changePermission` permission.
 
 ```
-PUT: /auth/v1/rule/<resource_key>/<principal>
+PUT: /auth/v1/rule/<resource_key>/<principal_edi_id>
 
+: The principal granted access by this ACR
 updateRule(
     edi_token
     resource_key: the unique resource key of the resource
-    principal: the principal of the ACR
-    permission: the permission of the ACR (may be `None` if DELETE)
+    principal_edi_id: The EDI-ID of the principal granted access through this rule
+    permission: The permission of the ACR (may be `None` if DELETE)
 )
     
 Returns;
-  200 OK if successful
-  400 Bad Request if ACR is invalid
-  401 Unauthorized if the client does not provide a valid authentication token
-  403 Forbidden if client is not authorized to execute method or access ACR
-  404 If rule is not found
-  422 If no `changePermission` would occur
+  200 OK
+  400 Bad Request - ACR is invalid
+  401 Unauthorized
+  403 Forbidden
+  404 Not Found
+  422 Unprocessable - No `changePermission` would occur
 
 Permissions:
   authenticated: changePermission
@@ -126,7 +127,7 @@ Permissions:
 
 ## Delete Rule
 
-Delete the access control rule for a principal on a resource.
+Delete the access control rule (ACR) for a principal on a resource.
 
 ```
 DELETE: /auth/v1/resource/<resource_key>/<principal_edi_id>
@@ -138,13 +139,12 @@ deleteResource(
 )
 
 Returns:
-    200 OK if successful
+    200 OK
     400 Bad Request if resource is invalid
-    401 Unauthorized if the client does not provide a valid authentication token
-    403 Forbidden if client is not authorized to execute method or access resource
-    404 If resource is not found
+    401 Unauthorized
+    403 Forbidden
+    404 Not Found
 
 Permissions:
     authenticated: changePermission
 ```
-

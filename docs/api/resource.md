@@ -98,14 +98,11 @@ Example XML `200 OK` Response
 Return the resource associated with a resource key.
 
 ```
-GET : /auth/v1/resource/<resource_key>?(descendants|ancestors|all))
+GET : /auth/v1/resource/<resource_key>
 
 readResource(
     edi_token: The token of the requesting client
     resource_key: The unique resource key of the resource
-    ancestor (optional): Include the resource's ancestors
-    descendants (optional): Include the resource's descendants
-    all (optional): Include both ancestors and descendants
 )
 
 Returns:        
@@ -166,7 +163,7 @@ Permissions:
   authenticated: changePermission
 ```
 
-- If `parent_resource_key` is provided, the effect will be a "prune and graft" operation, where the resource and all its children is moved to a new parent. If `parent_resource_key` is `None`, the resource will be moved up the root level. If `parent_resource_key` is not provided, the resource will remain a child of its current parent.
+- If `parent_resource_key` is provided, the effect will be a "prune and graft" operation, where the resource, with all its descendants, is moved to a new parent. If `parent_resource_key` is `null`, the resource will be moved up to the root level (or a no-op if the resource is already at the root). If `parent_resource_key` is not provided, the resource will remain a child of its current parent.
 
 ## Delete Resource 
 

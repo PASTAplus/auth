@@ -10,6 +10,7 @@ def get_resource_tree_for_ui(resource_query):
     def build_nodes(resource_dict):
         r = resource_dict
 
+        # r['key'] = r['resource_row'].key ### for testing
         r['resource_id'] = r['resource_row'].id
         r['parent_id'] = r['resource_row'].parent_id
         r['label'] = r['resource_row'].label
@@ -21,6 +22,7 @@ def get_resource_tree_for_ui(resource_query):
         _prune_dict(
             resource_dict,
             {
+                # 'key', ### for testing
                 'resource_id',
                 # 'parent_id',
                 'label',
@@ -38,6 +40,7 @@ def get_resource_tree_for_ui(resource_query):
             _prune_dict(
                 principal_dict,
                 {
+                    # 'key', ### for testing
                     'principal_type',
                     'edi_id',
                     'title',
@@ -113,7 +116,7 @@ def _get_resource_tree(resource_query):
     ) in resource_query:
         assert (profile_row is None) != (
             group_row is None
-        ), 'db.models.profile.Profile OR Group must be present'
+        ), 'db.models.profile.Profile OR db.models.profile.Group must be present'
 
         rule_row.permission = db.models.permission.get_permission_level_enum(
             rule_row.permission
@@ -191,7 +194,7 @@ def _get_resource_tree(resource_query):
             tree_list.append(resource_dict)
 
     # Sort siblings in the tree by resource labels.
-    _sort_siblings_recursive(tree_list)
+    # _sort_siblings_recursive(tree_list)
 
     return tree_list
 

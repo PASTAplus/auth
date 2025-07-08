@@ -89,37 +89,62 @@ class PermissionInterface:
                 db.models.permission.Resource.key == key
             )
         )
-        # TODO: Check that the resource is owned by the profile or a group of which the profile is a member.
+
+        resource_row = result.scalars().first()
+
+        if resource_row is None:
+            return None
+
+        if not self.has_permission(token_profile_row, resource_row, db.models.permission.PermissionLevel.CHANGE):
+            raise ValueError(
+                f'Profile {token_profile_row.id} does not have CHANGE permission on resource {key}'
+            )
+
         return result.scalars().first()
+
+
+    async def has_permission(self, token_profile_row, resource_row, permission_level):
+        """Check if a profile has a specific permission level on a resource."""
+        result = await self.execute(
+            sqlalchemy.select(db.models.permission.Rule).where(
+                db.models.permission.Rule.resource_id == resource_row.id,
+                db.models.permission.Rule.principal_id == token_profile_row.id,
+            )
+        )
+        rule_row = result.scalars().first()
+        if rule_row is None:
+            return False
+        return rule_row.permission >= permission_level
+
 
     async def get_resource_by_key(self, key):
         """Get a resource by its key."""
         result = await self.execute(
-            sqlalchemy.select(db.models.permission.Resource).where(
-                db.models.permission.Resource.key == key
-            )
+            sqlalchemy.select(db.models.permission.Resource)
+            .options(sqlalchemy.orm.selectinload(db.models.permission.Resource.parent))
+            .where(db.models.permission.Resource.key == key)
         )
         return result.scalars().first()
 
-    async def get_resource_list_by_key(self, key, include_parents=False, include_children=False):
-        """Get a list of resources by their key.
-
-        If include_parents is True, the chain of the resource's parents (up to the root), will be
-        included in the result.
-
-        If include_children is True, all the resource's children will be included in the result.
-        """
-        stmt = sqlalchemy.select(db.models.permission.Resource).where(
-            db.models.permission.Resource.key == key
-        )
-        # if include_parents or include_children:
-        #     stmt = db.resource_tree.get_resource_tree_for_ui(
-        #         db.models.permission.Resource.id,
-        #         include_parents=include_parents,
-        #         include_children=include_children,
-        #     ).where(db.models.permission.Resource.key == key)
-        result = await self.execute(stmt)
-        return result.scalars().all()
+    # async def get_resource_list_by_key(self, key, include_ancestors=False, include_descendants=False):
+    #     """Get a list of resources by their key.
+    #
+    #     If include_ancestors is True, the chain of the resource's ancestors (up to the root), will be
+    #     included in the result.
+    #
+    #     If include_descendants is True, all the resource's descendants will be included in the result.
+    #     """
+    #     stmt = sqlalchemy.select(db.models.permission.Resource).where(
+    #         db.models.permission.Resource.key == key
+    #     )
+    #     # if include_ancestors or include_descendants:
+    #     #     stmt = db.resource_tree.get_resource_tree_for_ui(
+    #     #         db.models.permission.Resource.id,
+    #     #         include_ancestors=include_ancestors,
+    #     #         include_descendants=include_descendants,
+    #     #     ).where(db.models.permission.Resource.key == key)
+    #     result = await self.execute(stmt)
+    #     return result.scalars().all()
 
     async def get_all_resource_keys(self):
         """Get all resource keys."""
@@ -502,14 +527,35 @@ class PermissionInterface:
         )
 
         result = await self.execute(stmt)
-        return result.all()
+        return result.scalars().all()
 
-    async def get_resource_parents(self, token_profile_row, resource_ids):
+    # async def get_resource_query_by_ids(self, resource_ids):
+    #     """Get a query that returns resources by their row IDs."""
+    #     # TODO: Should return only owned?
+    #     return (
+    #         sqlalchemy.select(db.models.permission.Resource)
+    #         .where(db.models.permission.Resource.id.in_(resource_ids))
+    #     )
+
+    async def get_resource_ancestors(self, token_profile_row, resource_ids):
         """Get the parent resources for a list of resource IDs."""
-        # result = await self.execute(sqlalchemy.text('select * from get_resource_parents')
-        stmt = select(func.get_resource_parents(node_ids))
-        result = await session.execute(stmt)
-        return result.fetchall()
+        stmt = sqlalchemy.select(sqlalchemy.func.get_resource_ancestors(resource_ids))
+        result = await self.execute(stmt)
+        return (
+            # db.models.permission.Resource(id=int(row[0]), label=row[1], type=row[2], parent_id=row[3])
+            int(row[0])
+            for row in result.scalars()
+        )
+
+    async def get_resource_descendants(self, token_profile_row, resource_ids):
+        """Get the resource tree starting from a given root resource ID for a list of resource IDs."""
+        stmt = sqlalchemy.select(sqlalchemy.func.get_resource_tree(list(resource_ids)))
+        result = await self.execute(stmt)
+        return (
+            # db.models.permission.Resource(id=row[0], label=row[1], type=row[2], parent_id=row[3])
+            int(row[0])
+            for row in result.scalars()
+        )
 
     async def get_permission_generator(self, resource_ids):
         """Yield profiles and permissions for a list of resources."""
