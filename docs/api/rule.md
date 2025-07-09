@@ -104,8 +104,6 @@ Permissions:
 
 Update the access control rule (ACR) for a principal on a resource.
 
-- Note: It is an error if the client attempts to modify the `changePermission` permission of a principal if no other principal has `changePermission` permission.
-
 ```
 PUT: /auth/v1/rule/<resource_key>/<principal_edi_id>
 
@@ -119,7 +117,9 @@ updateRule(
     
 Returns;
   200 OK
-  400 Bad Request - ACR is invalid
+  400 Bad Request
+    - ACR is invalid
+    - If the client attempts to remove the changePermission from a principal, and no other principal has changePermission on the resource, the update is not allowed. This ensures that at least one principal always has the ability to change permissions on the resource.
   401 Unauthorized
   403 Forbidden
   404 Not Found

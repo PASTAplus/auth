@@ -93,6 +93,26 @@ Example XML `200 OK` Response
 </result>
 ```
 
+## Check Access
+
+Check if the requesting client has access to a resource at the specified permission level.
+
+```
+GET: /auth/v1/resource/<resource_key>/access
+
+isAuthorized(
+    edi_token: The token of the requesting client
+    resource_key: The unique resource key of the resource
+    permission: The permission level to check ("read", "write", or changePermission")
+)
+
+Returns:
+  200 OK if the client has access at the specified permission level
+  401 Unauthorized if the client does not provide a valid authentication token
+  403 Forbidden if client is not authorized to execute method or access resource
+  404 If resource is not found
+```
+
 ## Read Resource
 
 Return the resource associated with a resource key.

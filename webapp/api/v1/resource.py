@@ -89,27 +89,53 @@ async def post_v1_resource(
     )
 
 
-# GET : /auth/v1/resource/<resource_key>?(descendants|ancestors|all))
-#
-# 1. "descendants" and "ancestors" together are equivalent to "all"
-# 2. "all" supersedes "descendants" or "ancestors"
-#
-# readResource(jwt_token, resource_key, (descendants|ancestors|all))
-#     jwt_token: the token of the requesting client
-#     resource_key: the unique resource key of the resource
-#     descendants: boolean if resource structure contains descendants (optional)
-#     ancestor: boolean if resource structure contains ancestors (optional)
-#     all: boolean if resource structure contains full tree (optional)
-#     return:
-#         200 OK if successful
-#         400 Bad Request if resource is invalid
-#         401 Unauthorized if the client does not provide a valid authentication token
-#         403 Forbidden if client is not authorized to execute method or access resource
-#         404 If resource is not found
-#     body:
-#         The resource structure if 200 OK, error message otherwise
-#     permissions:
-#         authenticated: changePermission
+# isAuthorized()
+@router.get('/resource/authorized/{resource_key:path}/{permission_level}')
+async def get_v1_resource_authorized(
+    resource_key: str,
+    permission_level_str: str,
+    request: starlette.requests.Request,
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
+):
+    """isAuthorized(): Check if the profile is authorized to access a resource
+    ./docs/api/resource.md
+    """
+    api_method = 'isAuthorized'
+    # Check token
+    if token_profile_row is None:
+        return api.utils.get_response_401_unauthorized(request, api_method)
+    # Check for valid permission level string
+    try:
+        permission_level = db.models.permission.permission_level_string_to_enum(
+            permission_level_str
+        )
+    except ValueError as e:
+        return api.utils.get_response_400_bad_request(
+            request, api_method, f'Invalid permission level: "{permission_level_str}"'
+        )
+    # Check if the resource exists
+    resource_row = await dbi.get_resource_by_key(resource_key)
+    if not resource_row:
+        return api.utils.get_response_404_not_found(
+            request, api_method, 'Resource does not exist', resource_key=resource_key
+        )
+    # Check permission
+    if not await dbi.is_authorized(token_profile_row, resource_row, permission_level):
+        return api.utils.get_response_403_forbidden(
+            request,
+            api_method,
+            'Profile is not authorized',
+            resource_key=resource_key,
+            permission_level=permission_level_str,
+        )
+    return api.utils.get_response_200_ok(
+        request,
+        api_method,
+        'Profile is authorized',
+        resource_key=resource_key,
+        permission_level=permission_level_str,
+    )
 
 
 @router.get('/resource/{resource_key:path}')
@@ -126,7 +152,7 @@ async def get_v1_resource(
     # Check token
     if token_profile_row is None:
         return api.utils.get_response_401_unauthorized(request, api_method)
-    # Retrieve if exists
+    # Check if the resource exists
     resource_row = await dbi.get_resource_by_key(resource_key)
     if not resource_row:
         return api.utils.get_response_404_not_found(

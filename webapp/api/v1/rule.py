@@ -1,6 +1,4 @@
 import fastapi
-import psycopg.errors
-import sqlalchemy.exc
 import starlette.requests
 import starlette.responses
 
@@ -8,8 +6,6 @@ import api.utils
 import db.models.permission
 import db.models.permission
 import util.dependency
-import util.exc
-import util.pasta_jwt
 import util.url
 
 router = fastapi.APIRouter(prefix='/v1')
