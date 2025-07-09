@@ -76,6 +76,10 @@ Example JSON `200 OK` response:
 
 Read the access control rule (ACR) for a principal on a resource.
 
+This will return the unique rule for the principal on the resource if it exists.
+
+Note: If this method does not find a matching rule, the principal may still have access to the resource through group memberships or through public or authenticated access rules. To check if a principal has access to a resource, use the `isAuthenticated()` method. 
+
 ```
 GET: /auth/v1/rule/<resource_key>/<principal_edi_id>
 
