@@ -91,7 +91,7 @@ class GroupInterface:
                 )
             )
         )
-        group_row = result.scalars().first()
+        group_row = result.scalar()
         if group_row is None:
             raise ValueError(f'Group {group_id} not found')
         return group_row
@@ -148,7 +148,7 @@ class GroupInterface:
                 db.models.group.GroupMember.profile_id == member_profile_id,
             )
         )
-        member_row = result.scalars().first()
+        member_row = result.scalar()
         if member_row is None:
             raise ValueError(f'Member {member_profile_id} not found in group {group_id}')
         await self._session.delete(member_row)
@@ -214,7 +214,7 @@ class GroupInterface:
                 db.models.group.GroupMember.profile_id == token_profile_row.id,
             )
         )
-        member_row = result.scalars().first()
+        member_row = result.scalar()
         if member_row is None:
             raise ValueError(f'Member {token_profile_row.id} not found in group {group_id}')
         member_row.group.updated = datetime.datetime.now()

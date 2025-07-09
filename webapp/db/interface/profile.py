@@ -53,7 +53,7 @@ class ProfileInterface:
                 .where(db.models.profile.Profile.edi_id == edi_id)
             )
         )
-        return result.scalars().first()
+        return result.scalar()
 
     async def get_all_profiles(self):
         result = await self.execute(

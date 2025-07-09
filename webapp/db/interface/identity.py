@@ -74,7 +74,7 @@ class IdentityInterface:
                 )
             )
         )
-        return result.scalars().first()
+        return result.scalar()
 
     async def get_identity_by_idp_uid(self, idp_uid: str):
         """Get an identity by its IdP UID, while ignoring the IdP name.
@@ -88,7 +88,7 @@ class IdentityInterface:
                 .where(db.models.identity.Identity.idp_uid == idp_uid)
             )
         )
-        return result.scalars().first()
+        return result.scalar()
 
     async def get_identity_by_email(self, email: str):
         """Get an identity by its email address."""
@@ -99,7 +99,7 @@ class IdentityInterface:
                 .where(db.models.identity.Identity.email == email)
             )
         )
-        return result.scalars().first()
+        return result.scalar()
 
 
     async def get_identity_by_id(self, identity_id):
@@ -108,7 +108,7 @@ class IdentityInterface:
             .options(sqlalchemy.orm.selectinload(db.models.identity.Identity.profile))
             .where(db.models.identity.Identity.id == identity_id)
         )
-        return result.scalars().first()
+        return result.scalar()
 
     async def get_identity_by_edi_id(self, edi_id: str):
         """Get the most recently used identity for a profile by its EDI-ID."""
@@ -122,7 +122,7 @@ class IdentityInterface:
                 db.models.identity.Identity.id,
             )
         )
-        return result.scalars().first()
+        return result.scalar()
 
     async def delete_identity(
         self, token_profile_row, idp_name: db.models.identity.IdpName, idp_uid: str

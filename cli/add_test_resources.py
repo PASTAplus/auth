@@ -50,25 +50,33 @@ async def add_permissions(session):
                 # Package (root resource)
 
                 package_id = await insert_resource(
-                    session, None, uuid.uuid4().hex, label, 'package'
+                    session, None, await get_random_resource_key(), label, 'package'
                 )
 
                 # Metadata
 
                 metadata_id = await insert_resource(
-                    session, package_id, uuid.uuid4().hex, 'Metadata', 'collection'
+                    session, package_id, await get_random_resource_key(), 'Metadata', 'collection'
                 )
                 await insert_resource(
-                    session, metadata_id, uuid.uuid4().hex, 'quality_report.xml', 'metadata'
+                    session,
+                    metadata_id,
+                    await get_random_resource_key(),
+                    'quality_report.xml',
+                    'metadata',
                 )
                 await insert_resource(
-                    session, metadata_id, uuid.uuid4().hex, 'metadata.eml', 'metadata'
+                    session,
+                    metadata_id,
+                    await get_random_resource_key(),
+                    'metadata.eml',
+                    'metadata',
                 )
 
                 # Data
 
                 data_id = await insert_resource(
-                    session, package_id, uuid.uuid4().hex, 'Data', 'collection'
+                    session, package_id, await get_random_resource_key(), 'Data', 'collection'
                 )
 
                 data_count = random.randrange(1, 10)
@@ -76,7 +84,7 @@ async def add_permissions(session):
                     await insert_resource(
                         session,
                         data_id,
-                        uuid.uuid4().hex,
+                        await get_random_resource_key(),
                         random.choice(RANDOM_FILE_NAME_TUP)
                         + random.choice(('.csv', '.txt', '.jpg', '.tiff')),
                         'data',
@@ -87,6 +95,13 @@ async def add_permissions(session):
     principal_row_list = await get_principal_row_list(session)
     resource_row_list = await get_resource_row_list(session)
     await insert_permissions(session, resource_row_list, principal_row_list)
+
+
+async def get_random_resource_key():
+    v = list(uuid.uuid4().hex)
+    v[5] = '/'
+    v[20] = '/'
+    return ''.join(v)
 
 
 async def insert_resource(session, parent_id, resource_key, resource_label, resource_type):

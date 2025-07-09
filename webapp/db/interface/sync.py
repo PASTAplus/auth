@@ -23,7 +23,7 @@ class SyncInterface:
         result = await self.execute(
             sqlalchemy.select(db.models.sync.Sync).where(db.models.sync.Sync.name == name)
         )
-        sync_row = result.scalars().first()
+        sync_row = result.scalar()
         if sync_row is None:
             sync_row = db.models.sync.Sync(name=name)
             self._session.add(sync_row)

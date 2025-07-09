@@ -38,7 +38,7 @@ async def test_create_resource_with_valid_token(populated_dbi, john_client):
             'resource_key': 'a-new-resource-key',
             'resource_label': 'A new resource',
             'resource_type': 'testResource',
-            'parent_resource_key': None,
+            'parent_key': None,
         },
     )
     assert response.status_code == starlette.status.HTTP_200_OK
@@ -116,7 +116,7 @@ async def test_read_resource_by_non_owner(populated_dbi, john_client, jane_clien
             'resource_key': 'john_resource_key',
             'resource_label': 'Resource created by John Smith',
             'resource_type': 'testResource',
-            'parent_resource_key': None,
+            'parent_key': None,
         },
     )
     # Jane tries to access John's resource without having any ACRs on the resource

@@ -56,7 +56,7 @@ class PermissionInterface:
                     == parent_resource_row.id
                 )
             )
-            if result.scalars().first():
+            if result.scalar():
                 raise ValueError(
                     f'Cannot set parent resource: The requested parent is currently a child or '
                     f'descendant of the resource to be updated. resource_id={resource_row.id} '
@@ -71,7 +71,7 @@ class PermissionInterface:
     #             db.models.permission.Rule.principal_id == principal_row.id,
     #         )
     #     )
-    #     rule_row = result.scalars().first()
+    #     rule_row = result.scalar()
     #     if rule_row is None:
     #         return False
     #     return rule_row.permission >= db.models.permission.PermissionLevel.READ
@@ -90,7 +90,7 @@ class PermissionInterface:
             )
         )
 
-        resource_row = result.scalars().first()
+        resource_row = result.scalar()
 
         if resource_row is None:
             return None
@@ -102,7 +102,7 @@ class PermissionInterface:
                 f'Profile {token_profile_row.id} does not have CHANGE permission on resource {key}'
             )
 
-        return result.scalars().first()
+        return result.scalar()
 
     async def is_authorized(self, token_profile_row, resource_row, permission_level):
         """Check if a profile has a specific permission or better on a resource.
@@ -148,7 +148,7 @@ class PermissionInterface:
             .options(sqlalchemy.orm.selectinload(db.models.permission.Resource.parent))
             .where(db.models.permission.Resource.key == key)
         )
-        return result.scalars().first()
+        return result.scalar()
 
     # async def get_resource_list_by_key(self, key, include_ancestors=False, include_descendants=False):
     #     """Get a list of resources by their key.
@@ -186,7 +186,7 @@ class PermissionInterface:
                 db.models.permission.Resource.key == key
             )
         )
-        resource_row = result.scalars().first()
+        resource_row = result.scalar()
         if resource_row is None:
             raise ValueError(f'Resource {key} not found')
         resource_row.label = label
@@ -198,7 +198,7 @@ class PermissionInterface:
                 db.models.permission.Resource.key == key
             )
         )
-        resource_row = result.scalars().first()
+        resource_row = result.scalar()
         if resource_row is None:
             raise ValueError(f'Resource {key} not found')
         await self._session.delete(resource_row)
@@ -457,7 +457,7 @@ class PermissionInterface:
                 )
             )
         )
-        return result.scalars().first()
+        return result.scalar()
 
     async def get_resource_list(self, token_profile_row, search_str, resource_type):
         """Get a list of resources and permissions, with resource labels filtered on search_str.
@@ -761,7 +761,7 @@ class PermissionInterface:
                 db.models.permission.Principal.id == principal_id
             )
         )
-        return result.scalars().first()
+        return result.scalar()
 
     async def get_principal_by_subject(self, subject_id, subject_type):
         """Get a principal by its entity ID and type."""
@@ -771,7 +771,7 @@ class PermissionInterface:
                 db.models.permission.Principal.subject_type == subject_type,
             )
         )
-        return result.scalars().first()
+        return result.scalar()
 
     async def get_principal_by_profile(self, profile_row):
         """Get the principal for a profile."""
@@ -782,16 +782,35 @@ class PermissionInterface:
                 == db.models.permission.SubjectType.PROFILE,
             )
         )
-        return result.scalars().first()
+        return result.scalar()
 
     async def get_principal_by_edi_id(self, edi_id):
-        """Get a principal by its EDI-ID."""
+        """Get a principal by its EDI-ID.
+        The EDI-ID can be for a profile or group.
+        """
         result = await self.execute(
             sqlalchemy.select(db.models.permission.Principal)
             .join(
                 db.models.profile.Profile,
-                db.models.profile.Profile.id == db.models.permission.Principal.subject_id,
+                sqlalchemy.and_(
+                    db.models.profile.Profile.id == db.models.permission.Principal.subject_id,
+                    db.models.permission.Principal.subject_type
+                    == db.models.permission.SubjectType.PROFILE,
+                ),
             )
-            .where(db.models.profile.Profile.edi_id == edi_id)
+            .join(
+                db.models.profile.Group,
+                sqlalchemy.and_(
+                    db.models.profile.Group.id == db.models.permission.Principal.subject_id,
+                    db.models.permission.Principal.subject_type
+                    == db.models.permission.SubjectType.GROUP,
+                ),
+            )
+            .where(
+                sqlalchemy.or_(
+                    db.models.profile.Profile.edi_id == edi_id,
+                    db.models.group.Group.edi_id == edi_id,
+                )
+            )
         )
-        return result.scalars().first()
+        return result.scalar()
