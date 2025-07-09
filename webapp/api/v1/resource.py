@@ -10,8 +10,6 @@ import api.utils
 import db.models.permission
 import db.resource_tree
 import util.dependency
-import util.exc
-import util.pasta_jwt
 import util.url
 
 router = fastapi.APIRouter(prefix='/v1')

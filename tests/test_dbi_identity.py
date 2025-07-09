@@ -1,3 +1,12 @@
+"""Tests for identity management in the database interface
+"""
+import pytest
+import sqlalchemy.exc
+
+
+pytestmark = pytest.mark.order(20)
+
+
 def test_create_identity(db):
     profile_row = db.create_profile(common_name='Given Family')
     identity = db.create_identity(
@@ -25,5 +34,3 @@ def test_create_identity_duplicate_idp_with_unique_uid(db):
     profile_row = db.create_profile(common_name='Given Family')
     db.create_identity(profile_row, idp_name=db.models.identity.IdpName.GOOGLE, uid='test_uid_1')
     db.create_identity(profile_row, idp_name=db.models.identity.IdpName.GOOGLE, uid='test_uid_2')
-
-

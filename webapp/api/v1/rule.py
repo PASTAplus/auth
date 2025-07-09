@@ -1,3 +1,7 @@
+"""Access control rule (ACR) API v1: Manage access control rules for resources
+Docs:./docs/api/rule.md
+"""
+
 import fastapi
 import starlette.requests
 import starlette.responses
@@ -198,6 +202,16 @@ async def update_v1_rule(
             resource_key=resource_key,
             principal=principal,
         )
+
+
+    # Check:
+    # - Child permission can only be set as high for a principal as its parent
+    #      - manual, enforced, and with useful message
+
+    # Check:
+    # The permission level is not being downgraded from changePermission if there are no other
+    # changePermission rules for the resource
+
     # Update the rule
     await dbi.create_or_update_permission(resource_row, principal_row, permission_level)
     return api.utils.get_response_200_ok(

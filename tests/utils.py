@@ -1,4 +1,5 @@
 import logging
+import re
 
 import sqlalchemy
 
@@ -24,11 +25,24 @@ async def get_edi_ids(populated_dbi):
     return result.scalars().all()
 
 
-# def get_db_as_json(populated_dbi):
-#     profile_list = []
-#     for profile_row in populated_dbi.get_all_profiles():
-#         profile_list.append(profile_row.as_dict())
-#     return util.to_pretty_json(profile_list)
+async def assert_edi_id_format(edi_id):
+    """Check that the given EDI-ID looks like a EDI-ID"""
+    assert re.match(r'EDI-[\da-f]{32}$', edi_id)
+
+
+async def assert_edi_id_in_db(edi_id, populated_dbi):
+    """Check that the given EDI-ID exists in the DB"""
+    await assert_edi_id_format(edi_id)
+    profile_row = await populated_dbi.get_profile(edi_id)
+    assert profile_row, f'Profile "{edi_id}" not found in the database.'
+
+
+def get_db_as_json(populated_dbi):
+    profile_list = []
+    for profile_row in populated_dbi.get_all_profiles():
+        profile_list.append(profile_row.as_dict())
+    return util.to_pretty_json(profile_list)
+
 
 async def make_jwt(dbi, profile_row):
     """Create a test JWT for the given profile.

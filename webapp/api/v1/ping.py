@@ -1,3 +1,6 @@
+"""Misc API endpoints
+"""
+
 import fastapi
 import starlette.requests
 import starlette.responses

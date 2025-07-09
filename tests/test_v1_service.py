@@ -1,3 +1,6 @@
+"""Tests for service.xml management APIs
+"""
+
 import pytest
 
 import util.service

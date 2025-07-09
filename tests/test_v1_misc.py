@@ -1,3 +1,6 @@
+"""Tests for miscellaneous APIs
+"""
+
 import json
 import pprint
 
@@ -12,7 +15,6 @@ import db.resource_tree
 import db.models.permission
 
 
-@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_ping(client):
     response = client.get('/v1/ping')
@@ -20,55 +22,6 @@ async def test_ping(client):
     assert response.text == 'pong'
 
 
-@pytest.mark.skip
-@pytest.mark.asyncio
-async def test_populated_session(populated_session):
-    s = populated_session
-    edi_id_list = [
-        p.edi_id
-        for p in (await s.execute(sqlalchemy.select(db.models.profile.Profile))).scalars().all()
-    ]
-    assert len(edi_id_list) > 10
-
-
-@pytest.mark.skip
-@pytest.mark.asyncio
-async def test_list_profiles(client, populated_dbi):
-    roger_edi_id = 'EDI-cfc6ddd2c43849559f0186331c44faac'
-    token = await tests.utils.create_test_edi_token(roger_edi_id, populated_dbi)
-    print(token)
-    # profile_row = populated_dbi.get_profile(user_edi_id)
-    # response = client.get('/v1/profile/list')
-    # assert response.status_code == starlette.status.HTTP_200_OK
-    # tests.sample.assert_equal_json(response.text, 'list_profiles.json')
-
-
-@pytest.mark.skip
-@pytest.mark.asyncio
-async def test_list_profiles2(client, populated_session):
-    """Test the /v1/profile/list endpoint."""
-    result = (await popexecute(sqlalchemy.select(db.models.profile.Profile))).scalars().all()
-    print([p.edi_id for p in result])
-
-
-@pytest.mark.skip
-@pytest.mark.asyncio
-async def test_3(client, populated_dbi, profile_row):
-    #     rows = (await populated_dbi.session.execute(sqlalchemy.select(db.models.permission.Rule))).scalars().all()
-    #     for row in rows:
-    #         print('-' * 80)
-    #         print(row)
-    #         print(row.id)
-    #         print(row.permission)
-    resource_query = await populated_dbi.get_resource_ancestors(
-        profile_row, (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-    )
-    resource_tree = db.resource_tree.get_resource_tree_for_ui(resource_query)
-    # pprint.pp(resource_tree)
-    print(json.dumps(resource_tree, indent=2))
-
-
-# @pytest.mark.skip
 @pytest.mark.asyncio
 async def test_4(client, populated_dbi):
     resource_query = await populated_dbi.get_resource_list(profile_row, '', None)

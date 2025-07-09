@@ -1,4 +1,6 @@
-"""Test the profile management APIs"""
+"""Tests for profile management APIs
+"""
+
 import logging
 import pytest
 import starlette.status

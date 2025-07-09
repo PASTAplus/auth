@@ -6,7 +6,7 @@
 *.pem
 *.sqlite
 *.log
-__RD.md
+___*
 config.py
 avatars/
 webapp/static/lib/

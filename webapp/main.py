@@ -15,6 +15,13 @@ import api.v1.refresh_token
 import api.v1.resource
 import api.v1.rule
 import api.v1.token
+
+
+
+import api.v1.test
+
+
+
 import idp.github
 import idp.google
 import idp.ldap
@@ -169,6 +176,15 @@ app.add_middleware(RootPathMiddleware)
 app.add_middleware(RedirectToSigninMiddleware)
 
 # Include all routers
+
+
+
+
+app.include_router(api.v1.test.router)
+
+
+
+
 app.include_router(api.v1.ping.router)
 app.include_router(api.v1.profile.router)
 app.include_router(api.v1.refresh_token.router)

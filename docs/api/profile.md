@@ -184,3 +184,4 @@ deleteProfile(edi_token, edi_id)
     permissions:
         authenticated: changePermission
 ```
+

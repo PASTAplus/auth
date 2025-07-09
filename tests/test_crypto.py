@@ -1,12 +1,16 @@
+"""Tests for the pasta_crypto module.
+"""
+
 import Crypto.PublicKey.RSA
 import daiquiri
+import pytest
 
 from util import pasta_crypto
 from config import Config
 
-# sys.path.insert(0, os.path.abspath("../src"))
 log = daiquiri.getLogger(__name__)
 
+pytestmark = pytest.mark.order(10)
 
 def test_public_key():
     key = pasta_crypto.import_key(Config.PASTA_TOKEN_PUBLIC_KEY_PATH)

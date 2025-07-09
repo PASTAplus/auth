@@ -15,6 +15,8 @@ class CustomJSONEncoder(json.JSONEncoder):
             return obj.isoformat()
         elif isinstance(obj, starlette.datastructures.URL):
             return str(obj)
+        elif isinstance(obj, set):
+            return sorted(list(obj))
         return super().default(obj)
 
 

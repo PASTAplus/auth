@@ -1,3 +1,11 @@
+"""Tests for profile management in the database interface
+"""
+
+import pytest
+
+pytestmark = pytest.mark.order(30)
+
+
 def test_create_profile(db):
     profile_row = db.create_profile(common_name='Given1 Family1')
     _check_edi_id(profile_row.edi_id)

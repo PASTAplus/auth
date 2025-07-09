@@ -1,10 +1,21 @@
+"""Compare the output of tests with sample files.
+
+If `RUN_MELD` is set to `False`, the code will only log the differences.
+
+If `RUN_MELD` is set to `True`, the code will open the `meld` command with the contents of the
+received string in the left pane, and the contents of the sample file in the right pane. The user
+can then visually compare the two and update the sample file if desired. When the user closes the
+meld window, the code will return `True` if the contents are identical, or `False` if not, which
+will then cause the test to pass or fail respectively.
+
+Install the `meld` command with `apt install meld`.
+"""
+import json
 import logging
+import pathlib
 import re
 import subprocess
-import sys
 import tempfile
-import json
-import pathlib
 
 HERE_PATH = pathlib.Path(__file__).parent.resolve()
 TEST_FILES_PATH = HERE_PATH / 'test_files'
@@ -55,8 +66,7 @@ def assert_equal_json(received_json: str | dict, filename: str):
 
 
 def reset():
-    global active_test_files
-    active_test_files = set()
+    active_test_files.clear()
 
 
 def status():
@@ -87,8 +97,8 @@ def _normalize_json(json_str):
 
 
 def _meld(left_str, filename):
-    """Open the meld command (apt install meld), with the contents of left_str in the left pane, and
-    the contents of the named sample file in the right pane.
+    """Open the meld command, with the contents of left_str in the left pane, and the contents of
+    the named sample file in the right pane.
 
     :returns: The function waits until the user closes the meld window, and then returns True if the
     contents are identical, or False if not.
