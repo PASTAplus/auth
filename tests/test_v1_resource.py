@@ -1,4 +1,4 @@
-"""Tests for resource management APIs
+"""Tests for v1 resource management APIs
 """
 import logging
 import pytest
@@ -12,12 +12,16 @@ import tests.utils
 log = logging.getLogger(__name__)
 
 
+pytestmark = [
+    pytest.mark.asyncio,
+    # pytest.mark.order(100),
+]
+
 #
 # createResource()
 #
 
 
-@pytest.mark.asyncio
 async def test_create_resource_anon(anon_client):
     """createResource()
     Missing token -> 401 Unauthorized.
@@ -26,7 +30,6 @@ async def test_create_resource_anon(anon_client):
     assert response.status_code == starlette.status.HTTP_401_UNAUTHORIZED
 
 
-@pytest.mark.asyncio
 async def test_create_resource_with_valid_token(populated_dbi, john_client):
     """createResource()
     Successful call -> A new resource with a new resource_key.
@@ -47,7 +50,6 @@ async def test_create_resource_with_valid_token(populated_dbi, john_client):
     assert 'a-new-resource-key' in existing_resource_key_set
 
 
-@pytest.mark.asyncio
 async def test_read_top_level_resource_with_valid_token(populated_dbi, john_client):
     """readResource()
     Successful call on top level resource -> The resource with the given resource_key, parent is
@@ -94,7 +96,6 @@ async def test_read_top_level_resource_with_valid_token(populated_dbi, john_clie
     tests.sample.assert_equal_json(response.json(), 'read_top_level_resource_with_valid_token.json')
 
 
-@pytest.mark.asyncio
 async def test_read_child_resource_with_valid_token(john_client):
     """readResource()
     Successful call on child resource -> The resource with the given resource_key, with correct
@@ -105,7 +106,6 @@ async def test_read_child_resource_with_valid_token(john_client):
     tests.sample.assert_equal_json(response.json(), 'read_child_resource_with_valid_token.json')
 
 
-@pytest.mark.asyncio
 async def test_read_resource_by_non_owner(populated_dbi, john_client, jane_client):
     """readResource()
     Call by non-owner (no changePermission ACR on resource) -> 403 Forbidden
@@ -125,7 +125,6 @@ async def test_read_resource_by_non_owner(populated_dbi, john_client, jane_clien
     assert response.status_code == starlette.status.HTTP_403_FORBIDDEN
 
 
-@pytest.mark.asyncio
 async def test_read_resource_tree_1(john_client):
     """readResourceTree()
     Successful call on resource at level-2 in the tree
@@ -139,7 +138,6 @@ async def test_read_resource_tree_1(john_client):
 
 
 
-@pytest.mark.asyncio
 async def test_3(client, populated_dbi, profile_row):
     #     rows = (await populated_dbi.session.execute(sqlalchemy.select(db.models.permission.Rule))).scalars().all()
     #     for row in rows:

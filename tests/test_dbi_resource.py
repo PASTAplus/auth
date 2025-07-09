@@ -8,21 +8,21 @@ import sqlalchemy.exc
 import tests.utils
 
 
-pytestmark = pytest.mark.order(40)
+pytestmark = [
+    pytest.mark.asyncio,
+    # pytest.mark.order(40),
+]
 
 
-@pytest.mark.asyncio
 async def test_create_db_instance(db):
     assert db is not None
 
 
-@pytest.mark.asyncio
 async def test_get_new_edi_id(db):
     edi_id = db.get_new_edi_id()
     await _check_edi_id(edi_id)
 
 
-@pytest.mark.asyncio
 async def test_list_profiles(client, populated_dbi):
     roger_edi_id = 'EDI-cfc6ddd2c43849559f0186331c44faac'
     token = await tests.utils.create_test_edi_token(roger_edi_id, populated_dbi)

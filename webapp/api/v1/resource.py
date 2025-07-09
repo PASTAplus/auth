@@ -76,7 +76,7 @@ async def post_v1_resource(
         token_profile_row.id, db.models.permission.SubjectType.PROFILE
     )
     resource_row = await dbi.create_resource(parent_id, resource_key, label, type_str)
-    # Create CHANGE permission for the profile on the resource
+    # Create default CHANGE permission for the profile on the resource
     await dbi.create_or_update_permission(
         resource_row,
         principal_row,
@@ -88,10 +88,10 @@ async def post_v1_resource(
 
 
 # isAuthorized()
-@router.get('/resource/authorized/{resource_key:path}/{permission_level}')
+@router.get('/resource/authorized/{permission_level_str}/{resource_key:path}')
 async def get_v1_resource_authorized(
-    resource_key: str,
     permission_level_str: str,
+    resource_key: str,
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
@@ -123,14 +123,14 @@ async def get_v1_resource_authorized(
         return api.utils.get_response_403_forbidden(
             request,
             api_method,
-            'Profile is not authorized',
+            'Profile lacks the requested permission for the resource',
             resource_key=resource_key,
             permission_level=permission_level_str,
         )
     return api.utils.get_response_200_ok(
         request,
         api_method,
-        'Profile is authorized',
+        'Profile has the requested permission for the resource',
         resource_key=resource_key,
         permission_level=permission_level_str,
     )
@@ -160,7 +160,12 @@ async def get_v1_resource(
     if not await dbi.is_authorized(
         token_profile_row, resource_row, db.models.permission.PermissionLevel.READ
     ):
-        return api.utils.get_response_403_forbidden(request, api_method, resource_key=resource_key)
+        return api.utils.get_response_403_forbidden(
+            request,
+            api_method,
+            msg='Profile lacks READ permission for the resource',
+            resource_key=resource_key,
+        )
     # Success
     return api.utils.get_response_200_ok(
         request,
@@ -173,7 +178,7 @@ async def get_v1_resource(
     )
 
 
-@router.get('/resource/tree/{resource_key:path}')
+@router.get('/resource-tree/{resource_key:path}')
 async def get_v1_resource(
     resource_key: str,
     request: starlette.requests.Request,
@@ -197,7 +202,12 @@ async def get_v1_resource(
     if not await dbi.is_authorized(
         token_profile_row, resource_row, db.models.permission.PermissionLevel.READ
     ):
-        return api.utils.get_response_403_forbidden(request, api_method, resource_key=resource_key)
+        return api.utils.get_response_403_forbidden(
+            request,
+            api_method,
+            'Profile lacks READ permission for the resource',
+            resource_key=resource_key,
+        )
     # Find all ancestors and descendants of the resource
     resource_id_list = []
     for ancestor_id in await dbi.get_resource_ancestors(token_profile_row, [resource_row.id]):

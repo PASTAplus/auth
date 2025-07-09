@@ -8,20 +8,11 @@ import starlette.middleware.base
 import starlette.requests
 import starlette.responses
 import starlette.status
-
 import api.v1.ping
 import api.v1.profile
-import api.v1.refresh_token
 import api.v1.resource
 import api.v1.rule
 import api.v1.token
-
-
-
-import api.v1.test
-
-
-
 import idp.github
 import idp.google
 import idp.ldap
@@ -109,6 +100,7 @@ class AvatarFiles(fastapi.staticfiles.StaticFiles):
         with open(path, 'rb') as f:
             return b'<?xml' in f.read(16).lower()
 
+
 # Serve avatar files from the configured avatars path
 app.mount(
     Config.AVATARS_URL,
@@ -122,6 +114,7 @@ def create_route(file_path: pathlib.Path):
     Create a route to serve a specific static file.
     If the file is not found, return a 404 error.
     """
+
     @app.get(f'/{file_path.name}')
     async def serve_file():
         try:
@@ -131,11 +124,13 @@ def create_route(file_path: pathlib.Path):
                 status_code=starlette.status.HTTP_404_NOT_FOUND, detail='File not found'
             )
 
+
 # Add routes for all files in the 'site' directory under the static path
 for file_path in (Config.STATIC_PATH / 'site').iterdir():
     create_route(file_path)
 
 # Middleware
+
 
 class RootPathMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     """
@@ -144,11 +139,13 @@ class RootPathMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     This middleware ensures that the application routes are agnostic of the root path
     it is being served from. It sets the root_path in the ASGI request scope.
     """
+
     async def dispatch(self, request: starlette.requests.Request, call_next):
         if not request.url.path.startswith(Config.ROOT_PATH):
             return util.redirect.internal(request.url.path)
         request.scope['root_path'] = Config.ROOT_PATH
         return await call_next(request)
+
 
 class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     """
@@ -158,6 +155,7 @@ class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     '/signout', which removes the invalid (usually expired) cookie, and which then redirects to
     '/ui/signin'.
     """
+
     async def dispatch(self, request: starlette.requests.Request, call_next):
         async with util.dependency.get_dbi() as dbi:
             if (
@@ -171,23 +169,14 @@ class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
                 return util.redirect.internal('/signout')
         return await call_next(request)
 
+
 # Add middleware to the application
 app.add_middleware(RootPathMiddleware)
 app.add_middleware(RedirectToSigninMiddleware)
 
 # Include all routers
-
-
-
-
-app.include_router(api.v1.test.router)
-
-
-
-
 app.include_router(api.v1.ping.router)
 app.include_router(api.v1.profile.router)
-app.include_router(api.v1.refresh_token.router)
 app.include_router(api.v1.resource.router)
 app.include_router(api.v1.rule.router)
 app.include_router(api.v1.token.router)

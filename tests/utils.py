@@ -68,3 +68,12 @@ async def make_jwt(dbi, profile_row):
     # log.info('Created PASTA JWT:')
     # log.info(pasta_jwt.claims_pp)
     return pasta_jwt.encode()
+
+
+def dump_colored_json(json_str):
+    """Print a colored JSON representation of the object to the console."""
+    import rich.console
+    import rich.json
+    colored_json_str = rich.json.JSON(json_str, indent=2)
+    rich.console.Console().print(colored_json_str)
+

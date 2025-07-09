@@ -223,7 +223,7 @@ async def populated_dbi(session_scope_populated_dbi, populated_test_session):
 # DB profile rows
 
 
-# @pytest_asyncio.fixture(scope='function')
+@pytest_asyncio.fixture(scope='function')
 async def service_profile_row(populated_dbi):
     """System profile: Service profile row"""
     yield await populated_dbi.get_profile(tests.edi_id.SERVICE_ACCESS)
@@ -256,7 +256,7 @@ async def jane_profile_row(populated_dbi):
 # Valid tokens
 
 
-# @pytest_asyncio.fixture(scope='function')
+@pytest_asyncio.fixture(scope='function')
 async def service_token(populated_dbi, service_profile_row):
     """System profile: Service token"""
     yield await tests.utils.make_jwt(populated_dbi, service_profile_row)
@@ -305,7 +305,7 @@ async def anon_client(populated_dbi):
 # leaking client state between tests.
 
 
-# @pytest_asyncio.fixture(scope='function')
+@pytest_asyncio.fixture(scope='function')
 async def service_client(service_token):
     """System profile: Service client"""
     yield _create_test_client(service_token)

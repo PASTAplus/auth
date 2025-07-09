@@ -4,7 +4,10 @@ import pytest
 import sqlalchemy.exc
 
 
-pytestmark = pytest.mark.order(20)
+pytestmark = [
+    pytest.mark.asyncio,
+    # pytest.mark.order(20),
+]
 
 
 def test_create_identity(db):

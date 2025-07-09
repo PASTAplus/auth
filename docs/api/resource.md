@@ -140,7 +140,7 @@ Permissions:
 Return the full tree to which the resource belongs. The tree includes the resource itself, it's ancestors, and descendants.
 
 ```
-GET : /auth/v1/resource/tree/<resource_key>
+GET : /auth/v1/resource-tree/<resource_key>
 
 readResourceTree(
     edi_token: The token of the requesting client

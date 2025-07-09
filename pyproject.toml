@@ -1,6 +1,10 @@
+# Black
+
 [tool.black]
 skip-string-normalization = true
 line-length = 100
+
+# pytest
 
 [tool.pytest.ini_options]
 # We add this so that pytest imports use the same import paths as the rest of the code. Without
@@ -13,17 +17,12 @@ filterwarnings = [
     # Ignore specific warnings.
     "ignore::DeprecationWarning",
     "ignore::sqlalchemy.exc.SAWarning",
-    "ignore:function ham\\(\\) is deprecated:DeprecationWarning"
-]
+    "ignore:function ham\\(\\) is deprecated:DeprecationWarning"]
 
 asyncio_default_fixture_loop_scope = "session"
 
 addopts = [
-#    "-p no:warnings"
+    #    "-p no:warnings"
     '--capture=no',
 ]
 
-# TODO: This was to avoid having to have a "@pytest.mark.asyncio" decorator on every test, but
-# couldn't get it working.
-#[pytest]
-#asyncio_mode = "auto"

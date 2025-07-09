@@ -3,7 +3,10 @@
 
 import pytest
 
-pytestmark = pytest.mark.order(30)
+pytestmark = [
+    pytest.mark.asyncio,
+    # pytest.mark.order(30),
+]
 
 
 def test_create_profile(db):

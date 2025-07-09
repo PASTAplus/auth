@@ -1,4 +1,4 @@
-"""Tests for profile management APIs
+"""Tests for v1 profile management APIs
 """
 
 import logging
@@ -13,12 +13,16 @@ import tests.utils
 log = logging.getLogger(__name__)
 
 
+pytestmark = [
+    pytest.mark.asyncio,
+    # pytest.mark.order(100),
+]
+
 #
 # createProfile()
 #
 
 
-@pytest.mark.asyncio
 async def test_create_profile_anon(anon_client):
     """createProfile()
     Missing token -> 401 Unauthorized.
@@ -27,7 +31,6 @@ async def test_create_profile_anon(anon_client):
     assert response.status_code == starlette.status.HTTP_401_UNAUTHORIZED
 
 
-@pytest.mark.asyncio
 async def test_create_profile_with_valid_token(populated_dbi, service_client):
     """createProfile()
     Successful call -> A new profile with a new EDI_ID
@@ -52,7 +55,6 @@ async def test_create_profile_with_valid_token(populated_dbi, service_client):
     tests.sample.assert_equal_json(response_dict, 'create_profile_with_valid_token.json')
 
 
-@pytest.mark.asyncio
 async def test_create_profile_idempotency(populated_dbi, service_client):
     """createProfile()
     Idempotent: Calling the endpoint with the same idp_uid returns the same EDI-ID.
@@ -80,7 +82,6 @@ async def test_create_profile_idempotency(populated_dbi, service_client):
 #
 
 
-@pytest.mark.asyncio
 async def test_read_profile_anon(anon_client):
     """readProfile()
     No token -> 401 Unauthorized
@@ -89,7 +90,6 @@ async def test_read_profile_anon(anon_client):
     assert response.status_code == starlette.status.HTTP_401_UNAUTHORIZED
 
 
-@pytest.mark.asyncio
 async def test_read_profile_access_forbidden(john_client):
     """readProfile()
     API access denied -> 403 Forbidden
@@ -97,7 +97,6 @@ async def test_read_profile_access_forbidden(john_client):
     # TODO
 
 
-@pytest.mark.asyncio
 async def test_read_profile_not_found(john_client):
     """readProfile()
     Unknown EDI-ID -> 404 Not Found
@@ -106,7 +105,6 @@ async def test_read_profile_not_found(john_client):
     assert response.status_code == starlette.status.HTTP_404_NOT_FOUND
 
 
-@pytest.mark.asyncio
 async def test_read_profile_by_owner(john_client):
     """readProfile()
     Owner reads own profile -> 200 OK, all fields returned.
@@ -116,7 +114,6 @@ async def test_read_profile_by_owner(john_client):
     tests.sample.assert_equal_json(response.text, 'read_profile_by_owner.json')
 
 
-@pytest.mark.asyncio
 async def test_read_profile_by_non_owner(jane_client):
     """readProfile()
     When non-owner reads another user's profile, only public fields are returned.
@@ -131,7 +128,6 @@ async def test_read_profile_by_non_owner(jane_client):
 #
 
 
-@pytest.mark.asyncio
 async def test_update_profile_anon(anon_client):
     """updateProfile()
     No token -> 401 Unauthorized
@@ -140,7 +136,6 @@ async def test_update_profile_anon(anon_client):
     assert response.status_code == starlette.status.HTTP_401_UNAUTHORIZED
 
 
-@pytest.mark.asyncio
 async def test_update_profile_access_forbidden(john_client):
     """updateProfile()
     API access denied -> 403 Forbidden
@@ -148,7 +143,6 @@ async def test_update_profile_access_forbidden(john_client):
     # TODO
 
 
-@pytest.mark.asyncio
 async def test_update_profile_not_found(john_client):
     """updateProfile()
     Unknown EDI-ID -> 404 Not Found
@@ -162,7 +156,6 @@ async def test_update_profile_not_found(john_client):
     assert response.status_code == starlette.status.HTTP_404_NOT_FOUND
 
 
-@pytest.mark.asyncio
 async def test_update_profile_by_owner_with_invalid_json(john_client):
     """updateProfile()
     Owner tries to update own profile with invalid JSON -> 400 Bad Request.
@@ -174,7 +167,6 @@ async def test_update_profile_by_owner_with_invalid_json(john_client):
     assert response.status_code == starlette.status.HTTP_400_BAD_REQUEST
 
 
-@pytest.mark.asyncio
 async def test_update_profile_by_non_owner(jane_client):
     """updateProfile()
     Non-owner tries to update another user's profile -> 403 Forbidden.
@@ -188,7 +180,6 @@ async def test_update_profile_by_non_owner(jane_client):
     assert response.status_code == starlette.status.HTTP_403_FORBIDDEN
 
 
-@pytest.mark.asyncio
 async def test_update_profile_by_owner(john_client):
     """updateProfile()
     Owner updates own profile -> 200 OK, profile updated.
@@ -211,7 +202,6 @@ async def test_update_profile_by_owner(john_client):
 #
 
 
-@pytest.mark.asyncio
 async def test_delete_profile_anon(anon_client):
     """deleteProfile()
     No token -> 401 Unauthorized
@@ -220,7 +210,6 @@ async def test_delete_profile_anon(anon_client):
     assert response.status_code == starlette.status.HTTP_401_UNAUTHORIZED
 
 
-@pytest.mark.asyncio
 async def test_delete_profile_access_forbidden(john_client):
     """deleteProfile()
     API access denied -> 403 Forbidden
@@ -228,7 +217,6 @@ async def test_delete_profile_access_forbidden(john_client):
     # TODO
 
 
-@pytest.mark.asyncio
 async def test_delete_profile_not_found(john_client):
     """deleteProfile()
     Unknown EDI-ID -> 404 Not Found
@@ -237,7 +225,6 @@ async def test_delete_profile_not_found(john_client):
     assert response.status_code == starlette.status.HTTP_404_NOT_FOUND
 
 
-@pytest.mark.asyncio
 async def test_delete_profile_by_non_owner(jane_client):
     """deleteProfile()
     Non-owner tries to delete another user's profile -> 403 Forbidden.
@@ -246,7 +233,6 @@ async def test_delete_profile_by_non_owner(jane_client):
     assert response.status_code == starlette.status.HTTP_403_FORBIDDEN
 
 
-@pytest.mark.asyncio
 async def test_delete_profile_by_owner(john_client):
     """deleteProfile()
     Owner deletes own profile -> 200 OK, profile deleted.
@@ -259,7 +245,6 @@ async def test_delete_profile_by_owner(john_client):
     assert response.status_code == starlette.status.HTTP_401_UNAUTHORIZED
 
 
-@pytest.mark.asyncio
 async def test_delete_profile_by_owner_with_invalid_edi_id(john_client):
     """deleteProfile()
     Owner tries to delete own profile with invalid EDI-ID -> 404 Not Found.

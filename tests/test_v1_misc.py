@@ -1,4 +1,4 @@
-"""Tests for miscellaneous APIs
+"""Tests for miscellaneous v1 APIs
 """
 
 import json
@@ -14,15 +14,17 @@ import tests.utils
 import db.resource_tree
 import db.models.permission
 
+pytestmark = [
+    pytest.mark.asyncio,
+    # pytest.mark.order(100),
+]
 
-@pytest.mark.asyncio
 async def test_ping(client):
     response = client.get('/v1/ping')
     assert response.status_code == starlette.status.HTTP_200_OK
     assert response.text == 'pong'
 
 
-@pytest.mark.asyncio
 async def test_4(client, populated_dbi):
     resource_query = await populated_dbi.get_resource_list(profile_row, '', None)
     resource_tree = db.resource_tree.get_resource_tree_for_ui(resource_query)

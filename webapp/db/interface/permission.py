@@ -63,19 +63,6 @@ class PermissionInterface:
                     f'parent_resource_id={parent_resource_row.id}'
                 )
 
-    # async def is_authorized(self, principal_row, resource_row):
-    #     """Check if a principal has permission on a resource."""
-    #     result = await self.execute(
-    #         sqlalchemy.select(db.models.permission.Rule).where(
-    #             db.models.permission.Rule.resource_id == resource_row.id,
-    #             db.models.permission.Rule.principal_id == principal_row.id,
-    #         )
-    #     )
-    #     rule_row = result.scalar()
-    #     if rule_row is None:
-    #         return False
-    #     return rule_row.permission >= db.models.permission.PermissionLevel.READ
-
     async def get_owned_resource_by_key(self, token_profile_row, key):
         """Get a resource by its key. The resource must have CHANGE permission for the profile, or a
         group of which the profile is a member.
@@ -105,7 +92,7 @@ class PermissionInterface:
         return result.scalar()
 
     async def is_authorized(self, token_profile_row, resource_row, permission_level):
-        """Check if a profile has a specific permission or better on a resource.
+        """Check if a profile has a specific permission or higher on a resource.
 
         This method implements the logic equivalent of the following pseudocode:
 
@@ -120,9 +107,8 @@ class PermissionInterface:
             return False
 
         A profile may have a number of equivalents. These always include the Public Access profile,
-        and will often include one or more groups to which profile is a member. This method checks
-        if the profile, or any of its equivalents, has the required permission or better on the
-        resource.
+        and may include one or more groups to which profile is a member. This method checks if the
+        profile, or any of its equivalents, has the required permission or better on the resource.
 
         E.g., if the token profile has no permissions on the resource, but is a member of a group
         that has WRITE permission on the resource, this method will return True when checking for
