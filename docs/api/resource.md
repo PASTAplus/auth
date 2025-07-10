@@ -12,7 +12,9 @@ This document describes the API for managing resources for access control.
 
 Create a resource for access control.
 
-The token profile becomes the owner of the resource. 
+A `changePermission` ACR is automatically added to the resource for the token profile, so the token
+profile becomes the first owner of the resource. The token profile may then add more permissions to
+the resource via `createRule()`.
 
 ```
 POST: /auth/v1/resource
@@ -103,7 +105,7 @@ GET: /auth/v1/resource/<resource_key>/access
 isAuthorized(
     edi_token: The token of the requesting client
     resource_key: The unique resource key of the resource
-    permission: The permission level to check ("read", "write", or changePermission")
+    permission: The permission level to check (`read`, `write`, or `changePermission`)
 )
 
 Returns:

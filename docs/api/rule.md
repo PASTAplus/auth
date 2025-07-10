@@ -12,7 +12,7 @@ This document describes the API for managing access control rules.
 
 Create an access control rule (ACR) for a resource.
 
-The token profile must be an owner of the resource.
+The token profile must be an owner (have a `changePermission` ACR) on the resource.
 
 ```
 POST: /auth/v1/rule
@@ -67,7 +67,7 @@ Example JSON `200 OK` response:
     - A rule already exists on the resource for the principal
     - The resource key does not exist
     - The principal is not a valid EDI-ID
-    - The permission is not a valid permission level (must be 'read', 'write', or 'changePermission')
+    - The permission is not a valid permission level (must be `read`, `write`, or `changePermission`)
 
 ---
 
@@ -119,7 +119,7 @@ Returns;
   200 OK
   400 Bad Request
     - ACR is invalid
-    - If the client attempts to remove the changePermission from a principal, and no other principal has changePermission on the resource, the update is not allowed. This ensures that at least one principal always has the ability to change permissions on the resource.
+    - If the client attempts to remove a `changePermission` ACR from a principal, and no other principal has `changePermission` on the resource, the update is not allowed. This ensures that at least one principal always has the ability to change permissions on the resource.
   401 Unauthorized
   403 Forbidden
   404 Not Found
