@@ -182,7 +182,7 @@ class DbInterface(
 
         Example: dump_raw_query('select * from principal')
         """
-        result = await self._session.execute(sqlalchemy.text(query_str, params))
+        result = await self._session.execute(sqlalchemy.text(query_str), params)
         header_str = '#' * 30 + 'RAW QUERY' + '#' * 30
         log.info(header_str)
         log.info(f'Query: {query_str}')

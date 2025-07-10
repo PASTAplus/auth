@@ -86,15 +86,15 @@ class Config(object):
     AUTHENTICATED_NAME = 'Authenticated Access'
     AUTHENTICATED_AVATAR_PATH = ASSETS_PATH / 'authenticated-avatar.svg'
 
-    SUPERUSER_LIST = [
-        'EDI-...',
-        'EDI-...',
-    ]
-
     VETTED_GROUP_EDI_ID = 'EDI-...'
     VETTED_GROUP_NAME = 'Vetted Access'
     VETTED_GROUP_DESCRIPTION = 'Group for users who have been vetted by EDI'
     VETTED_GROUP_AVATAR_PATH = ASSETS_PATH / 'checkmark.svg'
+
+    SUPERUSER_LIST = [
+        'EDI-...',
+        'EDI-...',
+    ]
 
     #
     # UI

@@ -122,6 +122,7 @@ class PermissionInterface:
                         await self._get_equivalent_principal_id_query(token_profile_row)
                     ),
                     db.models.permission.Rule.permission >= permission_level,
+
                 )
             )
         )
@@ -429,6 +430,7 @@ class PermissionInterface:
                     permission=db.models.permission.PermissionLevel(permission_level),
                 )
                 self._session.add(rule_row)
+                await self.flush()
             else:
                 rule_row.permission = db.models.permission.PermissionLevel(permission_level)
 
@@ -776,7 +778,7 @@ class PermissionInterface:
         """
         result = await self.execute(
             sqlalchemy.select(db.models.permission.Principal)
-            .join(
+            .outerjoin(
                 db.models.profile.Profile,
                 sqlalchemy.and_(
                     db.models.profile.Profile.id == db.models.permission.Principal.subject_id,
@@ -784,10 +786,10 @@ class PermissionInterface:
                     == db.models.permission.SubjectType.PROFILE,
                 ),
             )
-            .join(
-                db.models.profile.Group,
+            .outerjoin(
+                db.models.group.Group,
                 sqlalchemy.and_(
-                    db.models.profile.Group.id == db.models.permission.Principal.subject_id,
+                    db.models.group.Group.id == db.models.permission.Principal.subject_id,
                     db.models.permission.Principal.subject_type
                     == db.models.permission.SubjectType.GROUP,
                 ),

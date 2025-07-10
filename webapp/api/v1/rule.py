@@ -42,9 +42,9 @@ async def post_v1_rule(
         permission_level_str = request_dict['permission']
     except KeyError as e:
         return api.utils.get_response_400_bad_request(
-            # str(KeyError) is the name of the missing key in single quotes
             request,
             api_method,
+            # str(e) is the name of the missing key in single quotes
             f'Missing field in JSON in request body: {e}',
         )
     # Check for valid permission level string
@@ -54,19 +54,34 @@ async def post_v1_rule(
         )
     except ValueError as e:
         return api.utils.get_response_400_bad_request(
-            request, api_method, f'Invalid permission level: "{permission_level_str}"'
+            request,
+            api_method,
+            f'Invalid permission level: "{permission_level_str}" '
+            'Mst be one of: read, write, or changePermission.',
         )
     # Check that the resource exists
     resource_row = await dbi.get_resource_by_key(resource_key)
     if not resource_row:
-        return api.utils.get_response_400_bad_request(
+        return api.utils.get_response_404_not_found(
             request, api_method, f'Resource does not exist', resource_key=resource_key
         )
     # Check that the principal exists
+    # await dbi.dump_raw_query('select * from principal')
+    # await dbi.dump_raw_query('select * from profile')
     principal_row = await dbi.get_principal_by_edi_id(principal_edi_id)
     if not principal_row:
-        return api.utils.get_response_400_bad_request(
+        return api.utils.get_response_404_not_found(
             request, api_method, f'Principal does not exist', principal=principal_edi_id
+        )
+    # Check that the token profile is an owner of the resource
+    if not await dbi.is_authorized(
+        token_profile_row, resource_row, db.models.permission.PermissionLevel.CHANGE
+    ):
+        return api.utils.get_response_403_forbidden(
+            request,
+            api_method,
+            'Insufficient permissions to create rule',
+            resource_key=resource_key,
         )
     # Check that the access control rule does not already exist
     rule_row = await dbi.get_rule(resource_row, principal_row)
@@ -202,7 +217,6 @@ async def update_v1_rule(
             resource_key=resource_key,
             principal=principal,
         )
-
 
     # Check:
     # - Child permission can only be set as high for a principal as its parent

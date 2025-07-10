@@ -90,7 +90,7 @@ def permission_level_string_to_enum(permission_level_str):
         return PERMISSION_LEVEL_STRING_TO_ENUM_DICT[permission_level_str]
     except KeyError:
         raise ValueError(
-            f'Permission level must be one of: read, write, or changePermission. '
+            'Permission level must be one of: read, write, or changePermission. '
             f'Received: {permission_level_str}'
         )
 

@@ -110,7 +110,10 @@ async def get_v1_resource_authorized(
         )
     except ValueError as e:
         return api.utils.get_response_400_bad_request(
-            request, api_method, f'Invalid permission level: "{permission_level_str}"'
+            request,
+            api_method,
+            f'Invalid permission level: "{permission_level_str}" '
+            'Mst be one of: read, write, or changePermission.',
         )
     # Check if the resource exists
     resource_row = await dbi.get_resource_by_key(resource_key)
