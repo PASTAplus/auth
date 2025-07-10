@@ -38,7 +38,7 @@ async def post_v1_resource(
         resource_key = request_dict['resource_key']
         label = request_dict['resource_label']
         type_str = request_dict['resource_type']
-        parent_key = request_dict['parent_key']
+        parent_key = request_dict['resource_parent_key']
     except KeyError as e:
         # str(KeyError) is the name of the missing key in single quotes
         return api.utils.get_response_400_bad_request(
