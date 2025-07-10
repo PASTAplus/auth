@@ -24,7 +24,7 @@ createResource(
   resource_key: Unique resource key of the resource
   resource_label: Human readable name of the resource
   resource_type: Type of resource
-  resource_parent_key: Resource key of the parent (set to `None` to create a top-level resource)
+  parent_resource_key: Resource key of the parent (set to `None` to create a top-level resource)
 )
 
 Returns:
