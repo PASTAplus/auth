@@ -71,8 +71,9 @@ def reset():
 
 def status():
     log.info('Sample files used:')
-    for filename in active_test_files:
-        log.info(f'  {filename}')
+    if active_test_files:
+        for filename in active_test_files:
+            log.info(f'  {filename}')
     else:
         log.info('  None')
 

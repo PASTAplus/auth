@@ -70,6 +70,14 @@ async def make_jwt(dbi, profile_row):
     return pasta_jwt.encode()
 
 
+def dump_response(response):
+    log.info('#'* 30 + 'RESPONSE' + '#' * 30)
+    log.info('Status code: %s', response.status_code)
+    log.info('Headers: %s', response.headers)
+    dump_colored_json(response.text)
+
+
+
 def dump_colored_json(json_str):
     """Print a colored JSON representation of the object to the console."""
     import rich.console

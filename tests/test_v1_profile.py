@@ -50,8 +50,7 @@ async def test_create_profile_with_valid_token(populated_dbi, service_client):
     assert response.status_code == starlette.status.HTTP_200_OK
     response_dict = response.json()
     # We set edi_id to a fixed value here, so that the sample file does not change.
-    response_dict['edi_id'] = '<Random EDI-ID'
-    del response_dict['edi_id']
+    response_dict['edi_id'] = '<Random EDI-ID>'
     tests.sample.assert_equal_json(response_dict, 'create_profile_with_valid_token.json')
 
 
@@ -60,8 +59,6 @@ async def test_create_profile_idempotency(populated_dbi, service_client):
     Idempotent: Calling the endpoint with the same idp_uid returns the same EDI-ID.
     """
     existing_edi_id_set = {p.edi_id for p in await populated_dbi.get_all_profiles()}
-    log.error(sorted(existing_edi_id_set))
-
     idp_uid = 'a-non-existing-idp-uid'
     response = service_client.post('/v1/profile', json={'idp_uid': idp_uid})
     assert response.status_code == starlette.status.HTTP_200_OK

@@ -132,24 +132,24 @@ async def test_read_resource_tree_1(john_client):
     """
     # Get a level-2 child resource (quality_report.xml, metadata)
     # response = john_client.get('/v1/resource/2b22d840a07643d897588820343f8ac3')
-    response = john_client.get('/v1/resourcetree/2b22d840a07643d897588820343f8ac3')
+    response = john_client.get('/v1/resource/tree/2b22d840a07643d897588820343f8ac3')
     assert response.status_code == starlette.status.HTTP_200_OK
     tests.sample.assert_equal_json(response.json(), 'read_resource_tree_1.json')
 
 
 
-async def test_3(client, populated_dbi, profile_row):
-    #     rows = (await populated_dbi.session.execute(sqlalchemy.select(db.models.permission.Rule))).scalars().all()
-    #     for row in rows:
-    #         print('-' * 80)
-    #         print(row)
-    #         print(row.id)
-    #         print(row.permission)
-    resource_query = await populated_dbi.get_resource_ancestors(
-        profile_row, (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-    )
-    resource_tree = db.resource_tree.get_resource_tree_for_ui(resource_query)
-    # pprint.pp(resource_tree)
-    print(json.dumps(resource_tree, indent=2))
+# async def test_3(client, populated_dbi, profile_row):
+#     #     rows = (await populated_dbi.session.execute(sqlalchemy.select(db.models.permission.Rule))).scalars().all()
+#     #     for row in rows:
+#     #         print('-' * 80)
+#     #         print(row)
+#     #         print(row.id)
+#     #         print(row.permission)
+#     resource_query = await populated_dbi.get_resource_ancestors(
+#         profile_row, (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+#     )
+#     resource_tree = db.resource_tree.get_resource_tree_for_ui(resource_query)
+#     # pprint.pp(resource_tree)
+#     print(json.dumps(resource_tree, indent=2))
 
 

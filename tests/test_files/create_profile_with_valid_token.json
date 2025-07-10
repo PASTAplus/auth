@@ -1,5 +1,6 @@
 {
     "common_name": null,
+    "edi_id": "<Random EDI-ID>",
     "method": "readProfile",
     "msg": "Profile retrieved by non-owner. Only public fields returned."
 }
