@@ -57,7 +57,7 @@ curl -X POST https://auth.edirepository.org/auth/v1/resource \
   "resource_key": "https://pasta.lternet.edu/package/data/eml/edi/643/4/87c390495ad405e705c09e62ac6f58f0",
   "resource_label": "edi.643.4",
   "resource_type": "package",
-  "resource_parent_key": null
+  "parent_resource_key": null
 }'
 ```
 
@@ -81,7 +81,7 @@ curl -X POST https://auth.edirepository.org/auth/v1/resource \
   "resource_key": "https://pasta.lternet.edu/package/data/eml/edi/643/4/87c390495ad405e705c09e62ac6f58f0",
   "resource_label": "edi.643.4",
   "resource_type": "package",
-  "resource_parent_key": null
+  "parent_resource_key": null
 }'
 ```
 
@@ -171,7 +171,7 @@ updateResource(
     resource_key: The unique resource key of the resource
     resource_label (optional): The human readable name of the resource
     resource_type (optional): The type of resource
-    resource_parent_key (optional): The resource key of the parent
+    parent_resource_key (optional): The resource key of the parent
 )
 
 Return:
@@ -185,7 +185,7 @@ Permissions:
   authenticated: changePermission
 ```
 
-- If `resource_parent_key` is provided, the effect will be a "prune and graft" operation, where the resource, with all its descendants, is moved to a new parent. If `resource_parent_key` is `null`, the resource will be moved up to the root level (or a no-op if the resource is already at the root). If `resource_parent_key` is not provided, the resource will remain a child of its current parent.
+- If `parent_resource_key` is provided, the effect will be a "prune and graft" operation, where the resource, with all its descendants, is moved to a new parent. If `parent_resource_key` is `null`, the resource will be moved up to the root level (or a no-op if the resource is already at the root). If `parent_resource_key` is not provided, the resource will remain a child of its current parent.
 
 ## Delete Resource 
 
