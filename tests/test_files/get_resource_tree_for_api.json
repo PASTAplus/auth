@@ -1,0 +1,261 @@
+[
+    {
+        "children": [
+            {
+                "children": [
+                    {
+                        "children": [],
+                        "key": "76b15c64f3b94b0b80bc4f20197d30aa",
+                        "principals": [
+                            {
+                                "description": null,
+                                "edi_id": "EDI-38525873761c4dfc9c45d66002b56f7b",
+                                "permission": "WRITE",
+                                "principal_type": "group",
+                                "title": "John's group #0"
+                            },
+                            {
+                                "description": null,
+                                "edi_id": "EDI-451145331e8c4b3e8bc0c0cbeba4c4a0",
+                                "permission": "READ",
+                                "principal_type": "group",
+                                "title": "John's group #1"
+                            }
+                        ]
+                    },
+                    {
+                        "children": [],
+                        "key": "b6db54c1bc05466e905eb552c1267dac",
+                        "principals": [
+                            {
+                                "description": null,
+                                "edi_id": "EDI-451145331e8c4b3e8bc0c0cbeba4c4a0",
+                                "permission": "READ",
+                                "principal_type": "group",
+                                "title": "John's group #1"
+                            }
+                        ]
+                    }
+                ],
+                "key": "8d1dba03e6424b6dabf3a4fc00446f3b",
+                "principals": [
+                    {
+                        "description": "john@smith.com",
+                        "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                        "permission": "WRITE",
+                        "principal_type": "profile",
+                        "title": "John Smith"
+                    }
+                ]
+            }
+        ],
+        "key": "ce1d83e7a62c4ad3b673f7d7bae55683",
+        "principals": [
+            {
+                "description": "john@smith.com",
+                "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                "permission": "READ",
+                "principal_type": "profile",
+                "title": "John Smith"
+            }
+        ]
+    },
+    {
+        "children": [],
+        "key": "cf052f2c605b4e12a38c79d7c5b75f9f",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-54e3b1d5f5e94c42968250befe246129",
+                "permission": "READ",
+                "principal_type": "group",
+                "title": "Barbara's group #0"
+            }
+        ]
+    },
+    {
+        "children": [
+            {
+                "children": [
+                    {
+                        "children": [],
+                        "key": "28e33aa17d5d43db87242fa16e774d06",
+                        "principals": [
+                            {
+                                "description": "john@smith.com",
+                                "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                                "permission": "WRITE",
+                                "principal_type": "profile",
+                                "title": "John Smith"
+                            }
+                        ]
+                    }
+                ],
+                "key": "8279df2effbf4c0489b3bbdf854a5105",
+                "principals": [
+                    {
+                        "description": null,
+                        "edi_id": "EDI-7695266273ff4848978cf12610d99905",
+                        "permission": "READ",
+                        "principal_type": "group",
+                        "title": "Susan's group #1"
+                    }
+                ]
+            }
+        ],
+        "key": "b10891214bfc479d920445416600fa76",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-3869e43603964dfa813811c4a648e098",
+                "permission": "READ",
+                "principal_type": "group",
+                "title": "Robert's group #0"
+            }
+        ]
+    },
+    {
+        "children": [],
+        "key": "2b22d840a07643d897588820343f8ac3",
+        "principals": [
+            {
+                "description": "john@smith.com",
+                "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                "permission": "CHANGE",
+                "principal_type": "profile",
+                "title": "John Smith"
+            }
+        ]
+    },
+    {
+        "children": [],
+        "key": "a729cc4cb58f4b2d82996484386804b6",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-d3fca9767ac54c22962896b01a1c01bd",
+                "permission": "CHANGE",
+                "principal_type": "profile",
+                "title": "Authenticated Access"
+            }
+        ]
+    },
+    {
+        "children": [],
+        "key": "30569a84390a4635965d5e3e46503134",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-38525873761c4dfc9c45d66002b56f7b",
+                "permission": "CHANGE",
+                "principal_type": "group",
+                "title": "John's group #0"
+            }
+        ]
+    },
+    {
+        "children": [],
+        "key": "a5a364b3fff34e708b64791f3c704f07",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-54e3b1d5f5e94c42968250befe246129",
+                "permission": "WRITE",
+                "principal_type": "group",
+                "title": "Barbara's group #0"
+            }
+        ]
+    },
+    {
+        "children": [],
+        "key": "00ecefd7a9944202b4f2a7a219136e8c",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-b2757fee12634ccca40d2d689f5c0543",
+                "permission": "WRITE",
+                "principal_type": "profile",
+                "title": "Public Access"
+            }
+        ]
+    },
+    {
+        "children": [
+            {
+                "children": [],
+                "key": "72b7dfa52c8b4ffa8b72284b0b7a20a1",
+                "principals": [
+                    {
+                        "description": null,
+                        "edi_id": "EDI-54e3b1d5f5e94c42968250befe246129",
+                        "permission": "CHANGE",
+                        "principal_type": "group",
+                        "title": "Barbara's group #0"
+                    }
+                ]
+            },
+            {
+                "children": [],
+                "key": "6413f24eceba4e958ce1d512a990b09c",
+                "principals": [
+                    {
+                        "description": null,
+                        "edi_id": "EDI-3869e43603964dfa813811c4a648e098",
+                        "permission": "CHANGE",
+                        "principal_type": "group",
+                        "title": "Robert's group #0"
+                    }
+                ]
+            }
+        ],
+        "key": "0fc2d20bef64465bb1bea02e6e8e0614",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-54e3b1d5f5e94c42968250befe246129",
+                "permission": "CHANGE",
+                "principal_type": "group",
+                "title": "Barbara's group #0"
+            }
+        ]
+    },
+    {
+        "children": [],
+        "key": "576262155a634dacb0a99f4dff4f4f28",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-d3fca9767ac54c22962896b01a1c01bd",
+                "permission": "CHANGE",
+                "principal_type": "profile",
+                "title": "Authenticated Access"
+            }
+        ]
+    },
+    {
+        "children": [],
+        "key": "8973484ba82446d1a47952eebece74ea",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-82dec0908f244d42800141d39822cb5a",
+                "permission": "CHANGE",
+                "principal_type": "group",
+                "title": "Charles's group #1"
+            }
+        ]
+    },
+    {
+        "children": [],
+        "key": "19d6a697bb0d4436b82df68679b2fc41",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-54e3b1d5f5e94c42968250befe246129",
+                "permission": "CHANGE",
+                "principal_type": "group",
+                "title": "Barbara's group #0"
+            }
+        ]
+    }
+]

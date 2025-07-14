@@ -42,7 +42,7 @@ async def test_create_rule_by_non_owner(populated_dbi, john_client, jane_client)
             'resource_key': 'a-new-resource-key',
             'resource_label': 'A new resource',
             'resource_type': 'testResource',
-            'parent_key': None,
+            'parent_resource_key': None,
         },
     )
     assert response.status_code == starlette.status.HTTP_200_OK
@@ -55,21 +55,21 @@ async def test_create_rule_by_non_owner(populated_dbi, john_client, jane_client)
             'permission': 'read',
         }
     )
-    tests.sample.assert_equal_json(response.json(), 'create_rule_by_non_owner.json')
+    tests.sample.assert_match(response.json(), 'create_rule_by_non_owner.json')
     assert response.status_code == starlette.status.HTTP_403_FORBIDDEN
 
 async def test_create_rule_by_owner(populated_dbi, john_client, jane_client):
     """createRule()
     Successful call by owner -> A new rule is created on the resource.
     """
-    # John creates a resource, and becomes the owner
+    # John creates a resource, and receives implicit CHANGE
     response = john_client.post(
         '/v1/resource',
         json={
             'resource_key': 'a-new-resource-key',
             'resource_label': 'A new resource',
             'resource_type': 'testResource',
-            'parent_key': None,
+            'parent_resource_key': None,
         },
     )
     assert response.status_code == starlette.status.HTTP_200_OK
@@ -79,7 +79,7 @@ async def test_create_rule_by_owner(populated_dbi, john_client, jane_client):
     # Jane cannot read the resource
     response = jane_client.get('/v1/resource/a-new-resource-key')
     assert response.status_code == starlette.status.HTTP_403_FORBIDDEN
-    # John creates a `write` ACR for Jane
+    # John adds WRITE for Jane
     response = john_client.post(
         '/v1/rule',
         json={
@@ -103,7 +103,66 @@ async def test_create_rule_by_owner(populated_dbi, john_client, jane_client):
     )
     assert response.status_code == starlette.status.HTTP_403_FORBIDDEN
 
-    # tests.sample.assert_equal_json(response.json(), 'create_rule_by_owner.json')
+
+async def test_public_access(populated_dbi, service_client, john_client, jane_client):
+    """createRule()
+    Adding the Public Access principal to a resource -> Everyone can read the resource.
+    """
+    # The Service principal creates a resource, and receives implicit CHANGE
+    service_client.post(
+        '/v1/resource',
+        json={
+            'resource_key': 'public-access-resource',
+            'resource_label': 'Public Access Resource',
+            'resource_type': 'testResource',
+            'parent_resource_key': None,
+        },
+    )
+    # Neither John nor Jane can read the resource yet
+    response = john_client.get('/v1/resource/public-access-resource')
+    assert response.status_code == starlette.status.HTTP_403_FORBIDDEN
+    response = jane_client.get('/v1/resource/public-access-resource')
+    assert response.status_code == starlette.status.HTTP_403_FORBIDDEN
+    # System adds Public Access rule
+    response = service_client.post(
+        '/v1/rule',
+        json={
+            'resource_key': 'public-access-resource',
+            'principal': edi_id.PUBLIC_ACCESS,
+            'permission': 'read',
+        }
+    )
+    assert response.status_code == starlette.status.HTTP_200_OK
+    # The service client can still read the resource
+    response = service_client.get('/v1/resource/public-access-resource')
+    assert response.status_code == starlette.status.HTTP_200_OK
+    # Now both John and Jane can read the resource
+    response = john_client.get('/v1/resource/public-access-resource')
+    assert response.status_code == starlette.status.HTTP_200_OK
+    response = jane_client.get('/v1/resource/public-access-resource')
+    assert response.status_code == starlette.status.HTTP_200_OK
+    # John and Jane do not have CHANGE
+    response = john_client.post(
+        '/v1/rule',
+        json={
+            'resource_key': 'public-access-resource',
+            'principal': edi_id.JANE,
+            'permission': 'read',
+        }
+    )
+    assert response.status_code == starlette.status.HTTP_403_FORBIDDEN
+    response = jane_client.post(
+        '/v1/rule',
+        json={
+            'resource_key': 'public-access-resource',
+            'principal': edi_id.JOHN,
+            'permission': 'read',
+        }
+    )
+    assert response.status_code == starlette.status.HTTP_403_FORBIDDEN
+
+
+    # tests.sample.assert_match(response.json(), 'create_rule_by_owner.json')
 
 # async def test_read_top_level_resource_with_valid_token(populated_dbi, john_client):
 #     """readResource()
@@ -148,7 +207,7 @@ async def test_create_rule_by_owner(populated_dbi, john_client, jane_client):
 #
 #     response = john_client.get('/v1/resource/2b22d840a07643d897588820343f8ac3')
 #     assert response.status_code == starlette.status.HTTP_200_OK
-#     tests.sample.assert_equal_json(response.json(), 'read_top_level_resource_with_valid_token.json')
+#     tests.sample.assert_match(response.json(), 'read_top_level_resource_with_valid_token.json')
 #
 #
 # async def test_read_child_resource_with_valid_token(john_client):
@@ -158,7 +217,7 @@ async def test_create_rule_by_owner(populated_dbi, john_client, jane_client):
 #     """
 #     response = john_client.get('/v1/resource/9aad4c65801f4feb9373e7b3281955cf')
 #     assert response.status_code == starlette.status.HTTP_200_OK
-#     tests.sample.assert_equal_json(response.json(), 'read_child_resource_with_valid_token.json')
+#     tests.sample.assert_match(response.json(), 'read_child_resource_with_valid_token.json')
 #
 #
 # async def test_read_resource_by_non_owner(populated_dbi, john_client, jane_client):
@@ -172,7 +231,7 @@ async def test_create_rule_by_owner(populated_dbi, john_client, jane_client):
 #             'resource_key': 'john_resource_key',
 #             'resource_label': 'Resource created by John Smith',
 #             'resource_type': 'testResource',
-#             'parent_key': None,
+#             'parent_resource_key': None,
 #         },
 #     )
 #     # Jane tries to access John's resource without having any ACRs on the resource
@@ -189,7 +248,7 @@ async def test_create_rule_by_owner(populated_dbi, john_client, jane_client):
 #     # response = john_client.get('/v1/resource/2b22d840a07643d897588820343f8ac3')
 #     response = john_client.get('/v1/resource/tree/2b22d840a07643d897588820343f8ac3')
 #     assert response.status_code == starlette.status.HTTP_200_OK
-#     tests.sample.assert_equal_json(response.json(), 'read_resource_tree_1.json')
+#     tests.sample.assert_match(response.json(), 'read_resource_tree_1.json')
 #
 #
 #
@@ -200,10 +259,10 @@ async def test_create_rule_by_owner(populated_dbi, john_client, jane_client):
 # #     #         print(row)
 # #     #         print(row.id)
 # #     #         print(row.permission)
-# #     resource_query = await populated_dbi.get_resource_ancestors(
+# #     resource_iter = await populated_dbi.get_resource_ancestors(
 # #         profile_row, (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 # #     )
-# #     resource_tree = db.resource_tree.get_resource_tree_for_ui(resource_query)
+# #     resource_tree = db.resource_tree.get_resource_tree_for_ui(resource_iter)
 # #     # pprint.pp(resource_tree)
 # #     print(json.dumps(resource_tree, indent=2))
 #

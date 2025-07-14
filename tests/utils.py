@@ -25,8 +25,8 @@ async def get_edi_ids(populated_dbi):
     return result.scalars().all()
 
 
-async def assert_edi_id_format(edi_id):
-    """Check that the given EDI-ID looks like a EDI-ID"""
+def assert_edi_id_format(edi_id):
+    """Check that the given value is in the form of an EDI-ID."""
     assert re.match(r'EDI-[\da-f]{32}$', edi_id)
 
 
@@ -41,7 +41,7 @@ def get_db_as_json(populated_dbi):
     profile_list = []
     for profile_row in populated_dbi.get_all_profiles():
         profile_list.append(profile_row.as_dict())
-    return util.to_pretty_json(profile_list)
+    return util.pretty.to_pretty_json(profile_list)
 
 
 async def make_jwt(dbi, profile_row):
@@ -74,14 +74,14 @@ def dump_response(response):
     log.info('#'* 30 + 'RESPONSE' + '#' * 30)
     log.info('Status code: %s', response.status_code)
     log.info('Headers: %s', response.headers)
-    dump_colored_json(response.text)
+    dump_json_with_syntax_highlighting(response.text)
 
 
 
-def dump_colored_json(json_str):
+def dump_json_with_syntax_highlighting(json_str):
     """Print a colored JSON representation of the object to the console."""
     import rich.console
     import rich.json
-    colored_json_str = rich.json.JSON(json_str, indent=2)
-    rich.console.Console().print(colored_json_str)
+    highlighted_json_str = rich.json.JSON(json_str, indent=2)
+    rich.console.Console().print(highlighted_json_str)
 

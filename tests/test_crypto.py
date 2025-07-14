@@ -10,7 +10,6 @@ from config import Config
 
 log = daiquiri.getLogger(__name__)
 
-pytestmark = pytest.mark.order(10)
 
 def test_public_key():
     key = pasta_crypto.import_key(Config.PASTA_TOKEN_PUBLIC_KEY_PATH)

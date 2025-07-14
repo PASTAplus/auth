@@ -24,14 +24,6 @@ async def test_ping(client):
     assert response.status_code == starlette.status.HTTP_200_OK
     assert response.text == 'pong'
 
-
-async def test_4(client, populated_dbi):
-    resource_query = await populated_dbi.get_resource_list(profile_row, '', None)
-    resource_tree = db.resource_tree.get_resource_tree_for_ui(resource_query)
-    # pprint.pp(resource_tree)
-    print(json.dumps(resource_tree, indent=2))
-
-
 # # @pytest.mark.skip
 # def test_map_identity(client, populated_dbi):
 #     token_a = tests.util.create_test_edi_token(
@@ -45,7 +37,7 @@ async def test_4(client, populated_dbi):
 #     )
 #     assert response.status_code == starlette.status.HTTP_200_OK
 #     db_json = tests.util.get_db_as_json(populated_dbi)
-#     tests.sample.assert_equal_json(db_json, 'map_identity.json')
+#     tests.sample.assert_match(db_json, 'map_identity.json')
 #
 #
 # def test_get_profile(client, populated_dbi):
@@ -54,7 +46,7 @@ async def test_4(client, populated_dbi):
 #     )
 #     response = client.get('/v1/profile/get', params={'token_str': token})
 #     assert response.status_code == starlette.status.HTTP_200_OK
-#     tests.sample.assert_equal_json(response.text, 'get_profile.json')
+#     tests.sample.assert_match(response.text, 'get_profile.json')
 #
 #
 # def test_profile_disable(client, populated_dbi):
@@ -64,7 +56,7 @@ async def test_4(client, populated_dbi):
 #     response = client.post('/v1/profile/disable', params={'token_str': token})
 #     assert response.status_code == starlette.status.HTTP_200_OK
 #     db_json = tests.util.get_db_as_json(populated_dbi)
-#     tests.sample.assert_equal_json(db_json, 'profile_disable.json')
+#     tests.sample.assert_match(db_json, 'profile_disable.json')
 #
 #
 # def test_identity_drop(client, populated_dbi):
@@ -81,7 +73,7 @@ async def test_4(client, populated_dbi):
 #     )
 #     assert response.status_code == starlette.status.HTTP_200_OK
 #     db_json = tests.util.get_db_as_json(populated_dbi)
-#     tests.sample.assert_equal_json(db_json, 'profile_drop.json')
+#     tests.sample.assert_match(db_json, 'profile_drop.json')
 #
 #
 # def test_identity_list(client, populated_dbi):
@@ -90,4 +82,4 @@ async def test_4(client, populated_dbi):
 #     )
 #     response = client.get('/v1/identity/list', params={'token_str': token})
 #     assert response.status_code == starlette.status.HTTP_200_OK
-#     tests.sample.assert_equal_json(response.text, 'identity_list.json')
+#     tests.sample.assert_match(response.text, 'identity_list.json')

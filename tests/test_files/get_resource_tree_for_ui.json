@@ -1,0 +1,299 @@
+[
+    {
+        "children": [
+            {
+                "children": [
+                    {
+                        "children": [],
+                        "label": "fungal_studies.jpg",
+                        "principals": [
+                            {
+                                "description": null,
+                                "edi_id": "EDI-38525873761c4dfc9c45d66002b56f7b",
+                                "permission_level": 2,
+                                "principal_type": "group",
+                                "title": "John's group #0"
+                            },
+                            {
+                                "description": null,
+                                "edi_id": "EDI-451145331e8c4b3e8bc0c0cbeba4c4a0",
+                                "permission_level": 1,
+                                "principal_type": "group",
+                                "title": "John's group #1"
+                            }
+                        ],
+                        "resource_id": 71,
+                        "type": "data"
+                    },
+                    {
+                        "children": [],
+                        "label": "genomic_sequences.jpg",
+                        "principals": [
+                            {
+                                "description": null,
+                                "edi_id": "EDI-451145331e8c4b3e8bc0c0cbeba4c4a0",
+                                "permission_level": 1,
+                                "principal_type": "group",
+                                "title": "John's group #1"
+                            }
+                        ],
+                        "resource_id": 72,
+                        "type": "data"
+                    }
+                ],
+                "label": "Data",
+                "principals": [
+                    {
+                        "description": "john@smith.com",
+                        "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                        "permission_level": 2,
+                        "principal_type": "profile",
+                        "title": "John Smith"
+                    }
+                ],
+                "resource_id": 66,
+                "type": "collection"
+            }
+        ],
+        "label": "edi.7842.3",
+        "principals": [
+            {
+                "description": "john@smith.com",
+                "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                "permission_level": 1,
+                "principal_type": "profile",
+                "title": "John Smith"
+            }
+        ],
+        "resource_id": 62,
+        "type": "package"
+    },
+    {
+        "children": [],
+        "label": "edi.8027.7",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-54e3b1d5f5e94c42968250befe246129",
+                "permission_level": 1,
+                "principal_type": "group",
+                "title": "Barbara's group #0"
+            }
+        ],
+        "resource_id": 241,
+        "type": "package"
+    },
+    {
+        "children": [
+            {
+                "children": [
+                    {
+                        "children": [],
+                        "label": "quality_report.xml",
+                        "principals": [
+                            {
+                                "description": "john@smith.com",
+                                "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                                "permission_level": 2,
+                                "principal_type": "profile",
+                                "title": "John Smith"
+                            }
+                        ],
+                        "resource_id": 329,
+                        "type": "metadata"
+                    }
+                ],
+                "label": "Metadata",
+                "principals": [
+                    {
+                        "description": null,
+                        "edi_id": "EDI-7695266273ff4848978cf12610d99905",
+                        "permission_level": 1,
+                        "principal_type": "group",
+                        "title": "Susan's group #1"
+                    }
+                ],
+                "resource_id": 328,
+                "type": "collection"
+            }
+        ],
+        "label": "edi.8233.2",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-3869e43603964dfa813811c4a648e098",
+                "permission_level": 1,
+                "principal_type": "group",
+                "title": "Robert's group #0"
+            }
+        ],
+        "resource_id": 327,
+        "type": "package"
+    },
+    {
+        "children": [],
+        "label": "edi.8233.4",
+        "principals": [
+            {
+                "description": "john@smith.com",
+                "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                "permission_level": 3,
+                "principal_type": "profile",
+                "title": "John Smith"
+            }
+        ],
+        "resource_id": 341,
+        "type": "package"
+    },
+    {
+        "children": [],
+        "label": "edi.8271.6",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-d3fca9767ac54c22962896b01a1c01bd",
+                "permission_level": 3,
+                "principal_type": "profile",
+                "title": "Authenticated Access"
+            }
+        ],
+        "resource_id": 405,
+        "type": "package"
+    },
+    {
+        "children": [],
+        "label": "knb-lter-bes.8604.3",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-38525873761c4dfc9c45d66002b56f7b",
+                "permission_level": 3,
+                "principal_type": "group",
+                "title": "John's group #0"
+            }
+        ],
+        "resource_id": 488,
+        "type": "package"
+    },
+    {
+        "children": [],
+        "label": "knb-lter-bes.8604.4",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-54e3b1d5f5e94c42968250befe246129",
+                "permission_level": 2,
+                "principal_type": "group",
+                "title": "Barbara's group #0"
+            }
+        ],
+        "resource_id": 494,
+        "type": "package"
+    },
+    {
+        "children": [],
+        "label": "knb-lter-bes.8653.1",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-b2757fee12634ccca40d2d689f5c0543",
+                "permission_level": 2,
+                "principal_type": "profile",
+                "title": "Public Access"
+            }
+        ],
+        "resource_id": 500,
+        "type": "package"
+    },
+    {
+        "children": [
+            {
+                "children": [],
+                "label": "Metadata",
+                "principals": [
+                    {
+                        "description": null,
+                        "edi_id": "EDI-54e3b1d5f5e94c42968250befe246129",
+                        "permission_level": 3,
+                        "principal_type": "group",
+                        "title": "Barbara's group #0"
+                    }
+                ],
+                "resource_id": 550,
+                "type": "collection"
+            },
+            {
+                "children": [],
+                "label": "Data",
+                "principals": [
+                    {
+                        "description": null,
+                        "edi_id": "EDI-3869e43603964dfa813811c4a648e098",
+                        "permission_level": 3,
+                        "principal_type": "group",
+                        "title": "Robert's group #0"
+                    }
+                ],
+                "resource_id": 553,
+                "type": "collection"
+            }
+        ],
+        "label": "knb-lter-bes.8706.5",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-54e3b1d5f5e94c42968250befe246129",
+                "permission_level": 3,
+                "principal_type": "group",
+                "title": "Barbara's group #0"
+            }
+        ],
+        "resource_id": 549,
+        "type": "package"
+    },
+    {
+        "children": [],
+        "label": "knb-lter-bes.8801.1",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-d3fca9767ac54c22962896b01a1c01bd",
+                "permission_level": 3,
+                "principal_type": "profile",
+                "title": "Authenticated Access"
+            }
+        ],
+        "resource_id": 585,
+        "type": "package"
+    },
+    {
+        "children": [],
+        "label": "knb-lter-bes.8987.1",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-82dec0908f244d42800141d39822cb5a",
+                "permission_level": 3,
+                "principal_type": "group",
+                "title": "Charles's group #1"
+            }
+        ],
+        "resource_id": 686,
+        "type": "package"
+    },
+    {
+        "children": [],
+        "label": "knb-lter-bes.8987.4",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-54e3b1d5f5e94c42968250befe246129",
+                "permission_level": 3,
+                "principal_type": "group",
+                "title": "Barbara's group #0"
+            }
+        ],
+        "resource_id": 707,
+        "type": "package"
+    }
+]

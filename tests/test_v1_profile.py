@@ -51,7 +51,7 @@ async def test_create_profile_with_valid_token(populated_dbi, service_client):
     response_dict = response.json()
     # We set edi_id to a fixed value here, so that the sample file does not change.
     response_dict['edi_id'] = '<Random EDI-ID>'
-    tests.sample.assert_equal_json(response_dict, 'create_profile_with_valid_token.json')
+    tests.sample.assert_match(response_dict, 'create_profile_with_valid_token.json')
 
 
 async def test_create_profile_idempotency(populated_dbi, service_client):
@@ -108,7 +108,7 @@ async def test_read_profile_by_owner(john_client):
     """
     response = john_client.get(f'/v1/profile/{tests.edi_id.JOHN}')
     assert response.status_code == starlette.status.HTTP_200_OK
-    tests.sample.assert_equal_json(response.text, 'read_profile_by_owner.json')
+    tests.sample.assert_match(response.json(), 'read_profile_by_owner.json')
 
 
 async def test_read_profile_by_non_owner(jane_client):
@@ -117,7 +117,7 @@ async def test_read_profile_by_non_owner(jane_client):
     """
     response = jane_client.get(f'/v1/profile/{tests.edi_id.JOHN}')
     assert response.status_code == starlette.status.HTTP_200_OK
-    tests.sample.assert_equal_json(response.text, 'read_profile_by_non_owner.json')
+    tests.sample.assert_match(response.json(), 'read_profile_by_non_owner.json')
 
 
 #
@@ -191,7 +191,7 @@ async def test_update_profile_by_owner(john_client):
     response = john_client.get(f'/v1/profile/{tests.edi_id.JOHN}')
     assert response.status_code == starlette.status.HTTP_200_OK
     assert response.json()['common_name'] == 'John Smith RENAMED'
-    tests.sample.assert_equal_json(response.text, 'update_profile_by_owner.json')
+    tests.sample.assert_match(response.json(), 'update_profile_by_owner.json')
 
 
 #
