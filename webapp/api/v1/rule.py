@@ -60,7 +60,7 @@ async def post_v1_rule(
             'Mst be one of: read, write, or changePermission.',
         )
     # Check that the resource exists
-    resource_row = await dbi.get_resource_by_key(resource_key)
+    resource_row = await dbi.get_resource(resource_key)
     if not resource_row:
         return api.utils.get_response_404_not_found(
             request, api_method, f'Resource does not exist', resource_key=resource_key
@@ -97,7 +97,7 @@ async def post_v1_rule(
             ),
         )
     # Create the rule
-    await dbi.create_or_update_permission(resource_row, principal_row, permission_level)
+    await dbi.create_or_update_rule(resource_row, principal_row, permission_level)
     return api.utils.get_response_200_ok(
         request, api_method, 'Rule created successfully', resource_key=resource_key
     )
@@ -125,7 +125,7 @@ async def read_v1_rule(
             request, api_method, f'Principal does not exist', principal=principal
         )
     # Check resource
-    resource_row = await dbi.get_resource_by_key(resource_key)
+    resource_row = await dbi.get_resource(resource_key)
     if not resource_row:
         return api.utils.get_response_404_not_found(
             request, api_method, f'Resource does not exist', resource_key=resource_key
@@ -227,7 +227,7 @@ async def update_v1_rule(
     # changePermission rules for the resource
 
     # Update the rule
-    await dbi.create_or_update_permission(resource_row, principal_row, permission_level)
+    await dbi.create_or_update_rule(resource_row, principal_row, permission_level)
     return api.utils.get_response_200_ok(
         request, api_method, 'Rule updated successfully', resource_key=resource_key
     )

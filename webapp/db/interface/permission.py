@@ -1,3 +1,27 @@
+"""Permission interface for managing resources and permissions in the database.
+
+The resources of interest will always be a cross-section of:
+
+    - a set of resources (e.g., a single resource, resources in the same tree, or found in a search)
+    - a set of equivalent principals
+    - a set of rules which tie the resources and principals together,
+      where only rules having higher or equal permission level to that requested, are considered
+
+    The queries are lengthy in source code, because, well, SQLAlchemy. But we're essentially
+    working just with variations around this basic query:
+
+        select * from resource
+        join rule on rule.resource_id = resource.id
+        where rule.level >= requested_level
+        and rule.principal in (subquery to select all equivalent principals)
+
+    To this, we add filters, and if we need more information about the principals, we join
+    on profile and/or group tables.
+
+    We expect the list of equivalent principals to be short. Usually just the public subject, the
+    authorized subject, and maybe a couple of group memberships. Still, the DB should be able to
+    handle thousands of equivalent principals efficiently, should someone want that in the future.
+"""
 import re
 
 import daiquiri
@@ -35,33 +59,64 @@ class PermissionInterface:
         await self.flush()
         return new_resource_row
 
+    async def get_resource(self, key):
+        """Get a resource by its key."""
+        result = await self.execute(
+            sqlalchemy.select(db.models.permission.Resource)
+            .options(sqlalchemy.orm.selectinload(db.models.permission.Resource.parent))
+            .where(db.models.permission.Resource.key == key)
+        )
+        return result.scalar()
+
     async def update_resource(
-        self, token_profile_row, key, label=None, type_str=None, parent_resource_row=None
+        self, token_profile_row, key, parent_resource_key=None, label=None, type_str=None
     ):
         """Update a resource.
 
-        The resource must have CHANGE permission for the profile, or a group of which the profile is
-        a member.
+        - To update the label and/or type, the profile must have WRITE on the resource being
+        updated.
+        - To change the parent resource, the profile must have WRITE on both the resource being
+        updated, and the parent resource. No information is updated in the parent, but we consider
+        adding a child to be a change to the parent.
+        - To add or remove ACRs on the resource, the profile must have CHANGE permission on the
+        resource. (Not handled by this method. See the Rules API).
         """
-        resource_row = await self.get_owned_resource_by_key(token_profile_row, key)
+        resource_row = await self.get_resource(key)
+        assert resource_row is not None, f'Attempt to update non-existing resource: "{key}"'
+
+        if not await self.is_authorized(
+            token_profile_row, resource_row, db.models.permission.PermissionLevel.WRITE
+        ):
+            raise ValueError(
+                f'Profile "{token_profile_row.edi_id}" does not have WRITE permission on '
+                f'resource "{key}"'
+            )
+
+        if parent_resource_key:
+            # Check permission on the new parent resource.
+            parent_resource_row = await self.get_resource(parent_resource_key)
+            if not await self.is_authorized(
+                token_profile_row, parent_resource_row, db.models.permission.PermissionLevel.WRITE
+            ):
+                raise ValueError(
+                    f'Profile "{token_profile_row.edi_id}" does not have WRITE permission on '
+                    f'parent resource "{parent_resource_row.key}"'
+                )
+            # Check that the new parent is not a descendant of the resource being updated, which
+            # would create a cycle in the graph.
+            descendant_id_list = self.get_resource_descendants_id_set([resource_row.id])
+            if parent_resource_row.id in descendant_id_list:
+                raise ValueError(
+                    f'Cannot set parent resource: The requested parent is currently a descendant '
+                    f'of the resource to be updated. resource_key={resource_row.key} '
+                    f'parent_resource_key={parent_resource_row.key}'
+                )
+            # Parent is ok, so we can set it.
 
         if label:
             resource_row.label = label
         if type_str:
             resource_row.type = type_str
-        if parent_resource_row:
-            result = await self.execute(
-                sqlalchemy.select(db.resource_tree.get_resource_tree_for_ui(resource_row.id)).where(
-                    db.resource_tree.get_resource_tree_for_ui(resource_row.id).id
-                    == parent_resource_row.id
-                )
-            )
-            if result.scalar():
-                raise ValueError(
-                    f'Cannot set parent resource: The requested parent is currently a child or '
-                    f'descendant of the resource to be updated. resource_id={resource_row.id} '
-                    f'parent_resource_id={parent_resource_row.id}'
-                )
 
     async def get_owned_resource_by_key(self, token_profile_row, key):
         """Get a resource by its key. The resource must have CHANGE permission for the profile, or a
@@ -71,13 +126,6 @@ class PermissionInterface:
             The resource row if found, or None if the resource does not exist or is not owned by the
             profile.
         """
-        result = await self.execute(
-            sqlalchemy.select(db.models.permission.Resource).where(
-                db.models.permission.Resource.key == key
-            )
-        )
-
-        resource_row = result.scalar()
 
         if resource_row is None:
             return None
@@ -122,18 +170,8 @@ class PermissionInterface:
                         await self._get_equivalent_principal_id_query(token_profile_row)
                     ),
                     db.models.permission.Rule.permission >= permission_level,
-
                 )
             )
-        )
-        return result.scalar()
-
-    async def get_resource_by_key(self, key):
-        """Get a resource by its key."""
-        result = await self.execute(
-            sqlalchemy.select(db.models.permission.Resource)
-            .options(sqlalchemy.orm.selectinload(db.models.permission.Resource.parent))
-            .where(db.models.permission.Resource.key == key)
         )
         return result.scalar()
 
@@ -398,14 +436,14 @@ class PermissionInterface:
     #             .all()
     #         )
     #         for resource_row in resource_row_query:
-    #             await self._create_or_update_permission(
+    #             await self._create_or_update_rule(
     #                 resource_row.id,
     #                 principal_id,
     #                 principal_type,
     #                 permission_level,
     #             )
 
-    async def create_or_update_permission(
+    async def create_or_update_rule(
         self,
         resource_row,
         principal_row,
@@ -416,6 +454,10 @@ class PermissionInterface:
         CHANGE permission on the resource must already have been validated before calling this
         method.
         """
+        assert isinstance(resource_row, db.models.permission.Resource)
+        assert isinstance(principal_row, db.models.permission.Principal)
+        assert isinstance(permission_level, db.models.permission.PermissionLevel)
+
         rule_row = await self.get_rule(resource_row, principal_row)
 
         if permission_level == 0:
@@ -423,16 +465,16 @@ class PermissionInterface:
                 await self._session.delete(rule_row)
         else:
             if rule_row is None:
-                # principal_row = self.get_principal_by_subject(principal_row, principal_type)
                 rule_row = db.models.permission.Rule(
                     resource=resource_row,
                     principal=principal_row,
-                    permission=db.models.permission.PermissionLevel(permission_level),
+                    permission=permission_level,
                 )
                 self._session.add(rule_row)
-                await self.flush()
             else:
-                rule_row.permission = db.models.permission.PermissionLevel(permission_level)
+                rule_row.permission = permission_level
+
+        await self.flush()
 
     async def get_rule(self, resource_row, principal_row):
         # The db.models.permission.Rule table has a unique constraint on (resource_id,
@@ -440,8 +482,8 @@ class PermissionInterface:
         result = await self.execute(
             (
                 sqlalchemy.select(db.models.permission.Rule).where(
-                    db.models.permission.Rule.resource == resource_row,
-                    db.models.permission.Rule.principal == principal_row,
+                    db.models.permission.Rule.resource_id == resource_row.id,
+                    db.models.permission.Rule.principal_id == principal_row.id,
                 )
             )
         )
@@ -453,7 +495,7 @@ class PermissionInterface:
         if search_str is False (None or ''), return all resources.
 
         - A resource contains zero to many permissions
-        - A resource may have a parent resource, which is another resource
+        - A resource may have a parent resource
         - A permission contains one profile or one group
         """
         # SQLAlchemy automatically escapes parameters to prevent SQL injection attacks, but we still
@@ -539,38 +581,24 @@ class PermissionInterface:
         )
 
         result = await self.execute(stmt)
-        return result.scalars().all()
+        return result.all()
 
-    # async def get_resource_query_by_ids(self, resource_ids):
-    #     """Get a query that returns resources by their row IDs."""
-    #     # TODO: Should return only owned?
-    #     return (
-    #         sqlalchemy.select(db.models.permission.Resource)
-    #         .where(db.models.permission.Resource.id.in_(resource_ids))
-    #     )
-
-    async def get_resource_ancestors(self, token_profile_row, resource_ids):
+    async def get_resource_ancestors_id_set(self, resource_ids):
         """Get the parent resources for a list of resource IDs."""
-        stmt = sqlalchemy.select(sqlalchemy.func.get_resource_ancestors(resource_ids))
+        stmt = sqlalchemy.select(sqlalchemy.func.get_resource_ancestors(list(resource_ids)))
         result = await self.execute(stmt)
-        return (
-            # db.models.permission.Resource(id=int(row[0]), label=row[1], type=row[2], parent_id=row[3])
-            int(row[0])
-            for row in result.scalars()
-        )
+        # db.models.permission.Resource(id=int(row[0]), label=row[1], type=row[2], parent_id=row[3])
+        return {int(row[0]) for row in result.scalars()}
 
-    async def get_resource_descendants(self, token_profile_row, resource_ids):
+    async def get_resource_descendants_id_set(self, resource_ids):
         """Get the resource tree starting from a given root resource ID for a list of resource IDs."""
-        stmt = sqlalchemy.select(sqlalchemy.func.get_resource_tree(list(resource_ids)))
+        stmt = sqlalchemy.select(sqlalchemy.func.get_resource_descendants(list(resource_ids)))
         result = await self.execute(stmt)
-        return (
-            # db.models.permission.Resource(id=row[0], label=row[1], type=row[2], parent_id=row[3])
-            int(row[0])
-            for row in result.scalars()
-        )
+        # db.models.permission.Resource(id=row[0], label=row[1], type=row[2], parent_id=row[3])
+        return {int(row[0]) for row in result.scalars()}
 
-    async def get_permission_generator(self, resource_ids):
-        """Yield profiles and permissions for a list of resources."""
+    async def get_permission_generator(self, token_resource_row, resource_ids, permission_level):
+        """Yield resources with associated ACRs for a list of resources."""
         for i in range(0, len(resource_ids), Config.DB_CHUNK_SIZE):
             resource_chunk_list = resource_ids[i : i + Config.DB_CHUNK_SIZE]
 
@@ -607,7 +635,18 @@ class PermissionInterface:
                         == db.models.permission.SubjectType.GROUP,
                     ),
                 )
-                .where(db.models.permission.Resource.id.in_(resource_chunk_list))
+                .where(
+                    db.models.permission.Resource.id.in_(resource_chunk_list),
+                    sqlalchemy.or_(
+                        util.profile_cache.is_superuser(token_resource_row),
+                        sqlalchemy.and_(
+                            db.models.permission.Rule.permission >= permission_level,
+                            db.models.permission.Principal.id.in_(
+                                await self._get_equivalent_principal_id_query(token_resource_row),
+                            ),
+                        ),
+                    ),
+                )
             )
             result = await self._session.stream(stmt)
             # async for row in result.scalars():
@@ -624,13 +663,23 @@ class PermissionInterface:
         except for the profile itself, are included in the 'principals' field of the JWT.
 
         The returned list includes the principal IDs of:
-            - The profile itself (the 'sub' field)
+            - The profile itself
             - All groups in which this profile is a member
             - the Public Access profile
             - the Authenticated Access profile
 
-        :returns: Query object for use in sqlalchem_in() filter for rules.
+        :returns: Query object for use in SQLAlchemy 'where' and 'in' clauses for rules.
         """
+        public_profile_id = await util.profile_cache.get_public_access_profile_id(self)
+        authenticated_profile_id = await util.profile_cache.get_authenticated_access_profile_id(
+            self
+        )
+        # This method supports regular profiles, and should not be called for the public
+        # or authenticated profiles, as they do not have any equivalent principals.
+        assert token_profile_row.id not in (
+            public_profile_id,
+            authenticated_profile_id,
+        ), 'This method should not be called for the public or authenticated profiles.'
         return (
             sqlalchemy.select(db.models.permission.Principal.id)
             .outerjoin(
@@ -666,15 +715,13 @@ class PermissionInterface:
                     ),
                     # Public Access
                     sqlalchemy.and_(
-                        db.models.permission.Principal.subject_id
-                        == await util.profile_cache.get_public_access_profile_id(self),
+                        db.models.permission.Principal.subject_id == public_profile_id,
                         db.models.permission.Principal.subject_type
                         == db.models.permission.SubjectType.PROFILE,
                     ),
                     # Authenticated access
                     sqlalchemy.and_(
-                        db.models.permission.Principal.subject_id
-                        == await util.profile_cache.get_authenticated_access_profile_id(self),
+                        db.models.permission.Principal.subject_id == authenticated_profile_id,
                         db.models.permission.Principal.subject_type
                         == db.models.permission.SubjectType.PROFILE,
                     ),
@@ -690,13 +737,9 @@ class PermissionInterface:
         Note: This includes the EDI-ID for the profile itself, which should not be included in
         the 'principals' field of the JWT.
         """
-        # Get the principal IDs for all principals that the profile has access to.
-        principal_ids = (
-            (await self.execute(await self._get_equivalent_principal_id_query(token_profile_row)))
-            .scalars()
-            .all()
-        )
-        # Convert principal IDs to EDI-IDs.
+        # Build the subquery for equivalent principal IDs
+        principal_id_subquery = await self._get_equivalent_principal_id_query(token_profile_row)
+
         stmt = (
             sqlalchemy.select(
                 sqlalchemy.case(
@@ -725,7 +768,7 @@ class PermissionInterface:
                     == db.models.permission.SubjectType.PROFILE,
                 ),
             )
-            .where(db.models.permission.Principal.id.in_(principal_ids))
+            .where(db.models.permission.Principal.id.in_(principal_id_subquery))
         )
 
         return set((await self.execute(stmt)).scalars().all())

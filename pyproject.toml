@@ -22,7 +22,7 @@ filterwarnings = [
 asyncio_default_fixture_loop_scope = "session"
 
 addopts = [
-    #    "-p no:warnings"
+    # "-p no:warnings"
     '--capture=no',
 ]
 

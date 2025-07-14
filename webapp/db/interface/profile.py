@@ -26,11 +26,12 @@ class ProfileInterface:
 
     async def create_profile(
         self,
-        edi_id: str,
         common_name: str | None = None,
         email: str | None = None,
         has_avatar: bool = False,
+        edi_id: str = None,
     ):
+        edi_id = edi_id or db.interface.util.get_new_edi_id()
         new_profile_row = db.models.profile.Profile(
             edi_id=edi_id,
             common_name=common_name,

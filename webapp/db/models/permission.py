@@ -14,6 +14,18 @@ log = daiquiri.getLogger(__name__)
 #
 
 
+class PermissionLevel(enum.Enum):
+    NONE = 0
+    READ = 1
+    WRITE = 2
+    CHANGE = 3  # changePermission
+
+
+class SubjectType(enum.Enum):
+    PROFILE = 1
+    GROUP = 2
+
+
 class Resource(db.models.base.Base):
     """A resource is anything for which permissions can be tracked individually.
 
@@ -41,21 +53,79 @@ class Resource(db.models.base.Base):
     # This string is used for grouping resources of the same type.
     # E.g., for package entities: 'data', 'metadata'
     type = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
+
     rules = sqlalchemy.orm.relationship(
         'Rule',
         back_populates='resource',
-        cascade_backrefs=False,
-        cascade='all, delete-orphan',
+        #     cascade_backrefs=False,
+        #     cascade='all, delete-orphan',
     )
+
     parent = sqlalchemy.orm.relationship(
         'Resource', remote_side=[id], lazy='select'
     )
 
-class PermissionLevel(enum.Enum):
-    NONE = 0
-    READ = 1
-    WRITE = 2
-    CHANGE = 3  # changePermission
+
+class Principal(db.models.base.Base):
+    """A principal maps a principal identifier to a user profile or user group."""
+
+    __tablename__ = 'principal'
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    # The user profile or user group represented by this principal.
+    subject_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, index=True)
+    # The type of the entity (enum of PROFILE or GROUP).
+    subject_type = sqlalchemy.Column(sqlalchemy.Enum(SubjectType), nullable=False, index=True)
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('subject_id', 'subject_type', name='subject_id_type_unique'),
+    )
+
+    rules = sqlalchemy.orm.relationship(
+        'Rule',
+        back_populates='principal',
+        #     # cascade_backrefs=False,
+        #     # cascade='all, delete-orphan',
+    )
+
+
+class Rule(db.models.base.Base):
+    """A rule is a permission granted to a principal (user profile or user group) on a resource."""
+
+    __tablename__ = 'rule'
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    # The resource to which this permission applies.
+    resource_id = sqlalchemy.Column(
+        sqlalchemy.Integer, sqlalchemy.ForeignKey('resource.id'), nullable=False, index=True
+    )
+    # The principal (user profile or user group) to which the permission is granted.
+    # principal_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, index=True)
+    principal_id = sqlalchemy.Column(
+        sqlalchemy.Integer, sqlalchemy.ForeignKey('principal.id'), nullable=False, index=True
+    )
+    # The access level granted by this permission (enum of READ, WRITE or CHANGE).
+    permission = sqlalchemy.Column(sqlalchemy.Enum(PermissionLevel), nullable=False, default=1)
+    # The date and time this permission was granted.
+    granted_date = sqlalchemy.Column(
+        sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now
+    )
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('resource_id', 'principal_id', name='resource_profile_unique'),
+    )
+
+    resource = sqlalchemy.orm.relationship(
+        'Resource',
+        back_populates='rules',
+        # cascade_backrefs=False,
+        # passive_deletes=True,
+    )
+
+    principal = sqlalchemy.orm.relationship(
+        'Principal',
+        back_populates='rules',
+    )
+
+    # cascade_backrefs=False,
+    # delete-orphan cascade is normally configured only on the "one" side of a one-to-many relationship
+    # cascade='all, delete-orphan',
 
 
 PERMISSION_LEVEL_STRING_TO_ENUM_DICT = {
@@ -134,66 +204,3 @@ def get_subject_type_enum(subject_type):
     """Like get_permission_level_enum()"""
     s = subject_type
     return s if isinstance(s, SubjectType) else SubjectType[s]
-
-
-class SubjectType(enum.Enum):
-    PROFILE = 1
-    GROUP = 2
-
-
-class Rule(db.models.base.Base):
-    """A rule is a permission granted to a principal (user profile or user group) on a resource."""
-
-    __tablename__ = 'rule'
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    # The resource to which this permission applies.
-    resource_id = sqlalchemy.Column(
-        sqlalchemy.Integer, sqlalchemy.ForeignKey('resource.id'), nullable=False, index=True
-    )
-    # The principal (user profile or user group) to which the permission is granted.
-    # principal_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, index=True)
-    principal_id = sqlalchemy.Column(
-        sqlalchemy.Integer, sqlalchemy.ForeignKey('principal.id'), nullable=False, index=True
-    )
-    # The access level granted by this permission (enum of READ, WRITE or CHANGE).
-    permission = sqlalchemy.Column(sqlalchemy.Enum(PermissionLevel), nullable=False, default=1)
-    # The date and time this permission was granted.
-    granted_date = sqlalchemy.Column(
-        sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now
-    )
-    __table_args__ = (
-        sqlalchemy.UniqueConstraint('resource_id', 'principal_id', name='resource_profile_unique'),
-    )
-    resource = sqlalchemy.orm.relationship(
-        'Resource',
-        back_populates='rules',
-        # cascade_backrefs=False,
-        passive_deletes=True,
-    )
-    principal = sqlalchemy.orm.relationship(
-        'Principal',
-        back_populates='rules',
-        # cascade_backrefs=False,
-        # delete-orphan cascade is normally configured only on the "one" side of a one-to-many relationship
-        # cascade='all, delete-orphan',
-    )
-
-
-class Principal(db.models.base.Base):
-    """A principal maps a principal identifier to a user profile or user group."""
-
-    __tablename__ = 'principal'
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    # The user profile or user group represented by this principal.
-    subject_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, index=True)
-    # The type of the entity (enum of PROFILE or GROUP).
-    subject_type = sqlalchemy.Column(sqlalchemy.Enum(SubjectType), nullable=False, index=True)
-    __table_args__ = (
-        sqlalchemy.UniqueConstraint('subject_id', 'subject_type', name='subject_id_type_unique'),
-    )
-    rules = sqlalchemy.orm.relationship(
-        'Rule',
-        back_populates='principal',
-        # cascade_backrefs=False,
-        # cascade='all, delete-orphan',
-    )

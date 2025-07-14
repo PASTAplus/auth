@@ -59,15 +59,19 @@ class Profile(db.models.base.Base):
         cascade_backrefs=False,
         cascade='all, delete-orphan',
     )
-    # One-way relationship to the db.models.permission.Principal table.
+    # One-to-one relationship to the db.models.permission.Principal table.
     principal = sqlalchemy.orm.relationship(
         'db.models.permission.Principal',
         cascade_backrefs=False,
         cascade='all, delete-orphan',
         foreign_keys='db.models.permission.Principal.subject_id',
         primaryjoin=(
-            "and_(db.models.permission.Principal.subject_id == db.models.profile.Profile.id, db.models.permission.Principal.subject_type == 'PROFILE')"
+            "and_("
+            "   db.models.permission.Principal.subject_id == db.models.profile.Profile.id, "
+            "   db.models.permission.Principal.subject_type == 'PROFILE'"
+            ")"
         ),
+        uselist=False,
     )
 
     @property

@@ -1,11 +1,40 @@
+"""Build a tree from a flat list of resources.
+
+- Each resource can be standalone or a member of a tree.
+- A standalone resource has parent_key=None, and no other resources have it as their parent_key
+- A resource that is part of a tree has a parent_key that is the key of another resource
+- Our current approach to assembling resources into a list of trees uses several steps:
+    - Two recursive DB functions are used for finding the resource IDs of all the resources that are
+    in the same tree as the given resource
+        - This step ignores ACRs, and all IDs are returned. That's because we need to visit all the
+        nodes in the tree in order to find descendants
+    - A plain list of all the discovered resource IDs are bundled together in no specific order
+    - A flat DB function selects and returns a join of (resource, group, principal, profile, group)
+        - This function also filters the resources by the ACRs of the token, so that only resources
+        that the token has at least READ on are returned.
+    - A Python function iterates over the join result and first builds a flat list of resources,
+        - Then, in a second step, assigns children to their parents, creating recursive structure
+        (the function itself is not recursive)
+    - Resources that have a parent which the token does not have at least READ on, are handled by
+    dropping them down to the root level. These should not occur in a valid DB, as a child can
+    only be added to a parent if the profile has WRITE on the parent.
+    - Finally, the roots of all the trees are collected into a list, which is returned.
+"""
+
 import pprint
 
 import db.models.permission
 from config import Config
 
 
-def get_resource_tree_for_ui(resource_query):
-    tree_list = _get_resource_tree(resource_query)
+def get_resource_tree_for_ui(resource_iter):
+    """Get a tree of resources with permissions as a list of nested dicts.
+    This function filters the resources for use in the UI.
+
+    resource_iter: An iterable of tuples of:
+        (resource_row, rule_row, principal_row, profile_row, group_row)
+    """
+    tree_list = _get_resource_tree(resource_iter)
 
     def build_nodes(resource_dict):
         r = resource_dict
@@ -55,8 +84,14 @@ def get_resource_tree_for_ui(resource_query):
     return tree_list
 
 
-def get_resource_tree_for_api(resource_query, include_principals=False):
-    tree_list = _get_resource_tree(resource_query)
+def get_resource_tree_for_api(resource_iter, include_principals=False):
+    """Get a tree of resources with permissions as a list of nested dicts.
+    This function filters the resources for use in the API.
+
+    resource_iter: An iterable of tuples of:
+        (resource_row, rule_row, principal_row, profile_row, group_row)
+    """
+    tree_list = _get_resource_tree(resource_iter)
     for resource_dict in tree_list:
         walk_recursive(resource_dict, include_principals)
     return tree_list
@@ -99,10 +134,7 @@ def _prune_dict(d, keep_key_set):
             del d[have_key]
 
 
-# noinspection PyProtectedMember
-# ._mapping used below is a private attribute of the SQLAlchemy Row object, but is commonly used
-# in client code.
-def _get_resource_tree(resource_query):
+def _get_resource_tree(resource_iter):
     """Get a tree of resources with permissions as a list of nested dicts."""
     tree_dict = {}
 
@@ -113,7 +145,7 @@ def _get_resource_tree(resource_query):
         principal_row,
         profile_row,
         group_row,
-    ) in resource_query:
+    ) in resource_iter:
         assert (profile_row is None) != (
             group_row is None
         ), 'db.models.profile.Profile OR db.models.profile.Group must be present'

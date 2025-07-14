@@ -12,7 +12,7 @@ from config import Config
 
 async def init_system_objects(dbi):
     await _drop_and_create_tables(dbi)
-    await _create_function_get_resource_tree(dbi)
+    await _create_function_get_resource_descendants(dbi)
     await _create_function_get_resource_ancestors(dbi)
     await _create_sync_triggers(dbi)
     await _create_system_profiles(dbi)
@@ -52,9 +52,9 @@ async def _create_system_profiles(dbi):
         ),
     ):
         await dbi.create_profile(
-            edi_id=edi_id,
             common_name=common_name,
             has_avatar=True,
+            edi_id=edi_id,
         )
         util.avatar.init_system_avatar(edi_id, avatar_path)
 
@@ -73,7 +73,7 @@ async def _create_system_groups(dbi):
         ),
     ):
         profile_row = await dbi.get_profile(owner_edi_id)
-        await dbi.create_group(profile_row, name, description, owner_edi_id)
+        await dbi.create_group(profile_row, name, description, group_edi_id)
 
 
 async def _create_function_get_resource_ancestors(dbi):
@@ -106,12 +106,12 @@ async def _create_function_get_resource_ancestors(dbi):
     )
 
 
-async def _create_function_get_resource_tree(dbi):
-    """Create a function to get the resource tree starting from a given root resource ID."""
+async def _create_function_get_resource_descendants(dbi):
+    """Create a function to get the resource tree starting from a given resource ID."""
     await dbi.execute(
         sqlalchemy.text(
             """
-            create or replace function get_resource_tree(node_ids integer[])
+            create or replace function get_resource_descendants(node_ids integer[])
             returns table(id integer, label varchar, type varchar, parent_id integer)
             language plpgsql
             as $body$

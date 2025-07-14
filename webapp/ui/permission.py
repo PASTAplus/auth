@@ -65,10 +65,17 @@ async def post_permission_resource_filter(
 ):
     """Called when user types in the resource search filter and when the page is first opened."""
     query_dict = await request.json()
-    resource_query = await dbi.get_resource_list(
+    resource_iter = await dbi.get_resource_list(
         token_profile_row, query_dict.get('query'), query_dict.get('type') or None
     )
-    resource_tree = db.resource_tree.get_resource_tree_for_ui(resource_query)
+    # TODO: Switch to using the generator
+    # resource_list = [
+    #     r
+    #     async for r in dbi.get_permission_generator(
+    #         token_profile_row, resource_id_list, db.models.permission.PermissionLevel.READ
+    #     )
+    # ]
+    resource_tree = db.resource_tree.get_resource_tree_for_ui(resource_iter)
     # pprint.pp(resource_tree)
     return starlette.responses.JSONResponse(
         {
@@ -82,10 +89,13 @@ async def post_permission_resource_filter(
 async def post_permission_aggregate_get(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """Called when the user changes a resource check box in the resource tree."""
     resource_list = await request.json()
-    permission_generator = dbi.get_permission_generator(resource_list)
+    permission_generator = dbi.get_permission_generator(
+        token_profile_row, resource_list, db.models.permission.PermissionLevel.CHANGE
+    )
     permission_list = await get_aggregate_permission_list(dbi, permission_generator)
     return starlette.responses.JSONResponse(
         {

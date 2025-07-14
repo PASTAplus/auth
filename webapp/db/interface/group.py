@@ -49,13 +49,13 @@ class GroupInterface:
         principal_row = await self.get_principal_by_subject(
             token_profile_row.id, db.models.permission.SubjectType.PROFILE
         )
-        await self.create_or_update_permission(
+        await self.create_or_update_rule(
             resource_row,
             principal_row,
             db.models.permission.PermissionLevel.CHANGE,
         )
         await self.flush()
-        return new_group_row
+        return new_group_row, resource_row
 
     # async def assert_has_group_ownership(self, token_profile_row, group_row):
     #     """Assert that the given profile owns the group."""

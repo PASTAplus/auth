@@ -91,7 +91,6 @@ class DbInterface(
 
         if identity_row is None:
             profile_row = await self.create_profile(
-                edi_id=db.interface.util.get_new_edi_id(),
                 common_name=common_name,
                 email=email,
                 has_avatar=has_avatar,

@@ -41,11 +41,19 @@ class Group(db.models.base.Base):
         cascade_backrefs=False,
         cascade='all, delete-orphan',
     )
+
     profile = sqlalchemy.orm.relationship(
         'db.models.profile.Profile',
         back_populates='groups',
         cascade_backrefs=False,
     )
+
+
+
+
+    # rules = sqlalchemy.orm.relationship('Rule', back_populates='resource')
+
+
 
     # @sqlalchemy.ext.hybrid.hybrid_property
     # def member_count(self):

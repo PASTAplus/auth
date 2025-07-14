@@ -45,7 +45,7 @@ async def post_v1_resource(
             request, api_method, f'Missing field in JSON in request body: {e}'
         )
     # Check that the resource does not already exist
-    resource_row = await dbi.get_resource_by_key(resource_key)
+    resource_row = await dbi.get_resource(resource_key)
     if resource_row:
         return api.utils.get_response_400_bad_request(
             request, api_method, f'Resource already exists', resource_key=resource_key
@@ -53,7 +53,7 @@ async def post_v1_resource(
     # Check that parent exists and is owned by the profile, if provided
     parent_id = None
     if parent_key:
-        parent_row = await dbi.get_resource_by_key(parent_key)
+        parent_row = await dbi.get_resource(parent_key)
         if not parent_row:
             return api.utils.get_response_404_not_found(
                 request,
@@ -77,7 +77,7 @@ async def post_v1_resource(
     )
     resource_row = await dbi.create_resource(parent_id, resource_key, label, type_str)
     # Create default CHANGE permission for the profile on the resource
-    await dbi.create_or_update_permission(
+    await dbi.create_or_update_rule(
         resource_row,
         principal_row,
         db.models.permission.PermissionLevel.CHANGE,
@@ -116,7 +116,7 @@ async def get_v1_resource_authorized(
             'Mst be one of: read, write, or changePermission.',
         )
     # Check if the resource exists
-    resource_row = await dbi.get_resource_by_key(resource_key)
+    resource_row = await dbi.get_resource(resource_key)
     if not resource_row:
         return api.utils.get_response_404_not_found(
             request, api_method, 'Resource does not exist', resource_key=resource_key
@@ -154,7 +154,7 @@ async def get_v1_resource(
     if token_profile_row is None:
         return api.utils.get_response_401_unauthorized(request, api_method)
     # Check if the resource exists
-    resource_row = await dbi.get_resource_by_key(resource_key)
+    resource_row = await dbi.get_resource(resource_key)
     if not resource_row:
         return api.utils.get_response_404_not_found(
             request, api_method, 'Resource does not exist', resource_key=resource_key
@@ -196,7 +196,7 @@ async def get_v1_resource(
     if token_profile_row is None:
         return api.utils.get_response_401_unauthorized(request, api_method)
     # Retrieve if exists
-    resource_row = await dbi.get_resource_by_key(resource_key)
+    resource_row = await dbi.get_resource(resource_key)
     if not resource_row:
         return api.utils.get_response_404_not_found(
             request, api_method, 'Resource does not exist', resource_key=resource_key
@@ -213,15 +213,17 @@ async def get_v1_resource(
         )
     # Find all ancestors and descendants of the resource
     resource_id_list = []
-    for ancestor_id in await dbi.get_resource_ancestors(token_profile_row, [resource_row.id]):
+    for ancestor_id in await dbi.get_resource_ancestors_id_set([resource_row.id]):
         resource_id_list.append(ancestor_id)
-    for descendant_id in await dbi.get_resource_descendants(token_profile_row, [resource_row.id]):
+    for descendant_id in await dbi.get_resource_descendants_id_set([resource_row.id]):
         resource_id_list.append(descendant_id)
-    resource_list = [r async for r in dbi.get_permission_generator(resource_id_list)]
+    resource_list = [
+        r
+        async for r in dbi.get_permission_generator(
+            token_profile_row, resource_id_list, db.models.permission.PermissionLevel.READ
+        )
+    ]
     resource_tree = db.resource_tree.get_resource_tree_for_api(resource_list)
-
-    # pprint.pp(resource_tree)
-    # log.error(json.dumps(resource_tree, indent=2))
     return api.utils.get_response_200_ok(
         request, api_method, 'Resource tree retrieved successfully', tree=resource_tree
     )
@@ -261,7 +263,7 @@ async def update_v1_resource(
             'Must provide resource_label and/or resource_type fields for update',
         )
     # Check that the resource exists
-    resource_row = await dbi.get_resource_by_key(resource_key)
+    resource_row = await dbi.get_resource(resource_key)
     if not resource_row:
         return api.utils.get_response_404_not_found(
             request, api_method, f'Resource does not exist', resource_key=resource_key
@@ -288,7 +290,7 @@ async def delete_v1_resource(
     if token_profile_row is None:
         return api.utils.get_response_401_unauthorized(request, api_method)
     # Check that the resource exists
-    resource_row = await dbi.get_resource_by_key(resource_key)
+    resource_row = await dbi.get_resource(resource_key)
     if not resource_row:
         return api.utils.get_response_404_not_found(
             request, api_method, f'Resource does not exist', resource_key=resource_key

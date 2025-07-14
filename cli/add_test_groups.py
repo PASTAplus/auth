@@ -50,7 +50,7 @@ async def insert_groups(dbi, profile_row, profile_row_list):
     group_count = random.randrange(0, 5)
     for group_idx in range(group_count):
         group_name = f'{profile_row.common_name}\'s group #{group_idx}'
-        group_row = await dbi.create_group(profile_row, group_name, None)
+        group_row, _ = await dbi.create_group(profile_row, group_name, None)
         await insert_members(dbi, group_row, profile_row_list)
         # await insert_permission(dbi, group_row, profile_row)
 
@@ -94,7 +94,7 @@ async def get_profile_rows(dbi):
 #
 #     principal_row = await dbi.get_principal_by_profile(profile_row)
 #
-#     dbi._create_or_update_permission(
+#     dbi._create_or_update_rule(
 #         new_resource_row,
 #         principal_row,
 #         db.models.permission.PermissionLevel.CHANGE,
