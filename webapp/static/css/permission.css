@@ -1,3 +1,8 @@
+:root {
+    /* Path for the expand/collapse SVG icon used in the resource tree */
+    --expand-collapse-path: '';
+}
+
 /*
 Main grid
 */
@@ -387,7 +392,7 @@ Principal search
 
 .tree summary::before {
     z-index: 1;
-    background: #0075ff url('/static/svg/expand-collapse.svg') 0 0;
+    background: #0075ff var(--expand-collapse-path) 0 0;
 }
 
 .tree details[open] > summary::before {

@@ -36,6 +36,9 @@ let principalArray = [];
 //  Initial setup
 //
 
+// Set the path for the expand/collapse SVG icon used in the resource tree
+document.documentElement.style.setProperty('--expand-collapse-path',
+    `url('${ROOT_PATH}/static/svg/expand-collapse.svg')`);
 fetchResources();
 
 //
@@ -486,7 +489,8 @@ function isSomeChecked(rootEl)
 //
 
 // Capture the open/closed and checked state of each node
-function saveTreeState() {
+function saveTreeState()
+{
   const state = {};
   const detailsEls = document.querySelectorAll('.tree-details');
   detailsEls.forEach(detailsEl => {
@@ -498,7 +502,8 @@ function saveTreeState() {
 }
 
 // Apply the saved state to the tree
-function restoreTreeState(state) {
+function restoreTreeState(state)
+{
   const detailsEls = document.querySelectorAll('.tree-details');
   detailsEls.forEach(detailsEl => {
     const checkboxEl = detailsEl.querySelector('.tree-checkbox');
