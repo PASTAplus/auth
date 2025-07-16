@@ -6,8 +6,8 @@ import sqlalchemy.ext.asyncio
 import sqlalchemy.orm
 
 import db.interface.util
-import db.models.group
-import db.models.permission
+from db.models.group import Group, GroupMember
+from db.models.permission import SubjectType, Resource, Rule, PermissionLevel, Principal
 
 log = daiquiri.getLogger(__name__)
 
@@ -28,7 +28,7 @@ class GroupInterface:
         for the group owner on the group resource.
         """
         edi_id = edi_id or db.interface.util.get_new_edi_id()
-        new_group_row = db.models.group.Group(
+        new_group_row = Group(
             edi_id=edi_id,
             profile=token_profile_row,
             name=group_name,
@@ -39,7 +39,7 @@ class GroupInterface:
         # Create the principal for the group. The principal gives us a single ID, the principal ID,
         # to use when referencing the group in rules for other resources. This principal is not
         # needed when creating the group and associated resource.
-        await self._add_principal(new_group_row.id, db.models.permission.SubjectType.GROUP)
+        await self._add_principal(new_group_row.id, SubjectType.GROUP)
         # Create a top level resource for tracking permissions on the group. We use the group EDI-ID
         # as the resource key. Since it's impossible to predict what the EDI-ID will be for a new
         # group, it's not possible to create resources that would interfere with groups created
@@ -47,12 +47,12 @@ class GroupInterface:
         resource_row = await self.create_resource(None, edi_id, group_name, 'group')
         # Create a permission for the group owner on the group resource.
         principal_row = await self.get_principal_by_subject(
-            token_profile_row.id, db.models.permission.SubjectType.PROFILE
+            token_profile_row.id, SubjectType.PROFILE
         )
         await self.create_or_update_rule(
             resource_row,
             principal_row,
-            db.models.permission.PermissionLevel.CHANGE,
+            PermissionLevel.CHANGE,
         )
         await self.flush()
         return new_group_row, resource_row
@@ -68,26 +68,24 @@ class GroupInterface:
         """
         result = await self.execute(
             (
-                sqlalchemy.select(db.models.group.Group)
+                sqlalchemy.select(Group)
                 .join(
-                    db.models.permission.Resource,
-                    db.models.permission.Resource.key == db.models.group.Group.edi_id,
+                    Resource,
+                    Resource.key == Group.edi_id,
                 )
                 .join(
-                    db.models.permission.Rule,
-                    db.models.permission.Rule.resource_id == db.models.permission.Resource.id,
+                    Rule,
+                    Rule.resource_id == Resource.id,
                 )
                 .join(
-                    db.models.permission.Principal,
-                    db.models.permission.Principal.id == db.models.permission.Rule.principal_id,
+                    Principal,
+                    Principal.id == Rule.principal_id,
                 )
                 .where(
-                    db.models.group.Group.id == group_id,
-                    db.models.permission.Principal.subject_id == token_profile_row.id,
-                    db.models.permission.Principal.subject_type
-                    == db.models.permission.SubjectType.PROFILE,
-                    db.models.permission.Rule.permission
-                    >= db.models.permission.PermissionLevel.WRITE,
+                    Group.id == group_id,
+                    Principal.subject_id == token_profile_row.id,
+                    Principal.subject_type == SubjectType.PROFILE,
+                    Rule.permission >= PermissionLevel.WRITE,
                 )
             )
         )
@@ -113,11 +111,7 @@ class GroupInterface:
         # Check that group is owned by the token profile.
         group_row = await self.get_group(token_profile_row, group_id)
         # Delete group members
-        await self.execute(
-            sqlalchemy.delete(db.models.group.GroupMember).where(
-                db.models.group.GroupMember.group == group_row
-            )
-        )
+        await self.execute(sqlalchemy.delete(GroupMember).where(GroupMember.group == group_row))
         # Delete the group
         await self._session.delete(group_row)
         # Remove associated resource
@@ -129,7 +123,7 @@ class GroupInterface:
         """
         # Check that group is owned by the profile
         group_row = await self.get_group(token_profile_row, group_id)
-        new_member_row = db.models.group.GroupMember(
+        new_member_row = GroupMember(
             group=group_row,
             profile_id=member_profile_id,
         )
@@ -143,9 +137,9 @@ class GroupInterface:
         # Check that group is owned by the token profile.
         group_row = await self.get_group(token_profile_row, group_id)
         result = await self.execute(
-            sqlalchemy.select(db.models.group.GroupMember).where(
-                db.models.group.GroupMember.group == group_row,
-                db.models.group.GroupMember.profile_id == member_profile_id,
+            sqlalchemy.select(GroupMember).where(
+                GroupMember.group == group_row,
+                GroupMember.profile_id == member_profile_id,
             )
         )
         member_row = result.scalar()
@@ -162,9 +156,9 @@ class GroupInterface:
         # Check that group is owned by the token profile.
         group_row = await self.get_group(token_profile_row, group_id)
         result = await self.execute(
-            sqlalchemy.select(db.models.group.GroupMember)
-            .options(sqlalchemy.orm.selectinload(db.models.group.GroupMember.profile))
-            .where(db.models.group.GroupMember.group == group_row)
+            sqlalchemy.select(GroupMember)
+            .options(sqlalchemy.orm.selectinload(GroupMember.profile))
+            .where(GroupMember.group == group_row)
         )
         return result.scalars().all()
 
@@ -175,8 +169,8 @@ class GroupInterface:
         # Check that group is owned by the token profile.
         group_row = await self.get_group(token_profile_row, group_id)
         result = await self.execute(
-            sqlalchemy.select(sqlalchemy.func.count(db.models.group.GroupMember.id)).where(
-                db.models.group.GroupMember.group == group_row
+            sqlalchemy.select(sqlalchemy.func.count(GroupMember.id)).where(
+                GroupMember.group == group_row
             )
         )
         return result.scalar_one_or_none() or 0
@@ -185,13 +179,13 @@ class GroupInterface:
         """Get the groups that this profile is a member of."""
         result = await self.execute(
             (
-                sqlalchemy.select(db.models.group.Group)
+                sqlalchemy.select(Group)
                 .options(
                     # sqlalchemy.orm.selectinload(db.models.group.GroupMember.group),
-                    sqlalchemy.orm.joinedload(db.models.group.Group.profile),
+                    sqlalchemy.orm.joinedload(Group.profile),
                 )
-                .join(db.models.group.GroupMember)
-                .where(db.models.group.GroupMember.profile_id == token_profile_row.id)
+                .join(GroupMember)
+                .where(GroupMember.profile_id == token_profile_row.id)
             )
         )
         return result.scalars().all()
@@ -207,11 +201,11 @@ class GroupInterface:
         it performs different checks.
         """
         result = await self.execute(
-            sqlalchemy.select(db.models.group.GroupMember)
-            .options(sqlalchemy.orm.selectinload(db.models.group.GroupMember.group))
+            sqlalchemy.select(GroupMember)
+            .options(sqlalchemy.orm.selectinload(GroupMember.group))
             .where(
-                db.models.group.GroupMember.group_id == group_id,
-                db.models.group.GroupMember.profile_id == token_profile_row.id,
+                GroupMember.group_id == group_id,
+                GroupMember.profile_id == token_profile_row.id,
             )
         )
         member_row = result.scalar()
@@ -223,13 +217,13 @@ class GroupInterface:
     async def get_all_groups_generator(self):
         result = await self._session.stream(
             (
-                sqlalchemy.select(db.models.group.Group)
-                .options(sqlalchemy.orm.joinedload(db.models.group.Group.profile))
+                sqlalchemy.select(Group)
+                .options(sqlalchemy.orm.joinedload(Group.profile))
                 .order_by(
-                    db.models.group.Group.name,
-                    db.models.group.Group.description,
-                    sqlalchemy.asc(db.models.group.Group.created),
-                    db.models.group.Group.id,
+                    Group.name,
+                    Group.description,
+                    sqlalchemy.asc(Group.created),
+                    Group.id,
                 )
             )
         )
@@ -240,31 +234,29 @@ class GroupInterface:
         """Get the groups on which this profile has WRITE or CHANGE permissions."""
         result = await self.execute(
             (
-                sqlalchemy.select(db.models.group.Group)
+                sqlalchemy.select(Group)
                 .join(
-                    db.models.permission.Resource,
-                    db.models.permission.Resource.key == db.models.group.Group.edi_id,
+                    Resource,
+                    Resource.key == Group.edi_id,
                 )
                 .join(
-                    db.models.permission.Rule,
-                    db.models.permission.Rule.resource_id == db.models.permission.Resource.id,
+                    Rule,
+                    Rule.resource_id == Resource.id,
                 )
                 .join(
-                    db.models.permission.Principal,
-                    db.models.permission.Principal.id == db.models.permission.Rule.principal_id,
+                    Principal,
+                    Principal.id == Rule.principal_id,
                 )
                 .where(
-                    db.models.permission.Principal.subject_id == token_profile_row.id,
-                    db.models.permission.Principal.subject_type
-                    == db.models.permission.SubjectType.PROFILE,
-                    db.models.permission.Rule.permission
-                    >= db.models.permission.PermissionLevel.WRITE,
+                    Principal.subject_id == token_profile_row.id,
+                    Principal.subject_type == SubjectType.PROFILE,
+                    Rule.permission >= PermissionLevel.WRITE,
                 )
                 .order_by(
-                    db.models.group.Group.name,
-                    db.models.group.Group.description,
-                    sqlalchemy.asc(db.models.group.Group.created),
-                    db.models.group.Group.id,
+                    Group.name,
+                    Group.description,
+                    sqlalchemy.asc(Group.created),
+                    Group.id,
                 )
             )
         )
