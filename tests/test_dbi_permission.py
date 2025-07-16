@@ -103,7 +103,7 @@ async def test_get_resource_descendants(populated_dbi):
     assert received_id_set == expected_id_set
 
 
-async def test_get_permission_generator_1(populated_dbi, john_profile_row):
+async def test_get_resource_generator_1(populated_dbi, john_profile_row):
     """Test permission generator filtering. It should only return resources which the caller has
     the given permission on.
     """
@@ -115,7 +115,7 @@ async def test_get_permission_generator_1(populated_dbi, john_profile_row):
     # John cannot retrieve permissions for 'r0'
     rows = [
         row
-        async for row in populated_dbi.get_permission_generator(
+        async for row in populated_dbi.get_resource_generator(
             john_profile_row, (resource_row.id,), db.models.permission.PermissionLevel.READ
         )
     ]
@@ -129,7 +129,7 @@ async def test_get_permission_generator_1(populated_dbi, john_profile_row):
     # John can now retrieve permissions for 'r0' at 'read' level
     rows = [
         row
-        async for row in populated_dbi.get_permission_generator(
+        async for row in populated_dbi.get_resource_generator(
             john_profile_row, (resource_row.id,), db.models.permission.PermissionLevel.READ
         )
     ]
@@ -137,7 +137,7 @@ async def test_get_permission_generator_1(populated_dbi, john_profile_row):
     # John cannot retrieve permissions for 'r0' at write level
     rows = [
         row
-        async for row in populated_dbi.get_permission_generator(
+        async for row in populated_dbi.get_resource_generator(
             john_profile_row, (resource_row.id,), db.models.permission.PermissionLevel.WRITE
         )
     ]
@@ -151,7 +151,7 @@ async def test_get_resource_tree_for_ui(populated_dbi, john_profile_row):
     # Get permissions for John on all resources at 'read' level
     rows = [
         row
-        async for row in populated_dbi.get_permission_generator(
+        async for row in populated_dbi.get_resource_generator(
             john_profile_row, resource_id_list, db.models.permission.PermissionLevel.READ
         )
     ]
@@ -166,7 +166,7 @@ async def test_get_resource_tree_for_api(populated_dbi, john_profile_row):
     # Get permissions for John on all resources at 'read' level
     rows = [
         row
-        async for row in populated_dbi.get_permission_generator(
+        async for row in populated_dbi.get_resource_generator(
             john_profile_row, resource_id_list, db.models.permission.PermissionLevel.READ
         )
     ]

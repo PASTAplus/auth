@@ -52,7 +52,6 @@ async def insert_groups(dbi, profile_row, profile_row_list):
         group_name = f'{profile_row.common_name}\'s group #{group_idx}'
         group_row, _ = await dbi.create_group(profile_row, group_name, None)
         await insert_members(dbi, group_row, profile_row_list)
-        # await insert_permission(dbi, group_row, profile_row)
 
 
 async def insert_members(dbi, group_row, profile_row_list):
@@ -78,27 +77,6 @@ async def get_profile_rows(dbi):
         .scalars()
         .all()
     )
-
-
-# async def insert_permission(dbi, group_row, profile_row):
-#     """Insert a resource and rule for tracking permissions for a group."""
-#     new_resource_row = await dbi.create_resource(
-#         parent_id=None,
-#         key=group_row.edi_id,
-#         # type_str='group',
-#         # label=f'Owner: {profile_row.common_name}',
-#         type_str=f'Owner: {profile_row.common_name}',
-#         label='group',
-#     )
-#     await dbi.flush()
-#
-#     principal_row = await dbi.get_principal_by_profile(profile_row)
-#
-#     dbi._create_or_update_rule(
-#         new_resource_row,
-#         principal_row,
-#         db.models.permission.PermissionLevel.CHANGE,
-#     )
 
 
 if __name__ == '__main__':

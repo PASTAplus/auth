@@ -19,8 +19,8 @@ pytestmark = [
     # pytest.mark.order(100),
 ]
 
-async def test_ping(client):
-    response = client.get('/v1/ping')
+async def test_ping(anon_client):
+    response = anon_client.get('/v1/ping')
     assert response.status_code == starlette.status.HTTP_200_OK
     assert response.text == 'pong'
 

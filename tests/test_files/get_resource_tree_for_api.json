@@ -29,6 +29,13 @@
                         "principals": [
                             {
                                 "description": null,
+                                "edi_id": "EDI-91a906d3584a473aba1091ebe8999743",
+                                "permission": "WRITE",
+                                "principal_type": "group",
+                                "title": "Jessica's group #1"
+                            },
+                            {
+                                "description": null,
                                 "edi_id": "EDI-451145331e8c4b3e8bc0c0cbeba4c4a0",
                                 "permission": "READ",
                                 "principal_type": "group",
@@ -39,6 +46,13 @@
                 ],
                 "key": "8d1dba03e6424b6dabf3a4fc00446f3b",
                 "principals": [
+                    {
+                        "description": null,
+                        "edi_id": "EDI-376d4d3e43554771a1dd0a0c52050508",
+                        "permission": "CHANGE",
+                        "principal_type": "profile",
+                        "title": "EDI Authentication Service"
+                    },
                     {
                         "description": "john@smith.com",
                         "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
@@ -70,6 +84,13 @@
                 "permission": "READ",
                 "principal_type": "group",
                 "title": "Barbara's group #0"
+            },
+            {
+                "description": "william@thomas.com",
+                "edi_id": "EDI-82de8b029c7948f092bf592d143b5724",
+                "permission": "CHANGE",
+                "principal_type": "profile",
+                "title": "William Thomas"
             }
         ]
     },
@@ -87,6 +108,13 @@
                                 "permission": "WRITE",
                                 "principal_type": "profile",
                                 "title": "John Smith"
+                            },
+                            {
+                                "description": null,
+                                "edi_id": "EDI-55cb3c75e8724c19928943785308ea7b",
+                                "permission": "CHANGE",
+                                "principal_type": "group",
+                                "title": "Robert's group #2"
                             }
                         ]
                     }
@@ -124,6 +152,13 @@
                 "permission": "CHANGE",
                 "principal_type": "profile",
                 "title": "John Smith"
+            },
+            {
+                "description": "sarah@martinez.com",
+                "edi_id": "EDI-e3d2004572074df7a3a9f6f3a65e6bae",
+                "permission": "CHANGE",
+                "principal_type": "profile",
+                "title": "Sarah Martinez"
             }
         ]
     },
@@ -137,6 +172,13 @@
                 "permission": "CHANGE",
                 "principal_type": "profile",
                 "title": "Authenticated Access"
+            },
+            {
+                "description": null,
+                "edi_id": "EDI-3283b7a42aad43bdbb581be31e4e16b1",
+                "permission": "READ",
+                "principal_type": "group",
+                "title": "Christopher's group #2"
             }
         ]
     },
@@ -144,6 +186,13 @@
         "children": [],
         "key": "30569a84390a4635965d5e3e46503134",
         "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-59f854e1bdf54eb69d7292fb0383b49f",
+                "permission": "WRITE",
+                "principal_type": "group",
+                "title": "Jessica's group #3"
+            },
             {
                 "description": null,
                 "edi_id": "EDI-38525873761c4dfc9c45d66002b56f7b",
@@ -163,6 +212,13 @@
                 "permission": "WRITE",
                 "principal_type": "group",
                 "title": "Barbara's group #0"
+            },
+            {
+                "description": "thomas@rodriguez.com",
+                "edi_id": "EDI-225bb610e6f44caeabae38fe24037458",
+                "permission": "CHANGE",
+                "principal_type": "profile",
+                "title": "Thomas Rodriguez"
             }
         ]
     },
@@ -176,6 +232,13 @@
                 "permission": "WRITE",
                 "principal_type": "profile",
                 "title": "Public Access"
+            },
+            {
+                "description": null,
+                "edi_id": "EDI-816eea4da59646559e375c0761c07f60",
+                "permission": "READ",
+                "principal_type": "group",
+                "title": "Richard's group #0"
             }
         ]
     },
@@ -200,6 +263,13 @@
                 "principals": [
                     {
                         "description": null,
+                        "edi_id": "EDI-7a1168bb23dd4581a78965ad2f2663d7",
+                        "permission": "READ",
+                        "principal_type": "group",
+                        "title": "Matthew's group #0"
+                    },
+                    {
+                        "description": null,
                         "edi_id": "EDI-3869e43603964dfa813811c4a648e098",
                         "permission": "CHANGE",
                         "principal_type": "group",
@@ -216,6 +286,13 @@
                 "permission": "CHANGE",
                 "principal_type": "group",
                 "title": "Barbara's group #0"
+            },
+            {
+                "description": null,
+                "edi_id": "EDI-9c4065b1cfa54778a785fd98d88da770",
+                "permission": "WRITE",
+                "principal_type": "group",
+                "title": "James's group #1"
             }
         ]
     },
@@ -229,6 +306,13 @@
                 "permission": "CHANGE",
                 "principal_type": "profile",
                 "title": "Authenticated Access"
+            },
+            {
+                "description": "nancy@lewis.com",
+                "edi_id": "EDI-6c55c51c244643cca67971b25a27b45c",
+                "permission": "WRITE",
+                "principal_type": "profile",
+                "title": "Nancy Lewis"
             }
         ]
     },
@@ -255,6 +339,13 @@
                 "permission": "CHANGE",
                 "principal_type": "group",
                 "title": "Barbara's group #0"
+            },
+            {
+                "description": null,
+                "edi_id": "EDI-ab31874e03ed44449463195577090ed1",
+                "permission": "CHANGE",
+                "principal_type": "group",
+                "title": "Jane's group #3"
             }
         ]
     }
