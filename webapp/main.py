@@ -105,15 +105,6 @@ app.mount(
     name='avatars',
 )
 
-# Support Chromium automatic workspace folders
-# https://chromium.googlesource.com/devtools/devtools-frontend/+/main/docs/ecosystem/automatic_workspace_folders.md
-# Must also update the project path in well-known/appspecific/com.chrome.devtools.json
-app.mount(
-    '/.well-known/appspecific',
-    fastapi.staticfiles.StaticFiles(directory='./webapp/well-known/appspecific'),
-    name='well-known-appspecific',
-)
-
 # Dynamically create routes for serving specific static files
 def create_route(file_path: pathlib.Path):
     """Create a route to serve a specific static file.
@@ -129,10 +120,6 @@ def create_route(file_path: pathlib.Path):
                 status_code=starlette.status.HTTP_404_NOT_FOUND, detail='File not found'
             )
 
-
-# Add routes for all files in the 'site' directory under the static path
-# for file_path in (Config.STATIC_PATH / 'site').iterdir():
-#     create_route(file_path)
 
 # Middleware
 

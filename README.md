@@ -268,3 +268,24 @@ sudo cp localhost.key /etc/ssl/private/
 sudo cp ca.crt /usr/local/share/ca-certificates/
 sudo update-ca-certificates
 ```
+
+## Chromium DevTools integration
+
+Chromium DevTools workfolders allow developers to work with local files directly in the browser. Integration can be set up in DevTools by adding the project root as a workspace folder. This can also be automated by serving a well-known directory containing a configuration file that DevTools recognizes. As seen from the browser, the directory structure should look like this:
+
+`/.well-known/appspecific/com.chrome.devtools.json`
+
+Example `com.chrome.devtools.json`:
+
+```json
+{
+  "workspace": {
+    "root": "/Users/foobar/Projects/my-awesome-web-project",
+    "uuid": "53b029bb-c989-4dca-969b-835fecec3717"
+  }
+}
+```
+
+For details, see:
+
+https://chromium.googlesource.com/devtools/devtools-frontend/+/main/docs/ecosystem/automatic_workspace_folders.md
