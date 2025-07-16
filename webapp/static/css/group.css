@@ -66,9 +66,8 @@ Main grid
     /* Boxes */
     border: 2px solid #d0d0d0;
     border-radius: 5px;
-    margin-left: 1rem;
-    margin-bottom: 1rem;
-    margin-top: 1rem;
+    /* The right margin is to make space for the box-shadow */
+    margin: 1rem 4px 1rem 1rem;
     padding: 1rem;
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
 }

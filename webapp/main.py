@@ -80,8 +80,7 @@ class AvatarFiles(fastapi.staticfiles.StaticFiles):
     """Custom StaticFiles class to set the MIME type for SVG files."""
 
     async def get_response(self, path, scope):
-        """
-        Serve a file with the appropriate MIME type.
+        """Serve a file with the appropriate MIME type.
         If the file is an SVG, set the MIME type to 'image/svg+xml'.
         """
         full_path, stat_result = self.lookup_path(path)
@@ -94,9 +93,7 @@ class AvatarFiles(fastapi.staticfiles.StaticFiles):
         )
 
     async def is_svg(self, path):
-        """
-        Check if the file is an SVG by reading its first few bytes.
-        """
+        """Check if the file is an SVG by reading its first few bytes."""
         with open(path, 'rb') as f:
             return b'<?xml' in f.read(16).lower()
 
@@ -108,10 +105,18 @@ app.mount(
     name='avatars',
 )
 
+# Support Chromium automatic workspace folders
+# https://chromium.googlesource.com/devtools/devtools-frontend/+/main/docs/ecosystem/automatic_workspace_folders.md
+# Must also update the project path in well-known/appspecific/com.chrome.devtools.json
+app.mount(
+    '/.well-known/appspecific',
+    fastapi.staticfiles.StaticFiles(directory='./webapp/well-known/appspecific'),
+    name='well-known-appspecific',
+)
+
 # Dynamically create routes for serving specific static files
 def create_route(file_path: pathlib.Path):
-    """
-    Create a route to serve a specific static file.
+    """Create a route to serve a specific static file.
     If the file is not found, return a 404 error.
     """
 
@@ -126,18 +131,17 @@ def create_route(file_path: pathlib.Path):
 
 
 # Add routes for all files in the 'site' directory under the static path
-for file_path in (Config.STATIC_PATH / 'site').iterdir():
-    create_route(file_path)
+# for file_path in (Config.STATIC_PATH / 'site').iterdir():
+#     create_route(file_path)
 
 # Middleware
 
 
 class RootPathMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
-    """
-    Middleware to set the root path for the application.
-
+    """Middleware to set the root path for the application.
     This middleware ensures that the application routes are agnostic of the root path
     it is being served from. It sets the root_path in the ASGI request scope.
+    In addition, it redirects requests that do not start with the root path to the root path.
     """
 
     async def dispatch(self, request: starlette.requests.Request, call_next):

@@ -71,7 +71,7 @@ async def post_permission_resource_filter(
     # TODO: Switch to using the generator
     # resource_list = [
     #     r
-    #     async for r in dbi.get_permission_generator(
+    #     async for r in dbi.get_resource_generator(
     #         token_profile_row, resource_id_list, db.models.permission.PermissionLevel.READ
     #     )
     # ]
@@ -93,10 +93,10 @@ async def post_permission_aggregate_get(
 ):
     """Called when the user changes a resource check box in the resource tree."""
     resource_list = await request.json()
-    permission_generator = dbi.get_permission_generator(
+    get_resource_generator = dbi.get_resource_generator(
         token_profile_row, resource_list, db.models.permission.PermissionLevel.CHANGE
     )
-    permission_list = await get_aggregate_permission_list(dbi, permission_generator)
+    permission_list = await get_aggregate_permission_list(dbi, get_resource_generator)
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',
@@ -105,7 +105,7 @@ async def post_permission_aggregate_get(
     )
 
 
-async def get_aggregate_permission_list(dbi, permission_generator):
+async def get_aggregate_permission_list(dbi, get_resource_generator):
     principal_dict = {}
 
     async for (
@@ -114,7 +114,7 @@ async def get_aggregate_permission_list(dbi, permission_generator):
         principal_row,
         profile_row,
         group_row,
-    ) in permission_generator:
+    ) in get_resource_generator:
         if profile_row is not None:
             # Principal is a profile
             assert group_row is None, 'Profile and group cannot join on same row'
