@@ -1,5 +1,9 @@
+import logging
+import time
+
 import daiquiri
 import sqlalchemy.ext.asyncio
+import sqlalchemy
 
 from config import Config
 
@@ -23,8 +27,23 @@ async_engine = sqlalchemy.ext.asyncio.create_async_engine(
     max_overflow=Config.DB_MAX_OVERFLOW,
 )
 
+
+# Event listener to log query execution time
+@sqlalchemy.event.listens_for(async_engine.sync_engine, 'before_cursor_execute')
+def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+    context._query_start_time = time.time()
+    # logging.info(f'Starting query: {statement}')
+
+@sqlalchemy.event.listens_for(async_engine.sync_engine, 'after_cursor_execute')
+def after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+    total_time = time.time() - context._query_start_time
+    logging.info(f'Query: {statement}')
+    logging.info(f'Parameters: {parameters}')
+    logging.info(f'Completed in {total_time:.2f} seconds')
+
 # Session factory. Each request gets its own session object, which is created and closed within the
 # request lifecycle.
 AsyncSessionFactory = sqlalchemy.ext.asyncio.async_sessionmaker(
     autocommit=False, autoflush=False, bind=async_engine
 )
+

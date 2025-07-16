@@ -1,5 +1,5 @@
 """Create system objects in the database, such as triggers and functions. Also creates the system
-profiles and groups for the Service, Public and Authenticated users.
+profiles and groups for the Service, Public and Authenticated profiles.
 """
 
 import sqlalchemy
@@ -31,7 +31,7 @@ async def _drop_and_create_tables(dbi):
 
 
 async def _create_system_profiles(dbi):
-    """Create the system profiles for the Public and Authenticated users. This is a no-op for
+    """Create the system profiles for the Public and Authenticated profiles. This is a no-op for
     profiles that already exist.
     """
     for edi_id, common_name, avatar_path in (
@@ -60,8 +60,7 @@ async def _create_system_profiles(dbi):
 
 
 async def _create_system_groups(dbi):
-    """Create the system groups for the Public and Authenticated users. This is a no-op for
-    groups that already exist.
+    """Create the system groups, currently just the Vetted group.
     """
     for owner_edi_id, group_edi_id, name, description, avatar_path in (
         (

@@ -1,5 +1,15 @@
 """Permission interface for managing resources and permissions in the database.
 
+Some terms:
+
+    - Resource: An object that can have permissions associated with it
+    - Principal: An entity (currently a Profile or a Group) that can be granted access to a resource
+    - Profile: A principal which holds user profile information
+    - Group: A principal which holds a group of profiles
+    - Rule / Permission: An access control rule that grants access to a principal for a resource at
+        a certain level (READ, WRITE, CHANGE).
+    - Permission Level: The level of access granted by a permission (READ, WRITE, CHANGE).
+    
 The resources of interest will always be a cross-section of:
 
     - a set of resources (e.g., a single resource, resources in the same tree, or found in a search)
@@ -28,8 +38,15 @@ import daiquiri
 import sqlalchemy.ext.asyncio
 
 import db.interface.util
-import db.models.permission
-import db.models.profile
+from db.models.permission import (
+    permission_level_int_to_enum,
+    SubjectType,
+    Resource,
+    Rule,
+    PermissionLevel,
+    Principal,
+)
+from db.models.profile import Profile
 import db.resource_tree
 import util.avatar
 import util.profile_cache
@@ -49,7 +66,7 @@ class PermissionInterface:
 
     async def create_resource(self, parent_id, key, label, type_str):
         """Create a new resource."""
-        new_resource_row = db.models.permission.Resource(
+        new_resource_row = Resource(
             parent_id=parent_id,
             key=key,
             label=label,
@@ -62,9 +79,9 @@ class PermissionInterface:
     async def get_resource(self, key):
         """Get a resource by its key."""
         result = await self.execute(
-            sqlalchemy.select(db.models.permission.Resource)
-            .options(sqlalchemy.orm.selectinload(db.models.permission.Resource.parent))
-            .where(db.models.permission.Resource.key == key)
+            sqlalchemy.select(Resource)
+            .options(sqlalchemy.orm.selectinload(Resource.parent))
+            .where(Resource.key == key)
         )
         return result.scalar()
 
@@ -84,9 +101,7 @@ class PermissionInterface:
         resource_row = await self.get_resource(key)
         assert resource_row is not None, f'Attempt to update non-existing resource: "{key}"'
 
-        if not await self.is_authorized(
-            token_profile_row, resource_row, db.models.permission.PermissionLevel.WRITE
-        ):
+        if not await self.is_authorized(token_profile_row, resource_row, PermissionLevel.WRITE):
             raise ValueError(
                 f'Profile "{token_profile_row.edi_id}" does not have WRITE permission on '
                 f'resource "{key}"'
@@ -96,7 +111,7 @@ class PermissionInterface:
             # Check permission on the new parent resource.
             parent_resource_row = await self.get_resource(parent_resource_key)
             if not await self.is_authorized(
-                token_profile_row, parent_resource_row, db.models.permission.PermissionLevel.WRITE
+                token_profile_row, parent_resource_row, PermissionLevel.WRITE
             ):
                 raise ValueError(
                     f'Profile "{token_profile_row.edi_id}" does not have WRITE permission on '
@@ -130,9 +145,7 @@ class PermissionInterface:
         if resource_row is None:
             return None
 
-        if not self.is_authorized(
-            token_profile_row, resource_row, db.models.permission.PermissionLevel.CHANGE
-        ):
+        if not self.is_authorized(token_profile_row, resource_row, PermissionLevel.CHANGE):
             raise ValueError(
                 f'Profile {token_profile_row.id} does not have CHANGE permission on resource {key}'
             )
@@ -165,11 +178,11 @@ class PermissionInterface:
         result = await self.execute(
             sqlalchemy.select(
                 sqlalchemy.exists().where(
-                    db.models.permission.Rule.resource == resource_row,
-                    db.models.permission.Rule.principal_id.in_(
+                    Rule.resource == resource_row,
+                    Rule.principal_id.in_(
                         await self._get_equivalent_principal_id_query(token_profile_row)
                     ),
-                    db.models.permission.Rule.permission >= permission_level,
+                    Rule.permission >= permission_level,
                 )
             )
         )
@@ -197,20 +210,12 @@ class PermissionInterface:
 
     async def get_all_resource_keys(self):
         """Get all resource keys."""
-        result = await self.execute(
-            sqlalchemy.select(db.models.permission.Resource.key).order_by(
-                db.models.permission.Resource.key
-            )
-        )
+        result = await self.execute(sqlalchemy.select(Resource.key).order_by(Resource.key))
         return result.scalars().all()
 
     async def _set_resource_label_by_key(self, key, label):
         """Set the label of a resource by its key."""
-        result = await self.execute(
-            sqlalchemy.select(db.models.permission.Resource).where(
-                db.models.permission.Resource.key == key
-            )
-        )
+        result = await self.execute(sqlalchemy.select(Resource).where(Resource.key == key))
         resource_row = result.scalar()
         if resource_row is None:
             raise ValueError(f'Resource {key} not found')
@@ -218,11 +223,7 @@ class PermissionInterface:
 
     async def _remove_resource_by_key(self, key):
         """Remove a resource by its key."""
-        result = await self.execute(
-            sqlalchemy.select(db.models.permission.Resource).where(
-                db.models.permission.Resource.key == key
-            )
-        )
+        result = await self.execute(sqlalchemy.select(Resource).where(Resource.key == key))
         resource_row = result.scalar()
         if resource_row is None:
             raise ValueError(f'Resource {key} not found')
@@ -232,23 +233,21 @@ class PermissionInterface:
         """Get a list of resource types that the profile has CHANGE permission on."""
         result = await self.execute(
             (
-                sqlalchemy.select(db.models.permission.Resource.type)
+                sqlalchemy.select(Resource.type)
                 .join(
-                    db.models.permission.Rule,
-                    db.models.permission.Rule.resource_id == db.models.permission.Resource.id,
+                    Rule,
+                    Rule.resource_id == Resource.id,
                 )
                 .join(
-                    db.models.permission.Principal,
-                    db.models.permission.Principal.id == db.models.permission.Rule.principal_id,
+                    Principal,
+                    Principal.id == Rule.principal_id,
                 )
                 .where(
-                    db.models.permission.Principal.subject_id == token_profile_row.id,
-                    db.models.permission.Principal.subject_type
-                    == db.models.permission.SubjectType.PROFILE,
-                    db.models.permission.Rule.permission
-                    >= db.models.permission.PermissionLevel.CHANGE,
+                    Principal.subject_id == token_profile_row.id,
+                    Principal.subject_type == SubjectType.PROFILE,
+                    Rule.permission >= PermissionLevel.CHANGE,
                 )
-                .order_by(db.models.permission.Resource.type)
+                .order_by(Resource.type)
                 .distinct()
             )
         )
@@ -282,7 +281,7 @@ class PermissionInterface:
         :param permission_level: The permission level to grant (READ, WRITE, CHANGE).
         """
 
-        permission_level = db.models.permission.permission_level_int_to_enum(permission_level)
+        permission_level = permission_level_int_to_enum(permission_level)
 
         parent_id_set = set()
 
@@ -291,9 +290,7 @@ class PermissionInterface:
         async def _find_parent_ids(resource_id):
             """Recursively find all parent IDs of the given resource ID."""
             result = await self.execute(
-                sqlalchemy.select(db.models.permission.Resource.parent_id).where(
-                    db.models.permission.Resource.id == resource_id
-                )
+                sqlalchemy.select(Resource.parent_id).where(Resource.id == resource_id)
             )
             parent_id = result.scalar_one_or_none()
             if parent_id is not None:
@@ -323,24 +320,20 @@ class PermissionInterface:
                 # Get the resource IDs for which the token_profile_row has CHANGE permission.
                 result = await self.execute(
                     (
-                        sqlalchemy.select(db.models.permission.Resource.id)
+                        sqlalchemy.select(Resource.id)
                         .join(
-                            db.models.permission.Rule,
-                            db.models.permission.Rule.resource_id
-                            == db.models.permission.Resource.id,
+                            Rule,
+                            Rule.resource_id == Resource.id,
                         )
                         .join(
-                            db.models.permission.Principal,
-                            db.models.permission.Principal.id
-                            == db.models.permission.Rule.principal_id,
+                            Principal,
+                            Principal.id == Rule.principal_id,
                         )
                         .where(
                             # db.models.permission.Resource.id.in_(resource_chunk_list),
-                            db.models.permission.Principal.subject_id == token_profile_row.id,
-                            db.models.permission.Principal.subject_type
-                            == db.models.permission.SubjectType.PROFILE,
-                            db.models.permission.Rule.permission
-                            >= db.models.permission.PermissionLevel.CHANGE,
+                            Principal.subject_id == token_profile_row.id,
+                            Principal.subject_type == SubjectType.PROFILE,
+                            Rule.permission >= PermissionLevel.CHANGE,
                         )
                     )
                 )
@@ -351,10 +344,10 @@ class PermissionInterface:
             log.debug(f'change_resource_id_set: {change_resource_id_set}')
             # If permission is NONE, all we need to do is delete any existing permission rows for
             # the principal on the given resources.
-            if permission_level == db.models.permission.PermissionLevel.NONE:
-                delete_stmt = sqlalchemy.delete(db.models.permission.Rule).where(
-                    db.models.permission.Rule.resource_id.in_(change_resource_id_set),
-                    db.models.permission.Rule.principal_id == principal_id,
+            if permission_level == PermissionLevel.NONE:
+                delete_stmt = sqlalchemy.delete(Rule).where(
+                    Rule.resource_id.in_(change_resource_id_set),
+                    Rule.principal_id == principal_id,
                 )
                 await self.execute(delete_stmt)
                 return
@@ -363,15 +356,15 @@ class PermissionInterface:
             # We start by creating a subquery which returns the resource IDs for which the principal
             # already has a permission row.
             result = await self.execute(
-                sqlalchemy.select(db.models.permission.Resource.id).where(
-                    db.models.permission.Resource.id.in_(change_resource_id_set),
-                    ~db.models.permission.Resource.id.in_(
+                sqlalchemy.select(Resource.id).where(
+                    Resource.id.in_(change_resource_id_set),
+                    ~Resource.id.in_(
                         (
-                            sqlalchemy.select(db.models.permission.Resource.id)
-                            .join(db.models.permission.Rule)
+                            sqlalchemy.select(Resource.id)
+                            .join(Rule)
                             .where(
-                                db.models.permission.Resource.id.in_(change_resource_id_set),
-                                db.models.permission.Rule.principal_id == principal_id,
+                                Resource.id.in_(change_resource_id_set),
+                                Rule.principal_id == principal_id,
                             )
                         )
                     ),
@@ -382,7 +375,7 @@ class PermissionInterface:
             log.debug(f'insert_resource_id_set: {insert_resource_id_set}')
             if insert_resource_id_set:
                 await self.execute(
-                    sqlalchemy.insert(db.models.permission.Rule),
+                    sqlalchemy.insert(Rule),
                     [
                         {
                             'resource_id': resource_id,
@@ -397,10 +390,10 @@ class PermissionInterface:
             log.debug(f'update_resource_id_set: {update_resource_id_set}')
             if update_resource_id_set:
                 update_stmt = (
-                    sqlalchemy.update(db.models.permission.Rule)
+                    sqlalchemy.update(Rule)
                     .where(
-                        db.models.permission.Rule.resource_id.in_(update_resource_id_set),
-                        db.models.permission.Rule.principal_id == principal_id,
+                        Rule.resource_id.in_(update_resource_id_set),
+                        Rule.principal_id == principal_id,
                     )
                     .values(permission=permission_level)
                 )
@@ -454,9 +447,9 @@ class PermissionInterface:
         CHANGE permission on the resource must already have been validated before calling this
         method.
         """
-        assert isinstance(resource_row, db.models.permission.Resource)
-        assert isinstance(principal_row, db.models.permission.Principal)
-        assert isinstance(permission_level, db.models.permission.PermissionLevel)
+        assert isinstance(resource_row, Resource)
+        assert isinstance(principal_row, Principal)
+        assert isinstance(permission_level, PermissionLevel)
 
         rule_row = await self.get_rule(resource_row, principal_row)
 
@@ -465,7 +458,7 @@ class PermissionInterface:
                 await self._session.delete(rule_row)
         else:
             if rule_row is None:
-                rule_row = db.models.permission.Rule(
+                rule_row = Rule(
                     resource=resource_row,
                     principal=principal_row,
                     permission=permission_level,
@@ -481,9 +474,9 @@ class PermissionInterface:
         # principal_id), so there will be 0 or 1 match to this query.
         result = await self.execute(
             (
-                sqlalchemy.select(db.models.permission.Rule).where(
-                    db.models.permission.Rule.resource_id == resource_row.id,
-                    db.models.permission.Rule.principal_id == principal_row.id,
+                sqlalchemy.select(Rule).where(
+                    Rule.resource_id == resource_row.id,
+                    Rule.principal_id == principal_row.id,
                 )
             )
         )
@@ -508,76 +501,73 @@ class PermissionInterface:
 
         # Subquery to check if the token has CHANGE permission on the resource
         token_has_change_permission_subquery = (
-            sqlalchemy.select(db.models.permission.Resource.id)
-            .join(db.models.permission.Rule)
+            sqlalchemy.select(Resource.id)
+            .join(Rule)
             .join(
-                db.models.permission.Principal,
-                db.models.permission.Principal.id == db.models.permission.Rule.principal_id,
+                Principal,
+                Principal.id == Rule.principal_id,
             )
             .where(
-                db.models.permission.Principal.subject_id == token_profile_row.id,
-                db.models.permission.Principal.subject_type
-                == db.models.permission.SubjectType.PROFILE,
-                db.models.permission.Rule.permission == db.models.permission.PermissionLevel.CHANGE,
+                Principal.subject_id == token_profile_row.id,
+                Principal.subject_type == SubjectType.PROFILE,
+                Rule.permission == PermissionLevel.CHANGE,
             )
         )
 
         # Main query to fetch resources, rules and principals
         stmt = (
             sqlalchemy.select(
-                db.models.permission.Resource,
-                db.models.permission.Rule,
-                db.models.permission.Principal,
-                db.models.profile.Profile,
+                Resource,
+                Rule,
+                Principal,
+                Profile,
                 db.models.group.Group,
             )
-            .select_from(db.models.permission.Resource)
+            .select_from(Resource)
             .join(
-                db.models.permission.Rule,
-                db.models.permission.Rule.resource_id == db.models.permission.Resource.id,
+                Rule,
+                Rule.resource_id == Resource.id,
             )
             .join(
-                db.models.permission.Principal,
-                db.models.permission.Principal.id == db.models.permission.Rule.principal_id,
+                Principal,
+                Principal.id == Rule.principal_id,
             )
             # In SQLAlchemy, outerjoin() is a left join. Right join is not directly supported (have
             # to swap the order of the tables).
             .outerjoin(
-                db.models.profile.Profile,
+                Profile,
                 sqlalchemy.and_(
-                    db.models.profile.Profile.id == db.models.permission.Principal.subject_id,
-                    db.models.permission.Principal.subject_type
-                    == db.models.permission.SubjectType.PROFILE,
+                    Profile.id == Principal.subject_id,
+                    Principal.subject_type == SubjectType.PROFILE,
                 ),
             )
             .outerjoin(
                 db.models.group.Group,
                 sqlalchemy.and_(
-                    db.models.group.Group.id == db.models.permission.Principal.subject_id,
-                    db.models.permission.Principal.subject_type
-                    == db.models.permission.SubjectType.GROUP,
+                    db.models.group.Group.id == Principal.subject_id,
+                    Principal.subject_type == SubjectType.GROUP,
                 ),
             )
         )
 
         if not util.profile_cache.is_superuser(token_profile_row):
             stmt = stmt.where(
-                db.models.permission.Resource.label.ilike(f'{search_str}%'),
-                db.models.permission.Resource.id.in_(token_has_change_permission_subquery),
+                Resource.label.ilike(f'{search_str}%'),
+                Resource.id.in_(token_has_change_permission_subquery),
             )
 
         # Filter by resource type if provided.
         # A statement can have multiple WHERE clauses, which will be combined with AND by
         # SQLAlchemy.
         if resource_type is not None:
-            stmt = stmt.where(db.models.permission.Resource.type == resource_type)
+            stmt = stmt.where(Resource.type == resource_type)
 
         # Add ordering to the query
         stmt = stmt.order_by(
-            db.models.permission.Resource.type,
-            db.models.permission.Resource.label,
-            db.models.profile.Profile.common_name,
-            db.models.profile.Profile.email,
+            Resource.type,
+            Resource.label,
+            Profile.common_name,
+            Profile.email,
         )
 
         result = await self.execute(stmt)
@@ -597,59 +587,146 @@ class PermissionInterface:
         # db.models.permission.Resource(id=row[0], label=row[1], type=row[2], parent_id=row[3])
         return {int(row[0]) for row in result.scalars()}
 
-    async def get_permission_generator(self, token_resource_row, resource_ids, permission_level):
-        """Yield resources with associated ACRs for a list of resources."""
-        for i in range(0, len(resource_ids), Config.DB_CHUNK_SIZE):
-            resource_chunk_list = resource_ids[i : i + Config.DB_CHUNK_SIZE]
+    # async def get_resource_generator(self, token_resource_row, resource_ids, permission_level):
+    #     """Yield resources with associated ACRs for a list of resources."""
+    #     for i in range(0, len(resource_ids), Config.DB_CHUNK_SIZE):
+    #         resource_chunk_list = resource_ids[i : i + Config.DB_CHUNK_SIZE]
+    #
+    #         stmt = (
+    #             sqlalchemy.select(
+    #                 Resource,
+    #                 Rule,
+    #                 Principal,
+    #                 db.models.profile.Profile,
+    #                 db.models.group.Group,
+    #             )
+    #             .select_from(Resource)
+    #             .join(
+    #                 Rule,
+    #                 Rule.resource_id == Resource.id,
+    #             )
+    #             .join(
+    #                 Principal,
+    #                 Principal.id == Rule.principal_id,
+    #             )
+    #             .outerjoin(
+    #                 db.models.profile.Profile,
+    #                 sqlalchemy.and_(
+    #                     db.models.profile.Profile.id == Principal.subject_id,
+    #                     Principal.subject_type == SubjectType.PROFILE,
+    #                 ),
+    #             )
+    #             .outerjoin(
+    #                 db.models.group.Group,
+    #                 sqlalchemy.and_(
+    #                     db.models.group.Group.id == Principal.subject_id,
+    #                     Principal.subject_type == SubjectType.GROUP,
+    #                 ),
+    #             )
+    #             .where(
+    #                 Resource.id.in_(resource_chunk_list),
+    #                 sqlalchemy.or_(
+    #                     util.profile_cache.is_superuser(token_resource_row),
+    #                     sqlalchemy.and_(
+    #                         Rule.permission >= permission_level,
+    #                         Principal.id.in_(
+    #                             await self._get_equivalent_principal_id_query(token_resource_row),
+    #                         ),
+    #                     ),
+    #                 ),
+    #             )
+    #         )
+    #         result = await self._session.stream(stmt)
+    #         # async for row in result.scalars():
+    #         async for row in result:
+    #             yield row
 
-            stmt = (
-                sqlalchemy.select(
-                    db.models.permission.Resource,
-                    db.models.permission.Rule,
-                    db.models.permission.Principal,
-                    db.models.profile.Profile,
-                    db.models.group.Group,
-                )
-                .select_from(db.models.permission.Resource)
+    async def get_resource_generator(self, token_resource_row, resource_ids, permission_level):
+        """Yield resources with associated ACRs for a list of resource IDs.
+
+        Only resources for which the token_resource_row has the required permission level or higher
+        will be returned.
+
+        This method handles untrusted user input, so it is safe to use with user-provided resource
+        IDs. Any resource IDs for which the token_resource_row does not have the required permission
+        level or higher, or which does not exist, will be silently ignored.
+        """
+
+        # Normally, there will be no duplicated resource IDs in the list, but we dedup here just in
+        # case.
+        resource_ids = list(set(resource_ids))
+
+        is_superuser = util.profile_cache.is_superuser(token_resource_row)
+        equivalent_principal_id_list = (
+            (await self.execute(await self._get_equivalent_principal_id_query(token_resource_row)))
+            .scalars()
+            .all()
+        )
+
+        for i in range(0, len(resource_ids), Config.DB_CHUNK_SIZE):
+            resource_id_chunk_list = resource_ids[i : i + Config.DB_CHUNK_SIZE]
+
+            # Filter the resource IDs to only include those for which the token_resource_row has the
+            # required permission level or higher. For superusers, all resource IDs are
+            # included.
+            filter_subquery = (
+                sqlalchemy.select(Resource.id)
                 .join(
-                    db.models.permission.Rule,
-                    db.models.permission.Rule.resource_id == db.models.permission.Resource.id,
-                )
-                .join(
-                    db.models.permission.Principal,
-                    db.models.permission.Principal.id == db.models.permission.Rule.principal_id,
-                )
-                .outerjoin(
-                    db.models.profile.Profile,
-                    sqlalchemy.and_(
-                        db.models.profile.Profile.id == db.models.permission.Principal.subject_id,
-                        db.models.permission.Principal.subject_type
-                        == db.models.permission.SubjectType.PROFILE,
-                    ),
-                )
-                .outerjoin(
-                    db.models.group.Group,
-                    sqlalchemy.and_(
-                        db.models.group.Group.id == db.models.permission.Principal.subject_id,
-                        db.models.permission.Principal.subject_type
-                        == db.models.permission.SubjectType.GROUP,
-                    ),
+                    Rule,
+                    Rule.resource_id == Resource.id,
                 )
                 .where(
-                    db.models.permission.Resource.id.in_(resource_chunk_list),
+                    Resource.id.in_(resource_id_chunk_list),
                     sqlalchemy.or_(
-                        util.profile_cache.is_superuser(token_resource_row),
+                        is_superuser,
                         sqlalchemy.and_(
-                            db.models.permission.Rule.permission >= permission_level,
-                            db.models.permission.Principal.id.in_(
-                                await self._get_equivalent_principal_id_query(token_resource_row),
-                            ),
+                            Rule.permission >= permission_level,
+                            # Principal.id.in_(equivalent_principal_id_list),
+                            Rule.principal_id.in_(equivalent_principal_id_list),
                         ),
                     ),
                 )
+            ).subquery()
+
+            stmt = (
+                sqlalchemy.select(
+                    Resource,
+                    Rule,
+                    Principal,
+                    Profile,
+                    db.models.group.Group,
+                )
+                .select_from(Resource)
+                .join(
+                    filter_subquery,
+                    filter_subquery.c.id == Resource.id,
+                )
+                .join(
+                    Rule,
+                    Rule.resource_id == Resource.id,
+                )
+                .join(
+                    Principal,
+                    Principal.id == Rule.principal_id,
+                )
+                .outerjoin(
+                    Profile,
+                    sqlalchemy.and_(
+                        Profile.id == Principal.subject_id,
+                        Principal.subject_type == SubjectType.PROFILE,
+                    ),
+                )
+                .outerjoin(
+                    db.models.group.Group,
+                    sqlalchemy.and_(
+                        db.models.group.Group.id == Principal.subject_id,
+                        Principal.subject_type == SubjectType.GROUP,
+                    ),
+                )
+                # .execution_options(yield_per=Config.DB_CHUNK_SIZE)
             )
+
             result = await self._session.stream(stmt)
-            # async for row in result.scalars():
             async for row in result:
                 yield row
 
@@ -681,21 +758,19 @@ class PermissionInterface:
             authenticated_profile_id,
         ), 'This method should not be called for the public or authenticated profiles.'
         return (
-            sqlalchemy.select(db.models.permission.Principal.id)
+            sqlalchemy.select(Principal.id)
             .outerjoin(
-                db.models.profile.Profile,
+                Profile,
                 sqlalchemy.and_(
-                    db.models.profile.Profile.id == db.models.permission.Principal.subject_id,
-                    db.models.permission.Principal.subject_type
-                    == db.models.permission.SubjectType.PROFILE,
+                    Profile.id == Principal.subject_id,
+                    Principal.subject_type == SubjectType.PROFILE,
                 ),
             )
             .outerjoin(
                 db.models.group.Group,
                 sqlalchemy.and_(
-                    db.models.group.Group.id == db.models.permission.Principal.subject_id,
-                    db.models.permission.Principal.subject_type
-                    == db.models.permission.SubjectType.GROUP,
+                    db.models.group.Group.id == Principal.subject_id,
+                    Principal.subject_type == SubjectType.GROUP,
                 ),
             )
             .outerjoin(
@@ -709,21 +784,18 @@ class PermissionInterface:
                 sqlalchemy.or_(
                     # db.models.permission.Principal ID of the db.models.profile.Profile
                     sqlalchemy.and_(
-                        db.models.permission.Principal.subject_id == token_profile_row.id,
-                        db.models.permission.Principal.subject_type
-                        == db.models.permission.SubjectType.PROFILE,
+                        Principal.subject_id == token_profile_row.id,
+                        Principal.subject_type == SubjectType.PROFILE,
                     ),
                     # Public Access
                     sqlalchemy.and_(
-                        db.models.permission.Principal.subject_id == public_profile_id,
-                        db.models.permission.Principal.subject_type
-                        == db.models.permission.SubjectType.PROFILE,
+                        Principal.subject_id == public_profile_id,
+                        Principal.subject_type == SubjectType.PROFILE,
                     ),
                     # Authenticated access
                     sqlalchemy.and_(
-                        db.models.permission.Principal.subject_id == authenticated_profile_id,
-                        db.models.permission.Principal.subject_type
-                        == db.models.permission.SubjectType.PROFILE,
+                        Principal.subject_id == authenticated_profile_id,
+                        Principal.subject_type == SubjectType.PROFILE,
                     ),
                     # Groups in which the profile is a member
                     db.models.group.GroupMember.profile_id == token_profile_row.id,
@@ -744,31 +816,28 @@ class PermissionInterface:
             sqlalchemy.select(
                 sqlalchemy.case(
                     (
-                        db.models.permission.Principal.subject_type
-                        == db.models.permission.SubjectType.GROUP,
+                        Principal.subject_type == SubjectType.GROUP,
                         db.models.group.Group.edi_id,
                     ),
-                    else_=db.models.profile.Profile.edi_id,
+                    else_=Profile.edi_id,
                 )
             )
-            .select_from(db.models.permission.Principal)
+            .select_from(Principal)
             .outerjoin(
                 db.models.group.Group,
                 sqlalchemy.and_(
-                    db.models.group.Group.id == db.models.permission.Principal.subject_id,
-                    db.models.permission.Principal.subject_type
-                    == db.models.permission.SubjectType.GROUP,
+                    db.models.group.Group.id == Principal.subject_id,
+                    Principal.subject_type == SubjectType.GROUP,
                 ),
             )
             .outerjoin(
-                db.models.profile.Profile,
+                Profile,
                 sqlalchemy.and_(
-                    db.models.profile.Profile.id == db.models.permission.Principal.subject_id,
-                    db.models.permission.Principal.subject_type
-                    == db.models.permission.SubjectType.PROFILE,
+                    Profile.id == Principal.subject_id,
+                    Principal.subject_type == SubjectType.PROFILE,
                 ),
             )
-            .where(db.models.permission.Principal.id.in_(principal_id_subquery))
+            .where(Principal.id.in_(principal_id_subquery))
         )
 
         return set((await self.execute(stmt)).scalars().all())
@@ -778,9 +847,7 @@ class PermissionInterface:
 
         subject_id and subject_type are unique together.
         """
-        new_principal_row = db.models.permission.Principal(
-            subject_id=subject_id, subject_type=subject_type
-        )
+        new_principal_row = Principal(subject_id=subject_id, subject_type=subject_type)
         self._session.add(new_principal_row)
         await self.flush()
         return new_principal_row
@@ -788,18 +855,16 @@ class PermissionInterface:
     async def get_principal(self, principal_id):
         """Get a principal by its ID."""
         result = await self.execute(
-            sqlalchemy.select(db.models.permission.Principal).where(
-                db.models.permission.Principal.id == principal_id
-            )
+            sqlalchemy.select(Principal).where(Principal.id == principal_id)
         )
         return result.scalar()
 
     async def get_principal_by_subject(self, subject_id, subject_type):
         """Get a principal by its entity ID and type."""
         result = await self.execute(
-            sqlalchemy.select(db.models.permission.Principal).where(
-                db.models.permission.Principal.subject_id == subject_id,
-                db.models.permission.Principal.subject_type == subject_type,
+            sqlalchemy.select(Principal).where(
+                Principal.subject_id == subject_id,
+                Principal.subject_type == subject_type,
             )
         )
         return result.scalar()
@@ -807,10 +872,9 @@ class PermissionInterface:
     async def get_principal_by_profile(self, profile_row):
         """Get the principal for a profile."""
         result = await self.execute(
-            sqlalchemy.select(db.models.permission.Principal).where(
-                db.models.permission.Principal.subject_id == profile_row.id,
-                db.models.permission.Principal.subject_type
-                == db.models.permission.SubjectType.PROFILE,
+            sqlalchemy.select(Principal).where(
+                Principal.subject_id == profile_row.id,
+                Principal.subject_type == SubjectType.PROFILE,
             )
         )
         return result.scalar()
@@ -820,26 +884,24 @@ class PermissionInterface:
         The EDI-ID can be for a profile or group.
         """
         result = await self.execute(
-            sqlalchemy.select(db.models.permission.Principal)
+            sqlalchemy.select(Principal)
             .outerjoin(
-                db.models.profile.Profile,
+                Profile,
                 sqlalchemy.and_(
-                    db.models.profile.Profile.id == db.models.permission.Principal.subject_id,
-                    db.models.permission.Principal.subject_type
-                    == db.models.permission.SubjectType.PROFILE,
+                    Profile.id == Principal.subject_id,
+                    Principal.subject_type == SubjectType.PROFILE,
                 ),
             )
             .outerjoin(
                 db.models.group.Group,
                 sqlalchemy.and_(
-                    db.models.group.Group.id == db.models.permission.Principal.subject_id,
-                    db.models.permission.Principal.subject_type
-                    == db.models.permission.SubjectType.GROUP,
+                    db.models.group.Group.id == Principal.subject_id,
+                    Principal.subject_type == SubjectType.GROUP,
                 ),
             )
             .where(
                 sqlalchemy.or_(
-                    db.models.profile.Profile.edi_id == edi_id,
+                    Profile.edi_id == edi_id,
                     db.models.group.Group.edi_id == edi_id,
                 )
             )
