@@ -28,18 +28,21 @@ async_engine = sqlalchemy.ext.asyncio.create_async_engine(
 )
 
 
-# Event listener to log query execution time
-@sqlalchemy.event.listens_for(async_engine.sync_engine, 'before_cursor_execute')
-def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
-    context._query_start_time = time.time()
-    # logging.info(f'Starting query: {statement}')
+if Config.DB_QUERY_PROFILING:
+    log.info('Enabling query profiling')
 
-@sqlalchemy.event.listens_for(async_engine.sync_engine, 'after_cursor_execute')
-def after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
-    total_time = time.time() - context._query_start_time
-    logging.info(f'Query: {statement}')
-    logging.info(f'Parameters: {parameters}')
-    logging.info(f'Completed in {total_time:.2f} seconds')
+    # Event listener to log query execution time
+    @sqlalchemy.event.listens_for(async_engine.sync_engine, 'before_cursor_execute')
+    def before_cursor_execute(_conn, _cursor, _statement, _parameters, context, _executemany):
+        context._query_start_time = time.time()
+        # logging.info(f'Starting query: {statement}')
+
+    @sqlalchemy.event.listens_for(async_engine.sync_engine, 'after_cursor_execute')
+    def after_cursor_execute(_conn, _cursor, statement, parameters, context, _executemany):
+        total_time = time.time() - context._query_start_time
+        logging.info(f'Query: {statement}')
+        logging.info(f'Parameters: {parameters}')
+        logging.info(f'Completed in {total_time:.2f} seconds')
 
 # Session factory. Each request gets its own session object, which is created and closed within the
 # request lifecycle.

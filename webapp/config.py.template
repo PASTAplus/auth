@@ -39,6 +39,8 @@ class Config(object):
     DB_MAX_OVERFLOW = 20
     DB_YIELD_ROWS = 1000
     DB_CHUNK_SIZE = 8192
+    # Log raw SQL queries and execution times at INFO level
+    DB_QUERY_PROFILING = False
 
     # Filesystem paths
     STATIC_PATH = HERE_PATH / 'static'
