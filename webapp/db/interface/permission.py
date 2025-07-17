@@ -552,7 +552,13 @@ class PermissionInterface:
                 ),
             )
             .where(
-                Resource.label.ilike(f'{search_str}%'),
+                sqlalchemy.or_(
+                    sqlalchemy.and_(
+                        Resource.parent_id.is_(None),
+                        Resource.label.ilike(f'{search_str}%'),
+                    ),
+                    ~Resource.parent_id.is_(None),
+                )
             )
         )
 
