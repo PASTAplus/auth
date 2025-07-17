@@ -289,3 +289,22 @@ Example `com.chrome.devtools.json`:
 For details, see:
 
 https://chromium.googlesource.com/devtools/devtools-frontend/+/main/docs/ecosystem/automatic_workspace_folders.md
+
+
+## Export Postgres DB to another server
+
+Export:
+
+```bash
+sudo -su postgres pg_dump -U auth -h localhost auth > /tmp/auth-dump.sql
+```
+
+Import:
+
+```bash
+sudo -su postgres
+psql -U auth -h localhost -c 'drop database if exists auth;'
+psql -U auth -h localhost -c 'create database auth;'
+psql -U auth -h localhost -c 'alter database auth owner to auth;'
+psql -U auth -h localhost auth < /tmp/auth-dump.sql
+```
