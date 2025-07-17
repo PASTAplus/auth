@@ -145,20 +145,25 @@ class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     If a request is made to a '/ui' path without a valid token, the user is redirected to
     '/signout', which removes the invalid (usually expired) cookie, and which then redirects to
     '/ui/signin'.
+
+    For any other request without a valid token, a 401 Unauthorized response is returned.
     """
 
     async def dispatch(self, request: starlette.requests.Request, call_next):
         async with util.dependency.get_dbi() as dbi:
-            if (
-                request.url.path.startswith(str(util.url.url('/ui')))
-                and not request.url.path.startswith(str(util.url.url('/ui/signin')))
-                and not await util.pasta_jwt.PastaJwt.is_valid(
-                    dbi, request.cookies.get('edi-token')
-                )
-            ):
-                log.debug('Redirecting to /ui/signin: UI page requested without valid token')
-                return util.redirect.internal('/signout')
-        return await call_next(request)
+            if await util.pasta_jwt.PastaJwt.is_valid(dbi, request.cookies.get('edi-token')):
+                return await call_next(request)
+
+        if request.url.path.startswith(
+            str(util.url.url('/ui'))
+        ) and not request.url.path.startswith(str(util.url.url('/ui/signin'))):
+            log.debug('Redirecting to /ui/signin: UI page requested without valid token')
+            return util.redirect.internal('/signout')
+
+        return starlette.responses.Response(
+            'Unauthorized: Authentication token is missing or invalid',
+            status_code=starlette.status.HTTP_401_UNAUTHORIZED,
+        )
 
 
 # Add middleware to the application

@@ -161,7 +161,13 @@ function fetchResources()
       'Content-Type': 'application/json',
     }, body: JSON.stringify({query: resourceFilterEl.value, type: RESOURCE_TYPE}),
   })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 401) {
+          redirectToLogin();
+          return Promise.reject('Unauthorized');
+        }
+        return response.json();
+      })
       .then((resultObj) => {
         if (resultObj.error) {
           errorDialog(resultObj.error);
@@ -175,7 +181,9 @@ function fetchResources()
         }
       })
       .catch((error) => {
-        errorDialog(error);
+        if (error !== 'Unauthorized') {
+          errorDialog(error);
+        }
       });
 }
 
@@ -200,7 +208,13 @@ function fetchSelectedResourcePermissions()
       'Content-Type': 'application/json',
     }, body: JSON.stringify(resources),
   })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 401) {
+          redirectToLogin();
+          return Promise.reject('Unauthorized');
+        }
+        return response.json();
+      })
       .then((resultObj) => {
         if (resultObj.error) {
           errorDialog(resultObj.error);
@@ -212,7 +226,9 @@ function fetchSelectedResourcePermissions()
         }
       })
       .catch((error) => {
-        errorDialog(error);
+        if (error !== 'Unauthorized') {
+          errorDialog(error);
+        }
       });
 }
 
@@ -226,7 +242,13 @@ function fetchSetPermission(resources, principalId, permissionLevel)
       resources: resources, principalId: principalId, permissionLevel: permissionLevel,
     }),
   })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 401) {
+          redirectToLogin();
+          return Promise.reject('Unauthorized');
+        }
+        return response.json();
+      })
       .then((resultObj) => {
         if (resultObj.error) {
           errorDialog(resultObj.error);
@@ -237,7 +259,9 @@ function fetchSetPermission(resources, principalId, permissionLevel)
         }
       })
       .catch((error) => {
-        errorDialog(error);
+        if (error !== 'Unauthorized') {
+          errorDialog(error);
+        }
       });
 }
 
@@ -250,7 +274,13 @@ function fetchPrincipalSearch()
       'Content-Type': 'application/json',
     }, body: JSON.stringify({query: searchStr}),
   })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 401) {
+          redirectToLogin();
+          return Promise.reject('Unauthorized');
+        }
+        return response.json();
+      })
       .then((resultObj) => {
         if (resultObj.error) {
           errorDialog(resultObj.error);
@@ -261,7 +291,9 @@ function fetchPrincipalSearch()
         }
       })
       .catch((error) => {
-        errorDialog(error);
+        if (error !== 'Unauthorized') {
+          errorDialog(error);
+        }
       });
 }
 
@@ -282,8 +314,7 @@ function refreshResourceTreeRecursive(resourceArray)
 {
   const htmlArr = [];
   for (const resourceObj of resourceArray) {
-    htmlArr.push(
-        `<ul class='tree'>
+    htmlArr.push(`<ul class='tree'>
           <li>
             <details class='tree-details'>
               <summary>
@@ -513,4 +544,13 @@ function restoreTreeState(state)
       checkboxEl.checked = state[resourceId].checked;
     }
   });
+}
+
+
+//
+
+function redirectToLogin()
+{
+  window.location.href =
+      `${ROOT_PATH}/ui/signin?next=${encodeURIComponent(window.location.pathname)}`;
 }
