@@ -669,9 +669,6 @@ class PermissionInterface:
         )
 
         for i in range(0, len(resource_ids), Config.DB_CHUNK_SIZE):
-            if stop:
-                break
-
             resource_id_chunk_list = resource_ids[i : i + Config.DB_CHUNK_SIZE]
 
             # Filter the resource IDs to only include those for which the token_resource_row has the
