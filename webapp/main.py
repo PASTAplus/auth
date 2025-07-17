@@ -151,19 +151,25 @@ class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
 
     async def dispatch(self, request: starlette.requests.Request, call_next):
         async with util.dependency.get_dbi() as dbi:
-            if await util.pasta_jwt.PastaJwt.is_valid(dbi, request.cookies.get('edi-token')):
-                return await call_next(request)
+            is_valid_token = await util.pasta_jwt.PastaJwt.is_valid(
+                dbi, request.cookies.get('edi-token')
+            )
 
-        if request.url.path.startswith(
-            str(util.url.url('/ui'))
-        ) and not request.url.path.startswith(str(util.url.url('/ui/signin'))):
+        if (
+            not is_valid_token
+            and request.url.path.startswith(str(util.url.url('/ui')))
+            and not request.url.path.startswith(str(util.url.url('/ui/signin')))
+        ):
             log.debug('Redirecting to /ui/signin: UI page requested without valid token')
             return util.redirect.internal('/signout')
 
-        return starlette.responses.Response(
-            'Unauthorized: Authentication token is missing or invalid',
-            status_code=starlette.status.HTTP_401_UNAUTHORIZED,
-        )
+        # if not is_valid_token:
+        #     return starlette.responses.Response(
+        #         'Unauthorized: Authentication token is missing or invalid',
+        #         status_code=starlette.status.HTTP_401_UNAUTHORIZED,
+        #     )
+
+        return await call_next(request)
 
 
 # Add middleware to the application
