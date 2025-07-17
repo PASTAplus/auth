@@ -48,12 +48,7 @@ class Group(db.models.base.Base):
         cascade_backrefs=False,
     )
 
-
-
-
     # rules = sqlalchemy.orm.relationship('Rule', back_populates='resource')
-
-
 
     # @sqlalchemy.ext.hybrid.hybrid_property
     # def member_count(self):

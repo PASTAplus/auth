@@ -150,10 +150,6 @@ def _get_resource_tree(resource_iter):
             group_row is None
         ), 'db.models.profile.Profile OR db.models.profile.Group must be present'
 
-        rule_row.permission = db.models.permission.get_permission_level_enum(
-            rule_row.permission
-        ).name
-
         resource_dict = tree_dict.setdefault(
             resource_row.id,
             {
@@ -171,9 +167,7 @@ def _get_resource_tree(resource_iter):
                 'edi_id': profile_row.edi_id,
                 'title': profile_row.common_name,
                 'description': profile_row.email,
-                'permission': db.models.permission.get_permission_level_enum(
-                    rule_row.permission
-                ).name,
+                'permission': rule_row.permission,
             }
             if principal_type == 'profile'
             else {
@@ -181,9 +175,7 @@ def _get_resource_tree(resource_iter):
                 'edi_id': group_row.edi_id,
                 'title': group_row.name,
                 'description': group_row.description,
-                'permission': db.models.permission.get_permission_level_enum(
-                    rule_row.permission
-                ).name,
+                'permission': rule_row.permission,
             }
         )
 
@@ -202,8 +194,8 @@ def _get_resource_tree(resource_iter):
 
     # 2nd pass
 
-    # Map children to parents. This is done in a second pass to ensure all potential parents are
-    # already available in the dict.
+    # Map children to parents. This is done in a second pass since we need all potential parents to
+    # already be available in the dict.
     for resource_id, resource_dict in tree_dict.items():
         parent_id = resource_dict['resource_row'].parent_id
         if parent_id:

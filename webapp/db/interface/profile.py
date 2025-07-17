@@ -82,7 +82,7 @@ class ProfileInterface:
                 )
             )
         )
-        async for profile_row, principal_row in result:
+        async for profile_row, principal_row in result.yield_per(Config.DB_YIELD_ROWS):
             yield profile_row, principal_row
 
     # async def get_profiles_by_ids(self, profile_id_list):

@@ -6,6 +6,7 @@ import sqlalchemy.ext.asyncio
 import sqlalchemy.orm
 
 import db.interface.util
+from config import Config
 from db.models.group import Group, GroupMember
 from db.models.permission import SubjectType, Resource, Rule, PermissionLevel, Principal
 
@@ -227,7 +228,7 @@ class GroupInterface:
                 )
             )
         )
-        async for group_row in result.scalars():
+        async for group_row in result.yield_per(Config.DB_YIELD_ROWS).scalars():
             yield group_row
 
     async def get_owned_groups(self, token_profile_row):

@@ -5,15 +5,14 @@ import starlette.responses
 import starlette.status
 import starlette.templating
 
+import db.models.permission
 import db.resource_tree
 import util.avatar
 import util.dependency
 import util.pasta_jwt
+import util.pretty
 import util.search_cache
 import util.template
-
-import db.models.permission
-
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -68,20 +67,13 @@ async def post_permission_resource_filter(
     resource_iter = await dbi.get_resource_list(
         token_profile_row, query_dict.get('query'), query_dict.get('type') or None
     )
-    # TODO: Switch to using the generator
-    # resource_list = [
-    #     r
-    #     async for r in dbi.get_resource_generator(
-    #         token_profile_row, resource_id_list, db.models.permission.PermissionLevel.READ
-    #     )
-    # ]
     resource_tree = db.resource_tree.get_resource_tree_for_ui(resource_iter)
-    # pprint.pp(resource_tree)
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',
             'resources': resource_tree,
-        }
+        },
+        media_type='application/json',
     )
 
 
@@ -93,10 +85,10 @@ async def post_permission_aggregate_get(
 ):
     """Called when the user changes a resource check box in the resource tree."""
     resource_list = await request.json()
-    get_resource_generator = dbi.get_resource_generator(
+    resource_generator = dbi.get_resource_generator(
         token_profile_row, resource_list, db.models.permission.PermissionLevel.CHANGE
     )
-    permission_list = await get_aggregate_permission_list(dbi, get_resource_generator)
+    permission_list = await get_aggregate_permission_list(dbi, resource_generator)
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',
@@ -105,7 +97,7 @@ async def post_permission_aggregate_get(
     )
 
 
-async def get_aggregate_permission_list(dbi, get_resource_generator):
+async def get_aggregate_permission_list(dbi, resource_generator):
     principal_dict = {}
 
     async for (
@@ -114,7 +106,7 @@ async def get_aggregate_permission_list(dbi, get_resource_generator):
         principal_row,
         profile_row,
         group_row,
-    ) in get_resource_generator:
+    ) in resource_generator:
         if profile_row is not None:
             # Principal is a profile
             assert group_row is None, 'Profile and group cannot join on same row'

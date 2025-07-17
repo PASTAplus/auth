@@ -10,13 +10,6 @@ import db.models.base
 log = daiquiri.getLogger(__name__)
 
 
-class PermissionLevel(enum.Enum):
-    NONE = 0
-    READ = 1
-    WRITE = 2
-    CHANGE = 3  # changePermission
-
-
 class IdpName(enum.Enum):
     """The Identity Provider (IdP) names are used to identify the source of the identity."""
     # The UNKNOWN IdP is used for identities created via the API, where the IdP is not known.

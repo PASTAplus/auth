@@ -8,6 +8,8 @@ import xml.etree.ElementTree
 
 import starlette.datastructures
 
+import db.models.identity
+
 
 class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -17,6 +19,8 @@ class CustomJSONEncoder(json.JSONEncoder):
             return str(obj)
         elif isinstance(obj, set):
             return sorted(list(obj))
+        elif isinstance(obj, db.models.permission.PermissionLevel):
+            return db.models.permission.permission_level_enum_to_string(obj)
         return super().default(obj)
 
 

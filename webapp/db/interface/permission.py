@@ -502,7 +502,10 @@ class PermissionInterface:
         # Subquery to check if the token has CHANGE permission on the resource
         token_has_change_permission_subquery = (
             sqlalchemy.select(Resource.id)
-            .join(Rule)
+            .join(
+                Rule,
+                Rule.resource_id == Resource.id,
+            )
             .join(
                 Principal,
                 Principal.id == Rule.principal_id,
@@ -638,7 +641,7 @@ class PermissionInterface:
     #         )
     #         result = await self._session.stream(stmt)
     #         # async for row in result.scalars():
-    #         async for row in result:
+    #         async for row in result.yield_per(Config.DB_YIELD_ROWS):
     #             yield row
 
     async def get_resource_generator(self, token_resource_row, resource_ids, permission_level):
@@ -723,11 +726,14 @@ class PermissionInterface:
                         Principal.subject_type == SubjectType.GROUP,
                     ),
                 )
-                # .execution_options(yield_per=Config.DB_CHUNK_SIZE)
+                # .execution_options(
+                #     stream_result=True,
+                #     yield_per=Config.DB_YIELD_ROWS,
+                # )
             )
 
             result = await self._session.stream(stmt)
-            async for row in result:
+            async for row in result.yield_per(Config.DB_YIELD_ROWS):
                 yield row
 
     #
