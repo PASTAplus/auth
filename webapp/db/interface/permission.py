@@ -551,11 +551,13 @@ class PermissionInterface:
                     Principal.subject_type == SubjectType.GROUP,
                 ),
             )
+            .where(
+                Resource.label.ilike(f'{search_str}%'),
+            )
         )
 
         if not util.profile_cache.is_superuser(token_profile_row):
             stmt = stmt.where(
-                Resource.label.ilike(f'{search_str}%'),
                 Resource.id.in_(token_has_change_permission_subquery),
             )
 
@@ -667,6 +669,9 @@ class PermissionInterface:
         )
 
         for i in range(0, len(resource_ids), Config.DB_CHUNK_SIZE):
+            if stop:
+                break
+
             resource_id_chunk_list = resource_ids[i : i + Config.DB_CHUNK_SIZE]
 
             # Filter the resource IDs to only include those for which the token_resource_row has the
@@ -726,10 +731,6 @@ class PermissionInterface:
                         Principal.subject_type == SubjectType.GROUP,
                     ),
                 )
-                # .execution_options(
-                #     stream_result=True,
-                #     yield_per=Config.DB_YIELD_ROWS,
-                # )
             )
 
             result = await self._session.stream(stmt)

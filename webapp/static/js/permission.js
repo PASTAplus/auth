@@ -32,6 +32,8 @@ let treeArray = [];
 let permissionArray = [];
 let principalArray = [];
 
+let loggingSpacerTimeout = null;
+
 //
 //  Initial setup
 //
@@ -48,24 +50,29 @@ fetchResources();
 // Resource tree (left side)
 
 resourceFilterEl.addEventListener('input', function (_ev) {
+  log('resourceFilterEl - input - START');
   clearTimeout(resourceFetchDelay);
   clearCheckboxStates();
   permissionArray = [];
   refreshPermissions();
   resourceFetchDelay = setTimeout(fetchResources, 300);
+  log('resourceFilterEl - input - END');
 });
 
 selectAllCheckboxEl.addEventListener('change', function (ev) {
+  log('selectAllCheckboxEl - change - START');
   const checkboxEls = document.querySelectorAll('.tree-checkbox');
   for (const checkboxEl of checkboxEls) {
     checkboxEl.checked = ev.target.checked;
   }
   fetchSelectedResourcePermissions();
+  log('selectAllCheckboxEl - change - END');
 });
 
 resourceTreeEl.addEventListener('change', function (ev) {
   // Propagate click on resource checkbox to child checkboxes.
   if (ev.target.classList.contains('tree-checkbox')) {
+    log('resourceTreeEl - change - START');
     const detailsEl = ev.target.closest('.tree-details');
     const checkboxEls = detailsEl.querySelectorAll('.tree-checkbox');
     for (const checkboxEl of checkboxEls) {
@@ -73,18 +80,21 @@ resourceTreeEl.addEventListener('change', function (ev) {
     }
     refreshSelectAllCheckbox();
     fetchSelectedResourcePermissions();
+    log('resourceTreeEl - change - END');
   }
 });
 
 // Principal search (right side, top)
 
 principalSearchEl.addEventListener('input', function (ev) {
+  log('principalSearchEl - input - START');
   clearTimeout(principalFetchDelay);
   if (principalSearchEl.value.length < 2) {
     principalListEl.classList.remove('visible');
     return;
   }
   principalFetchDelay = setTimeout(fetchPrincipalSearch, 300);
+  log('principalSearchEl - input - END');
 });
 
 principalSearchEl.addEventListener('blur', function (ev) {
@@ -96,11 +106,13 @@ principalSearchEl.addEventListener('blur', function (ev) {
 // We use mousedown instead of click to prevent the blur event on principalSearchEl from firing
 // before the click event.
 principalListEl.addEventListener('mousedown', function (ev) {
+  log('principalListEl - mousedown - START');
   const divEl = ev.target.closest('.principal-flex');
   const principalId = parseInt(divEl.dataset.principalId);
   // const principalType = divEl.dataset.principalType;
   const resources = getSelectedResourceIds();
   fetchSetPermission(resources, principalId, 1);
+  log('principalListEl - mousedown - END');
 });
 
 
@@ -109,8 +121,10 @@ principalListEl.addEventListener('mousedown', function (ev) {
 //
 
 permissionListEl.addEventListener('change', function (ev) {
+  log('permissionListEl - change - START');
   // Handle new permission level selected in permission level dropdown
   if (ev.target.classList.contains('level-dropdown')) {
+    log('Permission level changed:', ev.target.value);
     const divEl = ev.target.closest('div');
     // dataset values are HTML attributes, which are always strings
     const principalId = parseInt(divEl.dataset.principalId);
@@ -119,6 +133,7 @@ permissionListEl.addEventListener('change', function (ev) {
     const resources = getSelectedResourceIds();
     fetchSetPermission(resources, principalId, permissionLevel);
   }
+  log('permissionListEl - change - END');
 });
 
 // permissionListEl.addEventListener('click', function (ev) {
@@ -133,10 +148,12 @@ permissionListEl.addEventListener('change', function (ev) {
 
 // Show and hide individual permissions in the resource tree
 showPermissionsCheckboxEl.addEventListener('change', function (_ev) {
+  log('showPermissionsCheckboxEl - change - START');
   const permissionList = document.querySelectorAll('.tree-principal');
   for (const permission of permissionList) {
     permission.classList.toggle('tree-principal-hidden', !showPermissionsCheckboxEl.checked);
   }
+  log('showPermissionsCheckboxEl - change - END');
 });
 
 
@@ -146,6 +163,7 @@ showPermissionsCheckboxEl.addEventListener('change', function (_ev) {
 
 function fetchResources()
 {
+  log('fetchResources - START: ', resourceFilterEl.value);
   // const checkboxStates = saveCheckboxStates();
   const treeState = saveTreeState();
 
@@ -175,9 +193,10 @@ function fetchResources()
         else {
           treeArray = resultObj.resources;
           clearTimeout(msgDelay);
-          refreshResourceTree(treeArray);
+          refreshResourceTree(treeArray, resultObj.resource_count, resultObj.max_resource);
           restoreTreeState(treeState);
           fetchSelectedResourcePermissions();
+          log('fetchResources - END: ', resourceFilterEl.value);
         }
       })
       .catch((error) => {
@@ -190,6 +209,7 @@ function fetchResources()
 
 function fetchSelectedResourcePermissions()
 {
+  log('fetchSelectedResourcePermissions - START');
   const resources = getSelectedResourceIds();
 
   // Skip server round-trip if no resources are selected.
@@ -223,6 +243,7 @@ function fetchSelectedResourcePermissions()
           permissionArray = resultObj.permissionArray;
           clearTimeout(msgDelay);
           refreshPermissions();
+          log('fetchSelectedResourcePermissions - END');
         }
       })
       .catch((error) => {
@@ -235,6 +256,7 @@ function fetchSelectedResourcePermissions()
 
 function fetchSetPermission(resources, principalId, permissionLevel)
 {
+  log('fetchSetPermission - START');
   fetch(`${ROOT_PATH}/permission/update`, {
     method: 'POST', headers: {
       'Content-Type': 'application/json',
@@ -256,6 +278,7 @@ function fetchSetPermission(resources, principalId, permissionLevel)
         else {
           fetchResources();
           principalSearchEl.value = '';
+          log('fetchSetPermission - END');
         }
       })
       .catch((error) => {
@@ -268,6 +291,7 @@ function fetchSetPermission(resources, principalId, permissionLevel)
 
 function fetchPrincipalSearch()
 {
+  log('fetchPrincipalSearch - START');
   const searchStr = principalSearchEl.value;
   fetch(`${ROOT_PATH}/permission/principal/search`, {
     method: 'POST', headers: {
@@ -288,6 +312,7 @@ function fetchPrincipalSearch()
         else {
           principalArray = resultObj.principals;
           refreshPrincipals();
+          log('fetchPrincipalSearch - END');
         }
       })
       .catch((error) => {
@@ -301,14 +326,27 @@ function fetchPrincipalSearch()
 //  Refresh
 //
 
-function refreshResourceTree(resourceArray)
+function refreshResourceTree(resourceArray, resourceCount, maxResource)
 {
   if (!resourceArray.length) {
     resourceTreeEl.innerHTML = `<div class='grid-msg'>No resources found</div>`;
     return;
   }
-  resourceTreeEl.innerHTML = refreshResourceTreeRecursive(resourceArray);
+  let treeHtml = refreshResourceTreeRecursive(resourceArray);
+
+  if (resourceCount > maxResource) {
+    treeHtml += `
+      <div class='grid-msg'>
+        Showing ${maxResource} of ${resourceCount} results. Please refine your search.
+      </div>
+    `;
+  }
+
+  resourceTreeEl.innerHTML = treeHtml;
 }
+
+refreshResourceTree = timeLog(refreshResourceTree, 'refreshResourceTree');
+
 
 function refreshResourceTreeRecursive(resourceArray)
 {
@@ -400,6 +438,11 @@ function refreshPermissions()
   permissionListEl.replaceChildren(fragment);
 }
 
+refreshPermissions = timeLog(refreshPermissions, 'refreshPermissions');
+
+//
+// Aggregated principal permissions (right side, bottom)
+//
 
 function refreshPrincipals()
 {
@@ -417,10 +460,8 @@ function refreshPrincipals()
   principalListEl.replaceChildren(fragment);
 }
 
+refreshPrincipals = timeLog(refreshPrincipals, 'refreshPrincipals');
 
-//
-// Permissions (right side, bottom)
-//
 
 function addPrincipalDiv(parentEl, principalObj)
 {
@@ -522,6 +563,7 @@ function isSomeChecked(rootEl)
 // Capture the open/closed and checked state of each node
 function saveTreeState()
 {
+  log('saveTreeState - START');
   const state = {};
   const detailsEls = document.querySelectorAll('.tree-details');
   detailsEls.forEach(detailsEl => {
@@ -529,12 +571,14 @@ function saveTreeState()
     const resourceId = checkboxEl.dataset.resourceId;
     state[resourceId] = {open: detailsEl.open, checked: checkboxEl.checked};
   });
+  log('saveTreeState - END');
   return state;
 }
 
 // Apply the saved state to the tree
 function restoreTreeState(state)
 {
+  log('restoreTreeState - START');
   const detailsEls = document.querySelectorAll('.tree-details');
   detailsEls.forEach(detailsEl => {
     const checkboxEl = detailsEl.querySelector('.tree-checkbox');
@@ -544,13 +588,48 @@ function restoreTreeState(state)
       checkboxEl.checked = state[resourceId].checked;
     }
   });
+  log('restoreTreeState - END');
 }
 
-
+//
+// Misc utils
 //
 
 function redirectToLogin()
 {
+  log('Redirecting to login page');
   window.location.href =
       `${ROOT_PATH}/ui/signin?next=${encodeURIComponent(window.location.pathname)}`;
+}
+
+
+// To separate bursts of log messages that result from user actions, we add a spacer line
+// after a few seconds of inactivity.
+function log(...args)
+{
+  console.log(...args);
+  if (loggingSpacerTimeout) {
+    clearTimeout(loggingSpacerTimeout);
+  }
+  loggingSpacerTimeout = setTimeout(() => {
+    console.log('-'.repeat(100));
+  }, 3000);
+}
+
+
+function timeLog(fn, name)
+{
+  return function (...args) {
+    log(`${name} - START`);
+    const start = performance.now();
+    const result = fn.apply(this, args);
+    const end = performance.now();
+    log(`${name} - END (${(end - start).toFixed(2)} ms)`);
+    countDomElements();
+    return result;
+  };
+}
+
+function countDomElements() {
+  log('NUMBER OF DOM ELEMENTS: ' + document.getElementsByTagName('*').length);
 }

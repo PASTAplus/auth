@@ -67,11 +67,13 @@ async def post_permission_resource_filter(
     resource_iter = await dbi.get_resource_list(
         token_profile_row, query_dict.get('query'), query_dict.get('type') or None
     )
-    resource_tree = db.resource_tree.get_resource_tree_for_ui(resource_iter)
+    tree_list = db.resource_tree.get_resource_tree_for_ui(resource_iter)
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',
-            'resources': resource_tree,
+            'resources': tree_list[:Config.MAX_TREE_COUNT],
+            'resource_count': len(tree_list),
+            'max_resource': Config.MAX_TREE_COUNT,
         },
         media_type='application/json',
     )
