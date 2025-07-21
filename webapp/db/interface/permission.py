@@ -719,18 +719,15 @@ class PermissionInterface:
             - the Public Access profile
             - the Authenticated Access profile
 
+        For the special cases of finding equivalent principals for the Public Access profile, we
+        don't include the Authenticated Access profile, and vice versa.
+
         :returns: Query object for use in SQLAlchemy 'where' and 'in' clauses for rules.
         """
         public_profile_id = await util.profile_cache.get_public_access_profile_id(self)
         authenticated_profile_id = await util.profile_cache.get_authenticated_access_profile_id(
             self
         )
-        # This method supports regular profiles, and should not be called for the public
-        # or authenticated profiles, as they do not have any equivalent principals.
-        assert token_profile_row.id not in (
-            public_profile_id,
-            authenticated_profile_id,
-        ), 'This method should not be called for the public or authenticated profiles.'
         return (
             sqlalchemy.select(Principal.id)
             .outerjoin(
@@ -756,7 +753,7 @@ class PermissionInterface:
             )
             .where(
                 sqlalchemy.or_(
-                    # db.models.permission.Principal ID of the db.models.profile.Profile
+                    # The profile itself
                     sqlalchemy.and_(
                         Principal.subject_id == token_profile_row.id,
                         Principal.subject_type == SubjectType.PROFILE,
@@ -765,11 +762,17 @@ class PermissionInterface:
                     sqlalchemy.and_(
                         Principal.subject_id == public_profile_id,
                         Principal.subject_type == SubjectType.PROFILE,
+                        # Don't include the authenticated profile in the list of equivalent
+                        # IDs for the public profile.
+                        token_profile_row.id != authenticated_profile_id,
                     ),
                     # Authenticated access
                     sqlalchemy.and_(
                         Principal.subject_id == authenticated_profile_id,
                         Principal.subject_type == SubjectType.PROFILE,
+                        # Don't include the public profile in the list of equivalent
+                        # IDs for the authenticated profile.
+                        token_profile_row.id != public_profile_id,
                     ),
                     # Groups in which the profile is a member
                     db.models.group.GroupMember.profile_id == token_profile_row.id,
