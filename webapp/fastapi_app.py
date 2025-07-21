@@ -19,6 +19,8 @@ async def lifespan(
     async with util.dependency.get_dbi() as dbi:
         # Initialize the profile and group search cache
         await util.search_cache.init_cache(dbi)
+        # Initialize the roots of the resource tree
+        await dbi.update_tree()
 
     # Run the app
     yield

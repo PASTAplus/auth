@@ -1,3 +1,5 @@
+import pprint
+
 import daiquiri
 import fastapi
 import starlette.requests
@@ -71,7 +73,7 @@ async def post_permission_resource_filter(
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',
-            'resources': tree_list[:Config.MAX_TREE_COUNT],
+            'resources': tree_list[: Config.MAX_TREE_COUNT],
             'resource_count': len(tree_list),
             'max_resource': Config.MAX_TREE_COUNT,
         },
@@ -217,4 +219,81 @@ async def post_permission_update(
         {
             'status': 'ok',
         }
+    )
+
+
+####################################################################################################
+####################################################################################################
+####################################################################################################
+# Perm2
+
+@router.get('/ui/perm2')
+async def get_perm2_ui(
+    request: starlette.requests.Request,
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
+):
+    """Permission page. The contents of the panels are loaded separately."""
+    return util.template.templates.TemplateResponse(
+        'perm2.html',
+        {
+            # Base
+            'token': None,  # No token in perm2
+            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
+            'profile': token_profile_row,
+            # Page
+            'request': request,
+            # 'root_count': await dbi.get_root_count()
+            'root_count': 100000,
+        },
+    )
+
+@router.get('/perm2/fetch')
+async def get_perm2(
+    request: starlette.requests.Request,
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    # token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
+):
+    query_dict = request.query_params
+    start_idx = int(query_dict['start'])
+    limit = int(query_dict['limit'])
+
+    log.debug(f'start={start_idx}, limit={limit}')
+
+    root_list = [
+        f'Root {i}'
+        for i in range(start_idx, start_idx + limit)
+    ]
+
+    # import time
+    # time.sleep(1)
+
+    return starlette.responses.JSONResponse(
+        root_list
+    )
+
+##############
+
+    root_list = await dbi.get_root_resources(start_idx, limit)
+
+    log.debug('----------------')
+    log.debug(f'start={start_idx}, limit={limit}')
+    log.debug(f'Found: {len(root_list)}')
+
+    # root_list = [
+    #     {
+    #         'id': row.id,
+    #         'label': row.label,
+    #     }
+    #     for row in root_list
+    # ]
+    root_list = [
+        row.label
+        for row in root_list
+    ]
+
+    # pprint.pp(root_list)
+
+    return starlette.responses.JSONResponse(
+        root_list
     )

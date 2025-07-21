@@ -630,6 +630,7 @@ function timeLog(fn, name)
   };
 }
 
-function countDomElements() {
+function countDomElements()
+{
   log('NUMBER OF DOM ELEMENTS: ' + document.getElementsByTagName('*').length);
 }

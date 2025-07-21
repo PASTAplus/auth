@@ -7,11 +7,12 @@ import db.interface.identity
 import db.interface.permission
 import db.interface.profile
 import db.interface.sync
-import db.interface.sync
+import db.interface.tree
 import db.models.group
 import db.models.identity
 import db.models.permission
 import db.models.profile
+import db.models.tree
 import util.avatar
 import util.profile_cache
 import db.interface.util
@@ -27,6 +28,7 @@ class DbInterface(
     db.interface.permission.PermissionInterface,
     db.interface.profile.ProfileInterface,
     db.interface.sync.SyncInterface,
+    db.interface.tree.TreeInterface,
 ):
     def __init__(self, session: sqlalchemy.ext.asyncio.AsyncSession):
         self._session = session
@@ -35,6 +37,7 @@ class DbInterface(
         db.interface.permission.PermissionInterface.__init__(self, session)
         db.interface.profile.ProfileInterface.__init__(self, session)
         db.interface.sync.SyncInterface.__init__(self, session)
+        db.interface.tree.TreeInterface.__init__(self, session)
 
     @property
     def session(self):

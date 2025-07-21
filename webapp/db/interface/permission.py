@@ -51,6 +51,7 @@ import db.resource_tree
 import util.avatar
 import util.profile_cache
 from config import Config
+import util.exc
 
 log = daiquiri.getLogger(__name__)
 
@@ -86,7 +87,7 @@ class PermissionInterface:
         return result.scalar()
 
     async def update_resource(
-        self, token_profile_row, key, parent_resource_key=None, label=None, type_str=None
+        self, token_profile_row, key, parent_key=None, label=None, type_str=None
     ):
         """Update a resource.
 
@@ -99,58 +100,35 @@ class PermissionInterface:
         resource. (Not handled by this method. See the Rules API).
         """
         resource_row = await self.get_resource(key)
-        assert resource_row is not None, f'Attempt to update non-existing resource: "{key}"'
+        if resource_row is None:
+            raise util.exc.ResourceDoesNotExistError(key)
 
         if not await self.is_authorized(token_profile_row, resource_row, PermissionLevel.WRITE):
-            raise ValueError(
-                f'Profile "{token_profile_row.edi_id}" does not have WRITE permission on '
-                f'resource "{key}"'
+            raise util.exc.ResourcePermissionDeniedError(
+                token_profile_row.edi_id, key, PermissionLevel.WRITE
             )
 
-        if parent_resource_key:
+        if parent_key:
             # Check permission on the new parent resource.
-            parent_resource_row = await self.get_resource(parent_resource_key)
-            if not await self.is_authorized(
-                token_profile_row, parent_resource_row, PermissionLevel.WRITE
-            ):
-                raise ValueError(
-                    f'Profile "{token_profile_row.edi_id}" does not have WRITE permission on '
-                    f'parent resource "{parent_resource_row.key}"'
+            parent_row = await self.get_resource(parent_key)
+            if not await self.is_authorized(token_profile_row, parent_row, PermissionLevel.WRITE):
+                raise util.exc.ResourcePermissionDeniedError(
+                    token_profile_row.edi_id, parent_key, PermissionLevel.WRITE
                 )
             # Check that the new parent is not a descendant of the resource being updated, which
             # would create a cycle in the graph.
-            descendant_id_list = self.get_resource_descendants_id_set([resource_row.id])
-            if parent_resource_row.id in descendant_id_list:
-                raise ValueError(
-                    f'Cannot set parent resource: The requested parent is currently a descendant '
-                    f'of the resource to be updated. resource_key={resource_row.key} '
-                    f'parent_resource_key={parent_resource_row.key}'
+            descendant_id_list = await self.get_resource_descendants_id_set([resource_row.id])
+            if parent_row.id in descendant_id_list:
+                raise util.exc.InvalidRequestError(
+                    f'Cannot set parent resource: The requested parent is a descendant '
+                    f'of the resource to be updated. resource_key="{resource_row.key}" '
+                    f'parent_key="{parent_row.key}"'
                 )
-            # Parent is ok, so we can set it.
-
+            resource_row.parent = parent_row
         if label:
             resource_row.label = label
         if type_str:
             resource_row.type = type_str
-
-    async def get_owned_resource_by_key(self, token_profile_row, key):
-        """Get a resource by its key. The resource must have CHANGE permission for the profile, or a
-        group of which the profile is a member.
-
-        :returns:
-            The resource row if found, or None if the resource does not exist or is not owned by the
-            profile.
-        """
-
-        if resource_row is None:
-            return None
-
-        if not self.is_authorized(token_profile_row, resource_row, PermissionLevel.CHANGE):
-            raise ValueError(
-                f'Profile {token_profile_row.id} does not have CHANGE permission on resource {key}'
-            )
-
-        return result.scalar()
 
     async def is_authorized(self, token_profile_row, resource_row, permission_level):
         """Check if a profile has a specific permission or higher on a resource.
@@ -285,26 +263,50 @@ class PermissionInterface:
 
         parent_id_set = set()
 
-        # Recursively find all parent IDs of the resources in resource_ids.
+        # Recursively find all parent IDs of the resources in resource_ids, and bump them up to the
+        # permission_level if required. We never reduce the permission level of a parent, but we
+        # need to make sure that the principal has the permissions required in order to be able to
+        # walk down the tree to their resources.
 
-        async def _find_parent_ids(resource_id):
-            """Recursively find all parent IDs of the given resource ID."""
-            result = await self.execute(
-                sqlalchemy.select(Resource.parent_id).where(Resource.id == resource_id)
+        async def _find_parent_ids(resource_id_):
+            result_ = await self.execute(
+                sqlalchemy.select(Resource.parent_id).where(Resource.id == resource_id_)
             )
-            parent_id = result.scalar_one_or_none()
-            if parent_id is not None:
-                parent_id_set.add(parent_id)
-                await _find_parent_ids(parent_id)
+            parent_id_ = result_.scalar_one_or_none()
+            if parent_id_ is not None:
+                parent_id_set.add(parent_id_)
+                await _find_parent_ids(parent_id_)
 
         for resource_id in resource_ids:
             await _find_parent_ids(resource_id)
 
-        resource_ids = list(set(resource_ids) | parent_id_set)
+        for parent_id in parent_id_set:
+            result = await self.execute(sqlalchemy.select(Resource).where(Resource.id == parent_id))
+            resource_row = result.scalar()
+            if resource_row is None:
+                log.warning(f'Resource with ID {parent_id} does not exist, skipping.')
+                continue
+            if not await self.is_authorized(
+                token_profile_row, resource_row, permission_level
+            ):
+                await self.create_or_update_rule(
+                    resource_row, token_profile_row.principal, permission_level
+                )
 
-        log.debug(f'resource_ids: {resource_ids}')
-        log.debug(f'parent_id_set: {parent_id_set}')
+        await self._bulk_set_permissions(
+            token_profile_row,
+            resource_ids,
+            principal_id,
+            permission_level,
+        )
 
+    async def _bulk_set_permissions(
+        self,
+        token_profile_row,
+        resource_ids,
+        principal_id,
+        permission_level,
+    ):
         # Databases have a limit to the number of parameters they can accept in a single query, so
         # we chunk the list of resource IDs, which then also limits the number of rows we attempt to
         # create or update in a single bulk query.
@@ -337,8 +339,7 @@ class PermissionInterface:
                         )
                     )
                 )
-                change_resource_id_set = {row for row, in result.all()}
-
+                # change_resource_id_set = {row for row, in result.all()}
                 change_resource_id_set = set(resource_chunk_list)
 
             log.debug(f'change_resource_id_set: {change_resource_id_set}')
@@ -398,43 +399,6 @@ class PermissionInterface:
                     .values(permission=permission_level)
                 )
                 await self.execute(update_stmt)
-
-    # async def set_permission_on_resource_list(
-    #     self,
-    #     token_profile_row,
-    #     resource_list,
-    #     principal_id,
-    #     principal_type,
-    #     permission_level,
-    # ):
-    #     """Update a permission level for a principal on a set of resources, designated by collection
-    #      ID, and resource type.
-    #
-    #     :param token_profile_row: The profile of the user who is updating the permission. The user
-    #     must have authenticated and must be holding a valid token for this profile.
-    #     :param resource_list: [[parent_id, resource_type], ...]
-    #     :param principal_id: The ID of the principal (profile or group) to grant the
-    #     permission to.
-    #     :param principal_type: The type of the principal (PROFILE or GROUP).
-    #     :param permission_level: The permission level to grant (READ, WRITE, CHANGE).
-    #     """
-    #
-    #     for parent_id, resource_type in resource_list:
-    #         resource_row_query = (
-    #             await self._session.query(db.models.permission.Resource)
-    #             .filter(
-    #                 db.models.permission.Resource.parent_id == parent_id,
-    #                 db.models.permission.Resource.type == resource_type,
-    #             )
-    #             .all()
-    #         )
-    #         for resource_row in resource_row_query:
-    #             await self._create_or_update_rule(
-    #                 resource_row.id,
-    #                 principal_id,
-    #                 principal_type,
-    #                 permission_level,
-    #             )
 
     async def create_or_update_rule(
         self,

@@ -150,7 +150,7 @@ async def read_v1_rule(
     )
 
 
-@router.put('/rule/{resource_key:path}/{principal}')
+@router.put('/rule/{principal}/{resource_key:path}')
 async def update_v1_rule(
     resource_key: str,
     principal: str,
@@ -187,15 +187,19 @@ async def update_v1_rule(
     except ValueError as e:
         return api.utils.get_response_400_bad_request(request, api_method, str(e))
     # Check that the resource exists and is owned by the profile
-    try:
-        resource_row = await dbi.get_owned_resource_by_key(token_profile_row, resource_key)
-    except ValueError:
-        resource_row = None
+    resource_row = await dbi.get_resource(resource_key)
     if not resource_row:
         return api.utils.get_response_404_not_found(
+            request, api_method, f'Resource does not exist', resource_key=resource_key
+        )
+    # Check that the token profile is an owner of the resource
+    if not await dbi.is_authorized(
+        token_profile_row, resource_row, db.models.permission.PermissionLevel.CHANGE
+    ):
+        return api.utils.get_response_403_forbidden(
             request,
             api_method,
-            f'Resource does not exist',
+            'Insufficient permissions to update rule',
             resource_key=resource_key,
         )
     # Check that the principal exists
@@ -249,13 +253,20 @@ async def delete_v1_rule(
     if token_profile_row is None:
         return api.utils.get_response_401_unauthorized(request, api_method)
     # Check that the resource exists and is owned by the profile
-    try:
-        resource_row = await dbi.get_owned_resource_by_key(token_profile_row, resource_key)
-    except ValueError:
-        resource_row = None
+    resource_row = await dbi.get_resource(resource_key)
     if not resource_row:
         return api.utils.get_response_404_not_found(
             request, api_method, f'Resource does not exist', resource_key=resource_key
+        )
+    # Check that the token profile is an owner of the resource
+    if not await dbi.is_authorized(
+        token_profile_row, resource_row, db.models.permission.PermissionLevel.CHANGE
+    ):
+        return api.utils.get_response_403_forbidden(
+            request,
+            api_method,
+            'Insufficient permissions to delete rule',
+            resource_key=resource_key,
         )
     # Check that the principal exists
     principal_row = await dbi.get_principal_by_edi_id(principal)

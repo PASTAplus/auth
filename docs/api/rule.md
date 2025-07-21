@@ -105,7 +105,7 @@ Permissions:
 Update the access control rule (ACR) for a principal on a resource.
 
 ```
-PUT: /auth/v1/rule/<resource_key>/<principal_edi_id>
+PUT: /auth/v1/rule/<principal_edi_id>/<resource_key>
 
 : The principal granted access by this ACR
 updateRule(

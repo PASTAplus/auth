@@ -11,6 +11,7 @@ import db.models.permission
 import db.resource_tree
 import util.dependency
 import util.url
+import util.exc
 
 router = fastapi.APIRouter(prefix='/v1')
 
@@ -78,9 +79,7 @@ async def post_v1_resource(
     resource_row = await dbi.create_resource(parent_id, resource_key, label, type_str)
     # Create default CHANGE permission for the profile on the resource
     await dbi.create_or_update_rule(
-        resource_row,
-        principal_row,
-        db.models.permission.PermissionLevel.CHANGE,
+        resource_row, principal_row, db.models.permission.PermissionLevel.CHANGE
     )
     return api.utils.get_response_200_ok(
         request, api_method, 'Resource created successfully', resource_key=resource_key
@@ -252,24 +251,36 @@ async def update_v1_resource(
         )
     # Check that the request contains the required fields
     updated_fields = {}
+    if 'parent_resource_key' in request_dict:
+        updated_fields['parent_key'] = request_dict['parent_resource_key']
     if 'resource_label' in request_dict:
         updated_fields['label'] = request_dict['resource_label']
     if 'resource_type' in request_dict:
-        updated_fields['type'] = request_dict['resource_type']
+        updated_fields['type_str'] = request_dict['resource_type']
     if not updated_fields:
         return api.utils.get_response_400_bad_request(
             request,
             api_method,
-            'Must provide resource_label and/or resource_type fields for update',
-        )
-    # Check that the resource exists
-    resource_row = await dbi.get_resource(resource_key)
-    if not resource_row:
-        return api.utils.get_response_404_not_found(
-            request, api_method, f'Resource does not exist', resource_key=resource_key
+            f'Missing field(s) in JSON in request body. '
+            'Must provide one or more of the following fields for update: '
+            'parent_resource_key, resource_label, resource_type',
         )
     # Update the resource
-    await dbi.update_resource(resource_key, **updated_fields)
+    try:
+        await dbi.update_resource(token_profile_row, resource_key, **updated_fields)
+    except util.exc.ResourceDoesNotExistError as e:
+        return api.utils.get_response_404_not_found(
+            request, api_method, str(e), resource_key=resource_key
+        )
+    except util.exc.ResourcePermissionDeniedError as e:
+        return api.utils.get_response_403_forbidden(
+            request, api_method, str(e), resource_key=resource_key
+        )
+    except util.exc.InvalidRequestError as e:
+        return api.utils.get_response_400_bad_request(
+            request, api_method, str(e), resource_key=resource_key
+        )
+
     return api.utils.get_response_200_ok(
         request, api_method, 'Resource updated successfully', resource_key=resource_key
     )

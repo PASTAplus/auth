@@ -50,3 +50,4 @@ AsyncSessionFactory = sqlalchemy.ext.asyncio.async_sessionmaker(
     autocommit=False, autoflush=False, bind=async_engine
 )
 
+# async with AsyncSessionFactory() as session:
