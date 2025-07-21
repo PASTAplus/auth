@@ -228,14 +228,14 @@ async def test_public_access(populated_dbi, service_client, john_client, jane_cl
 #     john_client.post(
 #         '/v1/resource',
 #         json={
-#             'resource_key': 'john_resource_key',
+#             'resource_key': 'john-resource-key',
 #             'resource_label': 'Resource created by John Smith',
 #             'resource_type': 'testResource',
 #             'parent_resource_key': None,
 #         },
 #     )
 #     # Jane tries to access John's resource without having any ACRs on the resource
-#     response = jane_client.get('/v1/resource/john_resource_key')
+#     response = jane_client.get('/v1/resource/john-resource-key')
 #     assert response.status_code == starlette.status.HTTP_403_FORBIDDEN
 #
 #

@@ -115,14 +115,14 @@ async def test_read_resource_by_non_owner(populated_dbi, john_client, jane_clien
     john_client.post(
         '/v1/resource',
         json={
-            'resource_key': 'john_resource_key',
+            'resource_key': 'john-resource-key',
             'resource_label': 'Resource created by John Smith',
             'resource_type': 'testResource',
             'parent_resource_key': None,
         },
     )
-    # Jane tries to access John's resource without having any ACRs on the resource
-    response = jane_client.get('/v1/resource/john_resource_key')
+    # Jane tries to read John's resource without having any ACRs on the resource
+    response = jane_client.get('/v1/resource/john-resource-key')
     assert response.status_code == starlette.status.HTTP_403_FORBIDDEN
 
 
@@ -139,19 +139,158 @@ async def test_read_resource_tree_1(john_client):
     tests.sample.assert_match(response.json(), 'read_resource_tree_1.json')
 
 
-
-# async def test_3(client, populated_dbi, profile_row):
-#     #     rows = (await populated_dbi.session.execute(sqlalchemy.select(db.models.permission.Rule))).scalars().all()
-#     #     for row in rows:
-#     #         print('-' * 80)
-#     #         print(row)
-#     #         print(row.id)
-#     #         print(row.permission)
-#     resource_iter = await populated_dbi.get_resource_ancestors(
-#         profile_row, (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-#     )
-#     resource_tree = db.resource_tree.get_resource_tree_for_ui(resource_iter)
-#     # pprint.pp(resource_tree)
-#     print(json.dumps(resource_tree, indent=2))
+# updateResource()
 
 
+async def test_update_resource_by_anon(anon_client, john_client):
+    """updateResource()
+    Call by anon user -> 401 Unauthorized
+    """
+    await _mk_resource(john_client, 'john-resource-key')
+    response = anon_client.put(
+        f'/v1/resource/john-resource-key',
+        json={
+            'resource_label': 'Updated Resource Label',
+        },
+    )
+    assert response.status_code == starlette.status.HTTP_401_UNAUTHORIZED
+
+
+async def test_update_resource_by_non_writer(john_client, jane_client):
+    """updateResource()
+    Call without WRITE on resource -> 403 Forbidden
+    """
+    await _mk_resource(john_client, 'john-resource-key')
+    # Jane tries to update John's resource without having any ACRs on the resource
+    response = jane_client.put(
+        f'/v1/resource/john-resource-key',
+        json={
+            'resource_label': 'Updated Resource Label',
+        },
+    )
+    assert response.status_code == starlette.status.HTTP_403_FORBIDDEN
+
+
+async def test_update_resource_by_writer(john_client, jane_client):
+    """updateResource()
+    Call with WRITE on resource -> Successful update, 200 OK.
+    """
+    await _mk_resource(john_client, 'john-resource-key')
+    john_client.post(
+        '/v1/rule',
+        json={
+            'resource_key': 'john-resource-key',
+            'principal': tests.edi_id.JANE,
+            'permission': 'write',
+        },
+    )
+    # Jane updates John's resource with WRITE permission
+    response = jane_client.put(
+        f'/v1/resource/john-resource-key',
+        json={
+            'resource_label': 'Updated Resource Label',
+            'resource_type': 'Update Resource Type',
+        },
+    )
+    assert response.status_code == starlette.status.HTTP_200_OK
+    # John can see the changes made by Jane
+    response = john_client.get('/v1/resource/john-resource-key')
+    assert response.status_code == starlette.status.HTTP_200_OK
+    tests.sample.assert_match(response.json(), 'update_resource_by_writer.json')
+
+
+async def test_update_resource_valid_parent(john_client, jane_client):
+    """updateResource()
+    Move resource from one parent to another -> Successful update, 200 OK.
+    """
+    # John creates two roots, and a child resource on one of the roots
+    await _mk_resource(john_client, 'john-root-1', parent_key=None)
+    await _mk_resource(john_client, 'john-root-2', parent_key=None)
+    await _mk_resource(john_client, 'john-child-1', parent_key='john-root-1')
+    # John moves the child resource to the other root
+    response = john_client.put(
+        '/v1/resource/john-child-1',
+        json={
+            'resource_label': 'Updated Child Resource Label 2',
+            'parent_resource_key': 'john-root-2',
+        },
+    )
+    assert response.status_code == starlette.status.HTTP_200_OK
+    response = john_client.get('/v1/resource/john-child-1')
+    assert response.status_code == starlette.status.HTTP_200_OK
+    tests.sample.assert_match(response.json(), 'update_resource_valid_parent.json')
+
+
+async def test_update_resource_invalid_parent(john_client, jane_client):
+    """updateResource()
+    Move to parent without WRITE -> 403 Forbidden.
+    """
+    await _mk_resource(john_client, 'john-root', parent_key=None)
+    await _mk_resource(john_client, 'john-child', parent_key='john-root')
+    await _mk_resource(jane_client, 'jane-root', parent_key=None)
+    await _mk_resource(jane_client, 'jane-child', parent_key='jane-root')
+    # John tries to move the child resource to Jane's root, where he has no WRITE permission
+    response = john_client.put(
+        '/v1/resource/john-child',
+        json={
+            'resource_label': 'Updated Child Resource Label 2',
+            'parent_resource_key': 'jane-root',
+        },
+    )
+    assert response.status_code == starlette.status.HTTP_403_FORBIDDEN
+    # John adds READ permission for Jane on his child resource
+    response = john_client.post(
+        '/v1/rule',
+        json={
+            'resource_key': 'john-child',
+            'principal': tests.edi_id.JANE,
+            'permission': 'read',
+        },
+    )
+    assert response.status_code == starlette.status.HTTP_200_OK
+    # Jane still cannot move John's child resource to her root, as she has no WRITE permission
+    response = jane_client.put(
+        '/v1/resource/john-child',
+        json={
+            'resource_label': 'Updated Child Resource Label 3',
+            'parent_resource_key': 'jane-root',
+        },
+    )
+    assert response.status_code == starlette.status.HTTP_403_FORBIDDEN
+    # John updates Jane's permission to WRITE
+    response = john_client.put(
+        f'/v1/rule/{tests.edi_id.JANE}/john-child',
+        json={
+            'permission': 'write',
+        },
+    )
+    assert response.status_code == starlette.status.HTTP_200_OK
+    # Jane can now move John's child resource to her root
+    response = jane_client.put(
+        '/v1/resource/john-child',
+        json={
+            'resource_label': 'Updated Child Resource Label 4',
+            'parent_resource_key': 'jane-root',
+        },
+    )
+    assert response.status_code == starlette.status.HTTP_200_OK
+    # Jane can see the changes made by herself
+    response = jane_client.get('/v1/resource/john-child')
+    assert response.status_code == starlette.status.HTTP_200_OK
+    tests.sample.assert_match(response.json(), 'update_resource_invalid_parent_jane.json')
+    # John can see the changes made by Jane
+    response = john_client.get('/v1/resource/john-child')
+    assert response.status_code == starlette.status.HTTP_200_OK
+    tests.sample.assert_match(response.json(), 'update_resource_invalid_parent_john.json')
+
+
+async def _mk_resource(client, key, parent_key=None):
+    return client.post(
+        '/v1/resource',
+        json={
+            'resource_key': key,
+            'resource_label': f'Resource label for {key}',
+            'resource_type': f'Resource type for {key}',
+            'parent_resource_key': parent_key,
+        },
+    )
