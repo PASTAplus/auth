@@ -78,31 +78,44 @@ async def post_token(
     edi_id: str,
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
-    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    """Superuser API to create a new token for an existing profile.
-
-    For API access on behalf of any user profile, any authenticated user in the
-    Config.SUPERUSER_LIST, can call this endpoint to receive a valid token that can then be used in
-    API requests. The token can also be used to access the UI via a browser as that user.
-
-    The token does not include the IdP information that is normally included in a token created
-    via the login flow, as that information may not exist for the profile being accessed.
+    """Create a new token for an existing profile.
+    The token does not include the IdP information that is normally included in a token created via
+    the login flow, as that information may not exist for the profile being accessed.
     """
-    api_method = 'createToken'
-    # Check token
-    if token_profile_row is None:
-        return api.utils.get_response_401_unauthorized(request, api_method)
-    # Check that token belongs to a superuser
-    if not util.profile_cache.is_superuser(token_profile_row):
-        return api.utils.get_response_403_forbidden(None, api_method, 'Must be a superuser')
+    api_method = 'getToken'
+    # Check that the request body is valid JSON
+    try:
+        request_dict = await api.utils.request_body_to_dict(request)
+    except ValueError as e:
+        return api.utils.get_response_400_bad_request(request, api_method, 'Invalid request')
+    # Check that the request contains the required fields
+    try:
+        key = request_dict['key']
+    except KeyError as e:
+        return api.utils.get_response_400_bad_request(request, api_method, 'Invalid request')
+    # Check the key
+    if not (Config.TOKEN_KEY and key == Config.TOKEN_KEY):
+        return api.utils.get_response_403_forbidden(
+            request, api_method, 'Invalid request', edi_id=edi_id
+        )
     # Check that the profile exists
     profile_row = await dbi.get_profile(edi_id)
     if not profile_row:
         return api.utils.get_response_404_not_found(
-            request, api_method, 'Profile does not exist', edi_id=edi_id
+            request, api_method, 'Invalid request', edi_id=edi_id
         )
-    # Create token
+    edi_token = await create_edi_token(dbi, profile_row)
+    return api.utils.get_response_200_ok(
+        request,
+        api_method,
+        'Token created successfully',
+        edi_id=edi_id,
+        token=edi_token.encode(),
+    )
+
+
+async def create_edi_token(dbi, profile_row):
     principals_set = await dbi.get_equivalent_principal_edi_id_set(profile_row)
     principals_set.remove(profile_row.edi_id)
     edi_token = util.pasta_jwt.PastaJwt(
@@ -119,10 +132,4 @@ async def post_token(
             'idpCname': 'Unknown',
         }
     )
-    return api.utils.get_response_200_ok(
-        request,
-        api_method,
-        'Token created successfully',
-        edi_id=edi_id,
-        token=edi_token.encode(),
-    )
+    return edi_token

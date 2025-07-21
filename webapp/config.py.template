@@ -108,6 +108,8 @@ class Config(object):
         'EDI-...',
     ]
 
+    TOKEN_KEY = ''
+
     #
     # UI
     #

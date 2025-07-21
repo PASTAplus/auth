@@ -227,6 +227,7 @@ async def post_permission_update(
 ####################################################################################################
 # Perm2
 
+
 @router.get('/ui/perm2')
 async def get_perm2_ui(
     request: starlette.requests.Request,
@@ -248,6 +249,7 @@ async def get_perm2_ui(
         },
     )
 
+
 @router.get('/perm2/fetch')
 async def get_perm2(
     request: starlette.requests.Request,
@@ -260,19 +262,14 @@ async def get_perm2(
 
     log.debug(f'start={start_idx}, limit={limit}')
 
-    root_list = [
-        f'Root {i}'
-        for i in range(start_idx, start_idx + limit)
-    ]
+    root_list = [f'Root {i}' for i in range(start_idx, start_idx + limit)]
 
     # import time
     # time.sleep(1)
 
-    return starlette.responses.JSONResponse(
-        root_list
-    )
+    return starlette.responses.JSONResponse(root_list)
 
-##############
+    ##############
 
     root_list = await dbi.get_root_resources(start_idx, limit)
 
@@ -287,13 +284,8 @@ async def get_perm2(
     #     }
     #     for row in root_list
     # ]
-    root_list = [
-        row.label
-        for row in root_list
-    ]
+    root_list = [row.label for row in root_list]
 
     # pprint.pp(root_list)
 
-    return starlette.responses.JSONResponse(
-        root_list
-    )
+    return starlette.responses.JSONResponse(root_list)
