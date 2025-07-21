@@ -69,13 +69,19 @@ async def test_get_equivalent_principal_edi_id_set_1(populated_dbi, john_profile
 
 
 async def test_equivalent_principal_edi_id_set_for_public(populated_dbi):
-    """Attempt to get equivalents for the public or authenticated users -> AssertionError"""
-    profile_row = await populated_dbi.get_public_profile()
-    with pytest.raises(AssertionError):
-        await populated_dbi.get_equivalent_principal_edi_id_set(profile_row)
-    profile_row = await populated_dbi.get_authenticated_profile()
-    with pytest.raises(AssertionError):
-        await populated_dbi.get_equivalent_principal_edi_id_set(profile_row)
+    """Equivalents for public profile do not include the authenticated access profile"""
+    public_profile_row = await populated_dbi.get_public_profile()
+    authenticated_profile_row = await populated_dbi.get_authenticated_profile()
+    public_equiv_set = await populated_dbi.get_equivalent_principal_edi_id_set(public_profile_row)
+    assert authenticated_profile_row.edi_id not in public_equiv_set
+
+async def test_equivalent_principal_edi_id_set_for_authenticated(populated_dbi):
+    """Equivalents for authenticated profile do not include the public profile"""
+    authenticated_profile_row = await populated_dbi.get_authenticated_profile()
+    public_profile_row = await populated_dbi.get_public_profile()
+    authenticated_equiv_set = await populated_dbi.get_equivalent_principal_edi_id_set(authenticated_profile_row)
+    assert public_profile_row.edi_id not in authenticated_equiv_set
+
 
 
 async def test_get_resource_ancestors_level_3(populated_dbi):
