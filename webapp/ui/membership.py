@@ -36,7 +36,6 @@ async def get_ui_membership(
                 refresh=request.query_params.get('refresh') == 'true',
             ),
             'profile': token_profile_row,
-            'resource_type_list': await dbi.get_resource_types(token_profile_row),
             # Page
             'request': request,
             'group_membership_list': await dbi.get_group_membership_list(token_profile_row),

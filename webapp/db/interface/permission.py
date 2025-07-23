@@ -207,29 +207,29 @@ class PermissionInterface:
             raise ValueError(f'Resource {key} not found')
         await self._session.delete(resource_row)
 
-    async def get_resource_types(self, token_profile_row):
-        """Get a list of resource types that the profile has CHANGE permission on."""
-        result = await self.execute(
-            (
-                sqlalchemy.select(Resource.type)
-                .join(
-                    Rule,
-                    Rule.resource_id == Resource.id,
-                )
-                .join(
-                    Principal,
-                    Principal.id == Rule.principal_id,
-                )
-                .where(
-                    Principal.subject_id == token_profile_row.id,
-                    Principal.subject_type == SubjectType.PROFILE,
-                    Rule.permission >= PermissionLevel.CHANGE,
-                )
-                .order_by(Resource.type)
-                .distinct()
-            )
-        )
-        return result.scalars().all()
+    # async def get_resource_types(self, token_profile_row):
+    #     """Get a list of resource types that the profile has CHANGE permission on."""
+    #     result = await self.execute(
+    #         (
+    #             sqlalchemy.select(Resource.type)
+    #             .join(
+    #                 Rule,
+    #                 Rule.resource_id == Resource.id,
+    #             )
+    #             .join(
+    #                 Principal,
+    #                 Principal.id == Rule.principal_id,
+    #             )
+    #             .where(
+    #                 Principal.subject_id == token_profile_row.id,
+    #                 Principal.subject_type == SubjectType.PROFILE,
+    #                 Rule.permission >= PermissionLevel.CHANGE,
+    #             )
+    #             .order_by(Resource.type)
+    #             .distinct()
+    #         )
+    #     )
+    #     return result.scalars().all()
 
     async def set_permissions(
         self,
@@ -521,7 +521,7 @@ class PermissionInterface:
                         Resource.parent_id.is_(None),
                         Resource.label.ilike(f'{search_str}%'),
                     ),
-                    ~Resource.parent_id.is_(None),
+                    Resource.parent_id.isnot(None),
                 )
             )
         )

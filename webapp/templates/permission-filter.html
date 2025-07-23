@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{#{% set active_page = 'permission' %}#}
+
+{% block title %}
+  Permissions
+{% endblock %}
+
+{% block head %}
+  <link rel='stylesheet' href='{{ url('/static/css/permission-filter.css') }}'>
+{% endblock %}
+
+{% block scripts %}
+  <script src='{{ url('/static/js/permission-filter.js') }}'></script>
+{% endblock %}
+
+{% block content %}
+  <div class='header-container'
+       data-root-path='{{ url('') }}'
+       data-public-edi-id='{{ public_edi_id }}'
+       data-authenticated-edi-id='{{ authenticated_edi_id }}'
+       data-resource-type='{{ resource_type }}'
+  >
+    <h1 aria-label>Resource Selection</h1>
+  </div>
+
+  <div class='indent'>
+    <p>
+      Select resources to which you want to apply permissions. You can select packages or other
+      types of resources, such as groups.
+    </p>
+  </div>
+
+  <h2>Select packages</h2>
+
+  <div class='indent'>
+    <p>
+      Select packages by scope, identifiers and revisions.
+      For identifiers and revisions, you can use:
+    </p>
+    <ul>
+      <li>A single number (<span class='highlight'>123</span>).</li>
+      <li>A bounded range (<span class='highlight'>100-200</span>).</li>
+      <li>A range without an upper or lower bound (<span class='highlight'>100-</span> or
+        <span class='highlight'>-200</span>).
+      </li>
+      <li>A wildcard (<span class='highlight'>*</span>) to select all.</li>
+    </ul>
+  </div>
+
+  <div class='indent'>
+
+
+    <form id="resource-filter-form" method="get" action="{{ url('permission_filter') }}"
+          class="needs-validation" novalidate>
+      <div class="row mb-3">
+        <div class="col">
+          <label for="scope" class="form-label">Scope:</label>
+          <select id="scope" name="scope" class="form-select">
+            {% for row in package_scope_list %}
+              <option value="{{ row.scope }}">{{ row.scope }}</option>
+            {% endfor %}
+          </select>
+          <div class="invalid-feedback">Please select a scope.</div>
+        </div>
+
+        <div class="col">
+          <label for="identifier" class="form-label">Identifier:</label>
+          <input type="text" id="identifier" name="identifier" class="form-control" placeholder="*"
+                 pattern="^(\*|\s*|-\d+|\d+-|\d+)$">
+          <div class="invalid-feedback">
+            Invalid identifier
+          </div>
+        </div>
+
+        <div class="col">
+          <label for="revision" class="form-label">Revision:</label>
+          <input type="text" id="revision" name="revision" class="form-control" placeholder="*"
+                 pattern="^(\*|(\d+(-\d+)?|-?\d+))$">
+          <div class="invalid-feedback">
+            Invalid revision
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Select</button>
+    </form>
+
+  </div>
+
+  <h2>Select non-package resources</h2>
+
+  <div class='indent'>
+    <p>
+      Select non-package resources, such as groups, by type, name and wildcard (<span
+        class='highlight'>*</span>).
+    </p>
+  </div>
+
+  <div class='indent'>
+    <form id='resource-filter-form' method='get' action='{{ url('permission_filter') }}'
+          class='form-inline'>
+
+      <div class='row mb-3'>
+        <div class='col'>
+          <label for='scope' class='form-label'>Resource type:</label>
+          <select id='scope' name='scope' class='form-select'>
+            {% for row in resource_type_list %}
+              <option value='{{ row.type }}'>{{ row.type }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class='col'>
+          <label for='identifier' class='form-label'>Name:</label>
+          <input type='text' id='identifier' name='identifier' class='form-control'
+                 placeholder='*'>
+        </div>
+      </div>
+
+      <button type='submit' class='btn btn-primary'>Select</button>
+    </form>
+  </div>
+
+
+{% endblock %}

@@ -54,7 +54,6 @@ async def get_ui_avatar(
             'token': token,
             'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
             'profile': token_profile_row,
-            'resource_type_list': await dbi.get_resource_types(token_profile_row),
             # Page
             'request': request,
             'avatar_list': avatar_list,

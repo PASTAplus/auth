@@ -28,6 +28,33 @@ router = fastapi.APIRouter()
 #
 
 
+@router.get('/ui/permission-filter')
+async def get_ui_permission_filter(
+    request: starlette.requests.Request,
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
+):
+    """Permission page. The contents of the panels are loaded separately."""
+    return util.template.templates.TemplateResponse(
+        'permission-filter.html',
+        {
+            # Base
+            'token': token,
+            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
+            'profile': token_profile_row,
+            # Page
+            'request': request,
+            # 'public_edi_id': Config.PUBLIC_EDI_ID,
+            # 'authenticated_edi_id': Config.AUTHENTICATED_EDI_ID,
+            # 'resource_type': request.query_params.get('type', ''),
+            'package_scope_list': await dbi.get_package_scopes(),
+            'resource_type_list': await dbi.get_resource_types(),
+        }
+    )
+
+
+
 @router.get('/ui/permission')
 async def get_ui_permission(
     request: starlette.requests.Request,
@@ -43,7 +70,6 @@ async def get_ui_permission(
             'token': token,
             'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
             'profile': token_profile_row,
-            'resource_type_list': await dbi.get_resource_types(token_profile_row),
             # Page
             'request': request,
             'public_edi_id': Config.PUBLIC_EDI_ID,

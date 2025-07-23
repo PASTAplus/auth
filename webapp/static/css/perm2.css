@@ -1,0 +1,28 @@
+#scroll-container {
+  position: relative;
+  overflow-y: auto;
+  height: 80vh; /* or fixed height */
+}
+
+#spacer {
+  height: 0; /* dynamically set in JS */
+}
+
+#visible-rows {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.scroll-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 30px; /* match JS rowHeight */
+  padding: 4px;
+  box-sizing: border-box;
+  border-bottom: 1px solid #ddd;
+  background: #fff;
+}
+

@@ -26,7 +26,6 @@ router = fastapi.APIRouter()
 @router.api_route('/ui/profile', methods=['GET', 'POST'])
 async def get_post_ui_profile(
     request: starlette.requests.Request,
-    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
@@ -40,7 +39,6 @@ async def get_post_ui_profile(
                 refresh=request.query_params.get('refresh') == 'true',
             ),
             'profile': token_profile_row,
-            'resource_type_list': await dbi.get_resource_types(token_profile_row),
             # Page
             'request': request,
         },
@@ -64,7 +62,6 @@ async def get_ui_profile_edit(
                 refresh=request.query_params.get('refresh') == 'true',
             ),
             'profile': token_profile_row,
-            'resource_type_list': await dbi.get_resource_types(token_profile_row),
             # Page
             'request': request,
             'msg': request.query_params.get('msg'),

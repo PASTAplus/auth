@@ -1,3 +1,6 @@
+"""Tables for optimizing tree traversal and filtering
+"""
+
 import datetime
 import enum
 
@@ -7,11 +10,6 @@ import sqlalchemy.orm
 import db.models.base
 
 log = daiquiri.getLogger(__name__)
-
-
-#
-# Tables for optimizing tree traversal
-#
 
 
 class RootResource(db.models.base.Base):
@@ -28,3 +26,17 @@ class RootResource(db.models.base.Base):
         #     cascade_backrefs=False,
         #     cascade='all, delete-orphan',
     )
+
+
+class PackageScope(db.models.base.Base):
+    __tablename__ = 'package_scope'
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    scope = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=False)
+
+
+class ResourceType(db.models.base.Base):
+    __tablename__ = 'resource_type'
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    type = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
+
+
