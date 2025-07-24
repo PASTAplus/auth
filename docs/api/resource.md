@@ -100,7 +100,7 @@ Example XML `200 OK` Response
 Check if the requesting client has access to a resource at the specified permission level.
 
 ```
-GET: /auth/v1/resource/<resource_key>/access
+GET: /auth/v1/authorized?resource_key=<resource_key>&permission=<permission>
 
 isAuthorized(
     edi_token: The token of the requesting client
@@ -120,7 +120,7 @@ Returns:
 Return the resource associated with a resource key.
 
 ```
-GET : /auth/v1/resource/<resource_key>
+GET: /auth/v1/resource/<resource_key>
 
 readResource(
     edi_token: The token of the requesting client

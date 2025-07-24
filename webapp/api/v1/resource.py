@@ -87,10 +87,8 @@ async def post_v1_resource(
 
 
 # isAuthorized()
-@router.get('/resource/authorized/{permission_level_str}/{resource_key:path}')
+@router.get('/authorized')
 async def get_v1_resource_authorized(
-    permission_level_str: str,
-    resource_key: str,
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
@@ -102,6 +100,15 @@ async def get_v1_resource_authorized(
     # Check token
     if token_profile_row is None:
         return api.utils.get_response_401_unauthorized(request, api_method)
+    # Check query parameters
+    permission_level_str = request.query_params.get('permission')
+    resource_key = request.query_params.get('resource_key')
+    if not permission_level_str or not resource_key:
+        return api.utils.get_response_400_bad_request(
+            request,
+            api_method,
+            'Missing query parameters: permission_level and resource_key are required',
+        )
     # Check for valid permission level string
     try:
         permission_level = db.models.permission.permission_level_string_to_enum(
