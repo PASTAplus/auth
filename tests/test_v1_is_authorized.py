@@ -81,7 +81,7 @@ def _is_authorized(client, resource_key, permission_level):
         )
     except KeyError:
         permission_level_str = permission_level
-    endpoint_str = f'/v1/resource/authorized/{permission_level_str}/{resource_key}'
+    endpoint_str = f'/v1/authorized?resource_key={resource_key}&permission={permission_level_str}'
     log.debug('Calling isAuthorized endpoint: %s', endpoint_str)
     response = client.get(endpoint_str)
     log.debug('Response status code: %s', response.status_code)
