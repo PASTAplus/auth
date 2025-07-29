@@ -56,12 +56,12 @@ async def lifespan(
         )
         # Initialize the profile and group search cache
         await util.search_cache.init_cache(dbi)
-        # Update known package scopes
-        await dbi.init_search_package_scopes()
-        # Update known resource types
-        await dbi.init_search_resource_types()
-        # Update the roots of the resource tree
-        await dbi.init_search_root_resources()
+        # # Update known package scopes
+        # await dbi.init_search_package_scopes()
+        # # Update known resource types
+        # await dbi.init_search_resource_types()
+        # # Update the roots of the resource tree
+        # await dbi.init_search_root_resources()
 
     if Config.DB_QUERY_PROFILING:
         await start_query_profiling(async_engine)
