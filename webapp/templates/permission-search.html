@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{#{% set active_page = 'permission' %}#}
+
+{% block title %}
+  Permissions
+{% endblock %}
+
+{% block head %}
+  <link rel='stylesheet' href='{{ url('/static/css/permission-search.css') }}'>
+{% endblock %}
+
+{% block scripts %}
+  <script src='{{ url('/static/js/permission-search.js') }}'></script>
+{% endblock %}
+
+{% block content %}
+  <div class='header-container'
+       data-base-path='{{ url('') }}'
+       data-public-edi-id='{{ public_edi_id }}'
+       data-authenticated-edi-id='{{ authenticated_edi_id }}'
+       data-resource-type='{{ resource_type }}'
+  >
+    <h1 aria-label>Resource Selection</h1>
+  </div>
+
+  <div class='indent'>
+    <p>
+      Select resources to which you want to apply permissions. You can select packages or other
+      types of resources, such as groups.
+    </p>
+  </div>
+
+  <h2>Select packages</h2>
+
+  <div class='indent'>
+    <p>
+      Select packages by scope, identifiers and revisions.
+      For identifiers and revisions, you can use:
+    </p>
+    <ul>
+      <li>A single number (123).</li>
+      <li>A bounded range (100-200).</li>
+      <li>A range without an upper or lower bound (100- or -100).</li>
+      <li>Leave empty to select all.</li>
+    </ul>
+  </div>
+
+  <div class='indent'>
+    <form id='resource-filter-form' method='post' action='{{ url('/ui/api/permission/search') }}'
+          class='needs-validation' novalidate>
+      <input type='hidden' name='search-type' value='package-search'>
+      <div class='row mb-3'>
+        <div class='col-auto'>
+          <label for='scope' class='form-label'>Scope:</label>
+          <select id='scope' name='scope' class='form-select'>
+            {% for row in package_scope_list %}
+              <option value='{{ row.scope }}'>{{ row.scope }}</option>
+            {% endfor %}
+            <option value=''>ALL</option>
+          </select>
+          <div class='invalid-feedback'>Please select a scope.</div>
+        </div>
+
+        <div class='col-auto'>
+          <label for='identifier' class='form-label'>Identifier:</label>
+          <input type='text' id='identifier' name='identifier' class='form-control' placeholder=''
+                 pattern='^(|\s*|\d+|\d+-\d+|-\d+|\d+-|)$'>
+          <div class='invalid-feedback'>
+            Invalid identifier
+          </div>
+        </div>
+
+        <div class='col-auto'>
+          <label for='revision' class='form-label'>Revision:</label>
+          <input type='text' id='revision' name='revision' class='form-control' placeholder=''
+                 pattern='^(|\s*|\d+|\d+-\d+|-\d+|\d+-|)$'>
+          <div class='invalid-feedback'>
+            Invalid revision
+          </div>
+        </div>
+      </div>
+
+      <button type='submit' class='btn btn-primary'>Select</button>
+    </form>
+
+  </div>
+
+  <h2>Select resources by type and name</h2>
+
+  <div class='indent'>
+    <p>
+      Select resources, such as groups, by type, label and wildcards. A wildcard is either an
+      asterisk (*) or a question mark (?). An asterisk matches zero or more characters, while a
+      question mark matches exactly one character. For label, you can use:
+    </p>
+    <ul>
+      <li>A full label (Tom's Example Group).</li>
+      <li>A partial label with one or more wildcards (*Example Group*).</li>
+      <li>Leave empty to select all.</li>
+    </ul>
+  </div>
+
+  <div class='indent'>
+    <form id='resource-filter-form' method='post' action='{{ url('/ui/api/permission/search') }}'
+          class='form-inline'>
+      <input type='hidden' name='search-type' value='general-search'>
+      <div class='row mb-2'>
+        <div class='col-auto'>
+          <label for='type' class='form-label'>Resource type:</label>
+          <select id='type' name='type' class='form-select'>
+            {% for row in resource_type_list %}
+              <option value='{{ row.type }}'>{{ row.type }}</option>
+            {% endfor %}
+            <option value=''>ALL</option>
+          </select>
+        </div>
+        <div class='col-auto'>
+          <label for='label' class='form-label'>Label:</label>
+          <input type='text' id='label' name='label' class='form-control'
+                 placeholder=''>
+        </div>
+      </div>
+      <button type='submit' class='btn btn-primary'>Select</button>
+    </form>
+  </div>
+
+
+{% endblock %}
