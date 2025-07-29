@@ -15,7 +15,7 @@ router = fastapi.APIRouter()
 #
 
 
-@router.post('/policy/accept')
+@router.post('/ui/api/policy/accept')
 async def policy_accept(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),

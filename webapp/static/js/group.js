@@ -99,7 +99,7 @@ document.addEventListener('click', function (ev) {
 function fetchPrincipalSearch()
 {
   const searchStr = principalSearchEl.value;
-  fetch(`${ROOT_PATH}/group/member/search`, {
+  fetch(`${BASE_PATH}/ui/api/group/member/search`, {
     method: 'POST', headers: {
       'Content-Type': 'application/json',
     }, body: JSON.stringify({query: searchStr}),
@@ -122,7 +122,7 @@ function fetchPrincipalSearch()
 
 function fetchMembers(groupId)
 {
-  fetch(`/group/member/list/${groupId}`, {
+  fetch(`/ui/api/group/member/list/${groupId}`, {
     method: 'GET', headers: {
       'Content-Type': 'application/json',
     },
@@ -151,7 +151,7 @@ function fetchAddRemoveMember(groupId, memberProfileId, isAdd)
   if (hasMember(memberProfileId) && isAdd) {
     return;
   }
-  fetch(`${ROOT_PATH}/group/member/add-remove`, {
+  fetch(`${BASE_PATH}/ui/api/group/member/add-remove`, {
     method: 'POST', headers: {
       'Content-Type': 'application/json',
     },

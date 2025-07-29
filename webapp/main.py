@@ -160,6 +160,7 @@ class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
             not is_valid_token
             and request.url.path.startswith(str(util.url.url('/ui')))
             and not request.url.path.startswith(str(util.url.url('/ui/signin')))
+            and not request.url.path.startswith(str(util.url.url('/ui/api/')))
         ):
             log.debug('Redirecting to /ui/signin: UI page requested without valid token')
             return util.redirect.internal('/signout')

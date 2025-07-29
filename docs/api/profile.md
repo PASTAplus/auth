@@ -111,7 +111,7 @@ Example JSON `200 OK` response, when the profile is owned by the requesting user
   "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
   "common_name": "John Smith",
   "email": "john@smith.com",
-  "avatar_url": "https://localhost:5443/auth/avatar/gen/JS"
+  "avatar_url": "https://localhost:5443/auth/ui/api/avatar/gen/JS"
 }
 ```
 

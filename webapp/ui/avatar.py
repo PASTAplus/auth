@@ -66,7 +66,7 @@ async def get_ui_avatar(
 #
 
 
-@router.post('/avatar/update')
+@router.post('/ui/api/avatar/update')
 async def post_avatar_update(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
@@ -93,7 +93,7 @@ async def post_avatar_update(
     return util.redirect.internal('/ui/profile', refresh='true')
 
 
-@router.get('/avatar/gen/{initials}')
+@router.get('/ui/api/avatar/gen/{initials}')
 async def get_avatar_gen(
     initials: str,
 ):

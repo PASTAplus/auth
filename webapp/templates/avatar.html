@@ -38,7 +38,7 @@
 
       {% for avatar in avatar_list %}
         <div class='grid-child'>
-          <form action='{{ url('/avatar/update') }}' method='post'>
+          <form action='{{ url('/ui/api/avatar/update') }}' method='post'>
             <input type='hidden' name='idp_name' value='{{ avatar.idp_name }}'>
             <input type='hidden' name='idp_uid' value='{{ avatar.idp_uid }}'>
             <button type='submit' class='avatar-button'>

@@ -54,6 +54,18 @@ async def get_ui_permission_filter(
     )
 
 
+@router.post('/ui/api/permission/search')
+async def post_ui_permission_search(
+    request: starlette.requests.Request,
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
+):
+    """Permission Search API"""
+    form_data = await request.form()
+
+    await dbi.init_search_package_scopes()
+    await dbi.init_search_resource_types()
+    await dbi.init_search_root_resources()
 
 @router.get('/ui/permission')
 async def get_ui_permission(
@@ -84,9 +96,34 @@ async def get_ui_permission(
 #
 
 
-@router.post('/permission/resource/filter')
-async def post_permission_resource_filter(
+@router.get('/ui/api/permission/block')
+async def get_ui_api_permission_block(
     request: starlette.requests.Request,
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    # token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
+):
+    """Called when the permission search results panel is scrolled or first opened.
+    Returns a slice of root resources for the current search session.
+    """
+    query_dict = request.query_params
+    search_uuid = query_dict.get('uuid')
+    start_idx = int(query_dict['start'])
+    limit = int(query_dict['limit'])
+    root_list = [
+        {
+            'id': root.id,
+            'root_id': root.resource_id,
+            'label': root.resource_label,
+            'type': root.resource_type,
+        }
+        for root in await dbi.get_search_result_slice(search_uuid, start_idx, limit)
+    ]
+    return starlette.responses.JSONResponse(root_list)
+
+
+@router.get('/ui/api/permission/tree/{root_id}')
+async def get_ui_api_permission_tree(
+    root_id: int,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
@@ -107,7 +144,7 @@ async def post_permission_resource_filter(
     )
 
 
-@router.post('/permission/aggregate/get')
+@router.post('/ui/api/permission/aggregate/get')
 async def post_permission_aggregate_get(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
@@ -190,7 +227,7 @@ async def get_aggregate_permission_list(dbi, resource_generator):
     return sorted(principal_dict.values(), key=db.resource_tree._get_principal_sort_key)
 
 
-@router.post('/permission/principal/search')
+@router.post('/ui/api/permission/principal/search')
 async def post_permission_principal_search(
     request: starlette.requests.Request,
     # dbi: util.dependency.DbInterface = fastapi.Depends(db.session.dbi),
@@ -216,7 +253,7 @@ async def post_permission_principal_search(
 #
 
 
-@router.post('/permission/update')
+@router.post('/ui/api/permission/update')
 async def post_permission_update(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),

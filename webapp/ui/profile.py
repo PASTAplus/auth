@@ -74,7 +74,7 @@ async def get_ui_profile_edit(
 #
 
 
-@router.post('/profile/edit/update')
+@router.post('/ui/api/profile/edit/update')
 async def post_profile_edit_update(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
@@ -91,7 +91,7 @@ async def post_profile_edit_update(
     return util.redirect.internal('/ui/profile/edit', msg='Profile updated')
 
 
-@router.post('/profile/edit/delete')
+@router.post('/ui/api/profile/edit/delete')
 async def post_profile_edit_delete(
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),

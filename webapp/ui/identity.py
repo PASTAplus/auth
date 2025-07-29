@@ -63,7 +63,7 @@ async def get_ui_identity(
 #
 
 
-@router.post('/identity/unlink')
+@router.post('/ui/api/identity/unlink')
 async def post_identity_unlink(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),

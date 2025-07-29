@@ -50,7 +50,7 @@ async def get_ui_token(
 #
 
 
-@router.get('/token/download')
+@router.get('/ui/api/token/download')
 async def get_token_download(
     # request: starlette.requests.Request,
     token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),

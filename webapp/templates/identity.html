@@ -114,7 +114,7 @@
           <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
         </div>
         <div class='modal-body'>
-          <form action='{{ url('/identity/unlink') }}' method='post' id='unlinkIdentityForm'>
+          <form action='{{ url('/ui/api/identity/unlink') }}' method='post' id='unlinkIdentityForm'>
             <input type='hidden' name='idp_name' id='unlinkIdentityIdpName'>
             <input type='hidden' name='idp_uid' id='unlinkIdentityUid'>
             <div class='form-group'>

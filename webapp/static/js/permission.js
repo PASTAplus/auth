@@ -153,9 +153,49 @@ showPermissionsCheckboxEl.addEventListener('change', function (_ev) {
   for (const permission of permissionList) {
     permission.classList.toggle('tree-principal-hidden', !showPermissionsCheckboxEl.checked);
   }
-  log('showPermissionsCheckboxEl - change - END');
-});
+  // Only start a new fetch if there isn't one already in progress
+  if (blockPromises.has(blockIdx)) {
+    return blockPromises.get(blockIdx).promise;
+  }
+  const url = new URL(`${BASE_PATH}/ui/api/permission/block`, window.location.origin);
+  url.search = new URLSearchParams({
+    uuid: SEARCH_UUID,
+    start: (blockIdx * blockSize).toString(),
+    limit: blockSize.toString(),
+  }).toString();
+  // Use  to get the final URL
+  // Start a new fetch and return a promise we'll wait on later
+  const promise = fetch(url.toString())
+      .then(res => res.json())
+      .then(trees => {
+        loadedBlocks.set(blockIdx, trees);
+      })
+      .catch(err => {
+        console.error('Fetch error:', err);
+      })
+      .finally(() => {
+        blockPromises.delete(blockIdx);
+      });
 
+  const wrapped = {promise, version};
+  blockPromises.set(blockIdx, wrapped);
+  return promise;
+}
+
+function fetchTree(rootId)
+{
+  const url = new URL(`${BASE_PATH}/ui/api/permission/tree/${rootId}`, window.location.origin);
+  return fetch(url.toString())
+      .then(res => res.json())
+      .then(tree => {
+        console.log('Fetched tree for root_id:', rootId, tree);
+        return tree;
+      })
+      .catch(err => {
+        console.error('Fetch tree error:', err);
+        throw err;
+      });
+}
 
 //
 //  Fetch
@@ -223,7 +263,7 @@ function fetchSelectedResourcePermissions()
     permissionListEl.innerHTML = `<div class='grid-msg'>Loading permissions...</div>`;
   }, 2000);
 
-  fetch(`${ROOT_PATH}/permission/aggregate/get`, {
+  fetch(`${BASE_PATH}/ui/api/permission/aggregate/get`, {
     method: 'POST', headers: {
       'Content-Type': 'application/json',
     }, body: JSON.stringify(resources),
@@ -256,8 +296,7 @@ function fetchSelectedResourcePermissions()
 
 function fetchSetPermission(resources, principalId, permissionLevel)
 {
-  log('fetchSetPermission - START');
-  fetch(`${ROOT_PATH}/permission/update`, {
+  fetch(`${BASE_PATH}/ui/api/permission/update`, {
     method: 'POST', headers: {
       'Content-Type': 'application/json',
     }, body: JSON.stringify({
@@ -293,7 +332,7 @@ function fetchPrincipalSearch()
 {
   log('fetchPrincipalSearch - START');
   const searchStr = principalSearchEl.value;
-  fetch(`${ROOT_PATH}/permission/principal/search`, {
+  fetch(`${BASE_PATH}/ui/api/permission/principal/search`, {
     method: 'POST', headers: {
       'Content-Type': 'application/json',
     }, body: JSON.stringify({query: searchStr}),

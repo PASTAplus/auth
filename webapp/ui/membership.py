@@ -49,7 +49,7 @@ async def get_ui_membership(
 #
 
 
-@router.post('/membership/leave')
+@router.post('/ui/api/membership/leave')
 async def post_membership_leave(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),

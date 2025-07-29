@@ -103,7 +103,7 @@ def get_anon_avatar_url():
 
 def get_initials_avatar_url(initials: str):
     """Return the URL to the avatar image with the given initials."""
-    return util.url.url(f'/avatar/gen/{initials}')
+    return util.url.url(f'/ui/api/avatar/gen/{initials}')
 
 
 def get_initials_avatar_path(initials: str):

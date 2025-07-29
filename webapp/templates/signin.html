@@ -37,7 +37,7 @@
         <div class='modal-dialog'>
           <div class='modal-content'>
             <div class='modal-body'>
-              <form id='loginForm' action='{{ url('/signin/ldap') }}' method='post'>
+              <form id='loginForm' action='{{ url('/ui/api/signin/ldap') }}' method='post'>
                 <input type='hidden' name='login_type' value='{{ login_type }}'>
                 <div>
                   <label for='username' class='form-label'>User name:</label>

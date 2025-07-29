@@ -94,7 +94,7 @@ async def get_ui_group_member(
 #
 
 
-@router.post('/group/new')
+@router.post('/ui/api/group/new')
 async def post_group_new(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
@@ -107,7 +107,7 @@ async def post_group_new(
     return util.redirect.internal('/ui/group')
 
 
-@router.post('/group/edit')
+@router.post('/ui/api/group/edit')
 async def post_group_edit(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
@@ -121,7 +121,7 @@ async def post_group_edit(
     return util.redirect.internal('/ui/group')
 
 
-@router.post('/group/delete')
+@router.post('/ui/api/group/delete')
 async def post_group_delete(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
@@ -133,7 +133,7 @@ async def post_group_delete(
     return util.redirect.internal('/ui/group')
 
 
-@router.get('/group/member/list/{group_id}')
+@router.get('/ui/api/group/member/list/{group_id}')
 async def get_group_member_list(
     group_id: int,
     # request: starlette.requests.Request,
@@ -164,7 +164,7 @@ async def get_group_member_list(
     )
 
 
-@router.post('/group/member/search')
+@router.post('/ui/api/group/member/search')
 async def post_group_member_search(
     request: starlette.requests.Request,
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
@@ -186,7 +186,7 @@ async def post_group_member_search(
     )
 
 
-@router.post('/group/member/add-remove')
+@router.post('/ui/api/group/member/add-remove')
 async def post_group_member_add_remove(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),

@@ -26,7 +26,7 @@
     {% endif %}
 
     <form id='editProfileForm' class='needs-validation' novalidate
-          action='{{ url('/profile/edit/update') }}' method='post'
+          action='{{ url('/ui/api/profile/edit/update') }}' method='post'
     >
       <div class='form-group'>
         <label for='modalName'>Name</label>
@@ -74,7 +74,7 @@
           <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
         </div>
         <div class='modal-body'>
-          <form action='{{ url('/profile/edit/delete') }}' method='post' id='deleteProfileForm'>
+          <form action='{{ url('/ui/api/profile/edit/delete') }}' method='post' id='deleteProfileForm'>
             <div class='form-group'>
               <p>
                 Are you sure you want to delete your profile?

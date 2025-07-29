@@ -111,7 +111,7 @@ async def get_ui_signin_reset(
 #
 
 
-@router.post('/signin/ldap')
+@router.post('/ui/api/signin/ldap')
 async def post_signin_ldap(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),

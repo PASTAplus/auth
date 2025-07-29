@@ -68,7 +68,7 @@
                     <button class='icon-button'
                             data-bs-toggle='modal'
                             data-bs-target='#groupModal'
-                            data-form-target='{{ url('/group/edit') }}'
+                            data-form-target='{{ url('/ui/api/group/edit') }}'
                             data-title='Edit group'
                             data-group-id='{{ group.id }}'
                             data-group-name='{{ group.name }}'
@@ -128,7 +128,7 @@
           <button type='button' class='btn btn-primary' id='newGroupButton'
                   data-bs-toggle='modal'
                   data-bs-target='#groupModal'
-                  data-form-target='{{ url('/group/new') }}'
+                  data-form-target='{{ url('/ui/api/group/new') }}'
                   data-title='Create a new group'
                   data-group-id=''
                   data-group-name=''
@@ -209,7 +209,7 @@
                   aria-label='Close'></button>
         </div>
         <div class='modal-body'>
-          <form action='{{ url('/group/delete') }}' method='post' id='deleteGroupForm'>
+          <form action='{{ url('/ui/api/group/delete') }}' method='post' id='deleteGroupForm'>
             <input type='hidden' id='deleteGroupId' name='group-id'>
             <div class='form-group'>
               <p>

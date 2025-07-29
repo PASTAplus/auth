@@ -108,19 +108,22 @@
               <a class='nav-link {% if not token %}disabled{% endif %}'
                  href='{{ url('/ui/perm2') }}'>Perm2</a>
             </li>
-            <li><a class='dropdown-item' href='{{ url('/dev/profiles') }}'>View Profiles</a></li>
+            <li><a class='dropdown-item' href='{{ url('/ui/api/dev/profiles') }}'>View Profiles</a>
+            </li>
             <li>
               <div class='dropdown-divider'></div>
             </li>
             <li><a class='dropdown-item'
-                   href='{{ url('/dev/signin/google/117107251210852246141') }}'>Google</a></li>
-            <li><a class='dropdown-item'
-                   href='{{ url('/dev/signin/google/10618168603761292863') }}'>Google</a></li>
-            <li><a class='dropdown-item'
-                   href='{{ url('/dev/signin/github/https://github.com/rogerdahl') }}'>GitHub</a>
+                   href='{{ url('/ui/api/dev/signin/google/117107251210852246141') }}'>Google</a>
             </li>
             <li><a class='dropdown-item'
-                   href='{{ url('/dev/signin/microsoft/AAAAAAAAAAAAAAAAAAAAAMb5WmAIiWexIVAeFkG_1m4') }}'>Microsoft</a>
+                   href='{{ url('/ui/api/dev/signin/google/10618168603761292863') }}'>Google</a>
+            </li>
+            <li><a class='dropdown-item'
+                   href='{{ url('/ui/api/dev/signin/github/https://github.com/rogerdahl') }}'>GitHub</a>
+            </li>
+            <li><a class='dropdown-item'
+                   href='{{ url('/ui/api/dev/signin/microsoft/AAAAAAAAAAAAAAAAAAAAAMb5WmAIiWexIVAeFkG_1m4') }}'>Microsoft</a>
             </li>
           </ul>
         </div>
@@ -186,7 +189,7 @@
 >
   <div class='modal-dialog modal-dialog-centered'>
     <div class='modal-content'>
-      <form action='{{ url('/policy/accept') }}' method='post' id='privacyPolicyForm'>
+      <form action='{{ url('/ui/api/policy/accept') }}' method='post' id='privacyPolicyForm'>
         <div class='modal-header'>
           <h5 class='modal-title'>Environmental Data Initiative Privacy Policy</h5>
           <button type='submit' class='btn-close' data-bs-dismiss='modal' aria-label='Close'

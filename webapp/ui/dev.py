@@ -33,7 +33,7 @@ def assert_dev_enabled(func):
     return wrapper
 
 
-@router.get('/dev/profiles')
+@router.get('/ui/api/dev/profiles')
 @assert_dev_enabled
 async def get_dev_profiles(
     request: starlette.requests.Request,
@@ -54,7 +54,7 @@ async def get_dev_profiles(
     )
 
 
-@router.get('/dev/signin/{idp_name}/{idp_uid}')
+@router.get('/ui/api/dev/signin/{idp_name}/{idp_uid}')
 @assert_dev_enabled
 async def get_dev_signin(
     idp_name: db.models.identity.IdpName,
