@@ -10,8 +10,8 @@ import sys
 import daiquiri
 import sqlalchemy.exc
 
-ROOT_PATH = pathlib.Path(__file__).resolve().parent.parent
-sys.path.append((ROOT_PATH / 'webapp').as_posix())
+BASE_PATH = pathlib.Path(__file__).resolve().parent.parent
+sys.path.append((BASE_PATH / 'webapp').as_posix())
 
 import db.models.profile
 import db.models.group

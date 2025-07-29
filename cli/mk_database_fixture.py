@@ -35,14 +35,14 @@ import sys
 import sqlalchemy
 import sqlalchemy.ext.asyncio
 
-ROOT_PATH = pathlib.Path(__file__).resolve().parent.parent
-sys.path.append((ROOT_PATH / 'webapp').as_posix())
+BASE_PATH = pathlib.Path(__file__).resolve().parent.parent
+sys.path.append((BASE_PATH / 'webapp').as_posix())
 
 import db.models.permission
 import db.models.base
 import util.dependency
 
-DB_FIXTURE_PATH = ROOT_PATH / 'tests/test_files/db_fixture.json'
+DB_FIXTURE_PATH = BASE_PATH / 'tests/test_files/db_fixture.json'
 
 log = logging.getLogger(__name__)
 

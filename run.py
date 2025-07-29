@@ -9,8 +9,8 @@ import sys
 import daiquiri
 import uvicorn
 
-ROOT_PATH = pathlib.Path(__file__).resolve().parent
-sys.path.append((ROOT_PATH / 'webapp').as_posix())
+BASE_PATH = pathlib.Path(__file__).resolve().parent
+sys.path.append((BASE_PATH / 'webapp').as_posix())
 
 import config
 import fastapi_app
