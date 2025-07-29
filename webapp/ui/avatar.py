@@ -62,7 +62,7 @@ async def get_ui_avatar(
 
 
 #
-# Internal routes
+# Internal API routes
 #
 
 

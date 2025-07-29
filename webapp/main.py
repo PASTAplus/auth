@@ -106,13 +106,16 @@ app.mount(
     name='avatars',
 )
 
-# Dynamically create routes for serving specific static files
-def create_route(file_path: pathlib.Path):
+# Create routes for serving specific static files
+def create_route(url_path: str, file_path: pathlib.Path):
     """Create a route to serve a specific static file.
     If the file is not found, return a 404 error.
     """
+    assert file_path.exists(), f'File does not exist: {file_path}'
+    log.debug(f'Creating route for {url_path} -> {file_path}')
 
-    @app.get(f'/{file_path.name}')
+    # As with all routes, the root path is prepended automatically.
+    @app.get(url_path)
     async def serve_file():
         try:
             return starlette.responses.FileResponse(file_path)
@@ -120,6 +123,10 @@ def create_route(file_path: pathlib.Path):
             raise fastapi.HTTPException(
                 status_code=starlette.status.HTTP_404_NOT_FOUND, detail='File not found'
             )
+
+
+create_route('/favicon.svg', Config.STATIC_PATH / 'site/favicon.svg')
+create_route('/manifest.json', Config.STATIC_PATH / 'site/manifest.json')
 
 
 # Middleware
@@ -175,7 +182,9 @@ class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
 
 
 # Add middleware to the application
+# noinspection PyTypeChecker
 app.add_middleware(RootPathMiddleware)
+# noinspection PyTypeChecker
 app.add_middleware(RedirectToSigninMiddleware)
 
 # Include all routers

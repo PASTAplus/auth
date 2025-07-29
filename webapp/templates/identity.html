@@ -35,7 +35,11 @@
       allow you to sign in using different identity providers.
     </p>
     <p>
-      Accounts that are currently linked to your profile:
+      {% if identity_list|length == 1 %}
+        One account is currently linked to your profile:
+      {% else %}
+        Accounts that are currently linked to your profile:
+      {% endif %}
     </p>
 
     <div class='indent'>
@@ -46,21 +50,27 @@
 
           <div class='grid-row'>
             <div class='grid-child'>
-              <img src='{{ identity.avatar_url }}' alt='Avatar' class='avatar avatar-small'>
+              <img src='{{ identity.avatar_url }}' alt='Avatar' class='avatar avatar-smaller'>
             </div>
             <div class='grid-child'>
               <div class='idp-logo'>
                 {% if identity.idp_name == IdpName.GOOGLE %}
-                  <img class='idp-logo-google' src='{{ url('/static/svg/idp/google-text.svg') }}' alt='Google'>
+                  <img class='idp-logo-google' src='{{ url('/static/svg/idp/google-text.svg') }}'
+                       alt='Google'>
                 {% elif identity.idp_name == IdpName.MICROSOFT %}
-                  <img class='idp-logo-microsoft' src='{{ url('/static/svg/idp/microsoft.svg') }}' alt='Microsoft'>
+                  <img class='idp-logo-microsoft' src='{{ url('/static/svg/idp/microsoft.svg') }}'
+                       alt='Microsoft'>
                 {% elif identity.idp_name == IdpName.GITHUB %}
-                  <img class='idp-logo-github-symbol' src='{{ url('/static/svg/idp/github-symbol.svg') }}' alt='GitHub'>
-                  <img class='idp-logo-github-text' src='{{ url('/static/svg/idp/github-text.svg') }}' alt='GitHub'>
+                  <img class='idp-logo-github-symbol'
+                       src='{{ url('/static/svg/idp/github-symbol.svg') }}' alt='GitHub'>
+                  <img class='idp-logo-github-text'
+                       src='{{ url('/static/svg/idp/github-text.svg') }}' alt='GitHub'>
                 {% elif identity.idp_name == IdpName.ORCID %}
-                  <img class='idp-logo-orcid' src='{{ url('/static/svg/idp/orcid.svg') }}' alt='ORCID'>
+                  <img class='idp-logo-orcid' src='{{ url('/static/svg/idp/orcid.svg') }}'
+                       alt='ORCID'>
                 {% elif identity.idp_name == IdpName.LDAP %}
-                  <img class='idp-logo-edi-ldap' src='{{ url('/static/svg/idp/edi-logo.svg') }}' alt='EDI LDAP'>
+                  <img class='idp-logo-edi-ldap' src='{{ url('/static/svg/idp/edi-logo.svg') }}'
+                       alt='EDI LDAP'>
                 {% else %}
                   {{ identity.idp_name }}
                 {% endif %}
@@ -90,11 +100,12 @@
 
     {% if identity_list|length == 1 %}
       <p class='alert alert-info'>
-        You currently have only one account linked to your profile. If you wish to unlink this
-        account, link a new account first to ensure your profile remains accessible. If you no
-        longer wish to access your profile, you may delete your profile from the
+        To unlink this account, first link another account to maintain access to your profile.
+        Alternatively, you can delete your entire profile on the
         <a href='{{ url('/ui/profile/edit') }}'>Edit Profile</a>
         page, which will also unlink this account.
+      </p>
+      <p>
       </p>
     {% endif %}
 
@@ -111,7 +122,8 @@
       <div class='modal-content'>
         <div class='modal-header'>
           <h5 class='modal-title'>Unlink this account</h5>
-          <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
+          <button type='button' class='btn-close' data-bs-dismiss='modal'
+                  aria-label='Close'></button>
         </div>
         <div class='modal-body'>
           <form action='{{ url('/ui/api/identity/unlink') }}' method='post' id='unlinkIdentityForm'>
@@ -130,7 +142,8 @@
               </p>
             </div>
             <div class='modal-footer'>
-              <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Cancel</button>
+              <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Cancel
+              </button>
               <button type='submit' class='btn btn-primary'>Unlink</button>
             </div>
           </form>

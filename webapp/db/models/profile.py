@@ -73,6 +73,13 @@ class Profile(db.models.base.Base):
         ),
         uselist=False,
     )
+    # Resource searches performed by this profile in order to apply permissions.
+    search_sessions = sqlalchemy.orm.relationship(
+        'SearchSession',
+        back_populates='profile',
+        cascade_backrefs=False,
+        cascade='all, delete-orphan',
+    )
 
     @property
     def initials(self):

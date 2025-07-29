@@ -53,45 +53,32 @@
       <ul class='navbar-nav mr-auto'>
 
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/profile') }}'>Profile</a>
+          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/profile') }}'
+             data-pages='profile'
+          >Profile</a>
+        </li>
+        <li class='nav-item'>
+          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/identity') }}'
+             data-pages='identity'
+          >Accounts</a>
+        </li>
+        <li class='nav-item'>
+          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/group') }}'
+             data-pages='group'
+          >Groups</a>
         </li>
         <li class='nav-item'>
           <a class='nav-link {% if not token %}disabled{% endif %}'
-             href='{{ url('/ui/identity') }}'>Accounts</a>
-        </li>
-        <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/group') }}'>Groups</a>
-        </li>
-        <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}'
-             href='{{ url('/ui/membership') }}'>Memberships</a>
+             href='{{ url('/ui/membership') }}'
+             data-pages='membership'
+          >Memberships</a>
         </li>
         <li class='nav-item'>
           <a class='nav-link {% if not token %}disabled{% endif %}'
-             href='{{ url('/ui/permission-filter') }}'>Permissions</a>
-          {#<div class='dropdown'>#}
-          {#  <a class='nav-link {% if not token %}disabled{% endif %} dropdown-toggle'#}
-          {#     id='permissionTypeDropdown'#}
-          {#     href='{{ url('/ui/permission') }}' data-bs-toggle='dropdown' aria-expanded='false'>#}
-          {#    Permissions#}
-          {#  </a>#}
-          {#  <ul class='dropdown-menu' aria-labelledby='permissionTypeDropdown'>#}
-          {#    <li>#}
-          {#      <a class='dropdown-item' href='{{ url('/ui/permission') }}'>All</a>#}
-          {#    </li>#}
-          {#    <li>#}
-          {#      <div class='dropdown-divider'></div>#}
-          {#    </li>#}
-          {#    {% for resource_type in resource_type_list %}#}
-          {#      <li>#}
-          {#        <a class='dropdown-item capitalize'#}
-          {#           href='{{ url('/ui/permission?type=' + resource_type) }}'>#}
-          {#          {{ resource_type }}#}
-          {#        </a>#}
-          {#      </li>#}
-          {#    {% endfor %}#}
-          {#  </ul>#}
-          {#</div>#}
+             href='{{ url('/ui/permission/search') }}'
+             {#href='{{ url('/ui/permission') }}'#}
+             data-pages='permission, search'
+          >Permissions</a>
         </li>
       </ul>
 

@@ -556,7 +556,7 @@ class PermissionInterface:
         return {int(row[0]) for row in result.scalars()}
 
     async def get_resource_descendants_id_set(self, resource_ids):
-        """Get the resource tree starting from a given root resource ID for a list of resource IDs."""
+        """Get the resource tree starting from a given resource ID for a list of resource IDs."""
         stmt = sqlalchemy.select(sqlalchemy.func.get_resource_descendants(list(resource_ids)))
         result = await self.execute(stmt)
         # db.models.permission.Resource(id=row[0], label=row[1], type=row[2], parent_id=row[3])
@@ -622,11 +622,12 @@ class PermissionInterface:
         Only resources for which the token_resource_row has the required permission level or higher
         will be returned.
 
-        This method handles untrusted user input, so it is safe to use with user-provided resource
-        IDs. Any resource IDs for which the token_resource_row does not have the required permission
+        This method handles untrusted user input, and should be applied to all resource IDs
+        originating from the APIs and the UI.
+
+        Any resource IDs for which the token_resource_row does not have the required permission
         level or higher, or which does not exist, will be silently ignored.
         """
-
         # Normally, there will be no duplicated resource IDs in the list, but we dedup here just in
         # case.
         resource_ids = list(set(resource_ids))

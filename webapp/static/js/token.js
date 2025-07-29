@@ -1,7 +1,7 @@
 let headerContainerEl = document.getElementsByClassName('header-container')[0];
 
 // Add click hander for copyTokenButton
-const ROOT_PATH = headerContainerEl.dataset.rootPath;
+const BASE_PATH = headerContainerEl.dataset.basePath;
 
 const copyTokenButton = document.getElementById('copyTokenButton');
 

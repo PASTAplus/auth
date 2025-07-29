@@ -48,6 +48,7 @@ class Resource(db.models.base.Base):
     # http://localhost:8088/package/metadata/eml/edi/39/3
     key = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True, unique=True)
     # A human-readable name to display for the resource
+    # TODO: I think we (should) require a label to be set for all resources. Maybe we are already?
     label = sqlalchemy.Column(sqlalchemy.String, nullable=True, index=True)
     # A string that describes the type of the resource.
     # This string is used for grouping resources of the same type.
@@ -160,7 +161,7 @@ def permission_level_string_to_enum(permission_level_str):
         return PERMISSION_LEVEL_STRING_TO_ENUM_DICT[permission_level_str]
     except KeyError:
         raise ValueError(
-            'Permission level must be one of: read, write, or changePermission. '
+            'Permission level must be read, write or changePermission. '
             f'Received: {permission_level_str}'
         )
 

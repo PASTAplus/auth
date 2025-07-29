@@ -16,13 +16,18 @@ Main grid
 |  +-----------------------+  |
 |  |      split-main       |  |
 |  |  +-------+  +-------+ |  |
-|  |  | split-|  | split-| |  |
-|  |  | left- |  | right-| |  |
-|  |  |section|  |section| |  |
+|  |  | head  |  | split-| |  |
+|  |  |-------|  | right-| |  |
+|  |  | tree  |  |section| |  |
 |  |  +-------+  +-------+ |  |
 |  +-----------------------+  |
 +-----------------------------+
 */
+
+.indent {
+    /* padding: 0; */    
+    margin: 0 0 0 2rem;;
+}
 
 .split-container {
     display: grid;
@@ -60,7 +65,7 @@ Main grid
     margin-left: 1rem;
     margin-bottom: 1rem;
     margin-top: 1rem;
-    padding: 1rem;
+    /* padding: 1rem; */
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
 }
 
@@ -79,6 +84,13 @@ Main grid
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
 }
 
+.vertical-split-upper {
+    padding: 1rem;
+}
+
+.vertical-split-lower {
+    /* margin: 1rem; */
+}
 
 .main-grid {
     /* display: grid; */
@@ -110,17 +122,45 @@ Main grid
 Resource Tree (left side)
 */
 
-#resourceFilter {
-    margin-bottom: 1rem;
-}
-
-.tree-right {
+.tree-right-align {
     text-align: right;
     /* Space between top right checkboxes and collection tree */
-    margin-bottom: 1rem;
+    /* margin-bottom: 1rem; */
 }
 
-/* Styles applicable to multiple levels of the resource tree */
+/* Resource tree */
+
+#resourceTree {
+    position: relative;
+    overflow-y: auto;
+    height: 70vh;
+}
+
+#spacer {
+    height: 0; /* dynamically set in JS */
+}
+
+#visible-trees {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+.tree-container {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 35px; /* match JS collapsedTreeHeight */
+    padding: 5px;
+    box-sizing: border-box;
+    border-bottom: 1px solid #ddd;
+    background: #fff;
+    white-space: nowrap; /* Prevent wrapping */
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+    overflow-y: hidden; /* Prevent vertical scrolling */
+    margin: .5rem;
+}
 
 .tree-indent {
     white-space: nowrap;
@@ -129,7 +169,6 @@ Resource Tree (left side)
 }
 
 .tree-resource-type {
-    /* font-weight: bold; */
     text-transform: capitalize;
     font-size: smaller;
     padding: .2rem;
@@ -142,6 +181,18 @@ Resource Tree (left side)
 .tree-resource-title {
     font-weight: bold;
 }
+
+/* Add this to your CSS */
+.tree-measuring > summary {
+  /* Keep the summary visible */
+  visibility: visible;
+}
+
+.tree-measuring > ul {
+  /* Only hide the content being expanded */
+  visibility: hidden;
+}
+
 
 /* Principals */
 
@@ -317,13 +368,14 @@ Principal search
 }
 
 
-/******************************************************************/
+/*************************************************/
 /* Based on: https://iamkate.com/code/tree-views */
 
 .tree {
     --spacing: 1.3rem;
     --radius: 10px;
     padding-left: 0;
+    margin-bottom: 0;
 }
 
 .tree li {

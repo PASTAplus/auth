@@ -177,7 +177,6 @@ async def delete_v1_profile(
         edi_id=edi_id,
     )
 
-
 # @router.get('/v1/profile/list')
 # async def profile_list(
 #     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),

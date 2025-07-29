@@ -1,5 +1,5 @@
 let headerContainerEl = document.getElementsByClassName('header-container')[0];
-const ROOT_PATH = headerContainerEl.dataset.rootPath;
+const BASE_PATH = headerContainerEl.dataset.basePath;
 
 // The search input for new member principals
 const principalSearchEl = document.getElementById('principalSearch');
@@ -310,7 +310,7 @@ function addPrincipalDiv(parentEl, principalObj)
         </div>
         <div class='edi-id-child-icon'>
           <img class='edi-id-copy-button'
-            src='${ROOT_PATH}/static/svg/copy.svg'
+            src='${BASE_PATH}/static/svg/copy.svg'
             alt='Copy User Identifier'
           >
         </div>
@@ -326,7 +326,7 @@ function addRemoveButtonDiv(parentEl, principalObj) {
   removeEl.dataset.profileId = principalObj.profile_id;
   removeEl.innerHTML = `
     <button class='remove-button icon-text-button'>
-      <span><img src='${ROOT_PATH}/static/svg/leave-group.svg' alt='Remove'></span>
+      <span><img src='${BASE_PATH}/static/svg/leave-group.svg' alt='Remove'></span>
       <span>Remove</span>
     </button>
   `;

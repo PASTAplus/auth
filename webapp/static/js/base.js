@@ -1,23 +1,24 @@
 // Highlight the current page in the navigation bar
 const pageName = getPageName();
-const el_arr = document.querySelectorAll('a.nav-link');
-for (let el of el_arr) {
-  if (el.getAttribute('href').endsWith(`/${pageName}`)) {
-    el.classList.add('active');
+const navLinks = document.querySelectorAll('a.nav-link[data-pages]');
+
+for (let link of navLinks) {
+  const pages = link.dataset.pages.split(',').map(p => p.trim());
+
+  if (pages.includes(pageName)) {
+    link.classList.add('active');
     // ARIA is an accessibility standard. It helps with screen readers.
-    el.setAttribute('aria-current', 'page');
-  }
-  else {
-    el.classList.remove('active');
-    el.setAttribute('aria-current', 'false');
+    link.setAttribute('aria-current', 'page');
+  } else {
+    link.classList.remove('active');
+    link.setAttribute('aria-current', 'false');
   }
 }
 
-function getPageName()
-{
+function getPageName() {
   const url = window.location.pathname;
-  const split_list = url.split('/');
-  return split_list[split_list.length - 1];
+  const segments = url.split('/').filter(segment => segment);
+  return segments[segments.length - 1] || 'home';
 }
 
 // Handle EDI-ID copy buttons

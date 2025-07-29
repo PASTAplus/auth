@@ -1,21 +1,22 @@
+/* jshint esversion: 11, browser: true */
+
 let headerContainerEl = document.getElementsByClassName('header-container')[0];
 
 // Constants passed from the server
-const ROOT_PATH = headerContainerEl.dataset.rootPath;
+const BASE_PATH = headerContainerEl.dataset.basePath;
 const PUBLIC_EDI_ID = headerContainerEl.dataset.publicEdiId;
-const AUTHENTICATED_EDI_ID = headerContainerEl.dataset.authenticatedEdiId;
-const RESOURCE_TYPE = headerContainerEl.dataset.resourceType;
+const TOTAL_TREE_COUNT = parseInt(headerContainerEl.dataset.rootCount);
+const SEARCH_UUID = headerContainerEl.dataset.searchUuid;
+// const AUTHENTICATED_EDI_ID = headerContainerEl.dataset.authenticatedEdiId;
+// const RESOURCE_TYPE = headerContainerEl.dataset.resourceType;
 
 const PERMISSION_LEVEL_LIST = ['None', 'Reader', 'Editor', 'Owner'];
 
-// The filter input for resources
-const resourceFilterEl = document.getElementById('resourceFilter');
-const resourceTreeEl = document.getElementById('resourceTree');
-let resourceFetchDelay = null;
-
 // Resource tree head checkboxes
-selectAllCheckboxEl = document.getElementById('selectAllCheckbox');
-showPermissionsCheckboxEl = document.getElementById('showPermissionsCheckbox');
+// selectAllCheckboxEl = document.getElementById('selectAllCheckbox');
+// showPermissionsCheckboxEl = document.getElementById('showPermissionsCheckbox');
+// Resource tree
+resourceTreeEl = document.getElementById('resourceTree');
 
 // List of permissions for the selected resources
 const permissionListEl = document.getElementById('permissionList');
@@ -26,13 +27,36 @@ const principalSearchEl = document.getElementById('principalSearch');
 const principalListEl = document.getElementById('principalList');
 let principalFetchDelay = null;
 
-// List of resource/permission items in the resource tree
-let treeArray = [];
-
 let permissionArray = [];
 let principalArray = [];
 
-let loggingSpacerTimeout = null;
+// Infinite scroll resource tree variables
+const collapsedTreeHeight = 35; // pixels
+const blockSize = 100;     // trees per fetch
+const bufferTrees = 100;     // above & below viewport
+
+const container = document.getElementById('resourceTree');
+const spacer = document.getElementById('spacer');
+const visibleTrees = document.getElementById('visible-trees');
+
+const loadedBlocks = new Map(); // blockIdx -> tree data array
+const blockPromises = new Map(); // blockIdx -> Promise
+
+// Incremented on each new render
+let fetchVersion = 0;
+
+// const blockControllers = new Map(); // blockIdx -> AbortController
+
+// To prevent flooding the server with requests while the user is scrolling, we debounce scroll
+// events to a maximum of one every SCROLL_DEBOUNCE_MS milliseconds.
+const SCROLL_DEBOUNCE_MS = 50;
+let debounceTimer = null;
+let isRenderScheduled = false;
+
+// Track the properties of expanded trees
+let expandedTreeOffset;
+let expandedTreeHtml = new Map(); // treeIdx -> HTML string
+let expandedTreeState = new Map(); // treeIdx -> {open: bool, checked: bool}
 
 //
 //  Initial setup
@@ -40,64 +64,178 @@ let loggingSpacerTimeout = null;
 
 // Set the path for the expand/collapse SVG icon used in the resource tree
 document.documentElement.style.setProperty('--expand-collapse-path',
-    `url('${ROOT_PATH}/static/svg/expand-collapse.svg')`);
-fetchResources();
+    `url('${BASE_PATH}/static/svg/expand-collapse.svg')`);
+
+scheduleRender();
+
 
 //
-//  Events
+//  Scroll event handling
 //
+
+container.addEventListener('scroll', () => {
+  if (debounceTimer) {
+    clearTimeout(debounceTimer);
+  }
+  debounceTimer = setTimeout(() => {
+    scheduleRender();
+  }, SCROLL_DEBOUNCE_MS);
+});
+
+// Handle click on the summary expand/collapse button on a placeholder root.
+// TODO: We should use the toggle event on the details element, but that event does not bubble,
+// so we would need to attach a listener to each details element.
+resourceTreeEl.addEventListener('click', (ev) => {
+  // On the first expand on a placeholder root, we fetch the real tree from the server and render
+  // it. The new tree also replaces the placeholder root, and does not have the 'placeholder-root'
+  // class, so this event listener won't be triggered again for the same tree.
+  if (ev.target.classList.contains('placeholder-root')) {
+    const detailsEl = ev.target;
+    const treeContainerEl = detailsEl.closest('.tree-container');
+    const rootId = parseInt(treeContainerEl.dataset.rootId);
+    const treeIdx = parseInt(treeContainerEl.dataset.treeIdx);
+    // Fetch the tree for this root_id
+    fetchTree(rootId).then(tree => {
+      // Remove fixed height
+      treeContainerEl.style.height = 'auto';
+      const treeHtml = formatResourceTreeRecursive([tree.tree], true);
+      treeContainerEl.innerHTML = treeHtml;
+      const newDetailsEl = treeContainerEl.querySelector('.tree-details');
+      // Add measuring class to hide content during measurement
+      newDetailsEl.classList.add('tree-measuring');
+      newDetailsEl.open = true;
+      // requestAnimationFrame() to allow the DOM to update before measuring height
+      requestAnimationFrame(() => {
+        const fullHeight = treeContainerEl.offsetHeight;
+        expandedTreeHtml.set(treeIdx, treeHtml);
+        expandedTreeState.set(treeIdx, getTreeState(treeContainerEl));
+        expandedTreeOffset.set(treeIdx, fullHeight);
+        updateSpacerHeight();
+        // Schedule render and remove measuring class when done
+        scheduleRender();
+        requestAnimationFrame(() => {
+          newDetailsEl.classList.remove('tree-measuring');
+        });
+      });
+    });
+    ev.stopPropagation();
+  }
+});
+
+// Handle click on the summary expand/collapse button on any node in a real tree (not a
+// placeholder).
+resourceTreeEl.addEventListener('pointerdown', (ev) => {
+  const immediateCheckbox = ev.target.closest('.tree-details')?.querySelector('.tree-checkbox');
+  if (immediateCheckbox && immediateCheckbox.contains(ev.target)) {
+    return;
+  }
+  if (ev.target.closest('.tree-checkbox')) {
+    // Ignore clicks on checkboxes, which are handled in a separate event listener.
+    return;
+  }
+  const summaryEl = ev.target.closest("summary");
+  const detailsEl = summaryEl?.parentNode;
+  if (summaryEl.classList.contains('placeholder-root')) {
+    return;
+  }
+  if (summaryEl && detailsEl instanceof HTMLDetailsElement) {
+    ev.preventDefault(); // Stop default toggle behavior
+    // detailsEl.open = !detailsEl.open; // Manual toggle
+  }
+  const treeContainerEl = detailsEl.closest('.tree-container');
+  const treeIdx = parseInt(treeContainerEl.dataset.treeIdx);
+  // Add measuring class before changing state
+  detailsEl.classList.add('tree-measuring');
+  detailsEl.open = !detailsEl.open;
+  requestAnimationFrame(() => {
+    const fullHeight = treeContainerEl.offsetHeight;
+    expandedTreeOffset.set(treeIdx, fullHeight);
+    expandedTreeState.set(treeIdx, getTreeState(treeContainerEl));
+    updateSpacerHeight();
+    // Schedule render and remove measuring class when done
+    scheduleRender();
+    requestAnimationFrame(() => {
+      detailsEl.classList.remove('tree-measuring');
+    });
+  });
+  ev.stopPropagation();
+});
+
 
 // Resource tree (left side)
 
-resourceFilterEl.addEventListener('input', function (_ev) {
-  log('resourceFilterEl - input - START');
-  clearTimeout(resourceFetchDelay);
-  clearCheckboxStates();
-  permissionArray = [];
-  refreshPermissions();
-  resourceFetchDelay = setTimeout(fetchResources, 300);
-  log('resourceFilterEl - input - END');
-});
+// TODO: We probably want to have this selectAllCheckbox, but it should only be available if there
+// are fewer than N resources in the tree, since it will need to open all the trees.
+// selectAllCheckboxEl.addEventListener('change', ev => {
+//   const checkboxEls = document.querySelectorAll('.tree-checkbox');
+//   for (const checkboxEl of checkboxEls) {
+//     checkboxEl.checked = ev.target.checked;
+//   }
+//   fetchSelectedResourcePermissions();
+// });
 
-selectAllCheckboxEl.addEventListener('change', function (ev) {
-  log('selectAllCheckboxEl - change - START');
-  const checkboxEls = document.querySelectorAll('.tree-checkbox');
-  for (const checkboxEl of checkboxEls) {
-    checkboxEl.checked = ev.target.checked;
+// Handle click on a placeholder checkbox.
+resourceTreeEl.addEventListener('change', ev => {
+  if (ev.target.classList.contains('placeholder-checkbox')) {
+    const checkboxEl = ev.target;
+    const treeContainerEl = checkboxEl.closest('.tree-container');
+    const rootId = parseInt(treeContainerEl.dataset.rootId);
+    const treeIdx = parseInt(treeContainerEl.dataset.treeIdx);
+
+    fetchTree(rootId).then(tree => {
+      // Remove fixed height
+      treeContainerEl.style.height = 'auto';
+      const treeHtml = formatResourceTreeRecursive([tree.tree], false);
+      treeContainerEl.innerHTML = treeHtml;
+      // Propagate click on resource checkbox to child checkboxes.
+      const checkboxEls = treeContainerEl.querySelectorAll('.tree-checkbox');
+      for (const el of checkboxEls) {
+        el.checked = true;
+      }
+      requestAnimationFrame(() => {
+        const fullHeight = treeContainerEl.offsetHeight;
+        expandedTreeHtml.set(treeIdx, treeHtml);
+        expandedTreeState.set(treeIdx, getTreeState(treeContainerEl));
+        expandedTreeOffset.set(treeIdx, fullHeight);
+        fetchSelectedResourcePermissions();
+        updateSpacerHeight();
+        scheduleRender();
+      });
+    });
+    // refreshSelectAllCheckbox();
   }
-  fetchSelectedResourcePermissions();
-  log('selectAllCheckboxEl - change - END');
 });
 
-resourceTreeEl.addEventListener('change', function (ev) {
-  // Propagate click on resource checkbox to child checkboxes.
+// Handle click on a real checkbox.
+resourceTreeEl.addEventListener('change', ev => {
   if (ev.target.classList.contains('tree-checkbox')) {
-    log('resourceTreeEl - change - START');
-    const detailsEl = ev.target.closest('.tree-details');
+    const checkboxEl = ev.target;
+    const treeContainerEl = checkboxEl.closest('.tree-container');
+    // const rootId = parseInt(treeContainerEl.dataset.rootId);
+    const treeIdx = parseInt(treeContainerEl.dataset.treeIdx);
+    // Propagate click on resource checkbox to child checkboxes.
+    const detailsEl = checkboxEl.closest('.tree-details');
     const checkboxEls = detailsEl.querySelectorAll('.tree-checkbox');
-    for (const checkboxEl of checkboxEls) {
-      checkboxEl.checked = ev.target.checked;
+    for (const el of checkboxEls) {
+      el.checked = checkboxEl.checked;
     }
-    refreshSelectAllCheckbox();
+    expandedTreeState.set(treeIdx, getTreeState(treeContainerEl));
     fetchSelectedResourcePermissions();
-    log('resourceTreeEl - change - END');
   }
 });
 
 // Principal search (right side, top)
 
-principalSearchEl.addEventListener('input', function (ev) {
-  log('principalSearchEl - input - START');
+principalSearchEl.addEventListener('input', _ev => {
   clearTimeout(principalFetchDelay);
   if (principalSearchEl.value.length < 2) {
     principalListEl.classList.remove('visible');
     return;
   }
   principalFetchDelay = setTimeout(fetchPrincipalSearch, 300);
-  log('principalSearchEl - input - END');
 });
 
-principalSearchEl.addEventListener('blur', function (ev) {
+principalSearchEl.addEventListener('blur', _ev => {
   principalListEl.classList.remove('visible');
 });
 
@@ -105,14 +243,12 @@ principalSearchEl.addEventListener('blur', function (ev) {
 // The new principal is added with READ permission, which the user can then update if needed.
 // We use mousedown instead of click to prevent the blur event on principalSearchEl from firing
 // before the click event.
-principalListEl.addEventListener('mousedown', function (ev) {
-  log('principalListEl - mousedown - START');
+principalListEl.addEventListener('mousedown', ev => {
   const divEl = ev.target.closest('.principal-flex');
   const principalId = parseInt(divEl.dataset.principalId);
   // const principalType = divEl.dataset.principalType;
   const resources = getSelectedResourceIds();
   fetchSetPermission(resources, principalId, 1);
-  log('principalListEl - mousedown - END');
 });
 
 
@@ -120,11 +256,9 @@ principalListEl.addEventListener('mousedown', function (ev) {
 // Permissions (right side, bottom)
 //
 
-permissionListEl.addEventListener('change', function (ev) {
-  log('permissionListEl - change - START');
+permissionListEl.addEventListener('change', ev => {
   // Handle new permission level selected in permission level dropdown
   if (ev.target.classList.contains('level-dropdown')) {
-    log('Permission level changed:', ev.target.value);
     const divEl = ev.target.closest('div');
     // dataset values are HTML attributes, which are always strings
     const principalId = parseInt(divEl.dataset.principalId);
@@ -133,7 +267,6 @@ permissionListEl.addEventListener('change', function (ev) {
     const resources = getSelectedResourceIds();
     fetchSetPermission(resources, principalId, permissionLevel);
   }
-  log('permissionListEl - change - END');
 });
 
 // permissionListEl.addEventListener('click', function (ev) {
@@ -147,11 +280,19 @@ permissionListEl.addEventListener('change', function (ev) {
 
 
 // Show and hide individual permissions in the resource tree
-showPermissionsCheckboxEl.addEventListener('change', function (_ev) {
-  log('showPermissionsCheckboxEl - change - START');
-  const permissionList = document.querySelectorAll('.tree-principal');
-  for (const permission of permissionList) {
-    permission.classList.toggle('tree-principal-hidden', !showPermissionsCheckboxEl.checked);
+// showPermissionsCheckboxEl.addEventListener('change', _ev => {
+//   const permissionList = document.querySelectorAll('.tree-principal');
+//   for (const permission of permissionList) {
+//     permission.classList.toggle('tree-principal-hidden', !showPermissionsCheckboxEl.checked);
+//   }
+// });
+
+
+// Fetch a block of tree roots, if not already loaded.
+function fetchBlock(blockIdx, version)
+{
+  if (loadedBlocks.has(blockIdx)) {
+    return Promise.resolve();
   }
   // Only start a new fetch if there isn't one already in progress
   if (blockPromises.has(blockIdx)) {
@@ -198,58 +339,153 @@ function fetchTree(rootId)
 }
 
 //
-//  Fetch
+// Infinite scroll rendering
 //
 
-function fetchResources()
+
+function scheduleRender()
 {
-  log('fetchResources - START: ', resourceFilterEl.value);
-  // const checkboxStates = saveCheckboxStates();
-  const treeState = saveTreeState();
-
-  // Display a "loading..." message if fetch is slow. This avoids the message flickering on in brief
-  // moments when the fetch is fast, but the message can still flicker on briefly if the fetch takes
-  // just slightly longer than the timeout set here.
-  const msgDelay = setTimeout(function () {
-    resourceTreeEl.innerHTML = `<div class='grid-msg'>Loading resources...</div>`;
-  }, 2000);
-
-  fetch(`${ROOT_PATH}/permission/resource/filter`, {
-    method: 'POST', headers: {
-      'Content-Type': 'application/json',
-    }, body: JSON.stringify({query: resourceFilterEl.value, type: RESOURCE_TYPE}),
-  })
-      .then((response) => {
-        if (response.status === 401) {
-          redirectToLogin();
-          return Promise.reject('Unauthorized');
-        }
-        return response.json();
-      })
-      .then((resultObj) => {
-        if (resultObj.error) {
-          errorDialog(resultObj.error);
-        }
-        else {
-          treeArray = resultObj.resources;
-          clearTimeout(msgDelay);
-          refreshResourceTree(treeArray, resultObj.resource_count, resultObj.max_resource);
-          restoreTreeState(treeState);
-          fetchSelectedResourcePermissions();
-          log('fetchResources - END: ', resourceFilterEl.value);
-        }
-      })
-      .catch((error) => {
-        if (error !== 'Unauthorized') {
-          errorDialog(error);
-        }
-      });
+  if (!isRenderScheduled) {
+    isRenderScheduled = true;
+    requestAnimationFrame(() => {
+      render();
+      isRenderScheduled = false;
+    });
+  }
 }
+
+
+function render()
+{
+  // Bump version to mark this render as current
+  fetchVersion++;
+  const version = fetchVersion;
+  // Position calculations
+  const scrollTop = container.scrollTop;
+  const startTree = Math.max(0,
+      expandedTreeOffset.getTreeAtOffset(
+          Math.max(0, scrollTop - bufferTrees * collapsedTreeHeight)));
+  const endTree = Math.min(TOTAL_TREE_COUNT,
+      expandedTreeOffset.getTreeAtOffset(
+          scrollTop + container.clientHeight + bufferTrees * collapsedTreeHeight) + 1);
+  const neededBlocks = [];
+  for (let i = Math.floor(startTree / blockSize); i <= Math.floor((endTree - 1) / blockSize); i++) {
+    neededBlocks.push(i);
+  }
+  const promises = neededBlocks.map(b => fetchBlock(b, version));
+  Promise.all(promises).then(() => {
+    // Only render if this version is still current
+    if (version === fetchVersion) {
+      renderTrees(startTree, endTree);
+      updateSpacerHeight();
+    }
+  });
+}
+
+// render = timerLog(render, 'render');
+
+function updateSpacerHeight()
+{
+  // Calculate total height considering expanded trees
+  const totalHeight = expandedTreeOffset.getOffset(TOTAL_TREE_COUNT);
+  spacer.style.height = `${totalHeight}px`;
+}
+
+function renderTrees(startTree, endTree)
+{
+  visibleTrees.innerHTML = '';
+
+  for (let treeIdx = startTree; treeIdx < endTree; treeIdx++) {
+    const blockIdx = Math.floor(treeIdx / blockSize);
+    const block = loadedBlocks.get(blockIdx);
+
+    if (!block) {
+      console.warn(`Missing block ${blockIdx} at tree ${treeIdx}`);
+      continue;
+    }
+
+    const tree = block[treeIdx % blockSize];
+    const div = document.createElement('div');
+    div.className = 'tree-container';
+    div.dataset.treeIdx = treeIdx;
+    div.dataset.rootId = tree.root_id;
+    if (expandedTreeHtml.has(treeIdx)) {
+      // If the tree is already expanded, use the cached HTML
+      div.innerHTML = expandedTreeHtml.get(treeIdx);
+      const state = expandedTreeState.get(treeIdx);
+      setTreeState(div, state);
+      // Set the height of the div to the full height of the expanded tree
+      // div.style.height = `${div.scrollHeight}px`;
+      // Switch this tree from fixed height to height based on content. This height is the one that
+      // was measured when the tree was first expanded.
+      div.style.height = 'auto';
+    }
+    else {
+      div.innerHTML = `<ul class='tree'>
+            <li>
+              <details class='tree-details' >
+                <summary class='tree-summary placeholder-root'>
+                  <span>
+                    <input type='checkbox' class='tree-checkbox placeholder-checkbox'/>
+                    <span class='tree-resource-title'>${tree.label}</span>
+                    <span class='tree-resource-type'>${tree.type}</span>
+                  </span>
+                </summary>
+              </details>
+            </li>
+          </ul>
+      `;
+    }
+
+    const topOffset = expandedTreeOffset.getOffset(treeIdx);
+    div.style.top = `${topOffset}px`;
+    visibleTrees.appendChild(div);
+  }
+}
+
+
+function refreshExpandedTrees()
+{
+  for (const treeIdx of expandedTreeHtml.keys()) {
+    const rootId = expandedTreeState.get(treeIdx).rootId ||
+        parseInt(document.querySelector(`[data-tree-idx='${treeIdx}']`)?.dataset.rootId);
+
+    fetchTree(rootId).then(tree => {
+      const treeHtml = formatResourceTreeRecursive([tree.tree], false);
+      expandedTreeHtml.set(treeIdx, treeHtml);
+
+      // Create temporary container for measurement
+      const tempContainer = document.createElement('div');
+      tempContainer.className = 'tree-container';
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.visibility = 'hidden';
+      tempContainer.style.height = 'auto';
+      tempContainer.innerHTML = treeHtml;
+      // Add to DOM temporarily for measurement
+      document.body.appendChild(tempContainer);
+      // Apply saved state
+      setTreeState(tempContainer, expandedTreeState.get(treeIdx));
+      // Allow the DOM to update before measuring height
+      requestAnimationFrame(() => {
+        const fullHeight = tempContainer.offsetHeight;
+        expandedTreeOffset.set(treeIdx, fullHeight);
+        // Remove temporary container
+        document.body.removeChild(tempContainer);
+        updateSpacerHeight();
+        scheduleRender();
+      });
+    });
+  }
+}
+
+
+//
+//  Fetch
+//
 
 
 function fetchSelectedResourcePermissions()
 {
-  log('fetchSelectedResourcePermissions - START');
   const resources = getSelectedResourceIds();
 
   // Skip server round-trip if no resources are selected.
@@ -283,7 +519,6 @@ function fetchSelectedResourcePermissions()
           permissionArray = resultObj.permissionArray;
           clearTimeout(msgDelay);
           refreshPermissions();
-          log('fetchSelectedResourcePermissions - END');
         }
       })
       .catch((error) => {
@@ -315,9 +550,8 @@ function fetchSetPermission(resources, principalId, permissionLevel)
           errorDialog(resultObj.error);
         }
         else {
-          fetchResources();
+          refreshExpandedTrees();
           principalSearchEl.value = '';
-          log('fetchSetPermission - END');
         }
       })
       .catch((error) => {
@@ -327,10 +561,8 @@ function fetchSetPermission(resources, principalId, permissionLevel)
       });
 }
 
-
 function fetchPrincipalSearch()
 {
-  log('fetchPrincipalSearch - START');
   const searchStr = principalSearchEl.value;
   fetch(`${BASE_PATH}/ui/api/permission/principal/search`, {
     method: 'POST', headers: {
@@ -351,7 +583,6 @@ function fetchPrincipalSearch()
         else {
           principalArray = resultObj.principals;
           refreshPrincipals();
-          log('fetchPrincipalSearch - END');
         }
       })
       .catch((error) => {
@@ -365,36 +596,15 @@ function fetchPrincipalSearch()
 //  Refresh
 //
 
-function refreshResourceTree(resourceArray, resourceCount, maxResource)
-{
-  if (!resourceArray.length) {
-    resourceTreeEl.innerHTML = `<div class='grid-msg'>No resources found</div>`;
-    return;
-  }
-  let treeHtml = refreshResourceTreeRecursive(resourceArray);
 
-  if (resourceCount > maxResource) {
-    treeHtml += `
-      <div class='grid-msg'>
-        Showing ${maxResource} of ${resourceCount} results. Please refine your search.
-      </div>
-    `;
-  }
-
-  resourceTreeEl.innerHTML = treeHtml;
-}
-
-refreshResourceTree = timeLog(refreshResourceTree, 'refreshResourceTree');
-
-
-function refreshResourceTreeRecursive(resourceArray)
+function formatResourceTreeRecursive(resourceArray, open = true)
 {
   const htmlArr = [];
   for (const resourceObj of resourceArray) {
     htmlArr.push(`<ul class='tree'>
           <li>
-            <details class='tree-details'>
-              <summary>
+            <details class='tree-details${open ? ' open' : ''}'>
+              <summary class='tree-summary'>
                 <span>
                   <input type='checkbox' class='tree-checkbox'
                     data-resource-id='${resourceObj.resource_id}'
@@ -407,7 +617,7 @@ function refreshResourceTreeRecursive(resourceArray)
               <ul>
                 <li class='tree-indent'>
                   ${formatTreePrincipalDiv(resourceObj.principals)}
-                  ${refreshResourceTreeRecursive(resourceObj.children)}
+                  ${formatResourceTreeRecursive(resourceObj.children, false)}
                 </li>
               </ul>
             </details>
@@ -442,10 +652,10 @@ function formatTreePermissionLevelDiv(level)
   return PERMISSION_LEVEL_LIST[level] || 'Unknown';
 }
 
-function refreshSelectAllCheckbox()
-{
-  selectAllCheckboxEl.checked = isAllChecked(resourceTreeEl);
-}
+// function refreshSelectAllCheckbox()
+// {
+//   selectAllCheckboxEl.checked = isAllChecked(resourceTreeEl);
+// }
 
 function refreshPermissions()
 {
@@ -477,7 +687,7 @@ function refreshPermissions()
   permissionListEl.replaceChildren(fragment);
 }
 
-refreshPermissions = timeLog(refreshPermissions, 'refreshPermissions');
+// refreshPermissions = timerLog(refreshPermissions, 'refreshPermissions');
 
 //
 // Aggregated principal permissions (right side, bottom)
@@ -499,7 +709,7 @@ function refreshPrincipals()
   principalListEl.replaceChildren(fragment);
 }
 
-refreshPrincipals = timeLog(refreshPrincipals, 'refreshPrincipals');
+// refreshPrincipals = timerLog(refreshPrincipals, 'refreshPrincipals');
 
 
 function addPrincipalDiv(parentEl, principalObj)
@@ -521,7 +731,7 @@ function addPrincipalDiv(parentEl, principalObj)
         </div>
         <div class='edi-id-child-icon'>
           <img class='edi-id-copy-button'
-            src='${ROOT_PATH}/static/svg/copy.svg'
+            src='${BASE_PATH}/static/svg/copy.svg'
             alt='Copy User Identifier'
           >
         </div>
@@ -552,6 +762,94 @@ function addPermissionLevelDropdownDiv(parentEl, permissionObj)
 }
 
 //
+// Infinite scroll offset calculations
+//
+
+// Track the heights of expanded trees.
+//
+// This provides 3 fast operations:
+// - Add the index and height of newly expanded tree.
+// - Get the absolute position of a tree (expanded or not), given the tree index.
+// - Get the index of the first tree that is visible, or partially visible, given a scroll offset.
+//
+// Note: This can be optimized further with a second binary search, but linear search is probably
+// all we need, as the user is unlikely to expand a large number of trees.
+class ExpandedTreeOffsets
+{
+  constructor()
+  {
+    // [{treeIdx, height}, ...] sorted by treeIdx
+    this.trees = [];
+  }
+
+  // Set the height of a tree at the given index.
+  // This may be called multiple times for the same treeIdx, as the user expands and collapses
+  // branches of the tree.
+  set(treeIdx, height)
+  {
+    // log('ExpandedTreeOffsets.set()', {treeIdx, height});
+    // Remove existing exception for this row
+    const existingIdx = this.trees.findIndex(e => e.treeIdx === treeIdx);
+    if (existingIdx !== -1) {
+      this.trees.splice(existingIdx, 1);
+    }
+    let insertIdx = 0;
+    while (insertIdx < this.trees.length && this.trees[insertIdx].treeIdx < treeIdx) {
+      insertIdx++;
+    }
+    this.trees.splice(insertIdx, 0, {treeIdx, height});
+  }
+
+  // Binary search to find the last tree that starts at or before the given offset
+  getTreeAtOffset(targetOffset)
+  {
+    // log('ExpandedTreeOffsets.getTreeAtOffset()', {targetOffset});
+    let low = 0;
+    let high = TOTAL_TREE_COUNT - 1;
+
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      const midOffset = this.getOffset(mid);
+      const nextOffset = this.getOffset(mid + 1);
+      // Found the tree
+      if (midOffset <= targetOffset &&
+          (mid === TOTAL_TREE_COUNT - 1 || nextOffset > targetOffset)) {
+        return mid;
+      }
+      // If the midOffset is greater than the target, search in the lower half
+      if (midOffset > targetOffset) {
+        high = mid - 1;
+      }
+      // If the midOffset is less than or equal to the target, search in the upper half
+      else {
+        low = mid + 1;
+      }
+    }
+    // Default to first tree if not found
+    return 0;
+  }
+
+  getOffset(treeIdx)
+  {
+    // log('ExpandedTreeOffsets.getOffset()', {treeIdx});
+    // Calculate the absolute position for a tree in the container.
+    // The position is the standard tree height multiplied by the tree index, plus adjustments for
+    // any expanded trees that are before the treeIdx.
+    let offset = treeIdx * collapsedTreeHeight;
+    // Add the heights of all expanded trees before this treeIdx
+    const trees = this.trees.filter(tree => tree.treeIdx < treeIdx);
+    for (const {height} of trees) {
+      offset += height - collapsedTreeHeight;
+    }
+    return offset;
+  }
+}
+
+// Initializing the ExpandedTreeOffsets instance here allows us to move the class definition away
+// from the top of the file.
+expandedTreeOffset = new ExpandedTreeOffsets();
+
+//
 //  Util
 //
 
@@ -569,8 +867,15 @@ function addPermissionLevelDropdownDiv(parentEl, permissionObj)
 
 function getSelectedResourceIds()
 {
-  return Array.from(document.querySelectorAll('.tree-checkbox:checked'))
-      .map(checkboxEl => parseInt(checkboxEl.dataset.resourceId));
+  const resourceIdList = [];
+  for (const state of expandedTreeState.values()) {
+    for (const [resourceId, nodeState] of state.entries()) {
+      if (nodeState.checked) {
+        resourceIdList.push(resourceId);
+      }
+    }
+  }
+  return resourceIdList;
 }
 
 //
@@ -579,7 +884,7 @@ function getSelectedResourceIds()
 
 function clearCheckboxStates()
 {
-  selectAllCheckboxEl.checked = false;
+  // selectAllCheckboxEl.checked = false;
   for (const checkboxEl of document.querySelectorAll('.tree-checkbox')) {
     checkboxEl.checked = false;
   }
@@ -596,38 +901,38 @@ function isSomeChecked(rootEl)
 }
 
 //
-// Tree
+// Tree state (expanded/collapsed and checked/unchecked state of each node)
 //
 
-// Capture the open/closed and checked state of each node
-function saveTreeState()
+// Capture the state.
+function getTreeState(treeRootEl)
 {
-  log('saveTreeState - START');
-  const state = {};
-  const detailsEls = document.querySelectorAll('.tree-details');
+  log('getTreeState()', {treeRootEl});
+  const state = new Map();
+  const detailsEls = treeRootEl.querySelectorAll('.tree-details');
   detailsEls.forEach(detailsEl => {
     const checkboxEl = detailsEl.querySelector('.tree-checkbox');
-    const resourceId = checkboxEl.dataset.resourceId;
-    state[resourceId] = {open: detailsEl.open, checked: checkboxEl.checked};
+    const resourceId = parseInt(checkboxEl.dataset.resourceId);
+    state.set(resourceId, {open: detailsEl.open, checked: checkboxEl.checked});
   });
-  log('saveTreeState - END');
+  log('getTreeState() - state:', state);
   return state;
 }
 
 // Apply the saved state to the tree
-function restoreTreeState(state)
+function setTreeState(treeRootEl, state)
 {
-  log('restoreTreeState - START');
-  const detailsEls = document.querySelectorAll('.tree-details');
+  log('setTreeState()', {treeRootEl});
+  const detailsEls = treeRootEl.querySelectorAll('.tree-details');
   detailsEls.forEach(detailsEl => {
     const checkboxEl = detailsEl.querySelector('.tree-checkbox');
-    const resourceId = checkboxEl.dataset.resourceId;
-    if (state[resourceId] !== undefined) {
-      detailsEl.open = state[resourceId].open;
-      checkboxEl.checked = state[resourceId].checked;
+    const resourceId = parseInt(checkboxEl.dataset.resourceId);
+    if (state.has(resourceId)) {
+      const nodeState = state.get(resourceId);
+      detailsEl.open = nodeState.open;
+      checkboxEl.checked = nodeState.checked;
     }
   });
-  log('restoreTreeState - END');
 }
 
 //
@@ -636,27 +941,35 @@ function restoreTreeState(state)
 
 function redirectToLogin()
 {
-  log('Redirecting to login page');
   window.location.href =
-      `${ROOT_PATH}/ui/signin?next=${encodeURIComponent(window.location.pathname)}`;
+      `${BASE_PATH}/ui/signin?next=${encodeURIComponent(window.location.pathname)}`;
 }
 
-
+// Logging
+// Add a log index to each log message.
 // To separate bursts of log messages that result from user actions, we add a spacer line
 // after a few seconds of inactivity.
-function log(...args)
-{
-  console.log(...args);
-  if (loggingSpacerTimeout) {
-    clearTimeout(loggingSpacerTimeout);
-  }
-  loggingSpacerTimeout = setTimeout(() => {
-    console.log('-'.repeat(100));
-  }, 3000);
-}
+const log = (function () {
+  let log_idx = 0;
+  let loggingSpacerTimeout = null;
+
+  return function (...args) {
+    if (typeof console === 'undefined' || !console.log) {
+      return;
+    }
+    log_idx += 1;
+    console.log(log_idx, ...args);
+    if (loggingSpacerTimeout) {
+      clearTimeout(loggingSpacerTimeout);
+    }
+    loggingSpacerTimeout = setTimeout(() => {
+      console.log('-'.repeat(100));
+    }, 3000);
+  };
+})();
 
 
-function timeLog(fn, name)
+function timerLog(fn, name)
 {
   return function (...args) {
     log(`${name} - START`);

@@ -21,7 +21,22 @@ async def init_system_objects(dbi):
 
 async def _drop_and_create_tables(dbi):
     # for table_name in db.models.base.Base.metadata.tables.values():
-    #     await dbi.execute(sqlalchemy.text(f'drop table if exists "{table_name.name}" cascade'))
+    # for table_name in (
+    #     'search_package_scope',
+    #     'search_resource_type',
+    #     'search_result',
+    #     'search_session',
+    #     'search_root',
+    #     'rule',
+    #     'group_member',
+    #     'group',
+    #     'identity',
+    #     'principal',
+    #     'resource',
+    #     'profile_history',
+    #     'profile',
+    # ):
+    #     await dbi.execute(sqlalchemy.text(f'drop table if exists "{table_name}" cascade'))
     await dbi.session.run_sync(
         lambda sync_session: db.models.base.Base.metadata.drop_all(bind=sync_session.bind)
     )
@@ -161,15 +176,22 @@ async def _create_sync_triggers(dbi):
     )
 
     # Create triggers for each table
-    for trigger_name, table_name in (
-        ("sync_trigger_group", "\"group\""),
-        ("sync_trigger_group_member", "group_member"),
-        ("sync_trigger_identity", "identity"),
-        ("sync_trigger_principal", "principal"),
-        ("sync_trigger_profile", "profile"),
-        ("sync_trigger_resource", "resource"),
-        ("sync_trigger_rule", "rule"),
+    for table_name in (
+        'group',
+        'group_member',
+        'identity',
+        'principal',
+        'profile',
+        'profile_history',
+        'resource',
+        'rule',
+        'search_package_scope',
+        'search_resource_type',
+        'search_result',
+        'search_root',
+        'search_session',
     ):
+        trigger_name = f"sync_trigger_{table_name}"
         await dbi.execute(
             sqlalchemy.text(
                 f"""
@@ -177,7 +199,7 @@ async def _create_sync_triggers(dbi):
                 begin
                     if not exists (select 1 from pg_trigger where tgname = '{trigger_name}') then
                         create trigger {trigger_name}
-                        after insert or update on {table_name}
+                        after insert or update on "{table_name}"
                         for each statement
                         execute function sync_trigger_func();
                     end if;

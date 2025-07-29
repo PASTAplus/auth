@@ -116,6 +116,7 @@ async def test_session(test_engine, override_system_principals):
         autocommit=False,
         autoflush=False,
     )
+    util.dependency.set_session_factory(AsyncSessionFactory)
     async with AsyncSessionFactory() as async_test_session:
         try:
             yield async_test_session

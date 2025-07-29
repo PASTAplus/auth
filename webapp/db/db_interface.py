@@ -7,12 +7,12 @@ import db.interface.identity
 import db.interface.permission
 import db.interface.profile
 import db.interface.sync
-import db.interface.tree
+import db.interface.search
 import db.models.group
 import db.models.identity
 import db.models.permission
 import db.models.profile
-import db.models.tree
+import db.models.search
 import util.avatar
 import util.profile_cache
 import db.interface.util
@@ -27,8 +27,8 @@ class DbInterface(
     db.interface.identity.IdentityInterface,
     db.interface.permission.PermissionInterface,
     db.interface.profile.ProfileInterface,
+    db.interface.search.SearchInterface,
     db.interface.sync.SyncInterface,
-    db.interface.tree.TreeInterface,
 ):
     def __init__(self, session: sqlalchemy.ext.asyncio.AsyncSession):
         self._session = session
@@ -36,8 +36,8 @@ class DbInterface(
         db.interface.identity.IdentityInterface.__init__(self, session)
         db.interface.permission.PermissionInterface.__init__(self, session)
         db.interface.profile.ProfileInterface.__init__(self, session)
+        db.interface.search.SearchInterface.__init__(self, session)
         db.interface.sync.SyncInterface.__init__(self, session)
-        db.interface.tree.TreeInterface.__init__(self, session)
 
     @property
     def session(self):
@@ -56,9 +56,7 @@ class DbInterface(
         has_avatar: bool,
     ) -> db.models.identity.Identity:
         """Create or update a profile and identity.
-
-        See the table definitions for db.models.profile.Profile and Identity for more information on
-        the fields.
+        See the table definitions for Profile and Identity for more information on the fields.
         """
         identity_row = await self.get_identity_by_idp_uid(idp_uid)
 

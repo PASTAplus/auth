@@ -1,5 +1,4 @@
-import pprint
-
+import util.redirect
 import daiquiri
 import fastapi
 import starlette.requests
@@ -7,6 +6,7 @@ import starlette.responses
 import starlette.status
 import starlette.templating
 
+import db.db_interface
 import db.models.permission
 import db.resource_tree
 import util.avatar
@@ -28,16 +28,16 @@ router = fastapi.APIRouter()
 #
 
 
-@router.get('/ui/permission-filter')
-async def get_ui_permission_filter(
+@router.get('/ui/permission/search')
+async def get_ui_permission_search(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    """Permission page. The contents of the panels are loaded separately."""
+    """Permission Search page"""
     return util.template.templates.TemplateResponse(
-        'permission-filter.html',
+        'permission-search.html',
         {
             # Base
             'token': token,
@@ -45,12 +45,9 @@ async def get_ui_permission_filter(
             'profile': token_profile_row,
             # Page
             'request': request,
-            # 'public_edi_id': Config.PUBLIC_EDI_ID,
-            # 'authenticated_edi_id': Config.AUTHENTICATED_EDI_ID,
-            # 'resource_type': request.query_params.get('type', ''),
-            'package_scope_list': await dbi.get_package_scopes(),
-            'resource_type_list': await dbi.get_resource_types(),
-        }
+            'package_scope_list': await dbi.get_search_package_scopes(),
+            'resource_type_list': await dbi.get_search_resource_types(),
+        },
     )
 
 
@@ -67,14 +64,25 @@ async def post_ui_permission_search(
     await dbi.init_search_resource_types()
     await dbi.init_search_root_resources()
 
-@router.get('/ui/permission')
+    new_search_session = await dbi.create_search_session(token_profile_row, dict(form_data))
+    return util.redirect.internal(f'/ui/permission/{new_search_session.uuid}')
+
+
+
+@router.get('/ui/permission/{search_uuid}')
 async def get_ui_permission(
+    search_uuid: str,
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """Permission page. The contents of the panels are loaded separately."""
+
+    # search_session = await dbi.get_search_session(search_uuid)
+    await dbi.populate_search_session(token_profile_row, search_uuid)
+    root_count = await dbi.get_search_result_count(search_uuid)
+
     return util.template.templates.TemplateResponse(
         'permission.html',
         {
@@ -86,7 +94,8 @@ async def get_ui_permission(
             'request': request,
             'public_edi_id': Config.PUBLIC_EDI_ID,
             'authenticated_edi_id': Config.AUTHENTICATED_EDI_ID,
-            'resource_type': request.query_params.get('type', ''),
+            'root_count': root_count,
+            'search_uuid': search_uuid,
         },
     )
 
@@ -127,20 +136,18 @@ async def get_ui_api_permission_tree(
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    """Called when user types in the resource search filter and when the page is first opened."""
-    query_dict = await request.json()
-    resource_iter = await dbi.get_resource_list(
-        token_profile_row, query_dict.get('query'), query_dict.get('type') or None
+    """Called when user clicks the expand button or checkbox in a root element."""
+    resource_id_set = await dbi.get_resource_descendants_id_set([root_id])
+    resource_generator = dbi.get_resource_generator(
+        token_profile_row, resource_id_set, db.models.permission.PermissionLevel.CHANGE
     )
-    tree_list = db.resource_tree.get_resource_tree_for_ui(resource_iter)
+    row_list = [row async for row in resource_generator]
+    tree_list = db.resource_tree.get_resource_tree_for_ui(row_list)
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',
-            'resources': tree_list[: Config.MAX_TREE_COUNT],
-            'resource_count': len(tree_list),
-            'max_resource': Config.MAX_TREE_COUNT,
-        },
-        media_type='application/json',
+            'tree': tree_list[0],
+        }
     )
 
 
@@ -283,72 +290,3 @@ async def post_permission_update(
             'status': 'ok',
         }
     )
-
-
-####################################################################################################
-####################################################################################################
-####################################################################################################
-# Perm2
-
-
-@router.get('/ui/perm2')
-async def get_perm2_ui(
-    request: starlette.requests.Request,
-    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
-    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
-):
-    """Permission page. The contents of the panels are loaded separately."""
-    return util.template.templates.TemplateResponse(
-        'perm2.html',
-        {
-            # Base
-            'token': None,  # No token in perm2
-            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
-            'profile': token_profile_row,
-            # Page
-            'request': request,
-            # 'root_count': await dbi.get_root_count()
-            'root_count': 100000,
-        },
-    )
-
-
-@router.get('/perm2/fetch')
-async def get_perm2(
-    request: starlette.requests.Request,
-    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
-    # token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
-):
-    query_dict = request.query_params
-    start_idx = int(query_dict['start'])
-    limit = int(query_dict['limit'])
-
-    log.debug(f'start={start_idx}, limit={limit}')
-
-    root_list = [f'Root {i}' for i in range(start_idx, start_idx + limit)]
-
-    # import time
-    # time.sleep(1)
-
-    return starlette.responses.JSONResponse(root_list)
-
-    ##############
-
-    root_list = await dbi.get_root_resources(start_idx, limit)
-
-    log.debug('----------------')
-    log.debug(f'start={start_idx}, limit={limit}')
-    log.debug(f'Found: {len(root_list)}')
-
-    # root_list = [
-    #     {
-    #         'id': row.id,
-    #         'label': row.label,
-    #     }
-    #     for row in root_list
-    # ]
-    root_list = [row.label for row in root_list]
-
-    # pprint.pp(root_list)
-
-    return starlette.responses.JSONResponse(root_list)
