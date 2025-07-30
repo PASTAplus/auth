@@ -11,12 +11,13 @@ import sqlalchemy.orm
 
 import db.db_interface
 import db.models.base
+import db.system_object
+import db.session
 import main
 import tests.edi_id
+import tests.sample
 import tests.utils
 import util.dependency
-import tests.sample
-import db.system_object
 
 TEST_SERVER_BASE_URL = 'http://testserver/auth'
 
@@ -98,9 +99,12 @@ async def test_engine():
     )
     try:
         async with async_engine.begin() as conn:
+            log.info("Creating tables: %s", list(db.models.base.Base.metadata.tables.keys()))
+
             await conn.run_sync(
                 lambda sync_conn: db.models.base.Base.metadata.create_all(bind=sync_conn)
             )
+        db.session.async_engine = async_engine  # Set the global async engine for db.session
         yield async_engine
     finally:
         await async_engine.dispose()
@@ -116,7 +120,6 @@ async def test_session(test_engine, override_system_principals):
         autocommit=False,
         autoflush=False,
     )
-    util.dependency.set_session_factory(AsyncSessionFactory)
     async with AsyncSessionFactory() as async_test_session:
         try:
             yield async_test_session

@@ -18,6 +18,7 @@ import util.dependency
 import db.models.profile
 import db.session
 import db.models.permission
+import db.models.search
 
 log = daiquiri.getLogger(__name__)
 
@@ -27,6 +28,7 @@ async def main():
     logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
     async with util.dependency.get_session() as session:
+        await session.execute(sqlalchemy.delete(db.models.search.RootResource))
         await session.execute(sqlalchemy.delete(db.models.permission.Rule))
         await session.execute(sqlalchemy.delete(db.models.permission.Resource))
         await add_permissions(session)
@@ -38,7 +40,7 @@ async def main():
 
 async def add_permissions(session):
     for scope in RANDOM_SCOPE_TUP:
-        id_count = random.randrange(1, 10)
+        id_count = random.randrange(1, 100)
         id_ = random.randrange(1, 10000)
         for i in range(id_count):
             id_ += random.randrange(1, 100)
@@ -48,13 +50,11 @@ async def add_permissions(session):
                 log.info(label)
 
                 # Package (root resource)
-
                 package_id = await insert_resource(
                     session, None, await get_random_resource_key(), label, 'package'
                 )
 
                 # Metadata
-
                 metadata_id = await insert_resource(
                     session, package_id, await get_random_resource_key(), 'Metadata', 'collection'
                 )
@@ -74,11 +74,9 @@ async def add_permissions(session):
                 )
 
                 # Data
-
                 data_id = await insert_resource(
                     session, package_id, await get_random_resource_key(), 'Data', 'collection'
                 )
-
                 data_count = random.randrange(1, 10)
                 for j in range(data_count):
                     await insert_resource(
@@ -154,17 +152,17 @@ async def insert_rule(session, resource_row, principal_row, permission):
 RANDOM_SCOPE_TUP = (
     'edi',
     'knb-lter-bes',
-    # 'knb-lter-ble',
-    # 'knb-lter-cap',
-    # 'knb-lter-jrn',
-    # 'knb-lter-kbs',
-    # 'knb-lter-mcm',
-    # 'knb-lter-nin',
-    # 'knb-lter-ntl',
-    # 'knb-lter-nwk',
-    # 'knb-lter-nwt',
-    # 'knb-lter-sbc',
-    # 'knb-lter-vcr',
+    'knb-lter-ble',
+    'knb-lter-cap',
+    'knb-lter-jrn',
+    'knb-lter-kbs',
+    'knb-lter-mcm',
+    'knb-lter-nin',
+    'knb-lter-ntl',
+    'knb-lter-nwk',
+    'knb-lter-nwt',
+    'knb-lter-sbc',
+    'knb-lter-vcr',
 )
 
 RANDOM_FILE_NAME_TUP = (
