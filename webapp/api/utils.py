@@ -70,13 +70,13 @@ def get_response_400_bad_request(request, api_method, msg, **response_dict):
     return _dict_to_response(request, 400, api_method, msg=f'Bad request: {msg}', **response_dict)
 
 
-def get_response_401_unauthorized(request, api_method, **response_dict):
+def get_response_401_unauthorized(request, api_method, msg=None, **response_dict):
     """Return a '401 Unauthorized' response."""
     return _dict_to_response(
         request,
         401,
         api_method,
-        msg=f'Unauthorized: Authentication token is missing or invalid',
+        msg=msg or 'Unauthorized: Authentication token is missing or invalid',
         **response_dict,
     )
 
