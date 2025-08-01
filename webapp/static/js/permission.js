@@ -16,7 +16,6 @@ const PERMISSION_LEVEL_LIST = ['None', 'Reader', 'Editor', 'Owner'];
 // selectAllCheckboxEl = document.getElementById('selectAllCheckbox');
 // showPermissionsCheckboxEl = document.getElementById('showPermissionsCheckbox');
 // Resource tree
-resourceTreeEl = document.getElementById('resourceTree');
 
 // List of permissions for the selected resources
 const permissionListEl = document.getElementById('permissionList');
@@ -35,7 +34,7 @@ const collapsedTreeHeight = 35; // pixels
 const blockSize = 100;     // trees per fetch
 const bufferTrees = 100;     // above & below viewport
 
-const container = document.getElementById('resourceTree');
+const resourceTreeEl = document.getElementById('resourceTree');
 const spacer = document.getElementById('spacer');
 const visibleTrees = document.getElementById('visible-trees');
 
@@ -73,7 +72,7 @@ scheduleRender();
 //  Scroll event handling
 //
 
-container.addEventListener('scroll', () => {
+resourceTreeEl.addEventListener('scroll', () => {
   if (debounceTimer) {
     clearTimeout(debounceTimer);
   }
@@ -361,13 +360,13 @@ function render()
   fetchVersion++;
   const version = fetchVersion;
   // Position calculations
-  const scrollTop = container.scrollTop;
+  const scrollTop = resourceTree.scrollTop;
   const startTree = Math.max(0,
       expandedTreeOffset.getTreeAtOffset(
           Math.max(0, scrollTop - bufferTrees * collapsedTreeHeight)));
   const endTree = Math.min(TOTAL_TREE_COUNT,
       expandedTreeOffset.getTreeAtOffset(
-          scrollTop + container.clientHeight + bufferTrees * collapsedTreeHeight) + 1);
+          scrollTop + resourceTree.clientHeight + bufferTrees * collapsedTreeHeight) + 1);
   const neededBlocks = [];
   for (let i = Math.floor(startTree / blockSize); i <= Math.floor((endTree - 1) / blockSize); i++) {
     neededBlocks.push(i);

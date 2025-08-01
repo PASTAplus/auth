@@ -1,139 +1,96 @@
 :root {
+    /* Variables set in JS */
     /* Path for the expand/collapse SVG icon used in the resource tree */
     --expand-collapse-path: '';
+    /* Height of the navbar, used to calculate the height of the main container */
+    --navbar-height: 0px;
 }
 
-/*
-Main grid
-*/
-
-/*
-+-----------------------------+
-|        split-container      |
-|  +-----------------------+  |
-|  |      split-top        |  |
-|  +-----------------------+  |
-|  +-----------------------+  |
-|  |      split-main       |  |
-|  |  +-------+  +-------+ |  |
-|  |  | head  |  | split-| |  |
-|  |  |-------|  | right-| |  |
-|  |  | tree  |  |section| |  |
-|  |  +-------+  +-------+ |  |
-|  +-----------------------+  |
-+-----------------------------+
-*/
-
 .indent {
-    /* padding: 0; */    
     margin: 0 0 0 2rem;;
 }
 
-.split-container {
-    display: grid;
-    /* Declaring only rows gives us a single implicit column */
-    /* auto for dynamic height of container, 1fr for remaining space */
-    grid-template-rows: auto 1fr;
-    height: calc(100vh - var(--navbar-height));
-}
+/*
+Main layout
+*/
 
-.split-top {
-    /* background-color: #80bdff; */
-}
+/*
 
-.split-main {
++-----------------------------+
+|          container          |
+|  +-----------------------+  |
+|  |      main-content     |  |
+|  |  +-------+ +-------+  |  |
+|  |  | panel | | panel |  |  |
+|  |  |  top  | |  top  |  |  |
+|  |  |-------| |-------|  |  |
+|  |  |bottom | |bottom |  |  |
+|  |  +-------+ +-------+  |  |
+|  +-----------------------+  |
++-----------------------------+*/
+
+/*
+The container wraps everything on the page except for the navbar.
+*/
+.container {
     display: flex;
-    /* Add vertical scrolling */
-    overflow-y: auto;
-    padding-left: 1rem;
+    flex-direction: column;
+    height: calc(100vh - var(--navbar-height) - 1rem);
+    /* Include padding and border in element's total width and height */
+    box-sizing: border-box; 
+    /* Prevent scrollbars on main page */
+    overflow: hidden;
 }
 
-.split-section {
-    /* Allow the container to take up the remaining space */
-    flex: 1;
-    overflow-y: auto;
-}
-
-.split-left {
-    /* Border between the left and right sides */
-    /* padding: 0 3px 0 3px; */
-    /* margin-right: 1rem; */
-    /* background-color: #444400; */
-    /* Boxes */
-    border: 2px solid #d0d0d0;
-    border-radius: 5px;
-    margin-left: 1rem;
-    margin-bottom: 1rem;
+.main-content {
     margin-top: 1rem;
-    /* padding: 1rem; */
-    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+    margin-left: 2rem;
+    display: flex;
+    flex: 1;
+    overflow: hidden;
 }
 
-.split-right {
-    /* Border between the left and right sides */
-    /* padding: 0 3px 0 .8rem; */
-    /* border-left: 2px solid #d0d0d0; */
-    /* margin-left: .8rem; */
-    /* background-color: #004444; */
-    /* Boxes */
-    border: 2px solid #d0d0d0;
-    border-radius: 5px;
-    /* The right margin is to make space for the box-shadow */
-    margin: 1rem 4px 1rem 1rem;
+.panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+.panel-top {
+    /* Expand only to fit the contents */
+    flex: 0 0 auto;
     padding: 1rem;
-    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+    background-color: #f9f9f9;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 1rem;
 }
 
-.vertical-split-upper {
-    padding: 1rem;
+.panel-bottom {
+    /* Take up the remaining space */
+    flex: 1;
+    overflow: hidden;
+    position: relative;
 }
 
-.vertical-split-lower {
-    /* margin: 1rem; */
-}
-
-.main-grid {
-    /* display: grid; */
-    /* grid-template-columns: 50% 50%; */
-    /* gap: 1rem; */
-
-    /* max-height: 100vh; */
-    /* position: relative; */
-    /* padding: 1rem; */
-    /* margin: 1rem; */
-    /* overflow-y: auto; /* Add this line to enable vertical scrolling */
-    /* max-height: 400px; /* Set a maximum height */
-}
-
-.main-grid-child {
-    /* display: flex; */
-    /* flex-direction: column; */
-    /* gap: 1rem; */
-    /* padding: 1rem; */
-    /* border: black 1px solid; */
-    /* border-radius: 7px; */
-    /* overflow: hidden; */
-    /* box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.5); */
-
-    /* max-height: 70vh; */
+.panel + .panel {
+    /* Space between panels */
+    margin-left: 1rem; 
 }
 
 /*
 Resource Tree (left side)
 */
 
-.tree-right-align {
-    text-align: right;
-    /* Space between top right checkboxes and collection tree */
-    /* margin-bottom: 1rem; */
-}
-
 /* Resource tree */
 
 #resourceTree {
     position: relative;
     overflow-y: auto;
-    height: 70vh;
+    height: 100%;
 }
 
 #spacer {
@@ -184,13 +141,13 @@ Resource Tree (left side)
 
 /* Add this to your CSS */
 .tree-measuring > summary {
-  /* Keep the summary visible */
-  visibility: visible;
+    /* Keep the summary visible */
+    visibility: visible;
 }
 
 .tree-measuring > ul {
-  /* Only hide the content being expanded */
-  visibility: hidden;
+    /* Only hide the content being expanded */
+    visibility: hidden;
 }
 
 
@@ -250,7 +207,7 @@ Col 2: PermissionLevel dropdown
     /* overflow: hidden; */
     /*text-overflow: ellipsis;*/
     /*!* Make room for shadows around buttons at edges *!*/
-    /* padding: 2px; */
+    padding: 0 1rem 0 1rem;
     /* Ensures padding and border are included in the element's total width */
     /* box-sizing: border-box; */
 }
@@ -330,7 +287,7 @@ Principal search
 */
 
 #principalSearch {
-    margin-bottom: 1rem;
+    /* margin-bottom: 1rem; */
 }
 
 #principalList {

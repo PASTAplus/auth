@@ -15,24 +15,13 @@ Profile = db.models.profile.Profile
 DbInterface = db.db_interface.DbInterface
 PastaJwt = util.pasta_jwt.PastaJwt
 
-
-_session_factory = None
-
-
-def set_session_factory(session_factory):
-    """Set the session factory for dependency injection."""
-    global _session_factory
-    _session_factory = session_factory
-
-
 #
 # Async context managers
 #
 
-
 @contextlib.asynccontextmanager
 async def get_session():
-    async with _session_factory() as session:
+    async with db.session.AsyncSessionFactory() as session:
         async with session.begin():
             try:
                 yield session

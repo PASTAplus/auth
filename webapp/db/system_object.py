@@ -43,6 +43,7 @@ async def _drop_and_create_tables(dbi):
     await dbi.session.run_sync(
         lambda sync_session: db.models.base.Base.metadata.create_all(bind=sync_session.bind)
     )
+    await dbi.flush()
 
 
 async def _create_system_profiles(dbi):

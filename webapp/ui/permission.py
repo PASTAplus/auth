@@ -51,6 +51,52 @@ async def get_ui_permission_search(
     )
 
 
+@router.get('/ui/permission/{search_uuid}')
+async def get_ui_permission(
+    search_uuid: str,
+    request: starlette.requests.Request,
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
+):
+    """Permission page. The contents of the panels are loaded separately."""
+
+    # search_session = await dbi.get_search_session(search_uuid)
+    await dbi.populate_search_session(token_profile_row, search_uuid)
+    root_count = await dbi.get_search_result_count(search_uuid)
+
+    search_session_row = await dbi.get_search_session(search_uuid)
+    search_type = search_session_row.search_params.get('search-type')
+    if search_type == 'package-search':
+        search_result_msg = f'Found {root_count} packages'
+    elif search_type == 'general-search':
+        search_result_msg = f'Found {root_count} resources'
+    else:
+        raise ValueError(f"Unknown search-type: {search_type}")
+
+    return util.template.templates.TemplateResponse(
+        'permission.html',
+        {
+            # Base
+            'token': token,
+            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
+            'profile': token_profile_row,
+            # Page
+            'request': request,
+            'public_edi_id': Config.PUBLIC_EDI_ID,
+            'authenticated_edi_id': Config.AUTHENTICATED_EDI_ID,
+            'root_count': root_count,
+            'search_uuid': search_uuid,
+            'search_result_msg': search_result_msg,
+        },
+    )
+
+
+#
+# Internal routes
+#
+
+
 @router.post('/ui/api/permission/search')
 async def post_ui_permission_search(
     request: starlette.requests.Request,
@@ -66,43 +112,6 @@ async def post_ui_permission_search(
 
     new_search_session = await dbi.create_search_session(token_profile_row, dict(form_data))
     return util.redirect.internal(f'/ui/permission/{new_search_session.uuid}')
-
-
-
-@router.get('/ui/permission/{search_uuid}')
-async def get_ui_permission(
-    search_uuid: str,
-    request: starlette.requests.Request,
-    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
-    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
-    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
-):
-    """Permission page. The contents of the panels are loaded separately."""
-
-    # search_session = await dbi.get_search_session(search_uuid)
-    await dbi.populate_search_session(token_profile_row, search_uuid)
-    root_count = await dbi.get_search_result_count(search_uuid)
-
-    return util.template.templates.TemplateResponse(
-        'permission.html',
-        {
-            # Base
-            'token': token,
-            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
-            'profile': token_profile_row,
-            # Page
-            'request': request,
-            'public_edi_id': Config.PUBLIC_EDI_ID,
-            'authenticated_edi_id': Config.AUTHENTICATED_EDI_ID,
-            'root_count': root_count,
-            'search_uuid': search_uuid,
-        },
-    )
-
-
-#
-# Internal routes
-#
 
 
 @router.get('/ui/api/permission/block')
