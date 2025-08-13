@@ -5,6 +5,8 @@
 - [Profiles](profile.md) - Manage user profiles
 - [Resources](resource.md) - Manage resources
 - [Rules](rule.md) - Manage access control rules (ACRs) for the resources
+- [EML](eml.md) - Manage EML documents and associated ACRs
+
 
 This document describes the API for managing user profiles.
 
@@ -14,6 +16,7 @@ Create a 'skeleton' EDI profile that can be used in permissions. This method is 
 
 If and when a user logs into the profile for the first time, the profile and identity are updated from 'skeleton' to regular with the information provided by the IdP.
 
+Only users in the Vetted system group can call this method.
 ```
 POST: /auth/v1/profile
 

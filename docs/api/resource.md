@@ -5,6 +5,7 @@
 - [Profiles](profile.md) - Create and manage user profiles
 - [Resources](resource.md) - Create and manage resources
 - [Rules](rule.md) - Create and manage the ACRs for resources
+- [EML](eml.md) - Manage EML documents and associated ACRs
 
 This document describes the API for managing resources for access control.
 
@@ -16,6 +17,7 @@ A `changePermission` ACR is automatically added to the resource for the token pr
 profile becomes the first owner of the resource. The token profile may then add more permissions to
 the resource via `createRule()`.
 
+Only users in the Vetted system group can call this method.
 ```
 POST: /auth/v1/resource
 
