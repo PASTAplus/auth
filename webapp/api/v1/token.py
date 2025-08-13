@@ -3,8 +3,10 @@ Docs:./docs/api/token.md
 """
 import fastapi
 import sqlalchemy.exc
+import jwt
 import starlette.requests
 import starlette.responses
+import starlette.status
 import starlette.status
 
 import api.utils
@@ -27,44 +29,107 @@ PRIVATE_KEY = util.pasta_crypto.import_key(Config.PASTA_TOKEN_PRIVATE_KEY_PATH)
 async def post_refresh(
     request: starlette.requests.Request,
 ):
-    """Validate and refresh an old style authentication token.
+    """Validate and refresh PASTA and EDI authentication tokens.
 
     A refreshed token is a token that matches the original token but has a new TTL.
     """
-    external_token = (await request.body()).decode('utf-8')
-
-    # Verify the token signature
+    api_method = 'refreshToken'
+    # Check that the request body is valid JSON
     try:
-        util.pasta_crypto.verify_auth_token(PUBLIC_KEY, external_token)
+        request_dict = await api.utils.request_body_to_dict(request)
     except ValueError as e:
-        raise fastapi.HTTPException(
-            status_code=starlette.status.HTTP_401_UNAUTHORIZED,
-            detail=f'Attempted to refresh invalid token: {e}',
+        return api.utils.get_response_400_bad_request(
+            request, api_method, f'Invalid JSON in request body: {e}'
         )
-
-    # Verify the token TTL
-    token_obj = util.old_token.OldToken()
-    token_obj.from_auth_token(external_token)
-    if not token_obj.is_valid_ttl():
-        raise fastapi.HTTPException(
-            status_code=starlette.status.HTTP_401_UNAUTHORIZED,
-            detail=f'Attempted to refresh invalid token: Token has expired',
+    # Check that the request contains the required fields
+    try:
+        pasta_token = request_dict['pasta-token']
+        edi_token = request_dict['edi-token']
+    except KeyError as e:
+        return api.utils.get_response_400_bad_request(
+            request, api_method, f'Missing field in JSON in request body: {e}'
         )
+    # Verify the pasta-token signature
+    try:
+        util.pasta_crypto.verify_auth_token(PUBLIC_KEY, pasta_token)
+    except ValueError as e:
+        return api.utils.get_response_401_unauthorized(
+            request, api_method, f'Attempted to refresh invalid pasta-token: {e}'
+        )
+    # Deserialize the old pasta-token and start building the new pasta-token
+    new_pasta_token = util.old_token.OldToken()
+    new_pasta_token.from_auth_token(pasta_token)
+    # Verify the pasta-token TTL
+    if not new_pasta_token.is_valid_ttl():
+        return api.utils.get_response_401_unauthorized(
+            request, api_method, 'Attempted to refresh invalid token: Token has expired'
+        )
+    # Update the pasta-token TTL
+    new_pasta_token.ttl = new_pasta_token.new_ttl()
+    private_key = util.pasta_crypto.import_key(Config.PASTA_TOKEN_PRIVATE_KEY_PATH)
+    new_pasta_token = util.pasta_crypto.create_auth_token(private_key, new_pasta_token.to_string())
 
-    # Create the refreshed token
-    token_obj = util.old_token.OldToken()
-    token_obj.from_auth_token(external_token)
-    token_obj.ttl = token_obj.new_ttl()
-
-    response = starlette.responses.Response(
-        content=util.pasta_crypto.create_auth_token(PRIVATE_KEY, token_obj.to_string()),
+    # Update the edi-token TTL (even if the edi-token is expired)
+    edi_token_claims_dict = jwt.decode(
+        edi_token,
+        # PUBLIC_KEY_STR,
+        algorithms=[Config.JWT_ALGORITHM],
+        options={'verify_exp': False, 'verify_signature': False},
+    )
+    new_edi_token = util.pasta_jwt.PastaJwt(edi_token_claims_dict)
+    return api.utils.get_response_200_ok(
+        request,
+        api_method,
+        'PASTA and EDI tokens refreshed successfully',
+        **{
+            'pasta-token': new_pasta_token,
+            'edi-token': new_edi_token.encode(),
+        },
     )
 
-    # In the Portal, the TokenRefreshFilter middleware activates immediately, on the login request
-    # itself, so we have to set the cookie here.
-    # response.set_cookie('auth-token', token_obj.to_string())
 
-    return response
+# @router.post('/refresh')
+# async def post_refresh(
+#     request: starlette.requests.Request,
+# ):
+#     """Validate and refresh an old style authentication token.
+#
+#     A refreshed token is a token that matches the original token but has a new TTL.
+#     """
+#     external_token = (await request.body()).decode('utf-8')
+#
+#     # Verify the token signature
+#     try:
+#         util.pasta_crypto.verify_auth_token(PUBLIC_KEY, external_token)
+#     except ValueError as e:
+#         raise fastapi.HTTPException(
+#             status_code=starlette.status.HTTP_401_UNAUTHORIZED,
+#             detail=f'Attempted to refresh invalid token: {e}',
+#         )
+#
+#     # Verify the token TTL
+#     token_obj = util.old_token.OldToken()
+#     token_obj.from_auth_token(external_token)
+#     if not token_obj.is_valid_ttl():
+#         raise fastapi.HTTPException(
+#             status_code=starlette.status.HTTP_401_UNAUTHORIZED,
+#             detail=f'Attempted to refresh invalid token: Token has expired',
+#         )
+#
+#     # Create the refreshed token
+#     token_obj = util.old_token.OldToken()
+#     token_obj.from_auth_token(external_token)
+#     token_obj.ttl = token_obj.new_ttl()
+#
+#     response = starlette.responses.Response(
+#         content=util.pasta_crypto.create_auth_token(PRIVATE_KEY, token_obj.to_string()),
+#     )
+#
+#     # In the Portal, the TokenRefreshFilter middleware activates immediately, on the login request
+#     # itself, so we have to set the cookie here.
+#     # response.set_cookie('auth-token', token_obj.to_string())
+#
+#     return response
 
 
 @router.post('/v1/token/{edi_id}')
