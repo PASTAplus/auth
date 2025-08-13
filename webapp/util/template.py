@@ -1,9 +1,8 @@
 import starlette.templating
 
+import db.models.identity
 import util.url
 from config import Config
-
-import db.models.identity
 
 templates = starlette.templating.Jinja2Templates(Config.TEMPLATES_PATH)
 templates.env.globals.update(

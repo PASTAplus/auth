@@ -10,8 +10,8 @@ import api.utils
 import db.models.permission
 import db.resource_tree
 import util.dependency
-import util.url
 import util.exc
+import util.url
 
 router = fastapi.APIRouter(prefix='/v1')
 
@@ -46,7 +46,6 @@ async def post_v1_resource(
         type_str = request_dict['resource_type']
         parent_key = request_dict['parent_resource_key']
     except KeyError as e:
-        # str(KeyError) is the name of the missing key in single quotes
         return api.utils.get_response_400_bad_request(
             request, api_method, f'Missing field in JSON in request body: {e}'
         )

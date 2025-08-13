@@ -3,6 +3,7 @@ import pprint
 
 import daiquiri
 import jwt
+import sqlalchemy.exc
 
 import db.models.identity
 from config import Config
@@ -77,25 +78,6 @@ class PastaJwt:
         """
         try:
             claims_dict = jwt.decode(token_str, PUBLIC_KEY_STR, algorithms=[Config.JWT_ALGORITHM])
-            if claims_dict.get('iss') != Config.JWT_ISSUER:
-                log.error(f'Invalid issuer in token: {claims_dict.get("iss")}')
-                return None
-            if claims_dict.get('hd') != Config.JWT_HOSTED_DOMAIN:
-                log.error(f'Invalid hosted domain in token: {claims_dict.get("hd")}')
-                return None
-            profile_row = await dbi.get_profile(claims_dict.get("sub"))
-            if profile_row is None:
-                log.error(f'Profile not found for EDI-ID: {claims_dict.get("sub")}')
-                # # Print all profiles
-                # all_profiles = await dbi.get_all_profiles()
-                # log.error('#'*100)
-                # log.error('Available profiles:')
-                # for profile in all_profiles:
-                #     log.error(f'  - {profile.edi_id} ({profile.common_name})')
-                # else:
-                #     log.error('NONE')
-                return None
-            return cls(claims_dict)
         except jwt.ExpiredSignatureError:
             bad_claims_dict = jwt.decode(
                 token_str,
@@ -108,6 +90,35 @@ class PastaJwt:
         except jwt.InvalidTokenError as e:
             log.error(f'Invalid token: {e}')
             return None
+
+        if claims_dict.get('iss') != Config.JWT_ISSUER:
+            log.error(f'Invalid issuer in token: {claims_dict.get("iss")}')
+            return None
+        if claims_dict.get('hd') != Config.JWT_HOSTED_DOMAIN:
+            log.error(f'Invalid hosted domain in token: {claims_dict.get("hd")}')
+            return None
+
+        # Check if the profile still exists in the database. Tokens can only be created for profiles
+        # that exist in the database, but it's possible that the profile was deleted after the token
+        # was created, in which case the token is invalid even if otherwise valid. Note: If a unit
+        # test fails here, it's probably because a bug in session management causes the tests to see
+        # a different session than the rest of the app.
+        try:
+            await dbi.get_profile(claims_dict.get('sub'))
+        except sqlalchemy.exc.NoResultFound:
+            log.error(f'Profile not found for EDI-ID: {claims_dict.get("sub")}')
+            db_name = dbi.session.get_bind().url.database
+            log.error(f'Using database: {db_name}')
+            all_profiles = await dbi.get_all_profiles()
+            log.error('#'*100)
+            log.error('Available profiles:')
+            for profile in all_profiles:
+                log.error(f'  - {profile.edi_id} ({profile.common_name})')
+            else:
+                log.error('  NONE')
+            return None
+
+        return cls(claims_dict)
 
     @classmethod
     async def is_valid(cls, dbi, token_str: str | None):

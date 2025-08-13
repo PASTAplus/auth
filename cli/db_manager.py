@@ -105,7 +105,6 @@ async def main():
         max_overflow=db_config['DB_MAX_OVERFLOW'],
     )
 
-    # Session factory. This factory is used for creating sessions for requests.
     AsyncSessionFactory = sqlalchemy.ext.asyncio.async_sessionmaker(
         autocommit=False, autoflush=False, bind=async_engine
     )
@@ -463,6 +462,8 @@ async def drop_tables_with_cascade(dbi):
     for table in list(reversed(db.models.base.Base.metadata.sorted_tables)):
         log.info(f'Dropping table with cascade: {table.name}')
         try:
+            # If the database hangs here, make sure there are no active connections to the
+            # database (e.g., if the webapp is running).
             await dbi.execute(sqlalchemy.text(f'drop table if exists "{table.name}" cascade'))
         except SQLAlchemyError as e:
             log.error(f'Failed to drop table {table.name}: {e}')

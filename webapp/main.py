@@ -8,6 +8,8 @@ import starlette.middleware.base
 import starlette.requests
 import starlette.responses
 import starlette.status
+
+import api.v1.eml
 import api.v1.ping
 import api.v1.profile
 import api.v1.resource
@@ -158,25 +160,19 @@ class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     """
 
     async def dispatch(self, request: starlette.requests.Request, call_next):
-        async with util.dependency.get_dbi() as dbi:
-            is_valid_token = await util.pasta_jwt.PastaJwt.is_valid(
-                dbi, request.cookies.get('edi-token')
-            )
-
         if (
-            not is_valid_token
-            and request.url.path.startswith(str(util.url.url('/ui')))
+            request.url.path.startswith(str(util.url.url('/ui')))
             and not request.url.path.startswith(str(util.url.url('/ui/signin')))
             and not request.url.path.startswith(str(util.url.url('/ui/api/')))
         ):
-            log.debug('Redirecting to /ui/signin: UI page requested without valid token')
-            return util.redirect.internal('/signout')
-
-        # if not is_valid_token:
-        #     return starlette.responses.Response(
-        #         'Unauthorized: Authentication token is missing or invalid',
-        #         status_code=starlette.status.HTTP_401_UNAUTHORIZED,
-        #     )
+            # Note: It's important to not run this code for the unit tests, as it creates a separate
+            # session in which is_valid() will not find the test profiles.
+            async with util.dependency.get_dbi() as dbi:
+                if not await util.pasta_jwt.PastaJwt.is_valid(
+                    dbi, request.cookies.get('edi-token')
+                ):
+                    log.debug('Redirecting to /ui/signin: UI page requested without valid token')
+                    return util.redirect.internal('/signout')
 
         return await call_next(request)
 
@@ -188,6 +184,7 @@ app.add_middleware(RootPathMiddleware)
 app.add_middleware(RedirectToSigninMiddleware)
 
 # Include all routers
+app.include_router(api.v1.eml.router)
 app.include_router(api.v1.ping.router)
 app.include_router(api.v1.profile.router)
 app.include_router(api.v1.resource.router)

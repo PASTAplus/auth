@@ -10,8 +10,8 @@ import re
 import daiquiri
 
 import util.avatar
-from config import Config
 import util.dependency
+from config import Config
 
 log = daiquiri.getLogger(__name__)
 
@@ -91,17 +91,16 @@ async def init_groups(dbi):
         )
 
 
-async def search(query_str, include_groups):
+async def search(dbi, query_str, include_groups):
     """Search for profiles and groups based on the query string. A match is found if any of the
     search keys start with the query string.
 
     Matches are returned with profiles first, then groups. Within the profiles and groups, the order
     is determined by the order_by() statements in the profile and group generators.
     """
-    async with util.dependency.get_dbi() as dbi:
-        sync_ts = await dbi.get_sync_ts()
-        if sync_ts != cache.get('sync_ts'):
-            await init_cache(dbi)
+    sync_ts = await dbi.get_sync_ts()
+    if sync_ts != cache.get('sync_ts'):
+        await init_cache(dbi)
 
     match_list = []
 

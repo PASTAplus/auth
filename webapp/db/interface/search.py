@@ -14,8 +14,9 @@ from db.models.search import (
     SearchResult,
 )
 
-PACKAGE_RX = '^[^.,]+\.[0-9]+\.[0-9]+$'
-
+# Package scope.identifier.revision
+# identifier.revision are the correct terms, though 'version' would probably be more correct
+PACKAGE_RX = '^[^.]+\.[0-9]+\.[0-9]+$'
 
 log = daiquiri.getLogger(__name__)
 
@@ -33,7 +34,7 @@ class SearchInterface:
 
         This table is for providing a list of package scopes that can be searched. The scopes are
         derived from the Resource labels of type 'package', which are expected to be in the format
-        'scope.id.version'.
+        'scope.identifier.version'.
         """
         # Delete all existing search package scopes. Since we're in a transaction, the temporarily
         # empty table will not be visible to other transactions.
@@ -95,17 +96,12 @@ class SearchInterface:
         result = await self._session.execute(stmt)
         return result.scalars().all()
 
-    async def init_search_root_resources(self):
+    async def sync_search_root_resources(self):
         """Copy all root nodes from the Resource table to the RootResource table."""
         # Delete all existing root resources.
         await self._session.execute(sqlalchemy.delete(RootResource))
-        await self._session.execute(
-            sqlalchemy.text('alter sequence search_root_id_seq restart with 1')
-        )
-
         # Order resources by label, with a special case for scope.id.version package identifiers.
         # Labels not matching the pattern are ordered by the full string value.
-
         regex_match = sqlalchemy.func.regexp_match(Resource.label, PACKAGE_RX)
         order_by_clause = [
             sqlalchemy.case(
@@ -136,7 +132,7 @@ class SearchInterface:
         stmt = (
             sqlalchemy.insert(RootResource)
             .from_select(
-                ['root_id', 'label', 'type', 'package_scope', 'package_id', 'package_ver'],
+                ['resource_id', 'label', 'type', 'package_scope', 'package_id', 'package_rev'],
                 sqlalchemy.select(
                     Resource.id,
                     Resource.label,
@@ -167,7 +163,7 @@ class SearchInterface:
                             ),
                         ),
                         else_=None,
-                    ).label('package_ver'),
+                    ).label('package_rev'),
                 )
                 .where(Resource.parent_id.is_(None))
                 .order_by(*order_by_clause, Resource.type),
@@ -189,7 +185,7 @@ class SearchInterface:
         """Get the count of root resources."""
         stmt = sqlalchemy.select(sqlalchemy.func.count(RootResource.id))
         result = await self._session.execute(stmt)
-        return result.scalar_one_or_none() or 0
+        return result.scalar_one()
 
     async def create_search_session(
         self,
@@ -203,7 +199,7 @@ class SearchInterface:
             uuid=uuid.uuid4().hex,
         )
         self._session.add(new_search_session)
-        self.flush()
+        await self.flush()
         return new_search_session
 
     #
@@ -224,7 +220,7 @@ class SearchInterface:
             .where(SearchSession.uuid == search_uuid)
         )
         result = await self._session.execute(stmt)
-        return result.scalar_one_or_none() or 0
+        return result.scalar_one()
 
     async def get_search_result_slice(self, search_uuid: str, start_idx: int, limit: int):
         """Get a slice of search results for a given search session UUID"""
@@ -283,7 +279,7 @@ class SearchInterface:
             self._parse_range_condition(identifier, RootResource.package_id, 'identifier')
         )
         where_conditions.extend(
-            self._parse_range_condition(revision, RootResource.package_ver, 'revision')
+            self._parse_range_condition(revision, RootResource.package_rev, 'revision')
         )
 
         if where_conditions:
@@ -321,11 +317,12 @@ class SearchInterface:
 
     async def _is_search_session_populated(self, search_session_row):
         """Check if a search session has any results populated"""
-        stmt = sqlalchemy.select(
-            sqlalchemy.exists().where(SearchResult.search_session == search_session_row)
+        result = await self._session.execute(
+            sqlalchemy.select(
+                sqlalchemy.exists().where(SearchResult.search_session == search_session_row)
+            )
         )
-        result = await self._session.execute(stmt)
-        return result.scalar_one_or_none() or False
+        return result.scalar_one()
 
     def _parse_range_condition(self, range_str: str, column, field_name: str):
         """Parse a range condition (e.g., '100', '100-200', '-100', '100-') and return WHERE
@@ -334,18 +331,18 @@ class SearchInterface:
             id_tup = tuple((int(v) if v else None) for v in range_str.split('-'))
             if len(id_tup) == 1:
                 # Single value (e.g., '100')
-                return [column == id_tup[0]]
+                return (column == id_tup[0],)
             elif len(id_tup) == 2:
                 start, end = id_tup
                 if start and end:
                     # Range (e.g., '100-200')
-                    return [column.between(start, end)]
+                    return (column.between(start, end),)
                 elif start:
                     # Lower bound only (e.g., '100-')
-                    return [column >= start]
+                    return (column >= start,)
                 elif end:
                     # Upper bound only (e.g., '-100')
-                    return [column <= end]
+                    return (column <= end,)
             else:
                 raise ValueError(f'Invalid {field_name} format: {range_str}')
         return []
@@ -366,11 +363,13 @@ class SearchInterface:
                     order_by=(
                         RootResource.package_scope,
                         RootResource.package_id,
-                        RootResource.package_ver,
+                        RootResource.package_rev,
+                        RootResource.label,
+                        RootResource.type,
                     )
                 )
                 .label('sort_order'),
-                RootResource.root_id.label('resource_id'),
+                RootResource.resource_id.label('resource_id'),
                 RootResource.label.label('resource_label'),
                 RootResource.type.label('resource_type'),
             ).where(where_clause),

@@ -6,11 +6,11 @@ import sqlalchemy.ext.asyncio
 import sqlalchemy.orm
 
 import db.interface.util
+from config import Config
 from db.models.group import GroupMember, Group
 from db.models.identity import Identity
 from db.models.permission import SubjectType, Resource, Rule, Principal
 from db.models.profile import ProfileHistory, Profile
-from config import Config
 
 log = daiquiri.getLogger(__name__)
 
@@ -54,7 +54,7 @@ class ProfileInterface:
                 .where(Profile.edi_id == edi_id)
             )
         )
-        return result.scalar()
+        return result.scalar_one()
 
     async def get_all_profiles(self):
         result = await self.execute(sqlalchemy.select(Profile).order_by(sqlalchemy.asc(Profile.id)))

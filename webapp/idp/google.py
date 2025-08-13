@@ -1,6 +1,6 @@
+import logging
 import re
 
-import daiquiri
 import fastapi
 import requests
 import starlette.requests
@@ -14,8 +14,6 @@ import util.pretty
 import util.redirect
 import util.url
 from config import Config
-
-import logging
 
 log = logging.getLogger(__name__)
 router = fastapi.APIRouter()

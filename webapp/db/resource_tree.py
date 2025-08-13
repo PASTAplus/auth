@@ -21,8 +21,6 @@
     - Finally, the roots of all the trees are collected into a list, which is returned.
 """
 
-import pprint
-
 import db.models.permission
 from config import Config
 

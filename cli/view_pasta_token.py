@@ -2,8 +2,8 @@
 
 """Decode and print a PASTA token"""
 import argparse
-import sys
 import base64
+import sys
 
 import daiquiri
 

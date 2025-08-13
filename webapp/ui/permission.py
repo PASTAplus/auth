@@ -1,4 +1,3 @@
-import util.redirect
 import daiquiri
 import fastapi
 import starlette.requests
@@ -13,6 +12,7 @@ import util.avatar
 import util.dependency
 import util.pasta_jwt
 import util.pretty
+import util.redirect
 import util.search_cache
 import util.template
 from config import Config
@@ -105,11 +105,6 @@ async def post_ui_permission_search(
 ):
     """Permission Search API"""
     form_data = await request.form()
-
-    await dbi.init_search_package_scopes()
-    await dbi.init_search_resource_types()
-    await dbi.init_search_root_resources()
-
     new_search_session = await dbi.create_search_session(token_profile_row, dict(form_data))
     return util.redirect.internal(f'/ui/permission/{new_search_session.uuid}')
 
@@ -130,7 +125,7 @@ async def get_ui_api_permission_block(
     root_list = [
         {
             'id': root.id,
-            'root_id': root.resource_id,
+            'resource_id': root.resource_id,
             'label': root.resource_label,
             'type': root.resource_type,
         }
@@ -246,7 +241,7 @@ async def get_aggregate_permission_list(dbi, resource_generator):
 @router.post('/ui/api/permission/principal/search')
 async def post_permission_principal_search(
     request: starlette.requests.Request,
-    # dbi: util.dependency.DbInterface = fastapi.Depends(db.session.dbi),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     # Prevent this from being called by anyone not logged in
     _token_profile_row: util.dependency.Profile = fastapi.Depends(
         util.dependency.token_profile_row
@@ -255,7 +250,7 @@ async def post_permission_principal_search(
     """Called when user types in the principal search box."""
     query_dict = await request.json()
     query_str = query_dict.get('query')
-    principal_list = await util.search_cache.search(query_str, include_groups=True)
+    principal_list = await util.search_cache.search(dbi, query_str, include_groups=True)
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',

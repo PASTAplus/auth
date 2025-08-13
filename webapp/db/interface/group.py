@@ -9,6 +9,7 @@ import db.interface.util
 from config import Config
 from db.models.group import Group, GroupMember
 from db.models.permission import SubjectType, Resource, Rule, PermissionLevel, Principal
+from util.profile_cache import is_superuser
 
 log = daiquiri.getLogger(__name__)
 
@@ -22,7 +23,7 @@ class GroupInterface:
     def session(self):
         return self._session
 
-    async def create_group(self, token_profile_row, group_name, description, edi_id=None):
+    async def create_group(self, token_profile_row, name, description, edi_id=None):
         """Create a new group which will be owned by token_profile_row.
 
         This also creates a resource to track permissions on the group, and sets CHANGE permission
@@ -32,7 +33,7 @@ class GroupInterface:
         new_group_row = Group(
             edi_id=edi_id,
             profile=token_profile_row,
-            name=group_name,
+            name=name,
             description=description or None,
         )
         self._session.add(new_group_row)
@@ -45,7 +46,7 @@ class GroupInterface:
         # as the resource key. Since it's impossible to predict what the EDI-ID will be for a new
         # group, it's not possible to create resources that would interfere with groups created
         # later.
-        resource_row = await self.create_resource(None, edi_id, group_name, 'group')
+        resource_row = await self.create_resource(None, edi_id, name, 'group')
         # Create a permission for the group owner on the group resource.
         principal_row = await self.get_principal_by_subject(
             token_profile_row.id, SubjectType.PROFILE
@@ -70,14 +71,16 @@ class GroupInterface:
         result = await self.execute(sqlalchemy.select(Group).where(Group.id == group_id))
         return result.scalar_one()
 
-    async def get_group(self, token_profile_row, group_id):
+    async def get_owned_group(self, token_profile_row, group_id):
         """Get a group by its ID.
         Raises an exception if token_profile_row does not have WRITE or CHANGE on the group.
         """
-        result = await self.execute(
-            (
-                sqlalchemy.select(Group)
-                .join(
+        stmt = sqlalchemy.select(Group).where(
+            Group.id == group_id,
+        )
+        if not is_superuser(token_profile_row):
+            stmt = (
+                stmt.join(
                     Resource,
                     Resource.key == Group.edi_id,
                 )
@@ -90,34 +93,61 @@ class GroupInterface:
                     Principal.id == Rule.principal_id,
                 )
                 .where(
-                    Group.id == group_id,
                     Principal.subject_id == token_profile_row.id,
                     Principal.subject_type == SubjectType.PROFILE,
                     Rule.permission >= PermissionLevel.WRITE,
                 )
             )
+        result = await self.execute(stmt)
+        return result.scalar_one()
+
+    async def get_all_owned_groups(self, token_profile_row):
+        """Get the groups on which this profile has WRITE or CHANGE permissions.
+        Superuser profiles get all groups.
+        """
+        stmt = sqlalchemy.select(Group).order_by(
+            Group.name,
+            Group.description,
+            sqlalchemy.asc(Group.created),
+            Group.id,
         )
-        group_row = result.scalar()
-        if group_row is None:
-            raise ValueError(f'Group {group_id} not found')
-        return group_row
+        if not is_superuser(token_profile_row):
+            stmt = (
+                stmt.join(
+                    Resource,
+                    Resource.key == Group.edi_id,
+                )
+                .join(
+                    Rule,
+                    Rule.resource_id == Resource.id,
+                )
+                .join(
+                    Principal,
+                    Principal.id == Rule.principal_id,
+                )
+                .where(
+                    Principal.subject_id == token_profile_row.id,
+                    Principal.subject_type == SubjectType.PROFILE,
+                    Rule.permission >= PermissionLevel.WRITE,
+                )
+            )
+        result = await self.execute(stmt)
+        return result.scalars().all()
 
     async def update_group(self, token_profile_row, group_id, name, description):
         """Update a group by its ID.
-        Raises ValueError if the group is not owned by the profile.
+        Raises an exception if the group is not owned by the profile.
         """
-        # Check that group is owned by the token profile.
-        group_row = await self.get_group(token_profile_row, group_id)
+        group_row = await self.get_owned_group(token_profile_row, group_id)
         group_row.name = name
         group_row.description = description or None
         await self._set_resource_label_by_key(group_row.edi_id, name)
 
     async def delete_group(self, token_profile_row, group_id):
         """Delete a group by its ID.
-        Raises ValueError if the group is not owned by the profile.
+        Raises an exception if the group is not owned by the profile.
         """
-        # Check that group is owned by the token profile.
-        group_row = await self.get_group(token_profile_row, group_id)
+        group_row = await self.get_owned_group(token_profile_row, group_id)
         # Delete group members
         await self.execute(sqlalchemy.delete(GroupMember).where(GroupMember.group == group_row))
         # Delete the group
@@ -127,10 +157,9 @@ class GroupInterface:
 
     async def add_group_member(self, token_profile_row, group_id, member_profile_id):
         """Add a member to a group.
-        Raises ValueError if the group is not owned by the profile.
+        Raises an exception if the group is not owned by the profile.
         """
-        # Check that group is owned by the profile
-        group_row = await self.get_group(token_profile_row, group_id)
+        group_row = await self.get_owned_group(token_profile_row, group_id)
         new_member_row = GroupMember(
             group=group_row,
             profile_id=member_profile_id,
@@ -140,19 +169,16 @@ class GroupInterface:
 
     async def delete_group_member(self, token_profile_row, group_id, member_profile_id):
         """Delete a member from a group.
-        Raises ValueError if the group is not owned by the profile.
+        Raises an exception if the group is not owned by the profile.
         """
-        # Check that group is owned by the token profile.
-        group_row = await self.get_group(token_profile_row, group_id)
+        group_row = await self.get_owned_group(token_profile_row, group_id)
         result = await self.execute(
             sqlalchemy.select(GroupMember).where(
                 GroupMember.group == group_row,
                 GroupMember.profile_id == member_profile_id,
             )
         )
-        member_row = result.scalar()
-        if member_row is None:
-            raise ValueError(f'Member {member_profile_id} not found in group {group_id}')
+        member_row = result.scalar_one()
         await self._session.delete(member_row)
         group_row.updated = datetime.datetime.now()
 
@@ -185,10 +211,9 @@ class GroupInterface:
     async def get_group_member_list(self, token_profile_row, group_id):
         """Get the members of a group. Only profiles can be group members, so group members are
         returned with profile_id instead of principal_id.
-        Raises ValueError if the group is not owned by the profile.
+        Raises an exception if the group is not owned by the profile.
         """
-        # Check that group is owned by the token profile.
-        group_row = await self.get_group(token_profile_row, group_id)
+        group_row = await self.get_owned_group(token_profile_row, group_id)
         result = await self.execute(
             sqlalchemy.select(GroupMember)
             .options(sqlalchemy.orm.selectinload(GroupMember.profile))
@@ -198,16 +223,14 @@ class GroupInterface:
 
     async def get_group_member_count(self, token_profile_row, group_id):
         """Get the number of members in a group.
-        TODO: Raises ValueError if the group is not owned by the profile.
         """
-        # Check that group is owned by the token profile.
-        group_row = await self.get_group(token_profile_row, group_id)
+        group_row = await self.get_owned_group(token_profile_row, group_id)
         result = await self.execute(
             sqlalchemy.select(sqlalchemy.func.count(GroupMember.id)).where(
                 GroupMember.group == group_row
             )
         )
-        return result.scalar_one_or_none() or 0
+        return result.scalar_one()
 
     async def get_group_membership_list(self, token_profile_row):
         """Get the groups that this profile is a member of."""
@@ -229,10 +252,8 @@ class GroupInterface:
 
     async def leave_group_membership(self, token_profile_row, group_id):
         """Leave a group.
-        Raises ValueError if the member who is leaving does not match the profile.
-
-        Note: While this method ultimately performs the same action as delete_group_member,
-        it performs different checks.
+        This removes the token profile from the group. The profile does not have to own the group.
+        Raises an exception if the profile is not a member of the group.
         """
         result = await self.execute(
             sqlalchemy.select(GroupMember)
@@ -242,9 +263,7 @@ class GroupInterface:
                 GroupMember.profile_id == token_profile_row.id,
             )
         )
-        member_row = result.scalar()
-        if member_row is None:
-            raise ValueError(f'Member {token_profile_row.id} not found in group {group_id}')
+        member_row = result.scalar_one()
         member_row.group.updated = datetime.datetime.now()
         await self._session.delete(member_row)
 
@@ -263,35 +282,3 @@ class GroupInterface:
         )
         async for group_row in result.yield_per(Config.DB_YIELD_ROWS).scalars():
             yield group_row
-
-    async def get_owned_groups(self, token_profile_row):
-        """Get the groups on which this profile has WRITE or CHANGE permissions."""
-        result = await self.execute(
-            (
-                sqlalchemy.select(Group)
-                .join(
-                    Resource,
-                    Resource.key == Group.edi_id,
-                )
-                .join(
-                    Rule,
-                    Rule.resource_id == Resource.id,
-                )
-                .join(
-                    Principal,
-                    Principal.id == Rule.principal_id,
-                )
-                .where(
-                    Principal.subject_id == token_profile_row.id,
-                    Principal.subject_type == SubjectType.PROFILE,
-                    Rule.permission >= PermissionLevel.WRITE,
-                )
-                .order_by(
-                    Group.name,
-                    Group.description,
-                    sqlalchemy.asc(Group.created),
-                    Group.id,
-                )
-            )
-        )
-        return result.scalars().all()

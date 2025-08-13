@@ -10,18 +10,18 @@
 <!-- AUTHOR: Noah Jacobus -->
 
 <svg
-   width="800px"
-   height="800px"
-   viewBox="0 0 16 16"
-   fill="none"
-   version="1.1"
-   id="svg6"
-   sodipodi:docname="shield-edi.svg"
-   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
+    width="800px"
+    height="800px"
+    viewBox="0 0 16 16"
+    fill="none"
+    version="1.1"
+    id="svg6"
+    sodipodi:docname="shield-edi.svg"
+    inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+    xmlns="http://www.w3.org/2000/svg"
+>
   <defs
      id="defs10" />
   <sodipodi:namedview
@@ -34,7 +34,7 @@
      inkscape:pagecheckerboard="0"
      showgrid="false"
      inkscape:zoom="0.905625"
-     inkscape:cx="528.91649"
+     inkscape:cx="522.29124"
      inkscape:cy="623.87854"
      inkscape:window-width="3840"
      inkscape:window-height="2100"

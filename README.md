@@ -1,6 +1,4 @@
-# Auth
-
-EDI Authentication and Authorization Service
+# EDI Identity and access management (IAM) Service
 
 Multiverse authentication service for the PASTA+ Data Repository environment.
 

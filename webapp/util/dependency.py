@@ -1,3 +1,4 @@
+import daiquiri
 import contextlib
 import typing
 
@@ -15,29 +16,30 @@ Profile = db.models.profile.Profile
 DbInterface = db.db_interface.DbInterface
 PastaJwt = util.pasta_jwt.PastaJwt
 
+log = daiquiri.getLogger(__name__)
+
 #
 # Async context managers
 #
 
+
 @contextlib.asynccontextmanager
 async def get_session():
-    async with db.session.AsyncSessionFactory() as session:
+    async with db.session.get_session_factory()() as session:
+        log.debug('Created a new SQLAlchemy AsyncSession')
+        # This context manager handles the session lifecycle, including committing or rolling back
+        # transactions and closing the session.
         async with session.begin():
-            try:
-                yield session
-            except Exception:
-                # logging.exception('Exception')
-                await session.rollback()
-                raise
-            else:
-                # TODO: Check if the DB engine autocommit setting is a better fit here
-                await session.commit()
-            finally:
-                await session.close()
+            yield session
 
 
 @contextlib.asynccontextmanager
 async def get_dbi() -> typing.AsyncGenerator[DbInterface, typing.Any]:
+    """Get a DbInterface instance.
+    This context manager creates a new DbInterface instance using an SQLAlchemy AsyncSession. Note
+    that each new DbInterface instance receives a new session, so for the unit tests, any of the
+    main application code that uses get_dbi() will not see the test objects.
+    """
     async with get_session() as session:
         yield db.db_interface.DbInterface(session)
 
@@ -48,13 +50,16 @@ async def get_dbi() -> typing.AsyncGenerator[DbInterface, typing.Any]:
 
 
 async def session() -> typing.AsyncGenerator[sqlalchemy.ext.asyncio.AsyncSession, typing.Any]:
-    """Get a SQLAlchemy AsyncSession instance."""
+    """Get an SQLAlchemy AsyncSession instance."""
     async with get_session() as session:
         yield session
 
 
 async def dbi() -> typing.AsyncGenerator[DbInterface, typing.Any]:
-    """Get a DbInterface instance."""
+    """Get a DbInterface instance.
+    This adapts get_dbi(), which is an async context manager, to be used as a FastAPI dependency,
+    which needs a synchronous function that yields a value.
+    """
     async with get_dbi() as dbi:
         yield dbi
 

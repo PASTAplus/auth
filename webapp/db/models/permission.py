@@ -41,7 +41,7 @@ class Resource(db.models.base.Base):
     # Nodes in the resource tree can be either a parent or a child of other nodes.
     # The parent of this resource. If this is null, this resource is a root node.
     parent_id = sqlalchemy.Column(
-        sqlalchemy.Integer, sqlalchemy.ForeignKey('resource.id'), nullable=True, index=True
+        sqlalchemy.Integer, sqlalchemy.ForeignKey('resource.id', ondelete='CASCADE'), nullable=True, index=True
     )
     # The unique identifier for the resource.
     # E.g., for packages and entities objects, The PASTA URL of the resource
@@ -74,7 +74,7 @@ class Principal(db.models.base.Base):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     # The user profile or user group represented by this principal.
     subject_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, index=True)
-    # The type of the entity (enum of PROFILE or GROUP).
+    # The type of the subject (enum of PROFILE or GROUP).
     subject_type = sqlalchemy.Column(sqlalchemy.Enum(SubjectType), nullable=False, index=True)
     __table_args__ = (
         sqlalchemy.UniqueConstraint('subject_id', 'subject_type', name='subject_id_type_unique'),

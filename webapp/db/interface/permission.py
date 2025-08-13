@@ -3,7 +3,7 @@
 Some terms:
 
     - Resource: An object that can have permissions associated with it
-    - Principal: An entity (currently a Profile or a Group) that can be granted access to a resource
+    - Principal: A Profile or a Group
     - Profile: A principal which holds user profile information
     - Group: A principal which holds a group of profiles
     - Rule / Permission: An access control rule that grants access to a principal for a resource at
@@ -36,8 +36,14 @@ import re
 
 import daiquiri
 import sqlalchemy.ext.asyncio
+import sqlalchemy.exc
 
 import db.interface.util
+import db.resource_tree
+import util.avatar
+import util.exc
+import util.profile_cache
+from config import Config
 from db.models.permission import (
     permission_level_int_to_enum,
     SubjectType,
@@ -47,11 +53,6 @@ from db.models.permission import (
     Principal,
 )
 from db.models.profile import Profile
-import db.resource_tree
-import util.avatar
-import util.profile_cache
-from config import Config
-import util.exc
 
 log = daiquiri.getLogger(__name__)
 
@@ -77,6 +78,40 @@ class PermissionInterface:
         await self.flush()
         return new_resource_row
 
+    async def create_owned_resource(self, token_profile_row, parent_id, key, label, type_str):
+        """Create a new resource owned by the profile."""
+        # If parent_id is specified, the parent resource must exist and the profile must have WRITE
+        # or CHANGE on it.
+        if parent_id:
+            try:
+                parent_row = await self.get_resource_by_id(parent_id)
+            except sqlalchemy.exc.NoResultFound:
+                raise util.exc.InvalidRequestError(parent_id)
+            if not await self.is_authorized(
+                token_profile_row, parent_row, db.models.permission.PermissionLevel.CHANGE
+            ):
+                raise util.exc.ResourcePermissionDeniedError(
+                    token_profile_row.edi_id,
+                    parent_row.key,
+                    db.models.permission.PermissionLevel.WRITE,
+                )
+        resource_row = await self.create_resource(parent_id, key, label, type_str)
+        principal_row = await dbi.get_principal_by_subject(
+            token_profile_row.id, db.models.permission.SubjectType.PROFILE
+        )
+        await self.create_or_update_rule(
+            resource_row, principal_row, db.models.permission.PermissionLevel.CHANGE
+        )
+
+    async def get_resource_by_id(self, resource_id):
+        """Get a resource by its ID."""
+        result = await self.execute(
+            sqlalchemy.select(Resource)
+            .options(sqlalchemy.orm.selectinload(Resource.parent))
+            .where(Resource.id == resource_id)
+        )
+        return result.scalar_one()
+
     async def get_resource(self, key):
         """Get a resource by its key."""
         result = await self.execute(
@@ -84,7 +119,7 @@ class PermissionInterface:
             .options(sqlalchemy.orm.selectinload(Resource.parent))
             .where(Resource.key == key)
         )
-        return result.scalar()
+        return result.scalar_one()
 
     async def update_resource(
         self, token_profile_row, key, parent_key=None, label=None, type_str=None
@@ -164,7 +199,7 @@ class PermissionInterface:
                 )
             )
         )
-        return result.scalar()
+        return result.scalar_one()
 
     # async def get_resource_list_by_key(self, key, include_ancestors=False, include_descendants=False):
     #     """Get a list of resources by their key.
@@ -194,17 +229,13 @@ class PermissionInterface:
     async def _set_resource_label_by_key(self, key, label):
         """Set the label of a resource by its key."""
         result = await self.execute(sqlalchemy.select(Resource).where(Resource.key == key))
-        resource_row = result.scalar()
-        if resource_row is None:
-            raise ValueError(f'Resource {key} not found')
+        resource_row = result.scalar_one()
         resource_row.label = label
 
     async def _remove_resource_by_key(self, key):
         """Remove a resource by its key."""
         result = await self.execute(sqlalchemy.select(Resource).where(Resource.key == key))
-        resource_row = result.scalar()
-        if resource_row is None:
-            raise ValueError(f'Resource {key} not found')
+        resource_row = result.scalar_one()
         await self._session.delete(resource_row)
 
     # async def get_resource_types(self, token_profile_row):
@@ -272,7 +303,7 @@ class PermissionInterface:
             result_ = await self.execute(
                 sqlalchemy.select(Resource.parent_id).where(Resource.id == resource_id_)
             )
-            parent_id_ = result_.scalar_one_or_none()
+            parent_id_ = result_.scalar_one()
             if parent_id_ is not None:
                 parent_id_set.add(parent_id_)
                 await _find_parent_ids(parent_id_)
@@ -282,13 +313,11 @@ class PermissionInterface:
 
         for parent_id in parent_id_set:
             result = await self.execute(sqlalchemy.select(Resource).where(Resource.id == parent_id))
-            resource_row = result.scalar()
-            if resource_row is None:
-                log.warning(f'Resource with ID {parent_id} does not exist, skipping.')
-                continue
-            if not await self.is_authorized(
-                token_profile_row, resource_row, permission_level
-            ):
+            resource_row = result.scalar_one()
+            # if resource_row is None:
+            #     log.warning(f'Resource with ID {parent_id} does not exist, skipping.')
+            #     continue
+            if not await self.is_authorized(token_profile_row, resource_row, permission_level):
                 await self.create_or_update_rule(
                     resource_row, token_profile_row.principal, permission_level
                 )
@@ -444,7 +473,7 @@ class PermissionInterface:
                 )
             )
         )
-        return result.scalar()
+        return result.scalar_one_or_none()
 
     async def get_resource_list(self, token_profile_row, search_str, resource_type):
         """Get a list of resources and permissions, with resource labels filtered on search_str.
@@ -835,17 +864,17 @@ class PermissionInterface:
         result = await self.execute(
             sqlalchemy.select(Principal).where(Principal.id == principal_id)
         )
-        return result.scalar()
+        return result.scalar_one()
 
     async def get_principal_by_subject(self, subject_id, subject_type):
-        """Get a principal by its entity ID and type."""
+        """Get a principal by its subject ID and type."""
         result = await self.execute(
             sqlalchemy.select(Principal).where(
                 Principal.subject_id == subject_id,
                 Principal.subject_type == subject_type,
             )
         )
-        return result.scalar()
+        return result.scalar_one()
 
     async def get_principal_by_profile(self, profile_row):
         """Get the principal for a profile."""
@@ -855,7 +884,7 @@ class PermissionInterface:
                 Principal.subject_type == SubjectType.PROFILE,
             )
         )
-        return result.scalar()
+        return result.scalar_one()
 
     async def get_principal_by_edi_id(self, edi_id):
         """Get a principal by its EDI-ID.
@@ -884,4 +913,4 @@ class PermissionInterface:
                 )
             )
         )
-        return result.scalar()
+        return result.scalar_one()

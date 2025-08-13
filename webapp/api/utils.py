@@ -2,12 +2,11 @@
 
 import logging
 import re
-
-import starlette.responses
 import xml.dom.minidom
 
-import util.pretty
+import starlette.responses
 
+import util.pretty
 
 log = logging.getLogger(__name__)
 

@@ -4,7 +4,6 @@ import daiquiri
 
 from config import Config
 
-
 profile_cache = {}
 
 

@@ -4,23 +4,19 @@ Docs:./docs/api/token.md
 
 import fastapi
 import starlette.requests
+import starlette.requests
 import starlette.responses
+import starlette.responses
+import starlette.status
 
 import api.utils
 import util.dependency
 import util.exc
+import util.old_token
+import util.pasta_crypto
 import util.pasta_jwt
 import util.profile_cache
 import util.url
-
-
-import fastapi
-import starlette.requests
-import starlette.responses
-import starlette.status
-
-import util.old_token
-import util.pasta_crypto
 from config import Config
 
 router = fastapi.APIRouter()

@@ -133,10 +133,13 @@ resourceTreeEl.addEventListener('pointerdown', (ev) => {
     return;
   }
   const summaryEl = ev.target.closest("summary");
-  const detailsEl = summaryEl?.parentNode;
+  if (!summaryEl) {
+    return;
+  }
   if (summaryEl.classList.contains('placeholder-root')) {
     return;
   }
+  const detailsEl = summaryEl?.parentNode;
   if (summaryEl && detailsEl instanceof HTMLDetailsElement) {
     ev.preventDefault(); // Stop default toggle behavior
     // detailsEl.open = !detailsEl.open; // Manual toggle
@@ -446,10 +449,9 @@ function renderTrees(startTree, endTree)
 function refreshExpandedTrees()
 {
   for (const treeIdx of expandedTreeHtml.keys()) {
-    const rootId = expandedTreeState.get(treeIdx).rootId ||
-        parseInt(document.querySelector(`[data-tree-idx='${treeIdx}']`)?.dataset.rootId);
-
+    const rootId = getRootIdFromTreeIdx(treeIdx);
     fetchTree(rootId).then(tree => {
+      log('refreshExpandedTrees() - fetched tree:', {treeIdx, rootId, tree});
       const treeHtml = formatResourceTreeRecursive([tree.tree], false);
       expandedTreeHtml.set(treeIdx, treeHtml);
 
@@ -474,6 +476,19 @@ function refreshExpandedTrees()
         scheduleRender();
       });
     });
+  }
+}
+
+// Get rootId from treeIdx
+function getRootIdFromTreeIdx(treeIdx)
+{
+  const treeContainerEl = document.querySelector(`[data-tree-idx='${treeIdx}']`);
+  if (treeContainerEl) {
+    return parseInt(treeContainerEl.dataset.rootId);
+  }
+  else {
+    console.assert(false, `No tree container found for treeIdx ${treeIdx}`);
+    return null;
   }
 }
 
@@ -549,8 +564,9 @@ function fetchSetPermission(resources, principalId, permissionLevel)
           errorDialog(resultObj.error);
         }
         else {
-          refreshExpandedTrees();
           principalSearchEl.value = '';
+          refreshExpandedTrees();
+          fetchSelectedResourcePermissions();
         }
       })
       .catch((error) => {

@@ -5,7 +5,6 @@ import sqlalchemy
 import sqlalchemy.ext.asyncio
 import sqlalchemy.orm
 
-import db.interface.util
 from db.models.identity import IdpName, Identity
 from db.models.profile import Profile
 
@@ -74,7 +73,7 @@ class IdentityInterface:
                 )
             )
         )
-        return result.scalar()
+        return result.scalar_one()
 
     async def get_identity_by_idp_uid(self, idp_uid: str):
         """Get an identity by its IdP UID, while ignoring the IdP name.
@@ -82,24 +81,25 @@ class IdentityInterface:
         IdP UID is unique by itself.
         """
         result = await self.execute(
-            (
-                sqlalchemy.select(Identity)
-                .options(sqlalchemy.orm.selectinload(Identity.profile))
-                .where(Identity.idp_uid == idp_uid)
-            )
+            sqlalchemy.select(Identity)
+            .options(sqlalchemy.orm.selectinload(Identity.profile))
+            .where(Identity.idp_uid == idp_uid)
         )
-        return result.scalar()
+        return result.scalar_one()
 
     async def get_identity_by_email(self, email: str):
-        """Get an identity by its email address."""
+        """Get the most recently used identity for a profile by email."""
         result = await self.execute(
-            (
-                sqlalchemy.select(Identity)
-                .options(sqlalchemy.orm.selectinload(Identity.profile))
-                .where(Identity.email == email)
+            sqlalchemy.select(Identity)
+            .options(sqlalchemy.orm.selectinload(Identity.profile))
+            .where(Identity.email == email)
+            .order_by(
+                Identity.last_auth.desc(),
+                Identity.id,
             )
+            .limit(1)
         )
-        return result.scalar()
+        return result.scalar_one()
 
     async def get_identity_by_id(self, identity_id):
         result = await self.execute(
@@ -107,7 +107,7 @@ class IdentityInterface:
             .options(sqlalchemy.orm.selectinload(Identity.profile))
             .where(Identity.id == identity_id)
         )
-        return result.scalar()
+        return result.scalar_one()
 
     async def get_identity_by_edi_id(self, edi_id: str):
         """Get the most recently used identity for a profile by its EDI-ID."""
@@ -120,8 +120,9 @@ class IdentityInterface:
                 Identity.last_auth.desc(),
                 Identity.id,
             )
+            .limit(1)
         )
-        return result.scalar()
+        return result.scalar_one()
 
     async def delete_identity(self, token_profile_row, idp_name: IdpName, idp_uid: str):
         """Delete an identity from a profile."""

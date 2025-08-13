@@ -3,7 +3,6 @@ import sqlalchemy
 import sqlalchemy.ext.asyncio
 import sqlalchemy.orm
 
-import db.interface.util
 from db.models.sync import Sync
 
 log = daiquiri.getLogger(__name__)
@@ -23,7 +22,7 @@ class SyncInterface:
         result = await self.execute(
             sqlalchemy.select(Sync).where(Sync.name == name)
         )
-        sync_row = result.scalar()
+        sync_row = result.scalar_one_or_none()
         if sync_row is None:
             sync_row = Sync(name=name)
             self._session.add(sync_row)
@@ -35,4 +34,4 @@ class SyncInterface:
         result = await self.execute(
             sqlalchemy.select(sqlalchemy.func.max(Sync.updated))
         )
-        return result.scalar()
+        return result.scalar_one_or_none()

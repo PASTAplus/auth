@@ -7,43 +7,49 @@ import db.models.base
 log = daiquiri.getLogger(__name__)
 
 
-class RootResource(db.models.base.Base):
-    __tablename__ = 'search_root'
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    root_id = sqlalchemy.Column(
-        sqlalchemy.Integer, sqlalchemy.ForeignKey('resource.id'), nullable=False, index=True
-    )
-    # Denormalized fields to speed up searches.
-    label = sqlalchemy.Column(sqlalchemy.String, nullable=True, index=True)
-    type = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
-    package_scope = sqlalchemy.Column(sqlalchemy.String, nullable=True, index=True)
-    package_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=True, index=True)
-    package_ver = sqlalchemy.Column(sqlalchemy.Integer, nullable=True, index=True)
-    root_node = sqlalchemy.orm.relationship(
-        'Resource',
-        # back_populates='resource',
-        #     cascade_backrefs=False,
-        #     cascade='all, delete-orphan',
-    )
-    # Combined index across (type, package_scope, package_id, package_ver) to speed up package
-    # searches.
-    __table_args__ = (
-        sqlalchemy.Index(
-            'ix_root_type_scope_id_ver', 'type', 'package_scope', 'package_id', 'package_ver'
-        ),
-    )
-
-
 class PackageScope(db.models.base.Base):
     __tablename__ = 'search_package_scope'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    scope = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=False)
+    scope = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=False, unique=True)
 
 
 class ResourceType(db.models.base.Base):
     __tablename__ = 'search_resource_type'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    type = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=False, unique=True)
+
+
+class RootResource(db.models.base.Base):
+    __tablename__ = 'search_root_resource'
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    # The resource ID of the root resource.
+    resource_id = sqlalchemy.Column(
+        sqlalchemy.Integer,
+        sqlalchemy.ForeignKey('resource.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
+        unique=True,
+    )
+    # Denormalized fields to speed up searches.
+    label = sqlalchemy.Column(sqlalchemy.String, nullable=True, index=True)
     type = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
+    # scope.identifier.revision are populated only for type='package' resources.
+    package_scope = sqlalchemy.Column(sqlalchemy.String, nullable=True, index=True)
+    package_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=True, index=True)
+    package_rev = sqlalchemy.Column(sqlalchemy.Integer, nullable=True, index=True)
+    resource = sqlalchemy.orm.relationship(
+        'Resource',
+        # back_populates='resource',
+        #     cascade_backrefs=False,
+        #     cascade='all, delete-orphan',
+    )
+    # Combined index across (type, package_scope, package_id, package_rev) to optimize package
+    # searches.
+    __table_args__ = (
+        sqlalchemy.Index(
+            'ix_root_type_scope_id_rev', 'type', 'package_scope', 'package_id', 'package_rev'
+        ),
+    )
 
 
 class SearchSession(db.models.base.Base):

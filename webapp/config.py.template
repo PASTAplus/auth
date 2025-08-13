@@ -80,7 +80,7 @@ class Config(object):
     # generate EDI-IDs. Once the database is populated, these values must not be changed.
 
     SERVICE_EDI_ID = 'EDI-...'
-    SERVICE_NAME = 'EDI Authentication Service'
+    SERVICE_NAME = 'EDI IAM Service'
     SERVICE_AVATAR_PATH = ASSETS_PATH / 'shield-edi.svg'
 
     PUBLIC_EDI_ID = 'EDI-...'
