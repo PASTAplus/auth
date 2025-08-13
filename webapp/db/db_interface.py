@@ -58,7 +58,14 @@ class DbInterface(
         """Create or update a profile and identity.
         See the table definitions for Profile and Identity for more information on the fields.
         """
-        identity_row = await self.get_identity_by_idp_uid(idp_uid)
+        try:
+            identity_row = await self.get_identity_by_idp_uid(idp_uid)
+        except sqlalchemy.exc.NoResultFound:
+            identity_row = None
+        except sqlalchemy.exc.MultipleResultsFound:
+            # On transitioning to EDI-IDs, it's very unlikely, but theoretically possible, that
+            # multiple identities exist for the same IdP UID.
+            raise util.exc.AuthError('Multiple identities found for the same IdP UID')
 
         # See README.md: Strategy for dealing with Google emails historically used as identifiers
         # If an identity does not exist under the IdP UID, we check if there is an identity with the
@@ -67,12 +74,20 @@ class DbInterface(
             if idp_name == db.models.identity.IdpName.GOOGLE:
                 if email:
                     # Check if the IdP UID contains an email address (Google legacy support)
-                    identity_row = await self.get_identity_by_idp_uid(email)
-                    if identity_row is not None:
+                    try:
+                        identity_row = await self.get_identity_by_idp_uid(email)
                         # We have a legacy case where the IdP UID is an email address. Fix up the
                         # record now.
                         identity_row.idp_uid = idp_uid
                         await self.flush()
+                    except sqlalchemy.exc.NoResultFound:
+                        identity_row = None
+                    except sqlalchemy.exc.MultipleResultsFound:
+                        raise util.exc.AuthError(
+                            'We have found multiple identities with the same email as IdP UID, '
+                            'and would not know which one to use. This is known possible problem '
+                            'with transitioning from legacy Google accounts.'
+                        )
 
         # If the identity exists, but the IdPName is UNKNOWN, this is the first login into a
         # skeleton profile and identity which was created via the API. We can now convert these to
@@ -88,9 +103,9 @@ class DbInterface(
             if has_avatar:
                 await util.avatar.copy_identity_to_profile_avatar(identity_row)
 
-        identity_row = await self.get_identity(idp_name=idp_name, idp_uid=idp_uid)
-
-        if identity_row is None:
+        try:
+            identity_row = await self.get_identity(idp_name=idp_name, idp_uid=idp_uid)
+        except sqlalchemy.exc.NoResultFound:
             profile_row = await self.create_profile(
                 common_name=common_name,
                 email=email,
@@ -132,16 +147,20 @@ class DbInterface(
         If and when a user logs into the profile for the first time, the profile and identity are
         updated from 'skeleton' to regular with the information provided by the IdP.
         """
-        identity_row = await self.get_identity_by_idp_uid(idp_uid)
-        if identity_row is not None:
-            return identity_row
-        return await self.create_or_update_profile_and_identity(
-            idp_name=db.models.identity.IdpName.UNKNOWN,
-            idp_uid=idp_uid,
-            common_name=None,
-            email=None,
-            has_avatar=False,
-        )
+        try:
+            return await self.get_identity_by_idp_uid(idp_uid)
+        except sqlalchemy.exc.NoResultFound:
+            return await self.create_or_update_profile_and_identity(
+                idp_name=db.models.identity.IdpName.UNKNOWN,
+                idp_uid=idp_uid,
+                common_name=None,
+                email=None,
+                has_avatar=False,
+            )
+        except sqlalchemy.exc.MultipleResultsFound:
+            # On transitioning to EDI-IDs, it's very unlikely, but theoretically possible, that
+            # multiple identities exist for the same IdP UID.
+            raise util.exc.AuthError('Multiple identities found for the same IdP UID')
 
     # Session management
 

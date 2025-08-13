@@ -79,7 +79,10 @@ async def handle_link_account(request, dbi, idp_name, idp_uid, common_name, emai
     token_obj = await util.pasta_jwt.PastaJwt.decode(dbi, token_str)
     profile_row = await dbi.get_profile(token_obj.edi_id)
     # Prevent linking an account that is already linked.
-    identity_row = await dbi.get_identity(idp_name, idp_uid)
+    try:
+        identity_row = await dbi.get_identity(idp_name, idp_uid)
+    except sqlalchemy.exc.NoResultFound:
+        identity_row = None
     error_msg_str = None
     success_msg_str = None
     if identity_row:

@@ -22,8 +22,9 @@ class SyncInterface:
         result = await self.execute(
             sqlalchemy.select(Sync).where(Sync.name == name)
         )
-        sync_row = result.scalar_one_or_none()
-        if sync_row is None:
+        try:
+            sync_row = result.scalar_one()
+        except sqlalchemy.exc.NoResultFound:
             sync_row = Sync(name=name)
             self._session.add(sync_row)
         # No-op update to trigger onupdate
@@ -34,4 +35,4 @@ class SyncInterface:
         result = await self.execute(
             sqlalchemy.select(sqlalchemy.func.max(Sync.updated))
         )
-        return result.scalar_one_or_none()
+        return result.scalar_one()

@@ -3,6 +3,7 @@ Docs:./docs/api/rule.md
 """
 
 import fastapi
+import sqlalchemy.exc
 import starlette.requests
 import starlette.responses
 
@@ -60,16 +61,18 @@ async def post_v1_rule(
             'Must be read, write or changePermission.',
         )
     # Check that the resource exists
-    resource_row = await dbi.get_resource(resource_key)
-    if not resource_row:
+    try:
+        resource_row = await dbi.get_resource(resource_key)
+    except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_404_not_found(
             request, api_method, f'Resource does not exist', resource_key=resource_key
         )
     # Check that the principal exists
     # await dbi.dump_raw_query('select * from principal')
     # await dbi.dump_raw_query('select * from profile')
-    principal_row = await dbi.get_principal_by_edi_id(principal_edi_id)
-    if not principal_row:
+    try:
+        principal_row = await dbi.get_principal_by_edi_id(principal_edi_id)
+    except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_404_not_found(
             request, api_method, f'Principal does not exist', principal=principal_edi_id
         )
@@ -84,8 +87,8 @@ async def post_v1_rule(
             resource_key=resource_key,
         )
     # Check that the access control rule does not already exist
-    rule_row = await dbi.get_rule(resource_row, principal_row)
-    if rule_row:
+    try:
+        rule_row = await dbi.get_rule(resource_row, principal_row)
         return api.utils.get_response_400_bad_request(
             request,
             api_method,
@@ -96,8 +99,8 @@ async def post_v1_rule(
                 rule_row.permission
             ),
         )
-    # Create the rule
-    await dbi.create_or_update_rule(resource_row, principal_row, permission_level)
+    except sqlalchemy.exc.NoResultFound:
+        await dbi.create_or_update_rule(resource_row, principal_row, permission_level)
     return api.utils.get_response_200_ok(
         request, api_method, 'Rule created successfully', resource_key=resource_key
     )
@@ -119,20 +122,23 @@ async def read_v1_rule(
     if token_profile_row is None:
         return api.utils.get_response_401_unauthorized(request, api_method)
     # Check principal
-    principal_row = await dbi.get_principal_by_edi_id(principal)
-    if not principal_row:
+    try:
+        principal_row = await dbi.get_principal_by_edi_id(principal)
+    except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_404_not_found(
             request, api_method, f'Principal does not exist', principal=principal
         )
     # Check resource
-    resource_row = await dbi.get_resource(resource_key)
-    if not resource_row:
+    try:
+        resource_row = await dbi.get_resource(resource_key)
+    except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_404_not_found(
             request, api_method, f'Resource does not exist', resource_key=resource_key
         )
     # Check rule
-    rule_row = await dbi.get_rule(resource_row, principal_row)
-    if rule_row is None:
+    try:
+        rule_row = await dbi.get_rule(resource_row, principal_row)
+    except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_404_not_found(
             request,
             api_method,
@@ -187,8 +193,9 @@ async def update_v1_rule(
     except ValueError as e:
         return api.utils.get_response_400_bad_request(request, api_method, str(e))
     # Check that the resource exists and is owned by the profile
-    resource_row = await dbi.get_resource(resource_key)
-    if not resource_row:
+    try:
+        resource_row = await dbi.get_resource(resource_key)
+    except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_404_not_found(
             request, api_method, f'Resource does not exist', resource_key=resource_key
         )
@@ -203,8 +210,9 @@ async def update_v1_rule(
             resource_key=resource_key,
         )
     # Check that the principal exists
-    principal_row = await dbi.get_principal_by_edi_id(principal)
-    if not principal_row:
+    try:
+        principal_row = await dbi.get_principal_by_edi_id(principal)
+    except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_400_bad_request(
             request,
             api_method,
@@ -212,8 +220,9 @@ async def update_v1_rule(
             principal=principal,
         )
     # Check that the rule exists
-    rule_row = await dbi.get_rule(resource_row, principal_row)
-    if rule_row is None:
+    try:
+        rule_row = await dbi.get_rule(resource_row, principal_row)
+    except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_404_not_found(
             request,
             api_method,
@@ -253,8 +262,9 @@ async def delete_v1_rule(
     if token_profile_row is None:
         return api.utils.get_response_401_unauthorized(request, api_method)
     # Check that the resource exists and is owned by the profile
-    resource_row = await dbi.get_resource(resource_key)
-    if not resource_row:
+    try:
+        resource_row = await dbi.get_resource(resource_key)
+    except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_404_not_found(
             request, api_method, f'Resource does not exist', resource_key=resource_key
         )
@@ -269,14 +279,16 @@ async def delete_v1_rule(
             resource_key=resource_key,
         )
     # Check that the principal exists
-    principal_row = await dbi.get_principal_by_edi_id(principal)
-    if not principal_row:
+    try:
+        principal_row = await dbi.get_principal_by_edi_id(principal)
+    except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_400_bad_request(
             request, api_method, f'Principal does not exist', principal=principal
         )
     # Check that the rule exists
-    rule_row = await dbi.get_rule(resource_row, principal_row)
-    if rule_row is None:
+    try:
+        rule_row = await dbi.get_rule(resource_row, principal_row)
+    except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_404_not_found(
             request,
             api_method,

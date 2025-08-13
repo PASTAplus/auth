@@ -96,12 +96,13 @@ class PermissionInterface:
                     db.models.permission.PermissionLevel.WRITE,
                 )
         resource_row = await self.create_resource(parent_id, key, label, type_str)
-        principal_row = await dbi.get_principal_by_subject(
+        principal_row = await self.get_principal_by_subject(
             token_profile_row.id, db.models.permission.SubjectType.PROFILE
         )
         await self.create_or_update_rule(
             resource_row, principal_row, db.models.permission.PermissionLevel.CHANGE
         )
+        return resource_row
 
     async def get_resource_by_id(self, resource_id):
         """Get a resource by its ID."""
@@ -134,8 +135,9 @@ class PermissionInterface:
         - To add or remove ACRs on the resource, the profile must have CHANGE permission on the
         resource. (Not handled by this method. See the Rules API).
         """
-        resource_row = await self.get_resource(key)
-        if resource_row is None:
+        try:
+            resource_row = await self.get_resource(key)
+        except sqlalchemy.exc.NoResultFound:
             raise util.exc.ResourceDoesNotExistError(key)
 
         if not await self.is_authorized(token_profile_row, resource_row, PermissionLevel.WRITE):
@@ -313,10 +315,11 @@ class PermissionInterface:
 
         for parent_id in parent_id_set:
             result = await self.execute(sqlalchemy.select(Resource).where(Resource.id == parent_id))
-            resource_row = result.scalar_one()
-            # if resource_row is None:
-            #     log.warning(f'Resource with ID {parent_id} does not exist, skipping.')
-            #     continue
+            try:
+                resource_row = result.scalar_one()
+            except sqlalchemy.exc.NoResultFound:
+                log.warning(f'Resource with ID "{parent_id}" does not exist, skipping.')
+                continue
             if not await self.is_authorized(token_profile_row, resource_row, permission_level):
                 await self.create_or_update_rule(
                     resource_row, token_profile_row.principal, permission_level
@@ -444,7 +447,10 @@ class PermissionInterface:
         assert isinstance(principal_row, Principal)
         assert isinstance(permission_level, PermissionLevel)
 
-        rule_row = await self.get_rule(resource_row, principal_row)
+        try:
+            rule_row = await self.get_rule(resource_row, principal_row)
+        except sqlalchemy.exc.NoResultFound:
+            rule_row = None
 
         if permission_level == 0:
             if rule_row is not None:
@@ -464,7 +470,7 @@ class PermissionInterface:
 
     async def get_rule(self, resource_row, principal_row):
         # The db.models.permission.Rule table has a unique constraint on (resource_id,
-        # principal_id), so there will be 0 or 1 match to this query.
+        # principal_id).
         result = await self.execute(
             (
                 sqlalchemy.select(Rule).where(
@@ -473,7 +479,7 @@ class PermissionInterface:
                 )
             )
         )
-        return result.scalar_one_or_none()
+        return result.scalar_one()
 
     async def get_resource_list(self, token_profile_row, search_str, resource_type):
         """Get a list of resources and permissions, with resource labels filtered on search_str.
@@ -662,6 +668,7 @@ class PermissionInterface:
         resource_ids = list(set(resource_ids))
 
         is_superuser = util.profile_cache.is_superuser(token_resource_row)
+
         equivalent_principal_id_list = (
             (await self.execute(await self._get_equivalent_principal_id_query(token_resource_row)))
             .scalars()
@@ -912,5 +919,12 @@ class PermissionInterface:
                     db.models.group.Group.edi_id == edi_id,
                 )
             )
+        )
+        return result.scalar_one()
+
+    async def get_principal_by_identity(self, identity):
+        """Get a principal by its identity."""
+        result = await self.execute(
+            sqlalchemy.select(Principal).where(Principal.identity == identity)
         )
         return result.scalar_one()

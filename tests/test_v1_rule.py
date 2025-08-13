@@ -104,12 +104,15 @@ async def test_create_rule_by_owner(populated_dbi, john_client, jane_client):
     assert response.status_code == starlette.status.HTTP_403_FORBIDDEN
 
 
-async def test_public_access(populated_dbi, service_client, john_client, jane_client):
+async def test_public_access(populated_dbi, service_client, john_client, jane_client, service_profile_row):
     """createRule()
     Adding the Public Access principal to a resource -> Everyone can read the resource.
     """
     # The Service principal creates a resource, and receives implicit CHANGE
-    service_client.post(
+
+    # Add Service to the Vetted system group.
+    await tests.utils.add_vetted(populated_dbi, service_profile_row, service_profile_row)
+    response = service_client.post(
         '/v1/resource',
         json={
             'resource_key': 'public-access-resource',
@@ -118,6 +121,8 @@ async def test_public_access(populated_dbi, service_client, john_client, jane_cl
             'parent_resource_key': None,
         },
     )
+    assert response.status_code == starlette.status.HTTP_200_OK
+
     # Neither John nor Jane can read the resource yet
     response = john_client.get('/v1/resource/public-access-resource')
     assert response.status_code == starlette.status.HTTP_403_FORBIDDEN

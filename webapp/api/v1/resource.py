@@ -2,6 +2,7 @@
 Docs:./docs/api/resource.md
 """
 
+import sqlalchemy.exc
 import fastapi
 import starlette.requests
 import starlette.responses
@@ -50,16 +51,19 @@ async def post_v1_resource(
             request, api_method, f'Missing field in JSON in request body: {e}'
         )
     # Check that the resource does not already exist
-    resource_row = await dbi.get_resource(resource_key)
-    if resource_row:
+    try:
+        await dbi.get_resource(resource_key)
         return api.utils.get_response_400_bad_request(
             request, api_method, f'Resource already exists', resource_key=resource_key
         )
+    except sqlalchemy.exc.NoResultFound:
+        pass
     # Check that parent exists and is owned by the profile, if provided
     parent_id = None
     if parent_key:
-        parent_row = await dbi.get_resource(parent_key)
-        if not parent_row:
+        try:
+            parent_row = await dbi.get_resource(parent_key)
+        except sqlalchemy.exc.NoResultFound:
             return api.utils.get_response_404_not_found(
                 request,
                 api_method,
@@ -126,8 +130,9 @@ async def get_v1_resource_authorized(
             'Must be read, write or changePermission.',
         )
     # Check if the resource exists
-    resource_row = await dbi.get_resource(resource_key)
-    if not resource_row:
+    try:
+        resource_row = await dbi.get_resource(resource_key)
+    except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_404_not_found(
             request, api_method, 'Resource does not exist', resource_key=resource_key
         )
@@ -164,8 +169,9 @@ async def get_v1_resource(
     if token_profile_row is None:
         return api.utils.get_response_401_unauthorized(request, api_method)
     # Check if the resource exists
-    resource_row = await dbi.get_resource(resource_key)
-    if not resource_row:
+    try:
+        resource_row = await dbi.get_resource(resource_key)
+    except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_404_not_found(
             request, api_method, 'Resource does not exist', resource_key=resource_key
         )
@@ -206,8 +212,9 @@ async def get_v1_resource(
     if token_profile_row is None:
         return api.utils.get_response_401_unauthorized(request, api_method)
     # Retrieve if exists
-    resource_row = await dbi.get_resource(resource_key)
-    if not resource_row:
+    try:
+        resource_row = await dbi.get_resource(resource_key)
+    except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_404_not_found(
             request, api_method, 'Resource does not exist', resource_key=resource_key
         )
@@ -312,8 +319,9 @@ async def delete_v1_resource(
     if token_profile_row is None:
         return api.utils.get_response_401_unauthorized(request, api_method)
     # Check that the resource exists
-    resource_row = await dbi.get_resource(resource_key)
-    if not resource_row:
+    try:
+        resource_row = await dbi.get_resource(resource_key)
+    except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_404_not_found(
             request, api_method, f'Resource does not exist', resource_key=resource_key
         )

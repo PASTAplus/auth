@@ -210,7 +210,7 @@ class SearchInterface:
         """Get a search session by UUID"""
         stmt = sqlalchemy.select(SearchSession).where(SearchSession.uuid == search_uuid)
         result = await self._session.execute(stmt)
-        return result.scalar_one_or_none()
+        return result.scalar_one()
 
     async def get_search_result_count(self, search_uuid: str):
         """Get the count of search results for a given search session UUID"""
@@ -240,9 +240,9 @@ class SearchInterface:
         token_profile_row,
         search_uuid: str,
     ):
-        search_session_row = await self.get_search_session(search_uuid)
-
-        if not search_session_row:
+        try:
+            search_session_row = await self.get_search_session(search_uuid)
+        except sqlalchemy.exc.NoResultFound:
             raise ValueError(f"Search session with UUID {search_uuid} not found.")
 
         if search_session_row.profile_id != token_profile_row.id:

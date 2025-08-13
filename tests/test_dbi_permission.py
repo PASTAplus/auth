@@ -1,14 +1,15 @@
 """Tests for ACR management in the database interface
 """
-import tests.sample
 import logging
 
 import pytest
 import sqlalchemy
+import sqlalchemy.exc
 
 import db.models.permission
 import db.resource_tree
 import tests.edi_id
+import tests.sample
 import tests.sample
 
 TEST_TREE = {
@@ -116,7 +117,10 @@ async def test_get_resource_generator_1(populated_dbi, john_profile_row):
     await _build_test_tree(populated_dbi)
     resource_row = await populated_dbi.get_resource('r0')
     # John has no permissions on 'r0'
-    rule_row = await populated_dbi.get_rule(resource_row, john_profile_row.principal)
+    try:
+        rule_row = await populated_dbi.get_rule(resource_row, john_profile_row.principal)
+    except sqlalchemy.exc.NoResultFound:
+        rule_row = None
     assert rule_row is None
     # John cannot retrieve permissions for 'r0'
     rows = [
@@ -203,8 +207,9 @@ async def _build_test_tree(populated_dbi):
 
     async def _build(d, parent_id=None, indent=0):
         for key, sub_child_dict in d.items():
-            resource_row = await populated_dbi.get_resource(key)
-            if not resource_row:
+            try:
+                resource_row = await populated_dbi.get_resource(key)
+            except sqlalchemy.exc.NoResultFound:
                 resource_row = await populated_dbi.create_resource(parent_id, key, key, 'test-type')
             id_dict[key] = resource_row.id
             # log.info(f'{" " * indent}{key} = {resource_row.id}')

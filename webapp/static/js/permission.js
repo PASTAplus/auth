@@ -410,7 +410,7 @@ function renderTrees(startTree, endTree)
     const div = document.createElement('div');
     div.className = 'tree-container';
     div.dataset.treeIdx = treeIdx;
-    div.dataset.rootId = tree.root_id;
+    div.dataset.rootId = tree.resource_id;
     if (expandedTreeHtml.has(treeIdx)) {
       // If the tree is already expanded, use the cached HTML
       div.innerHTML = expandedTreeHtml.get(treeIdx);

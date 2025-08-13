@@ -31,11 +31,35 @@ async def test_create_profile_anon(anon_client):
     assert response.status_code == starlette.status.HTTP_401_UNAUTHORIZED
 
 
-async def test_create_profile_with_valid_token(populated_dbi, service_client):
+async def test_create_profile_with_valid_token_but_not_vetted(populated_dbi, service_client):
     """createProfile()
     Successful call -> A new profile with a new EDI_ID
     """
     existing_edi_id_set = {p.edi_id for p in await populated_dbi.get_all_profiles()}
+    response = service_client.post(
+        '/v1/profile',
+        json={
+            'idp_uid': 'a-non-existing-idp-uid',
+        },
+    )
+    assert response.status_code == starlette.status.HTTP_403_FORBIDDEN
+    # response_dict = response.json()
+    # edi_id = response_dict['edi_id']
+    # assert edi_id not in existing_edi_id_set
+    # response = service_client.get(f'/v1/profile/{edi_id}')
+    # assert response.status_code == starlette.status.HTTP_200_OK
+    # response_dict = response.json()
+    # # We set edi_id to a fixed value here, so that the sample file does not change.
+    # response_dict['edi_id'] = '<Random EDI-ID>'
+    # tests.sample.assert_match(response_dict, 'create_profile_with_valid_token.json')
+
+async def test_create_profile_with_valid_token_and_vetted(populated_dbi, service_client, service_profile_row):
+    """createProfile()
+    Successful call -> A new profile with a new EDI_ID
+    """
+    existing_edi_id_set = {p.edi_id for p in await populated_dbi.get_all_profiles()}
+    # Add Service to the Vetted system group.
+    await tests.utils.add_vetted(populated_dbi, service_profile_row, service_profile_row)
     response = service_client.post(
         '/v1/profile',
         json={
@@ -54,11 +78,12 @@ async def test_create_profile_with_valid_token(populated_dbi, service_client):
     tests.sample.assert_match(response_dict, 'create_profile_with_valid_token.json')
 
 
-async def test_create_profile_idempotency(populated_dbi, service_client):
+async def test_create_profile_idempotency(populated_dbi, service_client, service_profile_row):
     """createProfile()
     Idempotent: Calling the endpoint with the same idp_uid returns the same EDI-ID.
     """
-    existing_edi_id_set = {p.edi_id for p in await populated_dbi.get_all_profiles()}
+    # Add Service to the Vetted system group.
+    await tests.utils.add_vetted(populated_dbi, service_profile_row, service_profile_row)
     idp_uid = 'a-non-existing-idp-uid'
     response = service_client.post('/v1/profile', json={'idp_uid': idp_uid})
     assert response.status_code == starlette.status.HTTP_200_OK

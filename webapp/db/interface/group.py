@@ -183,7 +183,9 @@ class GroupInterface:
         group_row.updated = datetime.datetime.now()
 
     async def is_vetted(self, token_profile_row):
-        """Check if a profile is in the Vetted system group."""
+        """Check if a profile is in the Vetted system group or is a superuser."""
+        if is_superuser(token_profile_row):
+            return True
         result = await self.execute(
             sqlalchemy.select(
                 sqlalchemy.exists().where(

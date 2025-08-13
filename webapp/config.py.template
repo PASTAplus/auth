@@ -12,6 +12,7 @@ class Config(object):
     LOG_PATH = pathlib.Path('/var/log/pasta/auth.log')
     LOG_LEVEL = logging.DEBUG
     LOG_DB_QUERIES = False
+    TEST_LOG_DB_QUERIES = False
     LOG_FORMAT = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
     LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
@@ -41,6 +42,19 @@ class Config(object):
     DB_CHUNK_SIZE = 8192
     # Log raw SQL queries and execution times at INFO level
     DB_QUERY_PROFILING = False
+
+    TEST_DB_DRIVER = 'postgresql+psycopg'
+    TEST_DB_HOST = 'localhost'
+    TEST_DB_PORT = 5432
+    TEST_DB_NAME = 'auth'
+    TEST_DB_USER = 'db-user'
+    TEST_DB_PW = 'db-password'
+    TEST_DB_POOL_SIZE = 10
+    TEST_DB_MAX_OVERFLOW = 20
+    TEST_DB_YIELD_ROWS = 1000
+    TEST_DB_CHUNK_SIZE = 8192
+    # Log raw SQL queries and execution times at INFO level
+    TEST_DB_QUERY_PROFILING = False
 
     # Filesystem paths
     STATIC_PATH = HERE_PATH / 'static'

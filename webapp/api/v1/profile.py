@@ -3,6 +3,7 @@ Docs:./docs/api/profile.md
 """
 
 import fastapi
+import sqlalchemy.exc
 import starlette.requests
 import starlette.responses
 
@@ -46,16 +47,17 @@ async def post_v1_profile(
             request, api_method, f'Missing field in JSON in request body: {e}'
         )
     # Check if the identity already exists
-    identity_row = await dbi.get_identity_by_idp_uid(idp_uid)
-    # See README.md: Strategy for dealing with Google emails historically used as identifiers
-    if not identity_row:
-        identity_row = await dbi.get_identity_by_email(idp_uid)
-    if identity_row:
+    try:
+        identity_row = await dbi.get_identity_by_idp_uid(idp_uid)
         return api.utils.get_response_200_ok(
             request, api_method, 'An existing profile was used', edi_id=identity_row.profile.edi_id
         )
-    # Create a new skeleton profile and identity
-    identity_row = await dbi.create_skeleton_profile_and_identity(idp_uid=idp_uid)
+    except sqlalchemy.exc.NoResultFound:
+        # See README.md: Strategy for dealing with Google emails historically used as identifiers
+        try:
+            identity_row = await dbi.get_identity_by_email(idp_uid)
+        except sqlalchemy.exc.NoResultFound:
+            identity_row = await dbi.create_skeleton_profile_and_identity(idp_uid=idp_uid)
     return api.utils.get_response_200_ok(
         request, api_method, 'A new profile was created', edi_id=identity_row.profile.edi_id
     )
@@ -73,9 +75,9 @@ async def get_v1_profile(
     # Check token
     if token_profile_row is None:
         return api.utils.get_response_401_unauthorized(request, api_method)
-    #
-    profile_row = await dbi.get_profile(edi_id)
-    if not profile_row:
+    try:
+        profile_row = await dbi.get_profile(edi_id)
+    except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_404_not_found(
             request, api_method, f'Profile does not exist', edi_id=edi_id
         )
@@ -130,8 +132,9 @@ async def update_v1_profile(
             request, api_method, 'Must provide common_name and/or email to update profile'
         )
     # Check that the profile exists
-    profile_row = await dbi.get_profile(edi_id)
-    if not profile_row:
+    try:
+        profile_row = await dbi.get_profile(edi_id)
+    except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_404_not_found(
             request, api_method, f'Profile does not exist', edi_id=edi_id
         )
@@ -162,8 +165,9 @@ async def delete_v1_profile(
     if token_profile_row is None:
         return api.utils.get_response_401_unauthorized(request, api_method)
     # Check that the profile exists
-    profile_row = await dbi.get_profile(edi_id)
-    if not profile_row:
+    try:
+        profile_row = await dbi.get_profile(edi_id)
+    except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_404_not_found(
             request, api_method, f'Profile does not exist', edi_id=edi_id
         )

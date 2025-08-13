@@ -1,11 +1,9 @@
 """Token API v1: Manage EDI tokens
 Docs:./docs/api/token.md
 """
-
 import fastapi
+import sqlalchemy.exc
 import starlette.requests
-import starlette.requests
-import starlette.responses
 import starlette.responses
 import starlette.status
 
@@ -96,8 +94,9 @@ async def post_token(
             request, api_method, 'Invalid request', edi_id=edi_id
         )
     # Check that the profile exists
-    profile_row = await dbi.get_profile(edi_id)
-    if not profile_row:
+    try:
+        await dbi.get_profile(edi_id)
+    except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_404_not_found(
             request, api_method, 'Invalid request', edi_id=edi_id
         )

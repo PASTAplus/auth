@@ -163,7 +163,6 @@ class ProfileInterface:
     async def get_public_profile(self):
         """Get the profile for the public user."""
         profile_row = await self.get_profile(Config.PUBLIC_EDI_ID)
-        assert profile_row is not None
         return profile_row
 
     async def get_authenticated_profile(self):
@@ -264,7 +263,10 @@ class ProfileInterface:
         if permission_level == 0:
             return
 
-        rule_row = await self._get_rule(resource_row, principal_row)
+        try:
+            rule_row = await self._get_rule(resource_row, principal_row)
+        except sqlalchemy.exc.NoResultFound:
+            rule_row = None
 
         if rule_row is None:
             rule_row = Rule(

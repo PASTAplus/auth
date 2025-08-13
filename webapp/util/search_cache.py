@@ -23,7 +23,10 @@ cache = {
 
 
 async def init_cache(dbi):
-    cache['sync_ts'] = await dbi.get_sync_ts()
+    try:
+        cache['sync_ts'] = await dbi.get_sync_ts()
+    except sqlalchemy.exc.NoResultFound:
+        cache['sync_ts'] = None
     await init_profiles(dbi)
     await init_groups(dbi)
     # pprint.pp(cache)
