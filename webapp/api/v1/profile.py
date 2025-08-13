@@ -26,6 +26,11 @@ async def post_v1_profile(
     # Check token
     if token_profile_row is None:
         return api.utils.get_response_401_unauthorized(request, api_method)
+    # Check that the token is in the Vetted system group
+    if not await dbi.is_vetted(token_profile_row):
+        return api.utils.get_response_403_forbidden(
+            request, api_method, 'Must be in the Vetted system group to create a profile'
+        )
     # Check that the request body is valid JSON
     try:
         request_dict = await api.utils.request_body_to_dict(request)

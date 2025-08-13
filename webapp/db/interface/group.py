@@ -58,10 +58,17 @@ class GroupInterface:
         await self.flush()
         return new_group_row, resource_row
 
-    # async def assert_has_group_ownership(self, token_profile_row, group_row):
-    #     """Assert that the given profile owns the group."""
-    #     if group_row.profile_id != token_profile_row.id:
-    #         raise ValueError(f'Group {group_row.edi_id} is not owned by profile {token_profile_row.edi_id}')
+    async def get_vetted_group(self):
+        """Get the vetted group."""
+        result = await self.execute(
+            sqlalchemy.select(Group).where(Group.edi_id == Config.VETTED_GROUP_EDI_ID)
+        )
+        return result.scalar_one()
+
+    async def get_group(self, group_id):
+        """Get a group by its ID."""
+        result = await self.execute(sqlalchemy.select(Group).where(Group.id == group_id))
+        return result.scalar_one()
 
     async def get_group(self, token_profile_row, group_id):
         """Get a group by its ID.
@@ -148,6 +155,32 @@ class GroupInterface:
             raise ValueError(f'Member {member_profile_id} not found in group {group_id}')
         await self._session.delete(member_row)
         group_row.updated = datetime.datetime.now()
+
+    async def is_vetted(self, token_profile_row):
+        """Check if a profile is in the Vetted system group."""
+        result = await self.execute(
+            sqlalchemy.select(
+                sqlalchemy.exists().where(
+                    GroupMember.profile_id == token_profile_row.id,
+                    GroupMember.group_id
+                    == sqlalchemy.select(Group.id).where(
+                        Group.edi_id == Config.VETTED_GROUP_EDI_ID
+                    ),
+                )
+            )
+        )
+        return result.scalar_one()
+
+    async def is_in_group(self, token_profile_row, group_id):
+        """Check if a profile is a member of a group."""
+        group_row = await self.get_owned_group(token_profile_row, group_id)
+        result = await self.execute(
+            sqlalchemy.select(GroupMember).where(
+                GroupMember.group == group_row,
+                GroupMember.profile_id == token_profile_row.id,
+            )
+        )
+        return result.scalar_one()
 
     async def get_group_member_list(self, token_profile_row, group_id):
         """Get the members of a group. Only profiles can be group members, so group members are
