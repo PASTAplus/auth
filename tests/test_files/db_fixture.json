@@ -443,30 +443,6 @@
   ],
   "group_member": [
     {
-      "added": "2025-05-21T09:41:17.008671",
-      "group_id": 1,
-      "id": 1,
-      "profile_id": 16
-    },
-    {
-      "added": "2025-05-21T09:41:17.008674",
-      "group_id": 1,
-      "id": 2,
-      "profile_id": 6
-    },
-    {
-      "added": "2025-05-21T09:41:17.008677",
-      "group_id": 1,
-      "id": 3,
-      "profile_id": 26
-    },
-    {
-      "added": "2025-05-21T09:41:17.008678",
-      "group_id": 1,
-      "id": 4,
-      "profile_id": 27
-    },
-    {
       "added": "2025-05-21T09:41:17.022354",
       "group_id": 2,
       "id": 5,
@@ -533,12 +509,6 @@
       "profile_id": 8
     },
     {
-      "added": "2025-05-21T09:41:17.055563",
-      "group_id": 5,
-      "id": 16,
-      "profile_id": 3
-    },
-    {
       "added": "2025-05-21T09:41:17.055566",
       "group_id": 5,
       "id": 17,
@@ -601,12 +571,6 @@
     {
       "added": "2025-05-21T09:41:17.096185",
       "group_id": 9,
-      "id": 27,
-      "profile_id": 3
-    },
-    {
-      "added": "2025-05-21T09:41:17.096185",
-      "group_id": 9,
       "id": 28,
       "profile_id": 22
     },
@@ -633,12 +597,6 @@
       "group_id": 12,
       "id": 32,
       "profile_id": 20
-    },
-    {
-      "added": "2025-05-21T09:41:17.120479",
-      "group_id": 12,
-      "id": 33,
-      "profile_id": 3
     },
     {
       "added": "2025-05-21T09:41:17.120480",
@@ -671,18 +629,6 @@
       "profile_id": 17
     },
     {
-      "added": "2025-05-21T09:41:17.143926",
-      "group_id": 14,
-      "id": 39,
-      "profile_id": 3
-    },
-    {
-      "added": "2025-05-21T09:41:17.143929",
-      "group_id": 14,
-      "id": 40,
-      "profile_id": 4
-    },
-    {
       "added": "2025-05-21T09:41:17.153251",
       "group_id": 15,
       "id": 41,
@@ -711,12 +657,6 @@
       "group_id": 17,
       "id": 45,
       "profile_id": 24
-    },
-    {
-      "added": "2025-05-21T09:41:17.169587",
-      "group_id": 17,
-      "id": 46,
-      "profile_id": 3
     },
     {
       "added": "2025-05-21T09:41:17.169588",
@@ -6717,13 +6657,6 @@
       "resource_id": 52
     },
     {
-      "granted_date": "2025-05-21T09:41:21.879641",
-      "id": 57,
-      "permission": "READ",
-      "principal_id": 3,
-      "resource_id": 53
-    },
-    {
       "granted_date": "2025-05-21T09:41:21.881110",
       "id": 58,
       "permission": "WRITE",
@@ -6857,13 +6790,6 @@
       "resource_id": 65
     },
     {
-      "granted_date": "2025-05-21T09:41:21.906289",
-      "id": 77,
-      "permission": "CHANGE",
-      "principal_id": 1,
-      "resource_id": 66
-    },
-    {
       "granted_date": "2025-05-21T09:41:21.907488",
       "id": 78,
       "permission": "WRITE",
@@ -6897,13 +6823,6 @@
       "permission": "READ",
       "principal_id": 11,
       "resource_id": 69
-    },
-    {
-      "granted_date": "2025-05-21T09:41:21.913581",
-      "id": 83,
-      "permission": "WRITE",
-      "principal_id": 1,
-      "resource_id": 70
     },
     {
       "granted_date": "2025-05-21T09:41:21.914710",
@@ -7235,13 +7154,6 @@
       "resource_id": 103
     },
     {
-      "granted_date": "2025-05-21T09:41:21.976074",
-      "id": 131,
-      "permission": "CHANGE",
-      "principal_id": 1,
-      "resource_id": 104
-    },
-    {
       "granted_date": "2025-05-21T09:41:21.977890",
       "id": 132,
       "permission": "READ",
@@ -7261,13 +7173,6 @@
       "permission": "CHANGE",
       "principal_id": 32,
       "resource_id": 105
-    },
-    {
-      "granted_date": "2025-05-21T09:41:21.981620",
-      "id": 135,
-      "permission": "WRITE",
-      "principal_id": 3,
-      "resource_id": 106
     },
     {
       "granted_date": "2025-05-21T09:41:21.983206",
@@ -7445,13 +7350,6 @@
       "resource_id": 123
     },
     {
-      "granted_date": "2025-05-21T09:41:22.016591",
-      "id": 161,
-      "permission": "WRITE",
-      "principal_id": 1,
-      "resource_id": 124
-    },
-    {
       "granted_date": "2025-05-21T09:41:22.017915",
       "id": 162,
       "permission": "CHANGE",
@@ -7557,13 +7455,6 @@
       "resource_id": 134
     },
     {
-      "granted_date": "2025-05-21T09:41:22.037871",
-      "id": 177,
-      "permission": "WRITE",
-      "principal_id": 3,
-      "resource_id": 135
-    },
-    {
       "granted_date": "2025-05-21T09:41:22.038984",
       "id": 178,
       "permission": "CHANGE",
@@ -7583,13 +7474,6 @@
       "permission": "READ",
       "principal_id": 5,
       "resource_id": 136
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.042533",
-      "id": 181,
-      "permission": "CHANGE",
-      "principal_id": 2,
-      "resource_id": 137
     },
     {
       "granted_date": "2025-05-21T09:41:22.043777",
@@ -7641,13 +7525,6 @@
       "resource_id": 143
     },
     {
-      "granted_date": "2025-05-21T09:41:22.052098",
-      "id": 189,
-      "permission": "READ",
-      "principal_id": 4,
-      "resource_id": 143
-    },
-    {
       "granted_date": "2025-05-21T09:41:22.053245",
       "id": 190,
       "permission": "CHANGE",
@@ -7673,13 +7550,6 @@
       "id": 193,
       "permission": "WRITE",
       "principal_id": 67,
-      "resource_id": 146
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.058100",
-      "id": 194,
-      "permission": "READ",
-      "principal_id": 2,
       "resource_id": 146
     },
     {
@@ -7793,13 +7663,6 @@
       "permission": "CHANGE",
       "principal_id": 8,
       "resource_id": 156
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.081649",
-      "id": 211,
-      "permission": "READ",
-      "principal_id": 2,
-      "resource_id": 157
     },
     {
       "granted_date": "2025-05-21T09:41:22.082873",
@@ -8460,20 +8323,6 @@
       "resource_id": 219
     },
     {
-      "granted_date": "2025-05-21T09:41:22.210229",
-      "id": 306,
-      "permission": "CHANGE",
-      "principal_id": 2,
-      "resource_id": 220
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.212136",
-      "id": 307,
-      "permission": "CHANGE",
-      "principal_id": 3,
-      "resource_id": 221
-    },
-    {
       "granted_date": "2025-05-21T09:41:22.213729",
       "id": 308,
       "permission": "READ",
@@ -8542,13 +8391,6 @@
       "permission": "WRITE",
       "principal_id": 72,
       "resource_id": 228
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.226078",
-      "id": 318,
-      "permission": "WRITE",
-      "principal_id": 2,
-      "resource_id": 229
     },
     {
       "granted_date": "2025-05-21T09:41:22.227417",
@@ -8719,13 +8561,6 @@
       "resource_id": 245
     },
     {
-      "granted_date": "2025-05-21T09:41:22.258568",
-      "id": 343,
-      "permission": "WRITE",
-      "principal_id": 2,
-      "resource_id": 246
-    },
-    {
       "granted_date": "2025-05-21T09:41:22.260033",
       "id": 344,
       "permission": "WRITE",
@@ -8810,13 +8645,6 @@
       "resource_id": 256
     },
     {
-      "granted_date": "2025-05-21T09:41:22.274751",
-      "id": 356,
-      "permission": "READ",
-      "principal_id": 1,
-      "resource_id": 257
-    },
-    {
       "granted_date": "2025-05-21T09:41:22.275953",
       "id": 357,
       "permission": "READ",
@@ -8877,13 +8705,6 @@
       "id": 365,
       "permission": "READ",
       "principal_id": 44,
-      "resource_id": 264
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.286798",
-      "id": 366,
-      "permission": "CHANGE",
-      "principal_id": 4,
       "resource_id": 264
     },
     {
@@ -8969,13 +8790,6 @@
       "permission": "WRITE",
       "principal_id": 30,
       "resource_id": 273
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.304748",
-      "id": 379,
-      "permission": "WRITE",
-      "principal_id": 4,
-      "resource_id": 274
     },
     {
       "granted_date": "2025-05-21T09:41:22.305886",
@@ -9207,13 +9021,6 @@
       "permission": "WRITE",
       "principal_id": 40,
       "resource_id": 293
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.348363",
-      "id": 413,
-      "permission": "CHANGE",
-      "principal_id": 1,
-      "resource_id": 294
     },
     {
       "granted_date": "2025-05-21T09:41:22.349521",
@@ -9489,13 +9296,6 @@
       "resource_id": 320
     },
     {
-      "granted_date": "2025-05-21T09:41:22.402327",
-      "id": 453,
-      "permission": "WRITE",
-      "principal_id": 1,
-      "resource_id": 320
-    },
-    {
       "granted_date": "2025-05-21T09:41:22.403473",
       "id": 454,
       "permission": "CHANGE",
@@ -9507,13 +9307,6 @@
       "id": 455,
       "permission": "READ",
       "principal_id": 26,
-      "resource_id": 322
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.405777",
-      "id": 456,
-      "permission": "WRITE",
-      "principal_id": 3,
       "resource_id": 322
     },
     {
@@ -9727,13 +9520,6 @@
       "resource_id": 343
     },
     {
-      "granted_date": "2025-05-21T09:41:22.445179",
-      "id": 487,
-      "permission": "READ",
-      "principal_id": 2,
-      "resource_id": 344
-    },
-    {
       "granted_date": "2025-05-21T09:41:22.446372",
       "id": 488,
       "permission": "CHANGE",
@@ -9815,13 +9601,6 @@
       "id": 499,
       "permission": "WRITE",
       "principal_id": 47,
-      "resource_id": 353
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.461359",
-      "id": 500,
-      "permission": "READ",
-      "principal_id": 1,
       "resource_id": 353
     },
     {
@@ -9965,13 +9744,6 @@
       "resource_id": 368
     },
     {
-      "granted_date": "2025-05-21T09:41:22.490495",
-      "id": 521,
-      "permission": "CHANGE",
-      "principal_id": 3,
-      "resource_id": 369
-    },
-    {
       "granted_date": "2025-05-21T09:41:22.492013",
       "id": 522,
       "permission": "WRITE",
@@ -10084,13 +9856,6 @@
       "resource_id": 379
     },
     {
-      "granted_date": "2025-05-21T09:41:22.513725",
-      "id": 538,
-      "permission": "CHANGE",
-      "principal_id": 1,
-      "resource_id": 380
-    },
-    {
       "granted_date": "2025-05-21T09:41:22.514883",
       "id": 539,
       "permission": "CHANGE",
@@ -10103,13 +9868,6 @@
       "permission": "WRITE",
       "principal_id": 22,
       "resource_id": 381
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.517234",
-      "id": 541,
-      "permission": "CHANGE",
-      "principal_id": 1,
-      "resource_id": 382
     },
     {
       "granted_date": "2025-05-21T09:41:22.518977",
@@ -10343,13 +10101,6 @@
       "resource_id": 404
     },
     {
-      "granted_date": "2025-05-21T09:41:22.568203",
-      "id": 575,
-      "permission": "CHANGE",
-      "principal_id": 3,
-      "resource_id": 405
-    },
-    {
       "granted_date": "2025-05-21T09:41:22.569454",
       "id": 576,
       "permission": "READ",
@@ -10427,13 +10178,6 @@
       "resource_id": 412
     },
     {
-      "granted_date": "2025-05-21T09:41:22.583621",
-      "id": 587,
-      "permission": "WRITE",
-      "principal_id": 4,
-      "resource_id": 413
-    },
-    {
       "granted_date": "2025-05-21T09:41:22.584914",
       "id": 588,
       "permission": "READ",
@@ -10490,13 +10234,6 @@
       "resource_id": 417
     },
     {
-      "granted_date": "2025-05-21T09:41:22.594859",
-      "id": 596,
-      "permission": "CHANGE",
-      "principal_id": 4,
-      "resource_id": 418
-    },
-    {
       "granted_date": "2025-05-21T09:41:22.596087",
       "id": 597,
       "permission": "CHANGE",
@@ -10523,13 +10260,6 @@
       "permission": "CHANGE",
       "principal_id": 68,
       "resource_id": 421
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.600790",
-      "id": 601,
-      "permission": "READ",
-      "principal_id": 3,
-      "resource_id": 422
     },
     {
       "granted_date": "2025-05-21T09:41:22.601932",
@@ -10565,13 +10295,6 @@
       "permission": "READ",
       "principal_id": 56,
       "resource_id": 426
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.608538",
-      "id": 607,
-      "permission": "READ",
-      "principal_id": 1,
-      "resource_id": 427
     },
     {
       "granted_date": "2025-05-21T09:41:22.609797",
@@ -10628,13 +10351,6 @@
       "permission": "CHANGE",
       "principal_id": 33,
       "resource_id": 433
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.621596",
-      "id": 616,
-      "permission": "READ",
-      "principal_id": 4,
-      "resource_id": 434
     },
     {
       "granted_date": "2025-05-21T09:41:22.622754",
@@ -10728,13 +10444,6 @@
       "resource_id": 442
     },
     {
-      "granted_date": "2025-05-21T09:41:22.642015",
-      "id": 630,
-      "permission": "CHANGE",
-      "principal_id": 3,
-      "resource_id": 442
-    },
-    {
       "granted_date": "2025-05-21T09:41:22.644224",
       "id": 631,
       "permission": "CHANGE",
@@ -10770,13 +10479,6 @@
       "resource_id": 446
     },
     {
-      "granted_date": "2025-05-21T09:41:22.651760",
-      "id": 636,
-      "permission": "WRITE",
-      "principal_id": 3,
-      "resource_id": 447
-    },
-    {
       "granted_date": "2025-05-21T09:41:22.653117",
       "id": 637,
       "permission": "CHANGE",
@@ -10803,13 +10505,6 @@
       "permission": "CHANGE",
       "principal_id": 12,
       "resource_id": 451
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.658636",
-      "id": 641,
-      "permission": "CHANGE",
-      "principal_id": 1,
-      "resource_id": 452
     },
     {
       "granted_date": "2025-05-21T09:41:22.660056",
@@ -10844,13 +10539,6 @@
       "id": 646,
       "permission": "READ",
       "principal_id": 26,
-      "resource_id": 456
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.667122",
-      "id": 647,
-      "permission": "CHANGE",
-      "principal_id": 2,
       "resource_id": 456
     },
     {
@@ -10994,13 +10682,6 @@
       "resource_id": 469
     },
     {
-      "granted_date": "2025-05-21T09:41:22.693264",
-      "id": 668,
-      "permission": "CHANGE",
-      "principal_id": 4,
-      "resource_id": 470
-    },
-    {
       "granted_date": "2025-05-21T09:41:22.694661",
       "id": 669,
       "permission": "WRITE",
@@ -11076,13 +10757,6 @@
       "permission": "READ",
       "principal_id": 35,
       "resource_id": 477
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.710814",
-      "id": 680,
-      "permission": "CHANGE",
-      "principal_id": 4,
-      "resource_id": 478
     },
     {
       "granted_date": "2025-05-21T09:41:22.712204",
@@ -11218,13 +10892,6 @@
       "resource_id": 489
     },
     {
-      "granted_date": "2025-05-21T09:41:22.735915",
-      "id": 700,
-      "permission": "READ",
-      "principal_id": 4,
-      "resource_id": 489
-    },
-    {
       "granted_date": "2025-05-21T09:41:22.737075",
       "id": 701,
       "permission": "WRITE",
@@ -11342,13 +11009,6 @@
       "permission": "CHANGE",
       "principal_id": 58,
       "resource_id": 499
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.760071",
-      "id": 718,
-      "permission": "WRITE",
-      "principal_id": 2,
-      "resource_id": 500
     },
     {
       "granted_date": "2025-05-21T09:41:22.761429",
@@ -11603,13 +11263,6 @@
       "resource_id": 525
     },
     {
-      "granted_date": "2025-05-21T09:41:22.808775",
-      "id": 755,
-      "permission": "CHANGE",
-      "principal_id": 1,
-      "resource_id": 526
-    },
-    {
       "granted_date": "2025-05-21T09:41:22.810047",
       "id": 756,
       "permission": "CHANGE",
@@ -11635,13 +11288,6 @@
       "id": 759,
       "permission": "CHANGE",
       "principal_id": 52,
-      "resource_id": 528
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.815150",
-      "id": 760,
-      "permission": "READ",
-      "principal_id": 4,
       "resource_id": 528
     },
     {
@@ -11685,13 +11331,6 @@
       "permission": "READ",
       "principal_id": 66,
       "resource_id": 531
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.823824",
-      "id": 767,
-      "permission": "READ",
-      "principal_id": 1,
-      "resource_id": 532
     },
     {
       "granted_date": "2025-05-21T09:41:22.825017",
@@ -11789,13 +11428,6 @@
       "id": 781,
       "permission": "READ",
       "principal_id": 28,
-      "resource_id": 541
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.844135",
-      "id": 782,
-      "permission": "WRITE",
-      "principal_id": 4,
       "resource_id": 541
     },
     {
@@ -12079,13 +11711,6 @@
       "resource_id": 568
     },
     {
-      "granted_date": "2025-05-21T09:41:22.897772",
-      "id": 823,
-      "permission": "CHANGE",
-      "principal_id": 3,
-      "resource_id": 569
-    },
-    {
       "granted_date": "2025-05-21T09:41:22.898999",
       "id": 824,
       "permission": "WRITE",
@@ -12139,13 +11764,6 @@
       "id": 831,
       "permission": "WRITE",
       "principal_id": 11,
-      "resource_id": 575
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.909195",
-      "id": 832,
-      "permission": "READ",
-      "principal_id": 3,
       "resource_id": 575
     },
     {
@@ -12240,13 +11858,6 @@
       "resource_id": 585
     },
     {
-      "granted_date": "2025-05-21T09:41:22.926956",
-      "id": 846,
-      "permission": "CHANGE",
-      "principal_id": 3,
-      "resource_id": 585
-    },
-    {
       "granted_date": "2025-05-21T09:41:22.928596",
       "id": 847,
       "permission": "CHANGE",
@@ -12287,13 +11898,6 @@
       "permission": "READ",
       "principal_id": 71,
       "resource_id": 589
-    },
-    {
-      "granted_date": "2025-05-21T09:41:22.937962",
-      "id": 853,
-      "permission": "READ",
-      "principal_id": 3,
-      "resource_id": 590
     },
     {
       "granted_date": "2025-05-21T09:41:22.939132",
@@ -12674,24 +12278,10 @@
       "resource_id": 631
     },
     {
-      "granted_date": "2025-05-21T09:41:23.009137",
-      "id": 908,
-      "permission": "WRITE",
-      "principal_id": 2,
-      "resource_id": 632
-    },
-    {
       "granted_date": "2025-05-21T09:41:23.010284",
       "id": 909,
       "permission": "CHANGE",
       "principal_id": 53,
-      "resource_id": 633
-    },
-    {
-      "granted_date": "2025-05-21T09:41:23.011480",
-      "id": 910,
-      "permission": "WRITE",
-      "principal_id": 3,
       "resource_id": 633
     },
     {
@@ -12786,13 +12376,6 @@
       "resource_id": 643
     },
     {
-      "granted_date": "2025-05-21T09:41:23.030471",
-      "id": 924,
-      "permission": "CHANGE",
-      "principal_id": 4,
-      "resource_id": 644
-    },
-    {
       "granted_date": "2025-05-21T09:41:23.031718",
       "id": 925,
       "permission": "READ",
@@ -12826,13 +12409,6 @@
       "permission": "READ",
       "principal_id": 11,
       "resource_id": 648
-    },
-    {
-      "granted_date": "2025-05-21T09:41:23.037860",
-      "id": 930,
-      "permission": "WRITE",
-      "principal_id": 3,
-      "resource_id": 649
     },
     {
       "granted_date": "2025-05-21T09:41:23.039055",
@@ -12996,13 +12572,6 @@
       "resource_id": 666
     },
     {
-      "granted_date": "2025-05-21T09:41:23.068850",
-      "id": 954,
-      "permission": "READ",
-      "principal_id": 3,
-      "resource_id": 666
-    },
-    {
       "granted_date": "2025-05-21T09:41:23.070025",
       "id": 955,
       "permission": "READ",
@@ -13108,24 +12677,10 @@
       "resource_id": 676
     },
     {
-      "granted_date": "2025-05-21T09:41:23.088592",
-      "id": 970,
-      "permission": "WRITE",
-      "principal_id": 3,
-      "resource_id": 676
-    },
-    {
       "granted_date": "2025-05-21T09:41:23.089706",
       "id": 971,
       "permission": "CHANGE",
       "principal_id": 35,
-      "resource_id": 677
-    },
-    {
-      "granted_date": "2025-05-21T09:41:23.090911",
-      "id": 972,
-      "permission": "READ",
-      "principal_id": 3,
       "resource_id": 677
     },
     {
@@ -13687,13 +13242,6 @@
       "permission": "CHANGE",
       "principal_id": 34,
       "resource_id": 729
-    },
-    {
-      "granted_date": "2025-05-21T09:41:23.196819",
-      "id": 1053,
-      "permission": "WRITE",
-      "principal_id": 3,
-      "resource_id": 730
     },
     {
       "granted_date": "2025-05-21T09:41:23.198004",

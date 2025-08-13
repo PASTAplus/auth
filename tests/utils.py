@@ -1,4 +1,5 @@
 import logging
+import pathlib
 import re
 
 import sqlalchemy
@@ -7,6 +8,9 @@ import db.models.profile
 import util.pasta_jwt
 import util.pasta_jwt
 import util.pretty
+
+HERE_PATH = pathlib.Path(__file__).parent.resolve()
+TEST_FILES_PATH = HERE_PATH / 'test_files'
 
 log = logging.getLogger(__name__)
 
@@ -85,3 +89,6 @@ def dump_json_with_syntax_highlighting(json_str):
     highlighted_json_str = rich.json.JSON(json_str, indent=2)
     rich.console.Console().print(highlighted_json_str)
 
+def load_test_file(filename):
+    """Load a test file from the test_files directory."""
+    return (TEST_FILES_PATH / filename).read_text()

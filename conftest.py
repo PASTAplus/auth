@@ -11,7 +11,6 @@ import sqlalchemy.orm
 
 import db.db_interface
 import db.models.base
-import db.system_object
 import db.session
 import main
 import tests.edi_id
@@ -19,20 +18,9 @@ import tests.sample
 import tests.utils
 import util.dependency
 
+from config import Config
+
 TEST_SERVER_BASE_URL = 'http://testserver/auth'
-
-
-DB_DRIVER = 'postgresql+psycopg'
-DB_HOST = 'localhost'
-DB_PORT = 5432
-DB_NAME = 'auth_test'
-DB_USER = 'auth'
-DB_PW = 'testpw'
-DB_POOL_SIZE = 10
-DB_MAX_OVERFLOW = 20
-DB_YIELD_ROWS = 1000
-DB_CHUNK_SIZE = 10  # 8192
-LOG_DB_QUERIES = False
 
 HERE_PATH = pathlib.Path(__file__).parent.resolve()
 DB_FIXTURE_JSON_PATH = HERE_PATH / 'tests/test_files/db_fixture.json'
@@ -51,27 +39,20 @@ async def override_session_dependency(session_scope_populated_dbi):
     """Override the app's DbInterface dependency with the test-populated DbInterface."""
     # Note: dependency_overrides only works with functions that are wrapped in fastapi.Depends().
     main.app.dependency_overrides[util.dependency.dbi] = lambda: session_scope_populated_dbi
-    yield
-    main.app.dependency_overrides.clear()
+    try:
+        yield
+    finally:
+        main.app.dependency_overrides.clear()
 
 
 @pytest_asyncio.fixture(scope='session', autouse=True)
-async def track_sample_file_usage(session_scope_populated_dbi):
+async def track_sample_file_usage():
     """Track the usage of sample files in tests."""
     tests.sample.reset()
-    yield
-    tests.sample.status()
-
-
-@pytest_asyncio.fixture(scope='session', autouse=True)
-async def override_system_principals():
-    """Override the system principal EDI-IDs in config.py, to match those in db_fixture.json."""
-    from config import Config
-
-    Config.SERVICE_EDI_ID = tests.edi_id.SERVICE_ACCESS
-    Config.PUBLIC_PROFILE_EDI_ID = tests.edi_id.PUBLIC_ACCESS
-    Config.AUTHENTICATED_PROFILE_EDI_ID = tests.edi_id.AUTHENTICATED_ACCESS
-    yield
+    try:
+        yield
+    finally:
+        tests.sample.status()
 
 
 # Fixtures: scope="session", autouse=False (the default)
@@ -87,31 +68,27 @@ async def test_engine():
     """
     async_engine = sqlalchemy.ext.asyncio.create_async_engine(
         sqlalchemy.engine.URL.create(
-            DB_DRIVER,
-            host=DB_HOST,
-            database=DB_NAME,
-            username=DB_USER,
-            password=DB_PW,
+            Config.TEST_DB_DRIVER,
+            host=Config.TEST_DB_HOST,
+            port=Config.TEST_DB_PORT,
+            database=Config.TEST_DB_NAME,
+            username=Config.TEST_DB_USER,
+            password=Config.TEST_DB_PW,
         ),
-        echo=LOG_DB_QUERIES,
-        pool_size=DB_POOL_SIZE,
-        max_overflow=DB_MAX_OVERFLOW,
+        echo=Config.TEST_LOG_DB_QUERIES,
+        pool_size=Config.TEST_DB_POOL_SIZE,
+        max_overflow=Config.TEST_DB_MAX_OVERFLOW,
     )
     try:
         async with async_engine.begin() as conn:
-            log.info("Creating tables: %s", list(db.models.base.Base.metadata.tables.keys()))
-
-            await conn.run_sync(
-                lambda sync_conn: db.models.base.Base.metadata.create_all(bind=sync_conn)
-            )
-        db.session.async_engine = async_engine  # Set the global async engine for db.session
-        yield async_engine
+            db.session.set_async_engine(async_engine)
+            yield async_engine
     finally:
         await async_engine.dispose()
 
 
 @pytest_asyncio.fixture(scope='session')
-async def test_session(test_engine, override_system_principals):
+async def test_session(test_engine):
     """Create a fresh async Postgres DB session for the test session.
     Roll back changes after each test while keeping the session scoped to the session.
     """
@@ -135,55 +112,68 @@ async def populated_test_session(test_session):
     """Create a populated async Postgres DB session for the test session.
     The database is populated with data from the JSON DB fixture file.
     """
-    # Initialize system objects in the database
-    dbi = db.db_interface.DbInterface(session=test_session)
-    await db.system_object.init_system_objects(dbi)
-    await test_session.flush()
+    # Start a transaction to contain all the fixture data. This is the outer transaction that will
+    # be rolled back after the test session ends. The normal state of the test database is empty of
+    # user data. If the test database contains user data after the tests, there is something wrong
+    # with the transaction management for the tests. See 'db_manager.py' for preparing the test
+    # database.
+    transaction = await test_session.begin()
 
-    fixture_dict = json.loads(DB_FIXTURE_JSON_PATH.read_text())
-
-    table_to_class_dict = {
-        mapper.local_table.name: mapper.class_ for mapper in db.models.base.Base.registry.mappers
-    }
-
-    # We populate the tables in order of their foreign key dependencies.
-    table_tup = (
-        'profile',
-        'identity',
-        'profile_history',
-        'group',
-        'group_member',
-        'principal',
-        'resource',
-        'rule',
-    )
-
-    # Populate the tables with data from the fixture file.
-    for table_name in table_tup:
-        rows = fixture_dict.get(table_name, [])
-        assert table_name in db.models.base.Base.metadata.tables, f'Table not found: {table_name}'
-        # log.debug(f'Importing {table_name}...')
-        cls = table_to_class_dict[table_name]
-        for row in rows:
-            new_row = cls(**row)
-            test_session.add(new_row)
-
-    await test_session.flush()
-
-    for table_name in table_tup:
-        result = await test_session.execute(sqlalchemy.text(f'select max(id) from "{table_name}"'))
-        max_id = result.scalar()
-        # log.debug(f'Serial sequence for {table_name}: {max_id}')
-        await test_session.execute(
-            sqlalchemy.text(
-                'select setval(pg_get_serial_sequence(:table_name, :id_column), :max_id)'
-            ),
-            {'table_name': table_name, 'id_column': 'id', 'max_id': max_id},
+    try:
+        fixture_dict = json.loads(DB_FIXTURE_JSON_PATH.read_text())
+        table_to_class_dict = {
+            mapper.local_table.name: mapper.class_
+            for mapper in db.models.base.Base.registry.mappers
+        }
+        # We populate the tables in order of their foreign key dependencies.
+        table_tup = (
+            'profile',
+            'identity',
+            'profile_history',
+            'group',
+            'group_member',
+            'principal',
+            'resource',
+            'rule',
         )
-
-    await test_session.flush()
-
-    yield test_session
+        # Populate the tables with data from the fixture file.
+        for table_name in table_tup:
+            rows = fixture_dict.get(table_name, [])
+            assert (
+                table_name in db.models.base.Base.metadata.tables
+            ), f'Table not found: {table_name}'
+            # log.debug(f'Importing {table_name}...')
+            cls = table_to_class_dict[table_name]
+            for row in rows:
+                # db_name = test_session.get_bind().url.database
+                # log.debug(f'Importing row: db={db_name} table={table_name}: {row}')
+                new_row = cls(**row)
+                try:
+                    test_session.add(new_row)
+                except sqlalchemy.exc.IntegrityError:
+                    pass
+        # Write the rows added to the session, to the database, so they become visible to the
+        # 'select max()' below.
+        await test_session.flush()
+        # Set the serial sequences for each table to the maximum ID in the table.
+        for table_name in table_tup:
+            result = await test_session.execute(
+                sqlalchemy.text(f'select max(id) from "{table_name}"')
+            )
+            max_id = result.scalar()
+            log.debug(f'Serial sequence for {table_name}: {max_id}')
+            await test_session.execute(
+                sqlalchemy.text(
+                    'select setval(pg_get_serial_sequence(:table_name, :id_column), :max_id)'
+                ),
+                {'table_name': table_name, 'id_column': 'id', 'max_id': max_id},
+            )
+        # Ensure that the session is flushed so that this is visible to the rest of the tests.
+        await test_session.flush()
+        yield test_session
+    finally:
+        await transaction.rollback()
+        await test_session.close()
 
 
 @pytest_asyncio.fixture(scope='session')
@@ -230,7 +220,7 @@ async def populated_dbi(session_scope_populated_dbi, populated_test_session):
 @pytest_asyncio.fixture(scope='function')
 async def service_profile_row(populated_dbi):
     """System profile: Service profile row"""
-    yield await populated_dbi.get_profile(tests.edi_id.SERVICE_ACCESS)
+    yield await populated_dbi.get_profile(Config.SERVICE_EDI_ID)
 
 
 @pytest_asyncio.fixture(scope='function')

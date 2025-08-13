@@ -1,38 +1,4 @@
 """Tests for v1 resource management APIs
-
-profile:
-      "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
-      "email": "john@smith.com",
-      "email_notifications": false,
-      "common_name": "John Smith",
-      "has_avatar": false,
-      "id": 4,
-      "privacy_policy_accepted": false,
-      "privacy_policy_accepted_date": null
-
-principal:
-      "id": 5,
-      "subject_id": 4,
-      "subject_type": "PROFILE"
-
-rule:
-      "id": 72,
-      "permission": "READ",
-      "principal_id": 5,
-      "resource_id": 62
-
-      "id": 482,
-      "permission": "CHANGE",
-      "principal_id": 5,
-      "resource_id": 341
-
-resource:
-        "id": 341,
-        "key": "2b22d840a07643d897588820343f8ac3",
-        "label": "edi.8233.4",
-        "parent_id": null,
-        "type": "package"
-
 """
 import logging
 import pytest
