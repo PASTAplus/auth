@@ -2,11 +2,9 @@
 Docs:./docs/api/token.md
 """
 import fastapi
-import sqlalchemy.exc
 import jwt
+import sqlalchemy.exc
 import starlette.requests
-import starlette.responses
-import starlette.status
 import starlette.status
 
 import api.utils
@@ -146,12 +144,12 @@ async def post_token(
     # Check that the request body is valid JSON
     try:
         request_dict = await api.utils.request_body_to_dict(request)
-    except ValueError as e:
+    except ValueError:
         return api.utils.get_response_400_bad_request(request, api_method, 'Invalid request')
     # Check that the request contains the required fields
     try:
         key = request_dict['key']
-    except KeyError as e:
+    except KeyError:
         return api.utils.get_response_400_bad_request(request, api_method, 'Invalid request')
     # Check the key
     if not (Config.TOKEN_KEY and key == Config.TOKEN_KEY):
@@ -160,7 +158,7 @@ async def post_token(
         )
     # Check that the profile exists
     try:
-        await dbi.get_profile(edi_id)
+        profile_row = await dbi.get_profile(edi_id)
     except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_404_not_found(
             request, api_method, 'Invalid request', edi_id=edi_id
