@@ -41,11 +41,7 @@ async def test_add_eml_vetted(populated_dbi, service_profile_row, john_client, j
     created to represent all the data entities in the EML document.
     """
     # Add John to the Vetted system group.
-    await populated_dbi.add_group_member(
-        service_profile_row, (await populated_dbi.get_vetted_group()).id, john_profile_row.id
-    )
-    await populated_dbi.flush()
-    assert await populated_dbi.is_vetted(john_profile_row)
+    await tests.utils.add_vetted(populated_dbi, service_profile_row, john_profile_row)
 
     response = john_client.post(
         '/v1/eml',
@@ -53,9 +49,12 @@ async def test_add_eml_vetted(populated_dbi, service_profile_row, john_client, j
             'eml': tests.utils.load_test_file('icarus.3.1.xml'),
         },
     )
-
     assert response.status_code == starlette.status.HTTP_200_OK
-
+    # populated_dbi.flush()
+    response = john_client.get('/v1/resource-tree/https://pasta-d.lternet.edu/package/eml/icarus/3/1')
+    # tests.utils.dump_response(response)
+    assert response.status_code == starlette.status.HTTP_200_OK
+    tests.sample.assert_match(response.json(), 'add_eml_vetted.json')
 
 # async def test_add_eml_1(populated_dbi, john_client):
 #     print(await populated_dbi.get_all_profiles())
