@@ -177,18 +177,13 @@ async def create_eml_permissions(token_profile_row, dbi, key_prefix, eml_etree):
         log.debug(f'Processing entity: {entity_name_el.text}')
         # We can now go up to the parent element, which is a data entity element.
         data_entity_el = entity_name_el.getparent()
-        # Then down to physical/authentication element.
+        # Then down to physical element.
         physical_el = data_entity_el.find('physical')
         # The physical element and its children are optional in the EML schema, so we need to check
         # if they exist.
         if physical_el is None:
             raise util.exc.EmlError(
                 f'No <physical> element found for entity: {entity_name_el.text}'
-            )
-        authentication_el = physical_el.find('authentication')
-        if authentication_el is None:
-            raise util.exc.EmlError(
-                f'No <authentication> element found for entity: {entity_name_el.text}'
             )
         url_el = physical_el.find('distribution/online/url')
         if url_el is None:
