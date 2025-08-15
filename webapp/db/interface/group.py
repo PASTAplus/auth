@@ -71,6 +71,11 @@ class GroupInterface:
         result = await self.execute(sqlalchemy.select(Group).where(Group.id == group_id))
         return result.scalar_one()
 
+    async def get_group_by_edi_id(self, edi_id):
+        """Get a group by its EDI-ID."""
+        result = await self.execute(sqlalchemy.select(Group).where(Group.edi_id == edi_id))
+        return result.scalar_one()
+
     async def get_owned_group(self, token_profile_row, group_id):
         """Get a group by its ID.
         Raises an exception if token_profile_row does not have WRITE or CHANGE on the group.
@@ -199,13 +204,14 @@ class GroupInterface:
         )
         return result.scalar_one()
 
-    async def is_in_group(self, token_profile_row, group_id):
+    async def is_in_group(self, profile_row, group_row):
         """Check if a profile is a member of a group."""
-        group_row = await self.get_owned_group(token_profile_row, group_id)
         result = await self.execute(
-            sqlalchemy.select(GroupMember).where(
-                GroupMember.group == group_row,
-                GroupMember.profile_id == token_profile_row.id,
+            sqlalchemy.select(
+                sqlalchemy.exists().where(
+                    GroupMember.group == group_row,
+                    GroupMember.profile == profile_row,
+                )
             )
         )
         return result.scalar_one()

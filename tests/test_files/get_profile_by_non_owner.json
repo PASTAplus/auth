@@ -1,6 +1,0 @@
-{
-    "common_name": "John Smith",
-    "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
-    "method": "readProfile",
-    "msg": "Profile retrieved by non-owner. Only public fields returned."
-}

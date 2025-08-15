@@ -1,8 +1,0 @@
-{
-    "label": "Updated Child Resource Label 4",
-    "method": "readResource",
-    "msg": "Resource retrieved successfully",
-    "parent_key": "jane-root",
-    "resource_key": "john-child",
-    "type": "Resource type for john-child"
-}

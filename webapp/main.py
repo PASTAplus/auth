@@ -10,6 +10,7 @@ import starlette.responses
 import starlette.status
 
 import api.v1.eml
+import api.v1.group
 import api.v1.ping
 import api.v1.profile
 import api.v1.resource
@@ -186,6 +187,7 @@ app.add_middleware(RootPathMiddleware)
 app.add_middleware(RedirectToSigninMiddleware)
 
 # Include all routers
+app.include_router(api.v1.group.router)
 app.include_router(api.v1.eml.router)
 app.include_router(api.v1.ping.router)
 app.include_router(api.v1.profile.router)

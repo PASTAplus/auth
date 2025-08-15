@@ -8,4 +8,5 @@ Auth provides a REST API for managing user profiles, identities, and access cont
 - [Resources](resource.md) - Create and manage resources
 - [Rules](rule.md) - Create and manage the ACRs for resources
 - [EML](eml.md) - Manage EML documents and associated ACRs
+- [Groups](group.md) - Manage groups and group members
 

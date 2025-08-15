@@ -6,6 +6,7 @@
 - [Resources](resource.md) - Manage resources
 - [Rules](rule.md) - Manage access control rules (ACRs) for the resources
 - [EML](eml.md) - Manage EML documents and associated ACRs
+- [Groups](group.md) - Manage groups and group members
 
 This document describes the API for managing permissions via EML documents.
 
