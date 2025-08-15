@@ -110,7 +110,7 @@ class PastaJwt:
             db_name = dbi.session.get_bind().url.database
             log.error(f'Using database: {db_name}')
             all_profiles = await dbi.get_all_profiles()
-            log.error('#'*100)
+            log.error('#' * 100)
             log.error('Available profiles:')
             for profile in all_profiles:
                 log.error(f'  - {profile.edi_id} ({profile.common_name})')

@@ -41,8 +41,7 @@ def idp(
     target_url: str,
     **query_param_dict,
 ):
-    """Create a Response that redirects to the IdP with which we will be authenticating.
-    """
+    """Create a Response that redirects to the IdP with which we will be authenticating."""
     url_obj = starlette.datastructures.URL(idp_auth_url)
     url_obj = url_obj.replace_query_params(
         redirect_uri=util.login.get_redirect_uri(idp_name.name.lower()),

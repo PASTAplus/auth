@@ -19,9 +19,7 @@ class SyncInterface:
 
     async def sync_update(self, name):
         """Update or create a sync row with the given name."""
-        result = await self.execute(
-            sqlalchemy.select(Sync).where(Sync.name == name)
-        )
+        result = await self.execute(sqlalchemy.select(Sync).where(Sync.name == name))
         try:
             sync_row = result.scalar_one()
         except sqlalchemy.exc.NoResultFound:
@@ -32,7 +30,5 @@ class SyncInterface:
 
     async def get_sync_ts(self):
         """Get the latest timestamp."""
-        result = await self.execute(
-            sqlalchemy.select(sqlalchemy.func.max(Sync.updated))
-        )
+        result = await self.execute(sqlalchemy.select(sqlalchemy.func.max(Sync.updated)))
         return result.scalar_one()

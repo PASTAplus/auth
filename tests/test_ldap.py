@@ -6,6 +6,7 @@ from util import pasta_ldap
 
 log = daiquiri.getLogger(__name__)
 
+
 # Requires a running LDAP server with the test user configured
 @pytest.mark.skip
 def test_bind():

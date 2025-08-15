@@ -78,6 +78,7 @@ app.mount(
     name='static',
 )
 
+
 # Custom StaticFiles class to set MIME type for SVG files
 class AvatarFiles(fastapi.staticfiles.StaticFiles):
     """Custom StaticFiles class to set the MIME type for SVG files."""
@@ -107,6 +108,7 @@ app.mount(
     AvatarFiles(directory=Config.AVATARS_PATH),
     name='avatars',
 )
+
 
 # Create routes for serving specific static files
 def create_route(url_path: str, file_path: pathlib.Path):

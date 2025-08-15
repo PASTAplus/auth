@@ -1,5 +1,4 @@
-"""Tests for resource management in the database interface
-"""
+"""Tests for resource management in the database interface"""
 
 import pytest
 import sqlalchemy.exc
@@ -61,5 +60,3 @@ async def test_create_resource_duplicate_key(populated_dbi):
 #
 # async def test_resource_move_to_another_parent(populated_dbi):
 #     pass
-
-

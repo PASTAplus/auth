@@ -1,8 +1,11 @@
 import db.models.permission
 
+
 class AuthError(Exception):
     """Exceptions in IAM"""
+
     pass
+
 
 class InvalidRequestError(AuthError):
     def __init__(self, message):
@@ -12,11 +15,13 @@ class InvalidRequestError(AuthError):
 
 # Resource
 
+
 class ResourceDoesNotExistError(AuthError):
     def __init__(self, key):
         self.key = key
         self.message = f'Resource with key "{key}" does not exist.'
         super().__init__(self.message)
+
 
 class ResourceIdDoesNotExistError(AuthError):
     def __init__(self, resource_id):
@@ -43,8 +48,22 @@ class ResourcePermissionDeniedError(AuthError):
         )
         super().__init__(self.message)
 
+
 # EML
+
 
 class EmlError(AuthError):
     """Class for exceptions related to EML operations."""
+
+    pass
+
+
+# Search
+
+
+class SearchSessionNotFoundError(AuthError):
+    pass
+
+
+class SearchSessionPermissionError(AuthError):
     pass

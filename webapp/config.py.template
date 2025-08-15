@@ -53,8 +53,6 @@ class Config(object):
     TEST_DB_MAX_OVERFLOW = 20
     TEST_DB_YIELD_ROWS = 1000
     TEST_DB_CHUNK_SIZE = 8192
-    # Log raw SQL queries and execution times at INFO level
-    TEST_DB_QUERY_PROFILING = False
 
     # Filesystem paths
     STATIC_PATH = HERE_PATH / 'static'

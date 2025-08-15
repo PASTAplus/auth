@@ -1,5 +1,4 @@
-"""Tests for v1 isAuthorized API
-"""
+"""Tests for v1 isAuthorized API"""
 
 import logging
 

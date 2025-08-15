@@ -1,4 +1,5 @@
 """Tables for optimizing searches, storing search results and related metadata"""
+
 import daiquiri
 import sqlalchemy.orm
 

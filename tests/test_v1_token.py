@@ -1,10 +1,9 @@
-"""Tests for v1/token endpoints.
-"""
+"""Tests for v1/token endpoints."""
+
 import pytest
 
 import util.old_token
 import util.pasta_jwt
-import util.service
 from config import Config
 
 pytestmark = [
@@ -14,9 +13,7 @@ pytestmark = [
 
 
 async def test_token_refresh(anon_client, john_token):
-    pasta_token = util.old_token.make_old_token(
-        Config.TEST_USER_DN, Config.VETTED
-    )
+    pasta_token = util.old_token.make_old_token(Config.TEST_USER_DN, Config.VETTED)
     response = anon_client.post(
         '/refresh',
         json={

@@ -1,5 +1,4 @@
-"""Tests for profile management in the database interface
-"""
+"""Tests for profile management in the database interface"""
 
 import pytest
 import tests.utils

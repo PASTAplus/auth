@@ -8,15 +8,9 @@ import db.interface.permission
 import db.interface.profile
 import db.interface.search
 import db.interface.sync
-import db.interface.util
-import db.models.group
 import db.models.identity
-import db.models.permission
-import db.models.profile
-import db.models.search
 import util.avatar
 import util.exc
-import util.profile_cache
 
 log = daiquiri.getLogger(__name__)
 

@@ -1,5 +1,5 @@
-"""Tests for ACR management in the database interface
-"""
+"""Tests for ACR management in the database interface"""
+
 import logging
 
 import pytest
@@ -76,13 +76,15 @@ async def test_equivalent_principal_edi_id_set_for_public(populated_dbi):
     public_equiv_set = await populated_dbi.get_equivalent_principal_edi_id_set(public_profile_row)
     assert authenticated_profile_row.edi_id not in public_equiv_set
 
+
 async def test_equivalent_principal_edi_id_set_for_authenticated(populated_dbi):
     """Equivalents for authenticated profile do not include the public profile"""
     authenticated_profile_row = await populated_dbi.get_authenticated_profile()
     public_profile_row = await populated_dbi.get_public_profile()
-    authenticated_equiv_set = await populated_dbi.get_equivalent_principal_edi_id_set(authenticated_profile_row)
+    authenticated_equiv_set = await populated_dbi.get_equivalent_principal_edi_id_set(
+        authenticated_profile_row
+    )
     assert public_profile_row.edi_id not in authenticated_equiv_set
-
 
 
 async def test_get_resource_ancestors_level_3(populated_dbi):
@@ -110,7 +112,7 @@ async def test_get_resource_descendants(populated_dbi):
     assert received_id_set == expected_id_set
 
 
-async def test_get_resource_generator_1(populated_dbi, john_profile_row):
+async def test_get_resource_filter_gen_1(populated_dbi, john_profile_row):
     """Test permission generator filtering. It should only return resources which the caller has
     the given permission on.
     """
@@ -125,7 +127,7 @@ async def test_get_resource_generator_1(populated_dbi, john_profile_row):
     # John cannot retrieve permissions for 'r0'
     rows = [
         row
-        async for row in populated_dbi.get_resource_generator(
+        async for row in populated_dbi.get_resource_filter_gen(
             john_profile_row, (resource_row.id,), db.models.permission.PermissionLevel.READ
         )
     ]
@@ -139,7 +141,7 @@ async def test_get_resource_generator_1(populated_dbi, john_profile_row):
     # John can now retrieve permissions for 'r0' at 'read' level
     rows = [
         row
-        async for row in populated_dbi.get_resource_generator(
+        async for row in populated_dbi.get_resource_filter_gen(
             john_profile_row, (resource_row.id,), db.models.permission.PermissionLevel.READ
         )
     ]
@@ -147,7 +149,7 @@ async def test_get_resource_generator_1(populated_dbi, john_profile_row):
     # John cannot retrieve permissions for 'r0' at write level
     rows = [
         row
-        async for row in populated_dbi.get_resource_generator(
+        async for row in populated_dbi.get_resource_filter_gen(
             john_profile_row, (resource_row.id,), db.models.permission.PermissionLevel.WRITE
         )
     ]
@@ -161,7 +163,7 @@ async def test_get_resource_tree_for_ui(populated_dbi, john_profile_row):
     # Get permissions for John on all resources at 'read' level
     rows = [
         row
-        async for row in populated_dbi.get_resource_generator(
+        async for row in populated_dbi.get_resource_filter_gen(
             john_profile_row, resource_id_list, db.models.permission.PermissionLevel.READ
         )
     ]
@@ -176,7 +178,7 @@ async def test_get_resource_tree_for_api(populated_dbi, john_profile_row):
     # Get permissions for John on all resources at 'read' level
     rows = [
         row
-        async for row in populated_dbi.get_resource_generator(
+        async for row in populated_dbi.get_resource_filter_gen(
             john_profile_row, resource_id_list, db.models.permission.PermissionLevel.READ
         )
     ]
@@ -186,7 +188,9 @@ async def test_get_resource_tree_for_api(populated_dbi, john_profile_row):
 
 async def test_create_or_update_rule(populated_dbi, john_profile_row):
     """Test creating a new permission."""
-    resource_row = await populated_dbi.create_resource(None, 'a-resource-key', 'A Resource', 'test-type')
+    resource_row = await populated_dbi.create_resource(
+        None, 'a-resource-key', 'A Resource', 'test-type'
+    )
     permission_level = db.models.permission.PermissionLevel.WRITE
     await populated_dbi.create_or_update_rule(
         resource_row, john_profile_row.principal, permission_level

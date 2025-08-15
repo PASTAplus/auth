@@ -129,9 +129,7 @@ class IdentityInterface:
         try:
             identity_row = await self.get_identity(idp_name, idp_uid)
         except sqlalchemy.exc.NoResultFound:
-            raise ValueError(
-                f'Identity not found for idp_name="{idp_name}" idp_uid="{idp_uid}"'
-            )
+            raise ValueError(f'Identity not found for idp_name="{idp_name}" idp_uid="{idp_uid}"')
         if identity_row not in token_profile_row.identities:
             raise ValueError(
                 f'Identity does not belong to profile. idp_name="{idp_name}" idp_uid="{idp_uid}"'

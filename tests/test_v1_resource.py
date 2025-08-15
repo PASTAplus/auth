@@ -1,5 +1,5 @@
-"""Tests for v1 resource management APIs
-"""
+"""Tests for v1 resource management APIs"""
+
 import logging
 import pytest
 import starlette.status
@@ -113,11 +113,15 @@ async def test_read_resource_tree_1(john_client):
 # updateResource()
 
 
-async def test_update_resource_by_anon(anon_client, john_client, populated_dbi, service_profile_row, john_profile_row):
+async def test_update_resource_by_anon(
+    anon_client, john_client, populated_dbi, service_profile_row, john_profile_row
+):
     """updateResource()
     Call by anon user -> 401 Unauthorized
     """
-    await _mk_resource(john_client, 'john-resource-key', populated_dbi, service_profile_row, john_profile_row)
+    await _mk_resource(
+        john_client, 'john-resource-key', populated_dbi, service_profile_row, john_profile_row
+    )
     response = anon_client.put(
         f'/v1/resource/john-resource-key',
         json={
@@ -127,11 +131,15 @@ async def test_update_resource_by_anon(anon_client, john_client, populated_dbi, 
     assert response.status_code == starlette.status.HTTP_401_UNAUTHORIZED
 
 
-async def test_update_resource_by_non_writer(john_client, jane_client, populated_dbi, service_profile_row, john_profile_row):
+async def test_update_resource_by_non_writer(
+    john_client, jane_client, populated_dbi, service_profile_row, john_profile_row
+):
     """updateResource()
     Call without WRITE on resource -> 403 Forbidden
     """
-    await _mk_resource(john_client, 'john-resource-key', populated_dbi, service_profile_row, john_profile_row)
+    await _mk_resource(
+        john_client, 'john-resource-key', populated_dbi, service_profile_row, john_profile_row
+    )
     # Jane tries to update John's resource without having any ACRs on the resource
     response = jane_client.put(
         f'/v1/resource/john-resource-key',
@@ -142,11 +150,15 @@ async def test_update_resource_by_non_writer(john_client, jane_client, populated
     assert response.status_code == starlette.status.HTTP_403_FORBIDDEN
 
 
-async def test_update_resource_by_writer(john_client, jane_client, populated_dbi, service_profile_row, john_profile_row):
+async def test_update_resource_by_writer(
+    john_client, jane_client, populated_dbi, service_profile_row, john_profile_row
+):
     """updateResource()
     Call with WRITE on resource -> Successful update, 200 OK.
     """
-    await _mk_resource(john_client, 'john-resource-key', populated_dbi, service_profile_row, john_profile_row)
+    await _mk_resource(
+        john_client, 'john-resource-key', populated_dbi, service_profile_row, john_profile_row
+    )
     john_client.post(
         '/v1/rule',
         json={
@@ -170,14 +182,37 @@ async def test_update_resource_by_writer(john_client, jane_client, populated_dbi
     tests.sample.assert_match(response.json(), 'update_resource_by_writer.json')
 
 
-async def test_update_resource_valid_parent(john_client, jane_client, populated_dbi, service_profile_row, john_profile_row):
+async def test_update_resource_valid_parent(
+    john_client, jane_client, populated_dbi, service_profile_row, john_profile_row
+):
     """updateResource()
     Move resource from one parent to another -> Successful update, 200 OK.
     """
     # John creates two roots, and a child resource on one of the roots
-    await _mk_resource(john_client, 'john-root-1', populated_dbi, service_profile_row, john_profile_row, parent_key=None)
-    await _mk_resource(john_client, 'john-root-2', populated_dbi, service_profile_row, john_profile_row, parent_key=None)
-    await _mk_resource(john_client, 'john-child-1', populated_dbi, service_profile_row, john_profile_row, parent_key='john-root-1')
+    await _mk_resource(
+        john_client,
+        'john-root-1',
+        populated_dbi,
+        service_profile_row,
+        john_profile_row,
+        parent_key=None,
+    )
+    await _mk_resource(
+        john_client,
+        'john-root-2',
+        populated_dbi,
+        service_profile_row,
+        john_profile_row,
+        parent_key=None,
+    )
+    await _mk_resource(
+        john_client,
+        'john-child-1',
+        populated_dbi,
+        service_profile_row,
+        john_profile_row,
+        parent_key='john-root-1',
+    )
     # John moves the child resource to the other root
     response = john_client.put(
         '/v1/resource/john-child-1',
@@ -192,14 +227,44 @@ async def test_update_resource_valid_parent(john_client, jane_client, populated_
     tests.sample.assert_match(response.json(), 'update_resource_valid_parent.json')
 
 
-async def test_update_resource_invalid_parent(john_client, jane_client, populated_dbi, service_profile_row, john_profile_row):
+async def test_update_resource_invalid_parent(
+    john_client, jane_client, populated_dbi, service_profile_row, john_profile_row, jane_profile_row
+):
     """updateResource()
     Move to parent without WRITE -> 403 Forbidden.
     """
-    await _mk_resource(john_client, 'john-root', populated_dbi, service_profile_row, john_profile_row, parent_key=None)
-    await _mk_resource(john_client, 'john-child', populated_dbi, service_profile_row, john_profile_row, parent_key='john-root')
-    await _mk_resource(jane_client, 'jane-root', populated_dbi, service_profile_row, john_profile_row, parent_key=None)
-    await _mk_resource(jane_client, 'jane-child', populated_dbi, service_profile_row, john_profile_row, parent_key='jane-root')
+    await _mk_resource(
+        john_client,
+        'john-root',
+        populated_dbi,
+        service_profile_row,
+        john_profile_row,
+        parent_key=None,
+    )
+    await _mk_resource(
+        john_client,
+        'john-child',
+        populated_dbi,
+        service_profile_row,
+        john_profile_row,
+        parent_key='john-root',
+    )
+    await _mk_resource(
+        jane_client,
+        'jane-root',
+        populated_dbi,
+        service_profile_row,
+        jane_profile_row,
+        parent_key=None,
+    )
+    await _mk_resource(
+        jane_client,
+        'jane-child',
+        populated_dbi,
+        service_profile_row,
+        jane_profile_row,
+        parent_key='jane-root',
+    )
     # John tries to move the child resource to Jane's root, where he has no WRITE permission
     response = john_client.put(
         '/v1/resource/john-child',
@@ -255,7 +320,9 @@ async def test_update_resource_invalid_parent(john_client, jane_client, populate
     tests.sample.assert_match(response.json(), 'update_resource_invalid_parent_john.json')
 
 
-async def _mk_resource(client, key, populated_dbi, service_profile_row, john_profile_row, parent_key=None):
+async def _mk_resource(
+    client, key, populated_dbi, service_profile_row, john_profile_row, parent_key=None
+):
     await tests.utils.add_vetted(populated_dbi, service_profile_row, john_profile_row)
     return client.post(
         '/v1/resource',

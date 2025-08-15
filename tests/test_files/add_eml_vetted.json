@@ -8,7 +8,7 @@
                     "children": [
                         {
                             "children": [],
-                            "key": "https://pasta-d.lternet.edu/package/metadata/eml/icarus/3/1",
+                            "key": "https://test.example/package/metadata/eml/icarus/3/1",
                             "principals": [
                                 {
                                     "description": null,
@@ -26,14 +26,14 @@
                                 },
                                 {
                                     "description": null,
-                                    "edi_id": "EDI-020c2d2fa7774eda9a6638e54d3a5db2",
+                                    "edi_id": "EDI-339075aeec6f45f2a22450fbef0ec70f",
                                     "permission": "changePermission",
                                     "principal_type": "profile",
                                     "title": null
                                 },
                                 {
                                     "description": null,
-                                    "edi_id": "EDI-b91f5763d83640268abbf544d69476d4",
+                                    "edi_id": "EDI-90aab0dc82994db38cc614577ac44f18",
                                     "permission": "changePermission",
                                     "principal_type": "profile",
                                     "title": null
@@ -42,7 +42,7 @@
                         },
                         {
                             "children": [],
-                            "key": "https://pasta-d.lternet.edu/package/report/eml/icarus/3/1",
+                            "key": "https://test.example/package/report/eml/icarus/3/1",
                             "principals": [
                                 {
                                     "description": null,
@@ -60,14 +60,14 @@
                                 },
                                 {
                                     "description": null,
-                                    "edi_id": "EDI-020c2d2fa7774eda9a6638e54d3a5db2",
+                                    "edi_id": "EDI-339075aeec6f45f2a22450fbef0ec70f",
                                     "permission": "changePermission",
                                     "principal_type": "profile",
                                     "title": null
                                 },
                                 {
                                     "description": null,
-                                    "edi_id": "EDI-b91f5763d83640268abbf544d69476d4",
+                                    "edi_id": "EDI-90aab0dc82994db38cc614577ac44f18",
                                     "permission": "changePermission",
                                     "principal_type": "profile",
                                     "title": null
@@ -75,7 +75,7 @@
                             ]
                         }
                     ],
-                    "key": "27ea0b8791c94ed4ac8e8c41e04f8cdc",
+                    "key": "ab812490bb3449f79c78a066385561ea",
                     "principals": [
                         {
                             "description": null,
@@ -93,14 +93,14 @@
                         },
                         {
                             "description": null,
-                            "edi_id": "EDI-020c2d2fa7774eda9a6638e54d3a5db2",
+                            "edi_id": "EDI-339075aeec6f45f2a22450fbef0ec70f",
                             "permission": "changePermission",
                             "principal_type": "profile",
                             "title": null
                         },
                         {
                             "description": null,
-                            "edi_id": "EDI-b91f5763d83640268abbf544d69476d4",
+                            "edi_id": "EDI-90aab0dc82994db38cc614577ac44f18",
                             "permission": "changePermission",
                             "principal_type": "profile",
                             "title": null
@@ -111,7 +111,7 @@
                     "children": [
                         {
                             "children": [],
-                            "key": "https://pasta-d.lternet.edu/package/data/eml/icarus/3/1/06884a2bcd1398d3a5e891af6eeae3eb",
+                            "key": "https://pasta-s.lternet.edu/package/data/eml/edi/718/11/9a072c4e4af39f96f60954fc4f7d8be5",
                             "principals": [
                                 {
                                     "description": "john@smith.com",
@@ -122,14 +122,14 @@
                                 },
                                 {
                                     "description": null,
-                                    "edi_id": "EDI-020c2d2fa7774eda9a6638e54d3a5db2",
+                                    "edi_id": "EDI-339075aeec6f45f2a22450fbef0ec70f",
                                     "permission": "changePermission",
                                     "principal_type": "profile",
                                     "title": null
                                 },
                                 {
                                     "description": null,
-                                    "edi_id": "EDI-b91f5763d83640268abbf544d69476d4",
+                                    "edi_id": "EDI-90aab0dc82994db38cc614577ac44f18",
                                     "permission": "changePermission",
                                     "principal_type": "profile",
                                     "title": null
@@ -138,7 +138,7 @@
                         },
                         {
                             "children": [],
-                            "key": "https://pasta-d.lternet.edu/package/data/eml/icarus/3/1/72e61a54970e4f81e0c4c6b3df9c3728",
+                            "key": "https://pasta-s.lternet.edu/package/data/eml/edi/718/11/5a1454801605a1237489e9c14d10ff2c",
                             "principals": [
                                 {
                                     "description": "john@smith.com",
@@ -149,14 +149,14 @@
                                 },
                                 {
                                     "description": null,
-                                    "edi_id": "EDI-020c2d2fa7774eda9a6638e54d3a5db2",
+                                    "edi_id": "EDI-339075aeec6f45f2a22450fbef0ec70f",
                                     "permission": "changePermission",
                                     "principal_type": "profile",
                                     "title": null
                                 },
                                 {
                                     "description": null,
-                                    "edi_id": "EDI-b91f5763d83640268abbf544d69476d4",
+                                    "edi_id": "EDI-90aab0dc82994db38cc614577ac44f18",
                                     "permission": "changePermission",
                                     "principal_type": "profile",
                                     "title": null
@@ -165,7 +165,7 @@
                         },
                         {
                             "children": [],
-                            "key": "https://pasta-d.lternet.edu/package/data/eml/icarus/3/1/5af51af12246e8f8fd06eda2658ee724",
+                            "key": "https://pasta-s.lternet.edu/package/data/eml/edi/718/11/afc6533cfe52c120e971016dcf214b97",
                             "principals": [
                                 {
                                     "description": "john@smith.com",
@@ -176,14 +176,14 @@
                                 },
                                 {
                                     "description": null,
-                                    "edi_id": "EDI-020c2d2fa7774eda9a6638e54d3a5db2",
+                                    "edi_id": "EDI-339075aeec6f45f2a22450fbef0ec70f",
                                     "permission": "changePermission",
                                     "principal_type": "profile",
                                     "title": null
                                 },
                                 {
                                     "description": null,
-                                    "edi_id": "EDI-b91f5763d83640268abbf544d69476d4",
+                                    "edi_id": "EDI-90aab0dc82994db38cc614577ac44f18",
                                     "permission": "changePermission",
                                     "principal_type": "profile",
                                     "title": null
@@ -192,7 +192,7 @@
                         },
                         {
                             "children": [],
-                            "key": "https://pasta-d.lternet.edu/package/data/eml/icarus/3/1/4f403177b42d2143699704e3f9a4b2d2",
+                            "key": "https://pasta-s.lternet.edu/package/data/eml/edi/718/11/8b01d46d764d7486b84d4b9903517fa9",
                             "principals": [
                                 {
                                     "description": "john@smith.com",
@@ -203,14 +203,14 @@
                                 },
                                 {
                                     "description": null,
-                                    "edi_id": "EDI-020c2d2fa7774eda9a6638e54d3a5db2",
+                                    "edi_id": "EDI-339075aeec6f45f2a22450fbef0ec70f",
                                     "permission": "changePermission",
                                     "principal_type": "profile",
                                     "title": null
                                 },
                                 {
                                     "description": null,
-                                    "edi_id": "EDI-b91f5763d83640268abbf544d69476d4",
+                                    "edi_id": "EDI-90aab0dc82994db38cc614577ac44f18",
                                     "permission": "changePermission",
                                     "principal_type": "profile",
                                     "title": null
@@ -219,7 +219,7 @@
                         },
                         {
                             "children": [],
-                            "key": "https://pasta-d.lternet.edu/package/data/eml/icarus/3/1/31b2b5e65860a6680de0bd1b791bda8d",
+                            "key": "https://pasta-s.lternet.edu/package/data/eml/edi/718/11/2da469de3846ce79c3138c07b0ac70a2",
                             "principals": [
                                 {
                                     "description": "john@smith.com",
@@ -230,14 +230,14 @@
                                 },
                                 {
                                     "description": null,
-                                    "edi_id": "EDI-020c2d2fa7774eda9a6638e54d3a5db2",
+                                    "edi_id": "EDI-339075aeec6f45f2a22450fbef0ec70f",
                                     "permission": "changePermission",
                                     "principal_type": "profile",
                                     "title": null
                                 },
                                 {
                                     "description": null,
-                                    "edi_id": "EDI-b91f5763d83640268abbf544d69476d4",
+                                    "edi_id": "EDI-90aab0dc82994db38cc614577ac44f18",
                                     "permission": "changePermission",
                                     "principal_type": "profile",
                                     "title": null
@@ -245,7 +245,7 @@
                             ]
                         }
                     ],
-                    "key": "1bc9c3fb19714b9487947f603a7db13a",
+                    "key": "4a43c508d47e40c6a3d6894464d00ad1",
                     "principals": [
                         {
                             "description": null,
@@ -263,14 +263,14 @@
                         },
                         {
                             "description": null,
-                            "edi_id": "EDI-020c2d2fa7774eda9a6638e54d3a5db2",
+                            "edi_id": "EDI-339075aeec6f45f2a22450fbef0ec70f",
                             "permission": "changePermission",
                             "principal_type": "profile",
                             "title": null
                         },
                         {
                             "description": null,
-                            "edi_id": "EDI-b91f5763d83640268abbf544d69476d4",
+                            "edi_id": "EDI-90aab0dc82994db38cc614577ac44f18",
                             "permission": "changePermission",
                             "principal_type": "profile",
                             "title": null
@@ -278,7 +278,7 @@
                     ]
                 }
             ],
-            "key": "https://pasta-d.lternet.edu/package/eml/icarus/3/1",
+            "key": "https://test.example/package/eml/icarus/3/1",
             "principals": [
                 {
                     "description": null,
@@ -296,14 +296,14 @@
                 },
                 {
                     "description": null,
-                    "edi_id": "EDI-020c2d2fa7774eda9a6638e54d3a5db2",
+                    "edi_id": "EDI-339075aeec6f45f2a22450fbef0ec70f",
                     "permission": "changePermission",
                     "principal_type": "profile",
                     "title": null
                 },
                 {
                     "description": null,
-                    "edi_id": "EDI-b91f5763d83640268abbf544d69476d4",
+                    "edi_id": "EDI-90aab0dc82994db38cc614577ac44f18",
                     "permission": "changePermission",
                     "principal_type": "profile",
                     "title": null

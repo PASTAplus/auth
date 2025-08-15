@@ -1,5 +1,5 @@
-"""Tests for v1 EML API endpoints.
-"""
+"""Tests for v1 EML API endpoints."""
+
 import logging
 import pytest
 import starlette.status
@@ -30,6 +30,7 @@ async def test_add_eml_not_vetted(populated_dbi, john_client):
         '/v1/eml',
         json={
             'eml': tests.utils.load_test_file('icarus.3.1.xml'),
+            'key_prefix': 'https://test.example',
         },
     )
     assert response.status_code == starlette.status.HTTP_403_FORBIDDEN
@@ -47,14 +48,12 @@ async def test_add_eml_vetted(populated_dbi, service_profile_row, john_client, j
         '/v1/eml',
         json={
             'eml': tests.utils.load_test_file('icarus.3.1.xml'),
+            'key_prefix': 'https://test.example',
         },
     )
     assert response.status_code == starlette.status.HTTP_200_OK
     # populated_dbi.flush()
-    response = john_client.get('/v1/resource-tree/https://pasta-d.lternet.edu/package/eml/icarus/3/1')
+    response = john_client.get('/v1/resource-tree/https://test.example/package/eml/icarus/3/1')
     # tests.utils.dump_response(response)
     assert response.status_code == starlette.status.HTTP_200_OK
     tests.sample.assert_match(response.json(), 'add_eml_vetted.json')
-
-# async def test_add_eml_1(populated_dbi, john_client):
-#     print(await populated_dbi.get_all_profiles())

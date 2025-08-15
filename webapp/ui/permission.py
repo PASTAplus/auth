@@ -10,6 +10,7 @@ import db.models.permission
 import db.resource_tree
 import util.avatar
 import util.dependency
+import util.exc
 import util.pasta_jwt
 import util.pretty
 import util.redirect
@@ -62,9 +63,19 @@ async def get_ui_permission(
     """Permission page. The contents of the panels are loaded separately."""
 
     # search_session = await dbi.get_search_session(search_uuid)
-    await dbi.populate_search_session(token_profile_row, search_uuid)
-    root_count = await dbi.get_search_result_count(search_uuid)
+    try:
+        await dbi.populate_search_session(token_profile_row, search_uuid)
+        await dbi.flush()
+    except (util.exc.SearchSessionNotFoundError, util.exc.SearchSessionPermissionError):
+        # The following conditions may occur, in which case we redirect to the search page, where
+        # the user can provide search parameters again:
+        # - We delete search sessions after a certain time, so the given search session UUID may not
+        # exist anymore.
+        # - The user might have a valid search session UUID, but the session could belong to another
+        # user (e.g., if they bookmarked the search page, then logged in to a different profile).
+        return util.redirect.internal(f'/ui/permission/search')
 
+    root_count = await dbi.get_search_result_count(search_uuid)
     search_session_row = await dbi.get_search_session(search_uuid)
     search_type = search_session_row.search_params.get('search-type')
     if search_type == 'package-search':
@@ -109,8 +120,8 @@ async def post_ui_permission_search(
     return util.redirect.internal(f'/ui/permission/{new_search_session.uuid}')
 
 
-@router.get('/ui/api/permission/block')
-async def get_ui_api_permission_block(
+@router.get('/ui/api/permission/slice')
+async def get_ui_api_permission_slice(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     # token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
@@ -142,7 +153,7 @@ async def get_ui_api_permission_tree(
 ):
     """Called when user clicks the expand button or checkbox in a root element."""
     resource_id_set = await dbi.get_resource_descendants_id_set([root_id])
-    resource_generator = dbi.get_resource_generator(
+    resource_generator = dbi.get_resource_filter_gen(
         token_profile_row, resource_id_set, db.models.permission.PermissionLevel.CHANGE
     )
     row_list = [row async for row in resource_generator]
@@ -163,7 +174,7 @@ async def post_permission_aggregate_get(
 ):
     """Called when the user changes a resource check box in the resource tree."""
     resource_list = await request.json()
-    resource_generator = dbi.get_resource_generator(
+    resource_generator = dbi.get_resource_filter_gen(
         token_profile_row, resource_list, db.models.permission.PermissionLevel.CHANGE
     )
     permission_list = await get_aggregate_permission_list(dbi, resource_generator)

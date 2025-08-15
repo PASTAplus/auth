@@ -4,21 +4,17 @@ import daiquiri
 import sqlalchemy
 import sqlalchemy.ext.asyncio
 import sqlalchemy.ext.asyncio
+import util.profile_cache
 
 from db.models.permission import Resource
-from db.models.search import (
-    RootResource,
-    PackageScope,
-    ResourceType,
-    SearchSession,
-    SearchResult,
-)
+from db.models.search import RootResource, PackageScope, ResourceType, SearchSession, SearchResult
+from db.models.permission import PermissionLevel, Rule
 
 # Package scope.identifier.revision
-# identifier.revision are the correct terms, though 'version' would probably be more correct
 PACKAGE_RX = '^[^.]+\.[0-9]+\.[0-9]+$'
 
 log = daiquiri.getLogger(__name__)
+
 
 # noinspection PyTypeChecker,PyUnresolvedReferences
 class SearchInterface:
@@ -199,7 +195,6 @@ class SearchInterface:
             uuid=uuid.uuid4().hex,
         )
         self._session.add(new_search_session)
-        await self.flush()
         return new_search_session
 
     #
@@ -243,10 +238,10 @@ class SearchInterface:
         try:
             search_session_row = await self.get_search_session(search_uuid)
         except sqlalchemy.exc.NoResultFound:
-            raise ValueError(f"Search session with UUID {search_uuid} not found.")
+            raise util.exc.SearchSessionNotFoundError()
 
         if search_session_row.profile_id != token_profile_row.id:
-            raise ValueError("Search session does not belong to the current user.")
+            raise util.exc.SearchSessionPermissionError()
 
         if await self._is_search_session_populated(search_session_row):
             return search_session_row
@@ -254,14 +249,19 @@ class SearchInterface:
         param_dict = search_session_row.search_params
         search_type = param_dict.get('search-type')
         if search_type == 'package-search':
-            return await self._populate_search_session_for_packages(search_session_row)
+            return await self._populate_search_session_for_packages(
+                token_profile_row, search_session_row
+            )
         elif search_type == 'general-search':
-            return await self._populate_search_session_for_general_resources(search_session_row)
+            return await self._populate_search_session_for_general_resources(
+                token_profile_row, search_session_row
+            )
         else:
             raise ValueError(f"Unknown search-type: {search_type}")
 
     async def _populate_search_session_for_packages(
         self,
+        token_profile_row,
         search_session_row,
     ):
         """Populate a search session with results from a package search."""
@@ -283,14 +283,17 @@ class SearchInterface:
         )
 
         if where_conditions:
-            where_clause = sqlalchemy.and_(*where_conditions)
+            range_where_clause = sqlalchemy.and_(*where_conditions)
         else:
-            where_clause = sqlalchemy.true()
+            range_where_clause = sqlalchemy.true()
 
-        return await self._populate_search_session(search_session_row, where_clause)
+        await self._populate_search_session(
+            token_profile_row, search_session_row, range_where_clause
+        )
 
     async def _populate_search_session_for_general_resources(
         self,
+        token_profile_row,
         search_session_row,
     ):
         """Populate a search session with results from a search for general resources."""
@@ -309,11 +312,13 @@ class SearchInterface:
             where_conditions.append(RootResource.label.like(label))
 
         if where_conditions:
-            where_clause = sqlalchemy.and_(*where_conditions)
+            range_where_clause = sqlalchemy.and_(*where_conditions)
         else:
-            where_clause = sqlalchemy.true()
+            range_where_clause = sqlalchemy.true()
 
-        return await self._populate_search_session(search_session_row, where_clause)
+        return await self._populate_search_session(
+            token_profile_row, search_session_row, range_where_clause
+        )
 
     async def _is_search_session_populated(self, search_session_row):
         """Check if a search session has any results populated"""
@@ -325,7 +330,7 @@ class SearchInterface:
         return result.scalar_one()
 
     def _parse_range_condition(self, range_str: str, column, field_name: str):
-        """Parse a range condition (e.g., '100', '100-200', '-100', '100-') and return WHERE
+        """Parse a range condition ('100', '100-200', '-100', '100-', '*') and return 'where'
         conditions."""
         if range_str and range_str != '*':
             id_tup = tuple((int(v) if v else None) for v in range_str.split('-'))
@@ -347,7 +352,45 @@ class SearchInterface:
                 raise ValueError(f'Invalid {field_name} format: {range_str}')
         return []
 
-    async def _populate_search_session(self, search_session_row, where_clause):
+    async def _populate_search_session(
+        self, token_profile_row, search_session_row, range_where_clause
+    ):
+        select_query = sqlalchemy.select(
+            search_session_row.id,
+            sqlalchemy.func.row_number()
+            .over(
+                order_by=(
+                    RootResource.package_scope,
+                    RootResource.package_id,
+                    RootResource.package_rev,
+                    RootResource.label,
+                    RootResource.type,
+                )
+            )
+            .label('sort_order'),
+            RootResource.resource_id.label('resource_id'),
+            RootResource.label.label('resource_label'),
+            RootResource.type.label('resource_type'),
+        ).where(range_where_clause)
+
+        if not util.profile_cache.is_superuser(token_profile_row):
+            select_query = (
+                select_query.join(
+                    Resource,
+                    Resource.id == RootResource.resource_id,
+                )
+                .join(
+                    Rule,
+                    Rule.resource_id == Resource.id,
+                )
+                .where(
+                    Rule.permission >= PermissionLevel.CHANGE,
+                    Rule.principal_id.in_(
+                        await self._get_equivalent_principal_id_query(token_profile_row)
+                    ),
+                )
+            )
+
         stmt = sqlalchemy.insert(SearchResult).from_select(
             [
                 'search_session_id',
@@ -356,24 +399,6 @@ class SearchInterface:
                 'resource_label',
                 'resource_type',
             ],
-            sqlalchemy.select(
-                search_session_row.id,
-                sqlalchemy.func.row_number()
-                .over(
-                    order_by=(
-                        RootResource.package_scope,
-                        RootResource.package_id,
-                        RootResource.package_rev,
-                        RootResource.label,
-                        RootResource.type,
-                    )
-                )
-                .label('sort_order'),
-                RootResource.resource_id.label('resource_id'),
-                RootResource.label.label('resource_label'),
-                RootResource.type.label('resource_type'),
-            ).where(where_clause),
+            select_query.distinct(),
         )
         await self._session.execute(stmt)
-        await self.flush()
-        return search_session_row

@@ -1,5 +1,4 @@
-"""Tests for the pasta_crypto module.
-"""
+"""Tests for the pasta_crypto module."""
 
 import Crypto.PublicKey.RSA
 import daiquiri

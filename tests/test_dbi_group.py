@@ -1,5 +1,4 @@
-"""Tests for group and group member management in the database interface
-"""
+"""Tests for group and group member management in the database interface"""
 
 import tests.sample
 import logging
@@ -23,9 +22,7 @@ log = logging.getLogger(__name__)
 
 async def test_create_group(populated_dbi, john_profile_row):
     """Create a new group -> new group, and a new resource with CHANGE for the creator"""
-    await populated_dbi.create_group(
-        john_profile_row, 'Test Group', 'Group Description'
-    )
+    await populated_dbi.create_group(john_profile_row, 'Test Group', 'Group Description')
 
 
 async def test_rule(populated_dbi, john_profile_row):

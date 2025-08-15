@@ -1,5 +1,4 @@
-"""Tests for v1 profile management APIs
-"""
+"""Tests for v1 profile management APIs"""
 
 import logging
 import pytest
@@ -53,7 +52,10 @@ async def test_create_profile_with_valid_token_but_not_vetted(populated_dbi, ser
     # response_dict['edi_id'] = '<Random EDI-ID>'
     # tests.sample.assert_match(response_dict, 'create_profile_with_valid_token.json')
 
-async def test_create_profile_with_valid_token_and_vetted(populated_dbi, service_client, service_profile_row):
+
+async def test_create_profile_with_valid_token_and_vetted(
+    populated_dbi, service_client, service_profile_row
+):
     """createProfile()
     Successful call -> A new profile with a new EDI_ID
     """
@@ -273,5 +275,3 @@ async def test_delete_profile_by_owner_with_invalid_edi_id(john_client):
     """
     response = john_client.delete(f'/v1/profile/invalid-edi-id')
     assert response.status_code == starlette.status.HTTP_404_NOT_FOUND
-
-

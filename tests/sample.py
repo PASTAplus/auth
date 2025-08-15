@@ -10,6 +10,7 @@ will then cause the test to pass or fail respectively.
 
 Install the `meld` command with `apt install meld`.
 """
+
 import json
 import logging
 import pathlib

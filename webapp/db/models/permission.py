@@ -41,7 +41,10 @@ class Resource(db.models.base.Base):
     # Nodes in the resource tree can be either a parent or a child of other nodes.
     # The parent of this resource. If this is null, this resource is a root node.
     parent_id = sqlalchemy.Column(
-        sqlalchemy.Integer, sqlalchemy.ForeignKey('resource.id', ondelete='CASCADE'), nullable=True, index=True
+        sqlalchemy.Integer,
+        sqlalchemy.ForeignKey('resource.id', ondelete='CASCADE'),
+        nullable=True,
+        index=True,
     )
     # The unique identifier for the resource.
     # E.g., for packages and entities objects, The PASTA URL of the resource
@@ -62,9 +65,7 @@ class Resource(db.models.base.Base):
         #     cascade='all, delete-orphan',
     )
 
-    parent = sqlalchemy.orm.relationship(
-        'Resource', remote_side=[id], lazy='select'
-    )
+    parent = sqlalchemy.orm.relationship('Resource', remote_side=[id], lazy='select')
 
 
 class Principal(db.models.base.Base):

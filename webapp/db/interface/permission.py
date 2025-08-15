@@ -9,7 +9,7 @@ Some terms:
     - Rule / Permission: An access control rule that grants access to a principal for a resource at
         a certain level (READ, WRITE, CHANGE).
     - Permission Level: The level of access granted by a permission (READ, WRITE, CHANGE).
-    
+
 The resources of interest will always be a cross-section of:
 
     - a set of resources (e.g., a single resource, resources in the same tree, or found in a search)
@@ -32,6 +32,7 @@ The resources of interest will always be a cross-section of:
     authorized subject, and maybe a couple of group memberships. Still, the DB should be able to
     handle thousands of equivalent principals efficiently, should someone want that in the future.
 """
+
 import re
 
 import daiquiri
@@ -147,7 +148,10 @@ class PermissionInterface:
 
         if parent_key:
             # Check permission on the new parent resource.
-            parent_row = await self.get_resource(parent_key)
+            try:
+                parent_row = await self.get_resource(parent_key)
+            except sqlalchemy.exc.NoResultFound:
+                raise util.exc.ResourceDoesNotExistError(parent_key)
             if not await self.is_authorized(token_profile_row, parent_row, PermissionLevel.WRITE):
                 raise util.exc.ResourcePermissionDeniedError(
                     token_profile_row.edi_id, parent_key, PermissionLevel.WRITE
@@ -597,80 +601,22 @@ class PermissionInterface:
         # db.models.permission.Resource(id=row[0], label=row[1], type=row[2], parent_id=row[3])
         return {int(row[0]) for row in result.scalars()}
 
-    # async def get_resource_generator(self, token_resource_row, resource_ids, permission_level):
-    #     """Yield resources with associated ACRs for a list of resources."""
-    #     for i in range(0, len(resource_ids), Config.DB_CHUNK_SIZE):
-    #         resource_chunk_list = resource_ids[i : i + Config.DB_CHUNK_SIZE]
-    #
-    #         stmt = (
-    #             sqlalchemy.select(
-    #                 Resource,
-    #                 Rule,
-    #                 Principal,
-    #                 db.models.profile.Profile,
-    #                 db.models.group.Group,
-    #             )
-    #             .select_from(Resource)
-    #             .join(
-    #                 Rule,
-    #                 Rule.resource_id == Resource.id,
-    #             )
-    #             .join(
-    #                 Principal,
-    #                 Principal.id == Rule.principal_id,
-    #             )
-    #             .outerjoin(
-    #                 db.models.profile.Profile,
-    #                 sqlalchemy.and_(
-    #                     db.models.profile.Profile.id == Principal.subject_id,
-    #                     Principal.subject_type == SubjectType.PROFILE,
-    #                 ),
-    #             )
-    #             .outerjoin(
-    #                 db.models.group.Group,
-    #                 sqlalchemy.and_(
-    #                     db.models.group.Group.id == Principal.subject_id,
-    #                     Principal.subject_type == SubjectType.GROUP,
-    #                 ),
-    #             )
-    #             .where(
-    #                 Resource.id.in_(resource_chunk_list),
-    #                 sqlalchemy.or_(
-    #                     util.profile_cache.is_superuser(token_resource_row),
-    #                     sqlalchemy.and_(
-    #                         Rule.permission >= permission_level,
-    #                         Principal.id.in_(
-    #                             await self._get_equivalent_principal_id_query(token_resource_row),
-    #                         ),
-    #                     ),
-    #                 ),
-    #             )
-    #         )
-    #         result = await self._session.stream(stmt)
-    #         # async for row in result.scalars():
-    #         async for row in result.yield_per(Config.DB_YIELD_ROWS):
-    #             yield row
-
-    async def get_resource_generator(self, token_resource_row, resource_ids, permission_level):
-        """Yield resources with associated ACRs for a list of resource IDs.
-
-        Only resources for which the token_resource_row has the required permission level or higher
-        will be returned.
-
-        This method handles untrusted user input, and should be applied to all resource IDs
+    async def get_resource_filter_gen(self, token_profile_row, resource_ids, permission_level):
+        """Yield resources with associated ACRs for a list of resource IDs, filtered by permission.
+        - Filters a list of resource IDs to only those for which the token has the required
+        permission level or higher.
+        - This method handles untrusted user input, and should be applied to all resource IDs
         originating from the APIs and the UI.
-
-        Any resource IDs for which the token_resource_row does not have the required permission
-        level or higher, or which does not exist, will be silently ignored.
+        - Any non-existing resource IDs are silently ignored.
         """
         # Normally, there will be no duplicated resource IDs in the list, but we dedup here just in
         # case.
         resource_ids = list(set(resource_ids))
 
-        is_superuser = util.profile_cache.is_superuser(token_resource_row)
+        is_superuser = util.profile_cache.is_superuser(token_profile_row)
 
         equivalent_principal_id_list = (
-            (await self.execute(await self._get_equivalent_principal_id_query(token_resource_row)))
+            (await self.execute(await self._get_equivalent_principal_id_query(token_profile_row)))
             .scalars()
             .all()
         )
@@ -678,7 +624,7 @@ class PermissionInterface:
         for i in range(0, len(resource_ids), Config.DB_CHUNK_SIZE):
             resource_id_chunk_list = resource_ids[i : i + Config.DB_CHUNK_SIZE]
 
-            # Filter the resource IDs to only include those for which the token_resource_row has the
+            # Filter the resource IDs to only include those for which the token_profile_row has the
             # required permission level or higher. For superusers, all resource IDs are
             # included.
             filter_subquery = (
@@ -915,8 +861,14 @@ class PermissionInterface:
             )
             .where(
                 sqlalchemy.or_(
-                    Profile.edi_id == edi_id,
-                    db.models.group.Group.edi_id == edi_id,
+                    sqlalchemy.and_(
+                        Principal.subject_type == SubjectType.PROFILE,
+                        Profile.edi_id == edi_id,
+                    ),
+                    sqlalchemy.and_(
+                        Principal.subject_type == SubjectType.GROUP,
+                        db.models.group.Group.edi_id == edi_id,
+                    ),
                 )
             )
         )

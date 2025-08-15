@@ -300,7 +300,7 @@ function fetchBlock(blockIdx, version)
   if (blockPromises.has(blockIdx)) {
     return blockPromises.get(blockIdx).promise;
   }
-  const url = new URL(`${BASE_PATH}/ui/api/permission/block`, window.location.origin);
+  const url = new URL(`${BASE_PATH}/ui/api/permission/slice`, window.location.origin);
   url.search = new URLSearchParams({
     uuid: SEARCH_UUID,
     start: (blockIdx * blockSize).toString(),

@@ -1,5 +1,4 @@
-"""Misc API endpoints
-"""
+"""Misc API endpoints"""
 
 import fastapi
 import starlette.requests

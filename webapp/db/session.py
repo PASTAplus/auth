@@ -14,6 +14,7 @@ log = daiquiri.getLogger(__name__)
 # Global variable to hold the engine instance
 _async_engine = None
 
+
 def get_async_engine():
     """Get the async engine instance, creating it if it doesn't exist."""
     global _async_engine
@@ -21,10 +22,12 @@ def get_async_engine():
         _async_engine = create_default_async_engine()
     return _async_engine
 
+
 def set_async_engine(engine):
     """Set a custom async engine (useful for testing)."""
     global _async_engine
     _async_engine = engine
+
 
 def create_default_async_engine():
     """Create the default async engine with production configuration."""
@@ -46,6 +49,7 @@ def create_default_async_engine():
 
     return engine
 
+
 def _setup_query_profiling(engine):
     """Setup query profiling event listeners."""
     log.info('Enabling query profiling')
@@ -60,6 +64,7 @@ def _setup_query_profiling(engine):
         logging.info(f'Query: {statement}')
         logging.info(f'Parameters: {parameters}')
         logging.info(f'Completed in {total_time:.2f} seconds')
+
 
 # Session factory using the engine getter
 def get_session_factory():

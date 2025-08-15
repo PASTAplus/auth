@@ -1,5 +1,5 @@
-"""EML API v1: Bulk resource creation via EML
-"""
+"""EML API v1: Bulk resource creation via EML"""
+
 import re
 import uuid
 

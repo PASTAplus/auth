@@ -1,5 +1,5 @@
-"""Tests for identity management in the database interface
-"""
+"""Tests for identity management in the database interface"""
+
 import pytest
 import sqlalchemy.exc
 import db.models.identity

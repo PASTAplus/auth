@@ -6,10 +6,10 @@ import sqlalchemy.ext.asyncio
 import sqlalchemy.orm
 
 import db.interface.util
+import util.profile_cache
 from config import Config
 from db.models.group import Group, GroupMember
 from db.models.permission import SubjectType, Resource, Rule, PermissionLevel, Principal
-from util.profile_cache import is_superuser
 
 log = daiquiri.getLogger(__name__)
 
@@ -78,7 +78,7 @@ class GroupInterface:
         stmt = sqlalchemy.select(Group).where(
             Group.id == group_id,
         )
-        if not is_superuser(token_profile_row):
+        if not util.profile_cache.is_superuser(token_profile_row):
             stmt = (
                 stmt.join(
                     Resource,
@@ -111,7 +111,7 @@ class GroupInterface:
             sqlalchemy.asc(Group.created),
             Group.id,
         )
-        if not is_superuser(token_profile_row):
+        if not util.profile_cache.is_superuser(token_profile_row):
             stmt = (
                 stmt.join(
                     Resource,
@@ -184,7 +184,7 @@ class GroupInterface:
 
     async def is_vetted(self, token_profile_row):
         """Check if a profile is in the Vetted system group or is a superuser."""
-        if is_superuser(token_profile_row):
+        if util.profile_cache.is_superuser(token_profile_row):
             return True
         result = await self.execute(
             sqlalchemy.select(
@@ -224,8 +224,7 @@ class GroupInterface:
         return result.scalars().all()
 
     async def get_group_member_count(self, token_profile_row, group_id):
-        """Get the number of members in a group.
-        """
+        """Get the number of members in a group."""
         group_row = await self.get_owned_group(token_profile_row, group_id)
         result = await self.execute(
             sqlalchemy.select(sqlalchemy.func.count(GroupMember.id)).where(

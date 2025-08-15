@@ -1,6 +1,7 @@
 """Token API v1: Manage EDI tokens
 Docs:./docs/api/token.md
 """
+
 import fastapi
 import jwt
 import sqlalchemy.exc

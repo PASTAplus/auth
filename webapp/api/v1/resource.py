@@ -236,7 +236,7 @@ async def get_v1_resource(
         resource_id_list.append(descendant_id)
     resource_list = [
         r
-        async for r in dbi.get_resource_generator(
+        async for r in dbi.get_resource_filter_gen(
             token_profile_row, resource_id_list, db.models.permission.PermissionLevel.READ
         )
     ]
