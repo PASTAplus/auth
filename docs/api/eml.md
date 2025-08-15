@@ -11,17 +11,17 @@ This document describes the API for managing permissions via EML documents.
 
 ## Add EML Document
 
-Parse a valid EML document, create a corresponding data package resource tree, and add its ACRs to the ACR registry for the resources identified in the EML document. The authentication token subject defines the owner of all associated resources.
+Parse a valid EML document, create a corresponding data package resource tree, and add its ACRs to the ACR registry for the resources identified in the EML document. The authentication token subject defines the owner, which receives "changePermission" on all associated resources.
 
-Notes: 
+The key_prefix sets the prefix for the resource keys for the package root resource and the Metadata branch of the resource tree. E.g., `https://pasta.lternet.edu` (note: no ending slash). For the entities in the Data branch of the resource tree, the full key is read from the `/physical/distribution/online/url` element of each entity.
 
-- This use case supports the existing PASTA data package upload process. Parsing and extracting ACRs from the EML document will require supporting ACRs in both the main EML document and the additional metadata section. The principal owner of the data package is not currently represented in the existing `access_matrix`. However, this should change for consistency: the principal owner (identified by the authentication token subject) should be added to the ACR registry with the "changePermission" permission. This method should create a data package resource tree.
 ```
 POST: /auth/v1/eml
 
 addEML(
-    edi_token: the token of the requesting client
-    eml: valid EML document as a string
+    edi_token
+    eml: Valid EML XML document
+    key_prefix: Prefix for the package root and Metadata resource keys ()
 )
 
 Returns:

@@ -21,11 +21,11 @@ from config import Config
 
 router = fastapi.APIRouter(prefix='/v1')
 
-NS_DICT = {
-    'eml': 'https://eml.ecoinformatics.org/eml-2.2.0',
-    'pasta': 'pasta://pasta.edirepository.org/service-0.1',
-    'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-}
+# NS_DICT = {
+#     'eml': 'https://eml.ecoinformatics.org/eml-2.2.0',
+#     'pasta': 'pasta://pasta.edirepository.org/service-0.1',
+#     'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+# }
 
 SYSTEM_PRINCIPAL_MAP = {
     'public': Config.PUBLIC_EDI_ID,
@@ -39,23 +39,9 @@ PERMISSION_LEVEL_MAP = {
     'all': db.models.permission.PermissionLevel.CHANGE,
 }
 
-# 12d64e299f434a99ae43552ce247723b
-# https://pasta-d.lternet.edu/package/data/eml/knb-lter-arc/1406/6/bd3c0df24143a8a7eb72e01bc879df20
-# https://pasta-d.lternet.edu/package/eml/knb-lter-arc/1402/6
-# https://pasta-d.lternet.edu/package/metadata/eml/knb-lter-bes/584/301
-# https://pasta-d.lternet.edu/package/report/eml/knb-lter-arc/1400/7
-
-BASE_KEY = 'https://pasta-d.lternet.edu/package'
-PACKAGE_KEY_FORMAT = f'{BASE_KEY}/eml/{{scope}}/{{identity}}/{{revision}}'
-EML_KEY_FORMAT = f'{BASE_KEY}/metadata/eml/{{scope}}/{{identity}}/{{revision}}'
-DATA_KEY_FORMAT = f'{BASE_KEY}/data/eml/{{scope}}/{{identity}}/{{revision}}/{{authentication}}'
-REPORT_KEY_FORMAT = f'{BASE_KEY}/report/eml/{{scope}}/{{identity}}/{{revision}}'
-
-# Register the namespaces globally. This affects serialization and deserialization, not methods like
-# xpath().
-for k, v in NS_DICT.items():
-    lxml.etree.register_namespace(k, v)
-
+PACKAGE_KEY_FORMAT = '{}/package/eml/{}/{}/{}'
+EML_KEY_FORMAT = '{}/package/metadata/eml/{}/{}/{}'
+REPORT_KEY_FORMAT = '{}/package/report/eml/{}/{}/{}'
 
 log = daiquiri.getLogger(__name__)
 
@@ -67,9 +53,9 @@ async def post_v1_eml(
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """addEML(): Create a resource for access control
-
     (1) If no access rules at all, only the owner has access to the package resources
-    (2) If access rules only at the dataset level, then those access rules apply to any and all data entities
+    (2) If access rules only at the dataset level, then those access rules apply to any and all data
+    entities
     (3) If any data entity has an access rule, then it takes precedence over data set rules
     (4) If a user has READ or higher permission on a data entity, but not at the dataset level, they
     will still be denied access to the data entity
@@ -93,6 +79,7 @@ async def post_v1_eml(
     # Check that the request contains the required fields
     try:
         eml_str = request_dict['eml']
+        key_prefix = request_dict['key_prefix']
     except KeyError as e:
         return api.utils.get_response_400_bad_request(
             request, api_method, f'Missing field in JSON in request body: {e}'
@@ -106,21 +93,16 @@ async def post_v1_eml(
         )
     # Create resources and permissions for the EML
     try:
-        await create_eml_permissions(token_profile_row, dbi, eml_etree)
-    except sqlalchemy.exc.IntegrityError as e:
-        await dbi.rollback()
-        return api.utils.get_response_400_bad_request(
-            request, api_method, f'Error creating EML resource: {e}'
-        )
+        await create_eml_permissions(token_profile_row, dbi, key_prefix, eml_etree)
     except util.exc.EmlError as e:
         await dbi.rollback()
         return api.utils.get_response_400_bad_request(
-            request, api_method, f'Error creating EML resource: {e}'
+            request, api_method, f'Error creating resource: {e}'
         )
-    return api.utils.get_response_200_ok(request, api_method, 'EML resources created successfully')
+    return api.utils.get_response_200_ok(request, api_method, 'Resources created successfully')
 
 
-async def create_eml_permissions(token_profile_row, dbi, eml_etree):
+async def create_eml_permissions(token_profile_row, dbi, key_prefix, eml_etree):
     # <eml:eml packageId="icarus.3.1" system="https://pasta.edirepository.org"
     # get the packageId
     package_id = eml_etree.get('packageId')
@@ -139,7 +121,7 @@ async def create_eml_permissions(token_profile_row, dbi, eml_etree):
     # all cases where there's no entity level access element.
     root_access_el = eml_etree.find('access')
     # Create the root resource for the package.
-    package_key = PACKAGE_KEY_FORMAT.format(scope=scope, identity=identity, revision=revision)
+    package_key = PACKAGE_KEY_FORMAT.format(key_prefix, scope, identity, revision)
     package_resource_row = await _create_permission(
         token_profile_row,
         dbi,
@@ -163,7 +145,7 @@ async def create_eml_permissions(token_profile_row, dbi, eml_etree):
         token_profile_row,
         dbi,
         metadata_resource_row,
-        EML_KEY_FORMAT.format(scope=scope, identity=identity, revision=revision),
+        EML_KEY_FORMAT.format(key_prefix, scope, identity, revision),
         'EML Metadata',
         'metadata',
         root_access_el,
@@ -172,7 +154,7 @@ async def create_eml_permissions(token_profile_row, dbi, eml_etree):
         token_profile_row,
         dbi,
         metadata_resource_row,
-        REPORT_KEY_FORMAT.format(scope=scope, identity=identity, revision=revision),
+        REPORT_KEY_FORMAT.format(key_prefix, scope, identity, revision),
         'Quality Report',
         'report',
         root_access_el,
@@ -191,12 +173,14 @@ async def create_eml_permissions(token_profile_row, dbi, eml_etree):
     # and otherEntity). The <dataset> element contains many direct children which we are not
     # interested in. We are only interested in data entities, which we find by checking for an
     # <entityName> child.
-    for entity_name_el in eml_etree.xpath('/eml:eml/dataset/*/entityName', namespaces=NS_DICT):
+    for entity_name_el in eml_etree.xpath('.//dataset/*/entityName'):
         log.debug(f'Processing entity: {entity_name_el.text}')
         # We can now go up to the parent element, which is a data entity element.
         data_entity_el = entity_name_el.getparent()
         # Then down to physical/authentication element.
         physical_el = data_entity_el.find('physical')
+        # The physical element and its children are optional in the EML schema, so we need to check
+        # if they exist.
         if physical_el is None:
             raise util.exc.EmlError(
                 f'No <physical> element found for entity: {entity_name_el.text}'
@@ -206,9 +190,12 @@ async def create_eml_permissions(token_profile_row, dbi, eml_etree):
             raise util.exc.EmlError(
                 f'No <authentication> element found for entity: {entity_name_el.text}'
             )
+        url_el = physical_el.find('distribution/online/url')
+        if url_el is None:
+            raise util.exc.EmlError(f'No <url> element found for entity: {entity_name_el.text}')
         try:
             # Get the data entity's access element, if it exists.
-            data_access_el = physical_el.xpath('distribution/access', namespaces=NS_DICT)[0]
+            data_access_el = physical_el.xpath('distribution/access')[0]
             # This entity has its own access element. To ensure that the entity can be reached, we
             # apply the access element to the parents, up to the root, as well.
             await _create_rules(dbi, data_resource_row, data_access_el)
@@ -222,12 +209,7 @@ async def create_eml_permissions(token_profile_row, dbi, eml_etree):
             token_profile_row,
             dbi,
             data_resource_row,
-            DATA_KEY_FORMAT.format(
-                scope=scope,
-                identity=identity,
-                revision=revision,
-                authentication=authentication_el.text,
-            ),
+            url_el.text,
             entity_name_el.text,
             'data',
             data_access_el,
@@ -236,6 +218,12 @@ async def create_eml_permissions(token_profile_row, dbi, eml_etree):
 
 async def _create_permission(token_profile_row, dbi, parent_row, key, label, type_str, access_el):
     log.debug(f'Creating resource: {key} - ({label} - {type_str})')
+    # Check if the resource already exists
+    try:
+        await dbi.get_resource(key)
+        raise util.exc.EmlError(f'Resource already exists. key="{key}"')
+    except sqlalchemy.exc.NoResultFound:
+        pass
     resource_row = await dbi.create_owned_resource(
         token_profile_row, parent_row.id if parent_row else None, key, label, type_str
     )
@@ -248,7 +236,7 @@ async def _create_permission(token_profile_row, dbi, parent_row, key, label, typ
 async def _create_rules(dbi, resource_row, access_el):
     """Create rules for the given resource based on the access element."""
     # Iterate over allow elements
-    for allow_el in access_el.xpath('allow', namespaces=NS_DICT):
+    for allow_el in access_el.xpath('allow'):
         # print(f'  Access System: {access.get("system")}')
         # print(f'  Auth System: {access.get("authSystem")}')
         # print(f'  Order: {access.get("order")}')
