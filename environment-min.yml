@@ -25,3 +25,4 @@ dependencies:
   - sqlite
   - urllib3
   - uvicorn
+  - lxml
