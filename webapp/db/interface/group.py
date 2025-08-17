@@ -191,18 +191,7 @@ class GroupInterface:
         """Check if a profile is in the Vetted system group or is a superuser."""
         if util.profile_cache.is_superuser(token_profile_row):
             return True
-        result = await self.execute(
-            sqlalchemy.select(
-                sqlalchemy.exists().where(
-                    GroupMember.profile_id == token_profile_row.id,
-                    GroupMember.group_id
-                    == sqlalchemy.select(Group.id).where(
-                        Group.edi_id == Config.VETTED_GROUP_EDI_ID
-                    ),
-                )
-            )
-        )
-        return result.scalar_one()
+        return await self.is_in_group(token_profile_row, await self.get_vetted_group())
 
     async def is_in_group(self, profile_row, group_row):
         """Check if a profile is a member of a group."""

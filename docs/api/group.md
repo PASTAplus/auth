@@ -38,7 +38,7 @@ Permissions:
 
 ### Examples
 
-Adding 2 user profiles (EDI-1234 and EDI-0987) to group EDI-99cd:
+Adding user profile EDI-1234 to group EDI-99cd:
 
 ```shell
 curl -X POST https://auth.edirepository.org/auth/v1/group/EDI-99cda3eb50ab4699971c99c55c11a15f/EDI-1234567890abcdef1234567890abcdef \

@@ -104,12 +104,16 @@ class Rule(db.models.base.Base):
         sqlalchemy.Integer, sqlalchemy.ForeignKey('principal.id'), nullable=False, index=True
     )
     # The access level granted by this permission (enum of READ, WRITE or CHANGE).
-    permission = sqlalchemy.Column(sqlalchemy.Enum(PermissionLevel), nullable=False, default=1)
+    permission = sqlalchemy.Column(
+        sqlalchemy.Enum(PermissionLevel), nullable=False, default=PermissionLevel.READ
+    )
     # The date and time this permission was granted.
     granted_date = sqlalchemy.Column(
         sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now
     )
     __table_args__ = (
+        # Ensuring that resource_id and principal_id are unique together makes it impossible to
+        # create multiple permission levels for the same principal on the same resource.
         sqlalchemy.UniqueConstraint('resource_id', 'principal_id', name='resource_profile_unique'),
     )
 

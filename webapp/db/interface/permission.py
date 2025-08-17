@@ -305,6 +305,10 @@ class PermissionInterface:
         # need to make sure that the principal has the permissions required in order to be able to
         # walk down the tree to their resources.
 
+
+        # TODO: Check permissions on parents before updating?
+
+
         async def _find_parent_ids(resource_id_):
             result_ = await self.execute(
                 sqlalchemy.select(Resource.parent_id).where(Resource.id == resource_id_)
@@ -324,6 +328,7 @@ class PermissionInterface:
             except sqlalchemy.exc.NoResultFound:
                 log.warning(f'Resource with ID "{parent_id}" does not exist, skipping.')
                 continue
+
             if not await self.is_authorized(token_profile_row, resource_row, permission_level):
                 await self.create_or_update_rule(
                     resource_row, token_profile_row.principal, permission_level

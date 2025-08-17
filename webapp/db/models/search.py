@@ -93,7 +93,10 @@ class SearchResult(db.models.base.Base):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     # The search session this result belongs to.
     search_session_id = sqlalchemy.Column(
-        sqlalchemy.Integer, sqlalchemy.ForeignKey('search_session.id'), nullable=False
+        sqlalchemy.Integer,
+        sqlalchemy.ForeignKey('search_session.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
     )
     # Sort order for the search result within the session.
     sort_order = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, index=False)

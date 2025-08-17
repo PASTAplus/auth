@@ -1,14 +1,16 @@
+import datetime
 import uuid
 
 import daiquiri
 import sqlalchemy
 import sqlalchemy.ext.asyncio
 import sqlalchemy.ext.asyncio
-import util.profile_cache
 
+import util.profile_cache
+from config import Config
+from db.models.permission import PermissionLevel, Rule
 from db.models.permission import Resource
 from db.models.search import RootResource, PackageScope, ResourceType, SearchSession, SearchResult
-from db.models.permission import PermissionLevel, Rule
 
 # Package scope.identifier.revision
 PACKAGE_RX = '^[^.]+\.[0-9]+\.[0-9]+$'
@@ -188,7 +190,10 @@ class SearchInterface:
         token_profile_row,
         search_params: dict,
     ):
-        """Create a new search session"""
+        """Create a new search session.
+        - This also cleans up expired search sessions.
+        """
+        await self._expire_search_sessions()
         new_search_session = SearchSession(
             profile=token_profile_row,
             search_params=search_params,
@@ -202,10 +207,14 @@ class SearchInterface:
     #
 
     async def get_search_session(self, search_uuid: str):
-        """Get a search session by UUID"""
+        """Get a search session by UUID.
+        - This also updates the accessed timestamp.
+        """
         stmt = sqlalchemy.select(SearchSession).where(SearchSession.uuid == search_uuid)
         result = await self._session.execute(stmt)
-        return result.scalar_one()
+        session_row = result.scalar_one()
+        session_row.accessed = datetime.datetime.now()
+        return session_row
 
     async def get_search_result_count(self, search_uuid: str):
         """Get the count of search results for a given search session UUID"""
@@ -235,6 +244,9 @@ class SearchInterface:
         token_profile_row,
         search_uuid: str,
     ):
+        """Populate a search session with results based on the search parameters.
+        - If the search session is already populated, it returns the existing session.
+        """
         try:
             search_session_row = await self.get_search_session(search_uuid)
         except sqlalchemy.exc.NoResultFound:
@@ -401,4 +413,11 @@ class SearchInterface:
             ],
             select_query.distinct(),
         )
+        await self._session.execute(stmt)
+
+    async def _expire_search_sessions(self):
+        """Expire search sessions that are older than the configured expiration delta."""
+        expiration_dt = datetime.datetime.now() - Config.SEARCH_SESSION_EXPIRATION_DELTA
+        # Search results are deleted by foreign key cascade.
+        stmt = sqlalchemy.delete(SearchSession).where(SearchSession.accessed < expiration_dt)
         await self._session.execute(stmt)

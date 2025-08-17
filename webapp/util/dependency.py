@@ -26,7 +26,7 @@ log = daiquiri.getLogger(__name__)
 @contextlib.asynccontextmanager
 async def get_session():
     async with db.session.get_session_factory()() as session:
-        log.debug('Created a new SQLAlchemy AsyncSession')
+        # log.debug('Created a new SQLAlchemy AsyncSession')
         # This context manager handles the session lifecycle, including committing or rolling back
         # transactions and closing the session.
         async with session.begin():

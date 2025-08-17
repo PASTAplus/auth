@@ -135,6 +135,18 @@ class Config(object):
     # Maximum number of results that can be returned in search for user and group members.
     SEARCH_LIMIT = 5
 
+    # Amount of time to keep a search session in the database.
+    # - The only likely way someone would access an expired session is by bookmarking the URL
+    # directly to the Permissions page.
+    # - Normally, a session will not be accessed again after the user's short-lived authentication
+    # token expires.
+    # - If a user tries to access a session after it has expired, they will be redirected to the
+    # search page to start a new search.
+    # - Each time a session is accessed, the expiration time is reset, so a session will remain
+    # available as long as it's accessed more often than this delta.
+    # - Expired sessions are checked for and removed each time a new search is started.
+    SEARCH_SESSION_EXPIRATION_DELTA = datetime.timedelta(days=30)
+
     # Maximum number of trees (mostly packages) that can be returned to the browser.
     # This is to limit the number of DOM elements that must be created by the browser in order to
     # render the tree. It's recommended that the number of DOM elements is kept well below 10,000,
