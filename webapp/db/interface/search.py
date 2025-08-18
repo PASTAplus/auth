@@ -89,7 +89,9 @@ class SearchInterface:
         await self._session.execute(stmt)
 
     async def get_search_resource_types(self):
-        """Get all resource types that can be used in a search (see criteria in init)"""
+        """Get all resource types that can be used in a non-package search.
+        - Only types of non-package root resources are returned.
+        """
         stmt = sqlalchemy.select(ResourceType).order_by(ResourceType.type)
         result = await self._session.execute(stmt)
         return result.scalars().all()
@@ -256,7 +258,7 @@ class SearchInterface:
             raise util.exc.SearchSessionPermissionError()
 
         if await self._is_search_session_populated(search_session_row):
-            return search_session_row
+            return
 
         param_dict = search_session_row.search_params
         search_type = param_dict.get('search-type')
@@ -282,7 +284,9 @@ class SearchInterface:
         identifier = param_dict.get('identifier')
         revision = param_dict.get('revision')
 
-        where_conditions = []
+        where_conditions = [
+            RootResource.type == 'package',
+        ]
 
         if scope:
             where_conditions.append(RootResource.package_scope == scope)
@@ -313,10 +317,15 @@ class SearchInterface:
         type_str = search_params.get('type')
         label = search_params.get('label')
 
-        where_conditions = []
+        where_conditions = [
+        ]
 
         if type_str:
+            # The user selected a specific type. The available selections do not include 'package'
             where_conditions.append(RootResource.type == type_str)
+        else:
+            # The user selected 'ALL' types
+            where_conditions.append(RootResource.type != 'package')
 
         if label:
             # Translate wildcards in label to SQL wildcards.
@@ -324,12 +333,12 @@ class SearchInterface:
             where_conditions.append(RootResource.label.like(label))
 
         if where_conditions:
-            range_where_clause = sqlalchemy.and_(*where_conditions)
+            where_clause = sqlalchemy.and_(*where_conditions)
         else:
-            range_where_clause = sqlalchemy.true()
+            where_clause = sqlalchemy.true()
 
         return await self._populate_search_session(
-            token_profile_row, search_session_row, range_where_clause
+            token_profile_row, search_session_row, where_clause
         )
 
     async def _is_search_session_populated(self, search_session_row):

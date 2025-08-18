@@ -37,7 +37,7 @@ The container wraps everything on the page except for the navbar.
     flex-direction: column;
     height: calc(100vh - var(--navbar-height) - 1rem);
     /* Include padding and border in element's total width and height */
-    box-sizing: border-box; 
+    box-sizing: border-box;
     /* Prevent scrollbars on main page */
     overflow: hidden;
 }
@@ -78,7 +78,7 @@ The container wraps everything on the page except for the navbar.
 
 .panel + .panel {
     /* Space between panels */
-    margin-left: 1rem; 
+    margin-left: 1rem;
 }
 
 /*

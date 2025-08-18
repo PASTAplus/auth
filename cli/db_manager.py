@@ -54,6 +54,7 @@ async def main():
     subparsers.add_parser('create', help='Create database tables and objects')
     subparsers.add_parser('drop', help='Drop database tables and objects')
     subparsers.add_parser('clear', help='Clear user data from tables but keep schema unmodified')
+    subparsers.add_parser('update', help='Update ')
     args = parser.parse_args()
 
     if args.command is None:
@@ -67,10 +68,14 @@ async def main():
         format='%(asctime)s - %(levelname)s - %(message)s',
     )
 
-    action_str = {'create': 'Create', 'drop': 'Drop', 'clear': 'Clear'}.get(args.command)
+    action_str = {
+        'create': 'Create all tables and other objects',
+        'drop': 'Drop all tables and other objects',
+        'clear': 'Clear all user data from tables but keep schema unmodified',
+        'update': 'Update all functions and triggers but keep tables and other objects unchanged',
+    }.get(args.command)
     answer_str = input(
-        f'{action_str} all tables and other objects in the '
-        f'{"TEST" if args.test else "PRODUCTION"} database? (y/n): '
+        f'{action_str} in the {"TEST" if args.test else "PRODUCTION"} database? (y/n): '
     )
     if answer_str.lower() != 'y':
         log.info('Cancelled')
@@ -121,6 +126,8 @@ async def main():
                 # await drop_tables_by_metadata(dbi)
             elif args.command == 'clear':
                 await clear_db(dbi)
+            elif args.command == 'update':
+                await update_functions_and_triggers(dbi)
             else:
                 log.error(f'Unknown command: {args.command}')
                 return 1
@@ -139,6 +146,10 @@ async def create_db(dbi):
     await _create_tables(dbi)
     await _create_system_profiles(dbi)
     await _create_system_groups(dbi)
+    await update_functions_and_triggers(dbi)
+
+
+async def update_functions_and_triggers(dbi):
     await _create_function_get_resource_descendants(dbi)
     await _create_function_get_resource_ancestors(dbi)
     await _create_sync_triggers(dbi)
@@ -349,7 +360,7 @@ async def _create_search_package_scopes_trigger(dbi):
 
 async def _create_search_resource_type_trigger(dbi):
     """Create a trigger to update the search_resource_type table with any new resource type when a
-    resource is created or updated.
+    non-package root resource is created or updated.
     """
     await dbi.execute(
         sqlalchemy.text(
@@ -359,10 +370,11 @@ async def _create_search_resource_type_trigger(dbi):
             language plpgsql
             as $body$
             begin
-                insert into search_resource_type (type)
-                values (new.type)
-                on conflict (type) do nothing;
-
+                if new.parent_id is null and new.type != 'package' then
+                    insert into search_resource_type (type)
+                    values (new.type)
+                    on conflict (type) do nothing;
+                end if;
                 return null;
             end;
             $body$;
