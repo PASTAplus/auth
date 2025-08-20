@@ -305,9 +305,7 @@ class PermissionInterface:
         # need to make sure that the principal has the permissions required in order to be able to
         # walk down the tree to their resources.
 
-
         # TODO: Check permissions on parents before updating?
-
 
         async def _find_parent_ids(resource_id_):
             result_ = await self.execute(

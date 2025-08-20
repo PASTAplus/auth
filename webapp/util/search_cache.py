@@ -5,6 +5,7 @@ search and avoid hitting the database each time the user presses a key, we cache
 groups in memory.
 """
 
+import sqlalchemy.exc
 import re
 
 import daiquiri
@@ -71,7 +72,7 @@ async def init_profiles(dbi):
 async def init_groups(dbi):
     group_list = cache['group_list']
     group_list.clear()
-    async for group_row in dbi.get_all_groups_generator():
+    async for group_row, principal_row in dbi.get_all_groups_generator():
         key_tup = (
             group_row.name,
             group_row.description,
@@ -83,7 +84,7 @@ async def init_groups(dbi):
             (
                 tuple(s.lower() for s in key_tup if s is not None),
                 {
-                    'principal_id': group_row.id,
+                    'principal_id': principal_row.id,
                     'principal_type': 'group',
                     'edi_id': group_row.edi_id,
                     'title': group_row.name,

@@ -36,7 +36,7 @@ async def get_ui_permission_search(
     token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    """Permission Search page.
+    """Permissions Search page.
     - This page is opened when the user clicks on the "Permission" main menu.
     """
     return util.template.templates.TemplateResponse(
@@ -62,7 +62,7 @@ async def get_ui_permission(
     token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    """Permission page. The contents of the panels are loaded separately."""
+    """Main Permissions page. The contents of the panels are loaded separately."""
 
     try:
         await dbi.populate_search_session(token_profile_row, search_uuid)
@@ -269,11 +269,6 @@ async def post_permission_principal_search(
             'principals': principal_list,
         }
     )
-
-
-#
-# Rule CRUD
-#
 
 
 @router.post('/ui/api/permission/update')

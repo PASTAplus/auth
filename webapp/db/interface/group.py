@@ -266,7 +266,17 @@ class GroupInterface:
     async def get_all_groups_generator(self):
         result = await self._session.stream(
             (
-                sqlalchemy.select(Group)
+                sqlalchemy.select(
+                    Group,
+                    Principal,
+                )
+                .join(
+                    Principal,
+                    sqlalchemy.and_(
+                        Principal.subject_id == Group.id,
+                        Principal.subject_type == SubjectType.GROUP,
+                    ),
+                )
                 .options(sqlalchemy.orm.joinedload(Group.profile))
                 .order_by(
                     Group.name,
@@ -276,5 +286,5 @@ class GroupInterface:
                 )
             )
         )
-        async for group_row in result.yield_per(Config.DB_YIELD_ROWS).scalars():
-            yield group_row
+        async for group_row, principal_row in result.yield_per(Config.DB_YIELD_ROWS):
+            yield group_row, principal_row
