@@ -5,11 +5,11 @@ import sqlalchemy
 import sqlalchemy.ext.asyncio
 import sqlalchemy.orm
 
-import db.interface.util
 import util.profile_cache
 from config import Config
 from db.models.group import Group, GroupMember
 from db.models.permission import SubjectType, Resource, Rule, PermissionLevel, Principal
+import util.edi_id
 
 log = daiquiri.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class GroupInterface:
         This also creates a resource to track permissions on the group, and sets CHANGE permission
         for the group owner on the group resource.
         """
-        edi_id = edi_id or db.interface.util.get_new_edi_id()
+        edi_id = edi_id or util.edi_id.get_random_edi_id()
         new_group_row = Group(
             edi_id=edi_id,
             profile=token_profile_row,

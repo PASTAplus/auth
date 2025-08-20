@@ -107,18 +107,24 @@ class PastaJwt:
             await dbi.get_profile(claims_dict.get('sub'))
         except sqlalchemy.exc.NoResultFound:
             log.error(f'Profile not found for EDI-ID: {claims_dict.get("sub")}')
-            db_name = dbi.session.get_bind().url.database
-            log.error(f'Using database: {db_name}')
-            all_profiles = await dbi.get_all_profiles()
-            log.error('#' * 100)
-            log.error('Available profiles:')
-            for profile in all_profiles:
-                log.error(f'  - {profile.edi_id} ({profile.common_name})')
-            else:
-                log.error('  NONE')
+            # await cls.dump_db_name_and_profiles(dbi)
             return None
 
         return cls(claims_dict)
+
+    @classmethod
+    async def dump_db_name_and_profiles(cls, dbi):
+        db_name = dbi.session.get_bind().url.database
+        log.error(f'Using database: {db_name}')
+        all_profiles = await dbi.get_all_profiles()
+        log.error('#' * 100)
+        log.error('Available profiles:')
+        if all_profiles:
+            for profile in all_profiles:
+                log.error(f'  - {profile.edi_id} ({profile.common_name})')
+        else:
+            log.error('  - NONE')
+        log.error('#' * 100)
 
     @classmethod
     async def is_valid(cls, dbi, token_str: str | None):

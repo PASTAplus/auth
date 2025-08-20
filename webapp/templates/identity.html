@@ -83,7 +83,7 @@
               {% if identity_list|length > 1 %}
                 <button class='icon-text-button' data-bs-toggle='modal'
                         data-bs-target='#unlinkIdentityModal'
-                        data-idp-name='{{ identity.idp_name }}'
+                        data-idp-name='{{ identity.idp_name.name }}'
                         data-idp-uid='{{ identity.idp_uid }}'
                 >
                   <span><img src='{{ url('/static/svg/unlink.svg') }}' alt='Unlink'></span>

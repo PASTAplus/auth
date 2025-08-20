@@ -104,6 +104,7 @@ class DbInterface(
                 common_name=common_name,
                 email=email,
                 has_avatar=has_avatar,
+                idp_uid=idp_uid,
             )
             identity_row = await self.create_identity(
                 profile=profile_row,

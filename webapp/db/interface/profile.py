@@ -5,7 +5,7 @@ import sqlalchemy
 import sqlalchemy.ext.asyncio
 import sqlalchemy.orm
 
-import db.interface.util
+import util.edi_id
 from config import Config
 from db.models.group import GroupMember, Group
 from db.models.identity import Identity
@@ -30,8 +30,27 @@ class ProfileInterface:
         email: str | None = None,
         has_avatar: bool = False,
         edi_id: str = None,
+        idp_uid: str = None,
     ):
-        edi_id = edi_id or db.interface.util.get_new_edi_id()
+        """Create a new profile.
+        - If the edi_id is provided, it is used as the profile's EDI-ID.
+        - If the edi_id is not provided, and the idp_uid is provided, the idp_uid is used to
+        generate the EDI-ID.
+        - If neither is provided, a new random EDI-ID is generated (used for creating profiles in
+        testing).
+        """
+        if edi_id:
+            pass
+        elif idp_uid:
+            edi_id = util.edi_id.get_edi_id(idp_uid)
+        else:
+            edi_id = util.edi_id.get_random_edi_id()
+
+        assert (
+            bool(edi_id) ^ bool(idp_uid),
+            'Either edi_id or idp_uid must be provided, but not both',
+        )
+        edi_id = edi_id or util.edi_id.get_edi_id(idp_uid)
         new_profile_row = Profile(
             edi_id=edi_id,
             common_name=common_name,

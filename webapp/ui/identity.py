@@ -40,7 +40,7 @@ async def get_ui_identity(
             }
         )
 
-    identity_list.sort(key=lambda x: (x['idp_name'], x['common_name']))
+    identity_list.sort(key=lambda x: (x['idp_name'].name, x['common_name']))
 
     return util.template.templates.TemplateResponse(
         'identity.html',

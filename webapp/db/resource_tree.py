@@ -2,7 +2,7 @@
 
 - Each resource can be standalone or a member of a tree.
 - A standalone resource has parent_key=None, and no other resources have it as their parent_key
-- A resource that is part of a tree has a parent_key that is the key of another resource
+- A root resource has parent_key=None, and other resources may have it as their parent_key
 - Our current approach to assembling resources into a list of trees uses several steps:
     - Two recursive DB functions are used for finding the resource IDs of all the resources that are
     in the same tree as the given resource
@@ -236,15 +236,14 @@ def _principal_dict_to_sorted_list(principal_dict):
 def _get_sibling_sort_key(resource_dict):
     """Key for sorting resources."""
     r = resource_dict['resource_row']
-    return (
-        r.type or '',
-        r.label or '',
-        r.key,
-    )
+    return r.type or '', r.label or '', r.key
 
 
 def _get_principal_sort_key(principal_dict):
-    """Key for sorting principals"""
+    """Key for sorting principals.
+    Profiles: title=common_name, description=email, edi_id=edi_id
+    Groups: title=group_name, description=group_description, edi_id=edi_id
+    """
     p = principal_dict
     title, description, edi_id = p['title'], p['description'], p['edi_id']
     # Sort principals with no title at the end by prepending \uffff, a high unicode character, to
@@ -257,4 +256,7 @@ def _get_principal_sort_key(principal_dict):
     # Sort the authenticated user after the Public user and before all others
     elif p['edi_id'] == Config.AUTHENTICATED_EDI_ID:
         title = ' '
-    return title, description, edi_id
+    # Principal without description are sorted to the end. If there is also no title, those end up
+    # at the very end, sorted by edi_id. At that point, we just sort to keep the order consistent,
+    # not to make it meaningful.
+    return title, description or '\uffff', edi_id

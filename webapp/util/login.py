@@ -1,4 +1,5 @@
 import starlette.datastructures
+import sqlalchemy.exc
 
 import db.models.identity
 import util.old_token

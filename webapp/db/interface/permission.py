@@ -39,7 +39,6 @@ import daiquiri
 import sqlalchemy.ext.asyncio
 import sqlalchemy.exc
 
-import db.interface.util
 import db.resource_tree
 import util.avatar
 import util.exc
