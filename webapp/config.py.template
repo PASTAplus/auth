@@ -91,19 +91,19 @@ class Config(object):
     # Replace 'EDI-...' with generated EDI-IDs in a new deployment. Use ./cli/gen_edi_id.py to
     # generate EDI-IDs. Once the database is populated, these values must not be changed.
 
-    SERVICE_EDI_ID = 'EDI-...'
+    SERVICE_EDI_ID = 'EDI-6d92693416fde9af9c43fd7cd92d1028eadafa46'
     SERVICE_NAME = 'EDI IAM Service'
     SERVICE_AVATAR_PATH = ASSETS_PATH / 'shield-edi.svg'
 
-    PUBLIC_EDI_ID = 'EDI-...'
+    PUBLIC_EDI_ID = 'EDI-078e6e3cee4f7f2812f150701da9351acb51e089'
     PUBLIC_NAME = 'Public Access'
     PUBLIC_AVATAR_PATH = ASSETS_PATH / 'public-avatar.svg'
 
-    AUTHENTICATED_EDI_ID = 'EDI-...'
+    AUTHENTICATED_EDI_ID = 'EDI-7be3510d08def0dfc667824ebd4f4f1bbd770234'
     AUTHENTICATED_NAME = 'Authenticated Access'
     AUTHENTICATED_AVATAR_PATH = ASSETS_PATH / 'signed-black.svg'
 
-    VETTED_GROUP_EDI_ID = 'EDI-...'
+    VETTED_GROUP_EDI_ID = 'EDI-bdae74972ed710c56b1e0df18ccb6e23c31f60f6'
     VETTED_GROUP_NAME = 'Vetted Access'
     VETTED_GROUP_DESCRIPTION = 'Group for users who have been vetted by EDI'
     VETTED_GROUP_AVATAR_PATH = ASSETS_PATH / 'checkmark.svg'
