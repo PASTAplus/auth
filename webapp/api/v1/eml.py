@@ -239,6 +239,11 @@ async def _create_rules(dbi, resource_row, access_el):
         if principal_el is None:
             raise util.exc.EmlError('Missing <principal> element in <allow> element')
         permission_el = allow_el.find('permission')
+        # A principal can be one of:
+        # - A legacy shortcut for a system principal ('public', 'authenticated', 'vetted')
+        # - An EDI-ID of a profile or group
+        # - An IdP UID of a profile
+        # - An legacy Google email address of a profile
         principal_str = SYSTEM_PRINCIPAL_MAP.get(principal_el.text, principal_el.text)
         # Get permission level
         if permission_el is None:
@@ -257,13 +262,14 @@ async def _create_rules(dbi, resource_row, access_el):
 
 
 async def _get_or_create_profile(dbi, principal_str):
-    # The only way to get an EDI-ID is to create a profile. So if the principal_str is an EDI-ID, we
-    # just check if the profile exists, and error out if not.
-    if util.edi_id.is_valid_edi_id(principal_str):
-        try:
-            return await dbi.get_profile(principal_str)
-        except sqlalchemy.exc.NoResultFound:
-            raise util.exc.EmlError(f'Profile with EDI-ID "{principal_str}" does not exist')
+    # The only way to get an EDI-ID is to create a profile or a group. So if the principal_str is a
+    # well-formed
+    # EDI-ID, we just check if it exists in the DB as a profile or group, and error out if not.
+    if util.edi_id.is_well_formed_edi_id(principal_str):
+        if not await dbi.is_existing_edi_id(principal_str):
+            raise util.exc.EmlError(
+                f'A profile or group with EDI-ID "{principal_str}" does not exist'
+            )
     # If principal_str is not an EDI-ID, it is a legacy IdP UID.
     try:
         return (await dbi.get_identity_by_idp_uid(principal_str)).profile

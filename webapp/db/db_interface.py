@@ -9,6 +9,8 @@ import db.interface.profile
 import db.interface.search
 import db.interface.sync
 import db.models.identity
+import db.models.profile
+import db.models.group
 import util.avatar
 import util.exc
 
@@ -156,6 +158,30 @@ class DbInterface(
             # On transitioning to EDI-IDs, it's very unlikely, but theoretically possible, that
             # multiple identities exist for the same IdP UID.
             raise util.exc.AuthError('Multiple identities found for the same IdP UID')
+
+    async def is_existing_edi_id(self, edi_id: str) -> bool:
+        """Check if the given EDI-ID exists in the database.
+        - The EDI-ID can be for a profile or a group.
+        """
+        if (
+            await self.execute(
+                sqlalchemy.select(
+                    sqlalchemy.exists().where(
+                        db.models.profile.Profile.edi_id == edi_id,
+                    )
+                )
+            )
+        ).scalar_one():
+            return True
+        return (
+            await self.execute(
+                sqlalchemy.select(
+                    sqlalchemy.exists().where(
+                        db.models.group.Group.edi_id == edi_id,
+                    )
+                )
+            )
+        ).scalar_one()
 
     # Session management
 

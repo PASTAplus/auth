@@ -13,5 +13,5 @@ def get_random_edi_id():
     return get_edi_id(uuid.uuid4().hex)
 
 
-def is_valid_edi_id(edi_id):
+def is_well_formed_edi_id(edi_id):
     return re.fullmatch(r'EDI-[a-f0-9]{40}', edi_id) is not None
