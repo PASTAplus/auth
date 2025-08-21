@@ -1,6 +1,4 @@
 """EML API v1: Bulk resource creation via EML"""
-
-import re
 import uuid
 
 import daiquiri
@@ -15,6 +13,7 @@ import api.utils
 import db.models.permission
 import db.resource_tree
 import util.dependency
+import util.edi_id
 import util.exc
 import util.url
 from config import Config
@@ -260,7 +259,7 @@ async def _create_rules(dbi, resource_row, access_el):
 async def _get_or_create_profile(dbi, principal_str):
     # The only way to get an EDI-ID is to create a profile. So if the principal_str is an EDI-ID, we
     # just check if the profile exists, and error out if not.
-    if re.match(r'EDI-[0-9a-f]{32}$', principal_str):
+    if util.edi_id.is_valid_edi_id(principal_str):
         try:
             return await dbi.get_profile(principal_str)
         except sqlalchemy.exc.NoResultFound:
