@@ -243,7 +243,7 @@ async def _create_rules(dbi, resource_row, access_el):
         # - A legacy shortcut for a system principal ('public', 'authenticated', 'vetted')
         # - An EDI-ID of a profile or group
         # - An IdP UID of a profile
-        # - An legacy Google email address of a profile
+        # - A legacy Google email address of a profile
         principal_str = SYSTEM_PRINCIPAL_MAP.get(principal_el.text, principal_el.text)
         # Get permission level
         if permission_el is None:
@@ -254,23 +254,26 @@ async def _create_rules(dbi, resource_row, access_el):
                 f'Invalid permission level: {permission_el.text}. '
                 f'Expected one of: {", ".join(PERMISSION_LEVEL_MAP.keys())}'
             )
-        profile_row = await _get_or_create_profile(dbi, principal_str)
-        principal_row = await dbi.get_principal_by_edi_id(profile_row.edi_id)
+        # The only way to get an EDI-ID is to create a profile or a group. So if the principal_str
+        # is a well-formed EDI-ID, we just check if it exists in the DB as a profile or group, and
+        # error out if not. An error probably here means that a user deleted their profile or group,
+        # or the EML is being submitted to the wrong EDI IAM Service.
+        if util.edi_id.is_well_formed_edi_id(principal_str):
+            try:
+                principal_row = await dbi.get_principal_by_edi_id(principal_str)
+            except sqlalchemy.exc.NoResultFound:
+                raise util.exc.EmlError(
+                    f'A profile or group with EDI-ID "{principal_str}" does not exist'
+                )
+        else:
+            profile_row = await _get_or_create_profile(dbi, principal_str)
+            principal_row = await dbi.get_principal_by_edi_id(profile_row.edi_id)
         await dbi.create_or_update_rule(
             resource_row, principal_row, permission_level=permission_level
         )
 
 
 async def _get_or_create_profile(dbi, principal_str):
-    # The only way to get an EDI-ID is to create a profile or a group. So if the principal_str is a
-    # well-formed
-    # EDI-ID, we just check if it exists in the DB as a profile or group, and error out if not.
-    if util.edi_id.is_well_formed_edi_id(principal_str):
-        if not await dbi.is_existing_edi_id(principal_str):
-            raise util.exc.EmlError(
-                f'A profile or group with EDI-ID "{principal_str}" does not exist'
-            )
-    # If principal_str is not an EDI-ID, it is a legacy IdP UID.
     try:
         return (await dbi.get_identity_by_idp_uid(principal_str)).profile
     except sqlalchemy.exc.NoResultFound:
@@ -280,7 +283,5 @@ async def _get_or_create_profile(dbi, principal_str):
             return (await dbi.get_identity_by_email(principal_str)).profile
         except sqlalchemy.exc.NoResultFound:
             return (await dbi.create_skeleton_profile_and_identity(principal_str)).profile
-        except sqlalchemy.exc.MultipleResultsFound:
-            raise util.exc.EmlError(f'Multiple identities found for principal "{principal_str}". ')
     except sqlalchemy.exc.MultipleResultsFound:
         raise util.exc.EmlError(f'Multiple identities found for principal "{principal_str}". ')
