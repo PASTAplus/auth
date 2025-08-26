@@ -257,8 +257,15 @@ class SearchInterface:
         if search_session_row.profile_id != token_profile_row.id:
             raise util.exc.SearchSessionPermissionError()
 
-        if await self._is_search_session_populated(search_session_row):
-            return
+        # If the session is already populated, we clear it and repopulate it. This happens if the
+        # user refreshes the main Permissions page. The search result may differ from the original
+        # search if the user has changed permissions on resources since then.
+        await self._session.execute(
+            sqlalchemy.delete(SearchResult).where(SearchResult.search_session == search_session_row)
+        )
+
+        # if await self._is_search_session_populated(search_session_row):
+        #     return
 
         param_dict = search_session_row.search_params
         search_type = param_dict.get('search-type')
@@ -317,8 +324,7 @@ class SearchInterface:
         type_str = search_params.get('type')
         label = search_params.get('label')
 
-        where_conditions = [
-        ]
+        where_conditions = []
 
         if type_str:
             # The user selected a specific type. The available selections do not include 'package'
