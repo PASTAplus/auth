@@ -139,7 +139,13 @@ Resource Tree (left side)
     font-weight: bold;
 }
 
-/* Add this to your CSS */
+
+.temp-container {
+    position: absolute;
+    visibility: hidden;
+    height: auto;
+}
+
 .tree-measuring > summary {
     /* Keep the summary visible */
     visibility: visible;
