@@ -239,11 +239,6 @@ async def _create_rules(dbi, resource_row, access_el):
         if principal_el is None:
             raise util.exc.EmlError('Missing <principal> element in <allow> element')
         permission_el = allow_el.find('permission')
-        # A principal can be one of:
-        # - A legacy shortcut for a system principal ('public', 'authenticated', 'vetted')
-        # - An EDI-ID of a profile or group
-        # - An IdP UID of a profile
-        # - A legacy Google email address of a profile
         principal_str = SYSTEM_PRINCIPAL_MAP.get(principal_el.text, principal_el.text)
         # Get permission level
         if permission_el is None:
@@ -254,6 +249,11 @@ async def _create_rules(dbi, resource_row, access_el):
                 f'Invalid permission level: {permission_el.text}. '
                 f'Expected one of: {", ".join(PERMISSION_LEVEL_MAP.keys())}'
             )
+        # A principal can be one of:
+        # - A legacy shortcut for a system principal ('public', 'authenticated', 'vetted')
+        # - An EDI-ID of a profile or group
+        # - An IdP UID of a profile
+        # - A legacy Google email address of a profile
         # The only way to get an EDI-ID is to create a profile or a group. So if the principal_str
         # is a well-formed EDI-ID, we just check if it exists in the DB as a profile or group, and
         # error out if not. An error probably here means that a user deleted their profile or group,
