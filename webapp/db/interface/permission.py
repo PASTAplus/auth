@@ -173,6 +173,8 @@ class PermissionInterface:
         This method implements the logic equivalent of the following pseudocode:
 
         def is_authorized(principal, resource, permission_level):
+            if is_superuser(principal):
+                return True
             acl = getAcl(resource)
             principals = getPrincipals(profile)
             for principal in principals:
@@ -182,6 +184,8 @@ class PermissionInterface:
                             return True
             return False
 
+        Superusers have all permissions on all resources.
+
         A profile may have a number of equivalents. These always include the Public Access profile,
         and may include one or more groups to which profile is a member. This method checks if the
         profile, or any of its equivalents, has the required permission or better on the resource.
@@ -190,6 +194,8 @@ class PermissionInterface:
         that has WRITE permission on the resource, this method will return True when checking for
         either READ or WRITE on the resource
         """
+        if util.profile_cache.is_superuser(token_profile_row):
+            return True
         result = await self.execute(
             sqlalchemy.select(
                 sqlalchemy.exists().where(
