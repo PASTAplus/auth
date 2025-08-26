@@ -21,8 +21,8 @@
   <link rel='preload' href='{{ url('/static/lib/bootstrap/css/bootstrap.css') }}' as='style'>
   <link href='{{ url('/static/lib/bootstrap/css/bootstrap.css') }}' rel='stylesheet'>
   {# Extra styles for auth #}
-  <link rel='preload' href='{{ url('/static/css/base.css') }}' as='style'>
-  <link href='{{ url('/static/css/base.css') }}' rel='stylesheet'>
+  <link rel='preload' href='{{ url_buster('/static/css/base.css') }}' as='style'>
+  <link href='{{ url_buster('/static/css/base.css') }}' rel='stylesheet'>
   {% block head %}
   {% endblock %}
 </head>
@@ -245,7 +245,7 @@
 {# Bootstrap Bundle with Popper #}
 <script src='{{ url('/static/lib/bootstrap/js/bootstrap.bundle.js') }}'></script>
 {# JS that runs on all pages #}
-<script src='{{ url('/static/js/base.js') }}'></script>
+<script src='{{ url_buster('/static/js/base.js') }}'></script>
 {% block scripts %}
   {# By importing scripts just before the /body tag, we don't have to wrap scripts in checks for
   fully loaded DOM #}
