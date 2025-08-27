@@ -29,6 +29,7 @@ class RootResource(db.models.base.Base):
         sqlalchemy.ForeignKey('resource.id', ondelete='CASCADE'),
         nullable=False,
         index=True,
+        # Each resource can only be referenced once as a root resource.
         unique=True,
     )
     # Denormalized fields to speed up searches.
@@ -38,12 +39,7 @@ class RootResource(db.models.base.Base):
     package_scope = sqlalchemy.Column(sqlalchemy.String, nullable=True, index=True)
     package_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=True, index=True)
     package_rev = sqlalchemy.Column(sqlalchemy.Integer, nullable=True, index=True)
-    resource = sqlalchemy.orm.relationship(
-        'Resource',
-        # back_populates='resource',
-        #     cascade_backrefs=False,
-        #     cascade='all, delete-orphan',
-    )
+    resource = sqlalchemy.orm.relationship('Resource')
     # Combined index across (type, package_scope, package_id, package_rev) to optimize package
     # searches.
     __table_args__ = (

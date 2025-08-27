@@ -93,8 +93,9 @@ resourceTreeEl.addEventListener('click', (ev) => {
   // On the first expand on a placeholder root, we fetch the real tree from the server and render
   // it. The new tree also replaces the placeholder root, and does not have the 'placeholder-root'
   // class, so this event listener won't be triggered again for the same tree.
-  log('Click on placeholder root', ev);
   if (ev.target.classList.contains('placeholder-root')) {
+    log('Click on placeholder root', ev);
+
     const detailsEl = ev.target;
     const treeContainerEl = detailsEl.closest('.tree-container');
     const rootId = parseInt(treeContainerEl.dataset.rootId);
@@ -172,9 +173,9 @@ function measureTreeHeight(treeIdx)
   // Add to DOM temporarily for measurement
   document.body.appendChild(tempMeasureEl);
   // Apply saved state
-  setTreeState(tempMeasureEl, expandedTreeState.get(treeIdx));
   // Allow the DOM to update before measuring height
   requestAnimationFrame(() => {
+    setTreeState(tempMeasureEl, expandedTreeState.get(treeIdx));
     const fullHeight = tempMeasureEl.offsetHeight;
     expandedTreeOffset.set(treeIdx, fullHeight);
     // Remove temporary container
@@ -288,8 +289,10 @@ resourceTreeEl.addEventListener('change', ev => {
     for (const el of checkboxEls) {
       el.checked = checkboxEl.checked;
     }
-    expandedTreeState.set(treeIdx, getTreeState(treeContainerEl));
-    fetchSelectedResourcePermissions();
+    requestAnimationFrame(() => {
+      expandedTreeState.set(treeIdx, getTreeState(treeContainerEl));
+      fetchSelectedResourcePermissions();
+    });
   }
 });
 
@@ -570,10 +573,10 @@ function refreshExpandedValidTree(
   tempContainer.innerHTML = treeHtml;
   // Add to DOM temporarily for measurement
   document.body.appendChild(tempContainer);
-  // Apply saved state
-  setTreeState(tempContainer, expandedTreeState.get(treeIdx));
   // Allow the DOM to update before measuring height
   requestAnimationFrame(() => {
+    // Apply saved state
+    setTreeState(tempContainer, expandedTreeState.get(treeIdx));
     const fullHeight = tempContainer.offsetHeight;
     expandedTreeOffset.set(treeIdx, fullHeight);
     // Remove temporary container
@@ -1065,17 +1068,19 @@ function getTreeState(treeRootEl)
 // Apply the saved state to the tree
 function setTreeState(treeRootEl, state)
 {
-  log('setTreeState()', {treeRootEl});
-  const detailsEls = treeRootEl.querySelectorAll('.tree-details');
-  detailsEls.forEach(detailsEl => {
-    const checkboxEl = detailsEl.querySelector('.tree-checkbox');
-    const resourceId = parseInt(checkboxEl.dataset.resourceId);
-    if (state.has(resourceId)) {
-      const nodeState = state.get(resourceId);
-      detailsEl.open = nodeState.open;
-      checkboxEl.checked = nodeState.checked;
-    }
-  });
+  // requestAnimationFrame(() => {
+    log('setTreeState()', {treeRootEl});
+    const detailsEls = treeRootEl.querySelectorAll('.tree-details');
+    detailsEls.forEach(detailsEl => {
+      const checkboxEl = detailsEl.querySelector('.tree-checkbox');
+      const resourceId = parseInt(checkboxEl.dataset.resourceId);
+      if (state.has(resourceId)) {
+        const nodeState = state.get(resourceId);
+        detailsEl.open = nodeState.open;
+        checkboxEl.checked = nodeState.checked;
+      }
+    });
+  // });
 }
 
 //

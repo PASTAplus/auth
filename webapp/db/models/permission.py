@@ -61,8 +61,12 @@ class Resource(db.models.base.Base):
     rules = sqlalchemy.orm.relationship(
         'Rule',
         back_populates='resource',
-        #     cascade_backrefs=False,
-        #     cascade='all, delete-orphan',
+        # We need 'passive_deletes' in all cases where (1) foreign key is nullable=False and
+        # ondelete='CASCADE', and (2) an ORM relationship (like this one) is defined. Without
+        # 'passive_deletes', SQLAlchemy tries to "disassociate" child objects by setting their
+        # foreign key to NULL before deleting the parent. Without the relationship, the DB will
+        # correctly perform cascading deletes on FKs with ondelete='CASCADE'.
+        passive_deletes=True,
     )
 
     parent = sqlalchemy.orm.relationship('Resource', remote_side=[id], lazy='select')
@@ -96,7 +100,10 @@ class Rule(db.models.base.Base):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     # The resource to which this permission applies.
     resource_id = sqlalchemy.Column(
-        sqlalchemy.Integer, sqlalchemy.ForeignKey('resource.id'), nullable=False, index=True
+        sqlalchemy.Integer,
+        sqlalchemy.ForeignKey('resource.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
     )
     # The principal (user profile or user group) to which the permission is granted.
     # principal_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, index=True)
