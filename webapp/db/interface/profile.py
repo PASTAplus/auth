@@ -50,7 +50,6 @@ class ProfileInterface:
             bool(edi_id) ^ bool(idp_uid),
             'Either edi_id or idp_uid must be provided, but not both',
         )
-        edi_id = edi_id or util.edi_id.get_edi_id(idp_uid)
         new_profile_row = Profile(
             edi_id=edi_id,
             common_name=common_name,

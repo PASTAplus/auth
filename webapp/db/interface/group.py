@@ -78,7 +78,7 @@ class GroupInterface:
 
     async def get_owned_group(self, token_profile_row, group_id):
         """Get a group by its ID.
-        Raises an exception if token_profile_row does not have WRITE or CHANGE on the group.
+        Raises sqlalchemy.exc.NoResultFound if token_profile_row does not have WRITE or CHANGE on the group.
         """
         stmt = sqlalchemy.select(Group).where(
             Group.id == group_id,
@@ -141,7 +141,7 @@ class GroupInterface:
 
     async def update_group(self, token_profile_row, group_id, name, description):
         """Update a group by its ID.
-        Raises an exception if the group is not owned by the profile.
+        Raises sqlalchemy.exc.NoResultFound if the group is not owned by the profile.
         """
         group_row = await self.get_owned_group(token_profile_row, group_id)
         group_row.name = name
@@ -150,19 +150,23 @@ class GroupInterface:
 
     async def delete_group(self, token_profile_row, group_id):
         """Delete a group by its ID.
-        Raises an exception if the group is not owned by the profile.
+        Raises sqlalchemy.exc.NoResultFound if the group is not owned by the profile.
         """
         group_row = await self.get_owned_group(token_profile_row, group_id)
-        # Delete group members
-        await self.execute(sqlalchemy.delete(GroupMember).where(GroupMember.group == group_row))
-        # Delete the group
+        await self.delete_rules_by_resource(group_row.edi_id)
+        await self.flush()
+        await self.delete_group_principal(group_row)
+        await self.flush()
+        await self.delete_resource_by_key(group_row.edi_id)
+        await self.flush()
+        await self.delete_all_group_members(group_row)
+        await self.flush()
         await self._session.delete(group_row)
-        # Remove associated resource
-        await self._remove_resource_by_key(group_row.edi_id)
+        await self.flush()
 
     async def add_group_member(self, token_profile_row, group_id, member_profile_id):
         """Add a member to a group.
-        Raises an exception if the group is not owned by the profile.
+        Raises sqlalchemy.exc.NoResultFound if the group is not owned by the profile.
         """
         group_row = await self.get_owned_group(token_profile_row, group_id)
         new_member_row = GroupMember(
@@ -174,7 +178,7 @@ class GroupInterface:
 
     async def delete_group_member(self, token_profile_row, group_id, member_profile_id):
         """Delete a member from a group.
-        Raises an exception if the group is not owned by the profile.
+        Raises sqlalchemy.exc.NoResultFound if the group is not owned by the profile.
         """
         group_row = await self.get_owned_group(token_profile_row, group_id)
         result = await self.execute(
@@ -186,6 +190,9 @@ class GroupInterface:
         member_row = result.scalar_one()
         await self._session.delete(member_row)
         group_row.updated = datetime.datetime.now()
+
+    async def delete_all_group_members(self, group_row):
+        await self.execute(sqlalchemy.delete(GroupMember).where(GroupMember.group == group_row))
 
     async def is_vetted(self, token_profile_row):
         """Check if a profile is in the Vetted system group or is a superuser."""
@@ -208,7 +215,7 @@ class GroupInterface:
     async def get_group_member_list(self, token_profile_row, group_id):
         """Get the members of a group. Only profiles can be group members, so group members are
         returned with profile_id instead of principal_id.
-        Raises an exception if the group is not owned by the profile.
+        Raises sqlalchemy.exc.NoResultFound if the group is not owned by the profile.
         """
         group_row = await self.get_owned_group(token_profile_row, group_id)
         result = await self.execute(
@@ -249,7 +256,7 @@ class GroupInterface:
     async def leave_group_membership(self, token_profile_row, group_id):
         """Leave a group.
         This removes the token profile from the group. The profile does not have to own the group.
-        Raises an exception if the profile is not a member of the group.
+        Raises sqlalchemy.exc.NoResultFound if the profile is not a member of the group.
         """
         result = await self.execute(
             sqlalchemy.select(GroupMember)

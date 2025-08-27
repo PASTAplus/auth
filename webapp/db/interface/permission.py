@@ -237,11 +237,11 @@ class PermissionInterface:
         resource_row = result.scalar_one()
         resource_row.label = label
 
-    async def _remove_resource_by_key(self, key):
+    async def delete_resource_by_key(self, key):
         """Remove a resource by its key."""
-        result = await self.execute(sqlalchemy.select(Resource).where(Resource.key == key))
-        resource_row = result.scalar_one()
-        await self._session.delete(resource_row)
+        result = await self.execute(sqlalchemy.delete(Resource).where(Resource.key == key))
+        if result.rowcount == 0:
+            log.warning(f'No rows were deleted for key: {key}')
 
     # async def get_resource_types(self, token_profile_row):
     #     """Get a list of resource types that the profile has CHANGE permission on."""
@@ -486,6 +486,17 @@ class PermissionInterface:
             )
         )
         return result.scalar_one()
+
+    async def delete_rules_by_resource(self, resource_key):
+        """Delete all rules for a resource."""
+        result = await self.execute(
+            sqlalchemy.delete(Rule).where(
+                Rule.resource_id.in_(
+                    sqlalchemy.select(Resource.id).where(Resource.key == resource_key)
+                )
+            )
+        )
+        log.error(f'Deleted {result.rowcount} rules for resource_key="{resource_key}"')
 
     async def get_resource_list(self, token_profile_row, search_str, resource_type):
         """Get a list of resources and permissions, with resource labels filtered on search_str.
@@ -882,3 +893,31 @@ class PermissionInterface:
             sqlalchemy.select(Principal).where(Principal.identity == identity)
         )
         return result.scalar_one()
+
+    async def delete_principal_by_id(self, principal_id):
+        """Delete a principal by its ID."""
+        result = await self.execute(
+            sqlalchemy.delete(Principal).where(Principal.id == principal_id)
+        )
+        assert result.rowcount == 1, f'No principal found with ID: {principal_id}'
+
+    async def delete_group_principal(self, group_row):
+        """Delete the principal for a group."""
+        result = await self.execute(
+            sqlalchemy.delete(Principal).where(
+                Principal.subject_id == group_row.id,
+                Principal.subject_type == SubjectType.GROUP,
+            )
+        )
+        assert result.rowcount == 1, f'No principal found for group EDI-ID: {group_row.edi_id}'
+
+    async def delete_profile_principal(self, profile_row):
+        """Delete the principal for a profile."""
+        result = await self.execute(
+            sqlalchemy.delete(Principal).where(
+                Principal.subject_id == profile_row.id,
+                Principal.subject_type == SubjectType.PROFILE,
+            )
+        )
+        assert result.rowcount == 1, f'No principal found for profile EDI-ID: {profile_row.edi_id}'
+
