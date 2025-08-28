@@ -7,7 +7,7 @@ import db.models.identity
 import util.avatar
 import util.dependency
 import util.login
-import util.pasta_jwt
+import util.edi_token
 import util.pasta_ldap
 import util.redirect
 import util.template
@@ -28,7 +28,7 @@ router = fastapi.APIRouter()
 @router.get('/ui/signin')
 async def get_ui_signin(
     request: starlette.requests.Request,
-    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
 ):
     if token:
         return util.redirect.internal('/ui/profile')
@@ -49,11 +49,39 @@ async def get_ui_signin(
     )
 
 
+
+
+@router.get('/ui/signin/merge')
+async def get_ui_signin(
+    request: starlette.requests.Request,
+    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
+):
+    # if token:
+    #     return util.redirect.internal('/ui/profile')
+    return util.template.templates.TemplateResponse(
+        'signin-merge.html',
+        {
+            # Base
+            'token': None,
+            'profile': None,
+            #
+            'request': request,
+            # 'login_type': 'client',
+            # 'target_url': Config.SERVICE_BASE_URL + '/ui/identity',
+            'error': request.query_params.get('error'),
+            'skeleton_profile': True,
+        },
+    )
+
+
+
+
+
 @router.get('/ui/signin/link')
 async def get_ui_signin_link(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
-    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     return util.template.templates.TemplateResponse(
@@ -91,7 +119,7 @@ async def get_ui_signin_link(
 @router.get('/ui/signin/reset')
 async def get_ui_signin_reset(
     request: starlette.requests.Request,
-    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
 ):
     return util.template.templates.TemplateResponse(
         'signin-reset-pw.html',
