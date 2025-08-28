@@ -51,7 +51,10 @@ class Identity(db.models.base.Base):
     # existing profile. The 'profile' declaration specifies the relationship for use only in the ORM
     # layer.
     profile_id = sqlalchemy.Column(
-        sqlalchemy.Integer, sqlalchemy.ForeignKey('profile.id'), nullable=False, index=True
+        sqlalchemy.Integer,
+        sqlalchemy.ForeignKey('profile.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
     )
     # Our name for the IdP. This acts as a namespace for the subject (sub) provided by the IdP.
     idp_name = sqlalchemy.Column(sqlalchemy.Enum(IdpName), nullable=True, index=True)
@@ -81,6 +84,7 @@ class Identity(db.models.base.Base):
         'db.models.profile.Profile',
         back_populates='identities',
         cascade_backrefs=False,
+        passive_deletes=True,
     )
     __table_args__ = (
         # Ensure that idp_name and idp_uid are unique together (each IdP has its own namespace for

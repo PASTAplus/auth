@@ -60,7 +60,7 @@ class GroupInterface:
         return new_group_row, resource_row
 
     async def get_vetted_group(self):
-        """Get the vetted group."""
+        """Get the Vetted system group."""
         result = await self.execute(
             sqlalchemy.select(Group).where(Group.edi_id == Config.VETTED_GROUP_EDI_ID)
         )
@@ -151,13 +151,19 @@ class GroupInterface:
     async def delete_group(self, token_profile_row, group_id):
         """Delete a group by its ID.
         Raises an exception if the group is not owned by the profile.
+        - Note this is somewhat confusing because a group has two roles. A group is a principal that
+        can be referenced in rules to grant permissions on resources. A group is also represented by
+        a resource that can have permissions granted on it (in order to control access on the group
+        itself). So there are two sets of rules that reference a group.
         """
         group_row = await self.get_owned_group(token_profile_row, group_id)
-        # Delete group members
-        await self.execute(sqlalchemy.delete(GroupMember).where(GroupMember.group == group_row))
-        # Delete the group
+        # Deleting the group also deletes group members by cascade.
         await self._session.delete(group_row)
-        # Remove associated resource
+        # Deleting the principal also deletes rules referencing the group by cascade.
+        principal_row = await self.get_principal_by_subject(group_row.id, SubjectType.GROUP)
+        await self._session.delete(principal_row)
+        # Deleting the resource holding permissions for the group also deletes rules for the
+        # resource by cascade.
         await self._remove_resource_by_key(group_row.edi_id)
 
     async def add_group_member(self, token_profile_row, group_id, member_profile_id):

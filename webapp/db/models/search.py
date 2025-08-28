@@ -39,7 +39,9 @@ class RootResource(db.models.base.Base):
     package_scope = sqlalchemy.Column(sqlalchemy.String, nullable=True, index=True)
     package_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=True, index=True)
     package_rev = sqlalchemy.Column(sqlalchemy.Integer, nullable=True, index=True)
-    resource = sqlalchemy.orm.relationship('Resource')
+    resource = sqlalchemy.orm.relationship(
+        'Resource'
+    )
     # Combined index across (type, package_scope, package_id, package_rev) to optimize package
     # searches.
     __table_args__ = (
@@ -54,7 +56,10 @@ class SearchSession(db.models.base.Base):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     # The profile of the user who performed this search.
     profile_id = sqlalchemy.Column(
-        sqlalchemy.Integer, sqlalchemy.ForeignKey('profile.id'), nullable=False, index=True
+        sqlalchemy.Integer,
+        sqlalchemy.ForeignKey('profile.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
     )
     # Unique identifier for the search session, used to track searches across requests.
     uuid = sqlalchemy.Column(sqlalchemy.String, unique=True, nullable=False)
@@ -69,6 +74,7 @@ class SearchSession(db.models.base.Base):
         'db.models.profile.Profile',
         back_populates='search_sessions',
         cascade_backrefs=False,
+        passive_deletes=True,
     )
     # Search results associated with this search session.
     search_results = sqlalchemy.orm.relationship(
@@ -76,6 +82,7 @@ class SearchSession(db.models.base.Base):
         back_populates='search_session',
         cascade_backrefs=False,
         cascade='all, delete-orphan',
+        passive_deletes=True,
     )
 
 
@@ -106,6 +113,7 @@ class SearchResult(db.models.base.Base):
         'SearchSession',
         back_populates='search_results',
         cascade_backrefs=False,
+        passive_deletes=True,
     )
     __table_args__ = (
         # Ensure that the session and sort order are unique together. This is to help prevent

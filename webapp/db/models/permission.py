@@ -42,6 +42,7 @@ class Resource(db.models.base.Base):
     # The parent of this resource. If this is null, this resource is a root node.
     parent_id = sqlalchemy.Column(
         sqlalchemy.Integer,
+        # TODO: This cascading delete will delete all descendants in the tree. Is that what we want?
         sqlalchemy.ForeignKey('resource.id', ondelete='CASCADE'),
         nullable=True,
         index=True,
@@ -69,7 +70,12 @@ class Resource(db.models.base.Base):
         passive_deletes=True,
     )
 
-    parent = sqlalchemy.orm.relationship('Resource', remote_side=[id], lazy='select')
+    parent = sqlalchemy.orm.relationship(
+        'Resource',
+        remote_side=[id],
+        lazy='select',
+        passive_deletes=True,
+    )
 
 
 class Principal(db.models.base.Base):
@@ -90,6 +96,7 @@ class Principal(db.models.base.Base):
         back_populates='principal',
         #     # cascade_backrefs=False,
         #     # cascade='all, delete-orphan',
+        passive_deletes=True,
     )
 
 
@@ -106,9 +113,11 @@ class Rule(db.models.base.Base):
         index=True,
     )
     # The principal (user profile or user group) to which the permission is granted.
-    # principal_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, index=True)
     principal_id = sqlalchemy.Column(
-        sqlalchemy.Integer, sqlalchemy.ForeignKey('principal.id'), nullable=False, index=True
+        sqlalchemy.Integer,
+        sqlalchemy.ForeignKey('principal.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
     )
     # The access level granted by this permission (enum of READ, WRITE or CHANGE).
     permission = sqlalchemy.Column(
@@ -128,12 +137,13 @@ class Rule(db.models.base.Base):
         'Resource',
         back_populates='rules',
         # cascade_backrefs=False,
-        # passive_deletes=True,
+        passive_deletes=True,
     )
 
     principal = sqlalchemy.orm.relationship(
         'Principal',
         back_populates='rules',
+        passive_deletes=True,
     )
 
     # cascade_backrefs=False,

@@ -16,7 +16,10 @@ class Group(db.models.base.Base):
     edi_id = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True, index=True)
     # The profile of the user who create the group.
     profile_id = sqlalchemy.Column(
-        sqlalchemy.Integer, sqlalchemy.ForeignKey('profile.id'), nullable=False, index=True
+        sqlalchemy.Integer,
+        sqlalchemy.ForeignKey('profile.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
     )
     # The name of the group as provided by the user. Can be edited.
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
@@ -40,12 +43,14 @@ class Group(db.models.base.Base):
         back_populates='group',
         cascade_backrefs=False,
         cascade='all, delete-orphan',
+        passive_deletes=True,
     )
 
     profile = sqlalchemy.orm.relationship(
         'db.models.profile.Profile',
         back_populates='groups',
         cascade_backrefs=False,
+        passive_deletes=True,
     )
 
     # rules = sqlalchemy.orm.relationship('Rule', back_populates='resource')
@@ -69,12 +74,18 @@ class GroupMember(db.models.base.Base):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     # The group to which the member belongs.
     group_id = sqlalchemy.Column(
-        sqlalchemy.Integer, sqlalchemy.ForeignKey('group.id'), nullable=False, index=True
+        sqlalchemy.Integer,
+        sqlalchemy.ForeignKey('group.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
     )
     # The profile of the user who is a member of the group. May include the owner of the group.
     # Groups cannot be group members, so we use profile_id instead of principal_id.
     profile_id = sqlalchemy.Column(
-        sqlalchemy.Integer, sqlalchemy.ForeignKey('profile.id'), nullable=False, index=True
+        sqlalchemy.Integer,
+        sqlalchemy.ForeignKey('profile.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
     )
     # The date and time the user was added to the group.
     added = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now)
@@ -82,11 +93,13 @@ class GroupMember(db.models.base.Base):
         'Group',
         back_populates='members',
         cascade_backrefs=False,
+        passive_deletes=True,
     )
     profile = sqlalchemy.orm.relationship(
         'db.models.profile.Profile',
         back_populates='group_members',
         cascade_backrefs=False,
+        passive_deletes=True,
     )
     __table_args__ = (
         # Ensure that group_id and profile_id are unique together.
