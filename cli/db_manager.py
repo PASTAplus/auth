@@ -54,6 +54,7 @@ async def main():
     subparsers.add_parser('create', help='Create database tables and objects')
     subparsers.add_parser('drop', help='Drop database tables and objects')
     subparsers.add_parser('clear', help='Clear user data from tables but keep schema unmodified')
+    subparsers.add_parser('clear-resources', help='Clear only resources and rules')
     subparsers.add_parser('update', help='Update ')
     args = parser.parse_args()
 
@@ -73,6 +74,7 @@ async def main():
         'drop': 'Drop all tables and other objects',
         'clear': 'Clear all user data from tables but keep schema unmodified',
         'update': 'Update all functions and triggers but keep tables and other objects unchanged',
+        'clear-resources': 'Clear only resources and rules',
     }.get(args.command)
     answer_str = input(
         f'{action_str} in the {"TEST" if args.test else "PRODUCTION"} database? (y/n): '
@@ -126,6 +128,8 @@ async def main():
                 # await drop_tables_by_metadata(dbi)
             elif args.command == 'clear':
                 await clear_db(dbi)
+            elif args.command == 'clear-resources':
+                await clear_resources(dbi)
             elif args.command == 'update':
                 await update_functions_and_triggers(dbi)
             else:
@@ -511,6 +515,16 @@ async def clear_db(dbi):
 
     await _create_system_profiles(dbi)
     await _create_system_groups(dbi)
+
+
+async def clear_resources(dbi):
+    """Clear only resources and rules, but keep the schema and other data unmodified."""
+    log.info('Clearing resources and rules')
+    try:
+        await dbi.execute(sqlalchemy.text('truncate table "rule" cascade'))
+        await dbi.execute(sqlalchemy.text('truncate table "resource" cascade'))
+    except SQLAlchemyError as e:
+        log.error(f'Failed to clear resources and rules: {e}')
 
 
 if __name__ == '__main__':

@@ -1,3 +1,5 @@
+import time
+
 import daiquiri
 import fastapi
 import starlette.requests
@@ -152,17 +154,23 @@ async def get_ui_api_permission_tree(
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    """Called when user clicks the expand button or checkbox in a root element."""
+    """Called when user clicks the expand button or checkbox in a root element.
+    - This method takes a single root ID and returns a single tree with that root.
+    """
     resource_id_set = await dbi.get_resource_descendants_id_set([root_id])
     resource_generator = dbi.get_resource_filter_gen(
         token_profile_row, resource_id_set, db.models.permission.PermissionLevel.CHANGE
     )
     row_list = [row async for row in resource_generator]
-    tree_list = db.resource_tree.get_resource_tree_for_ui(row_list)
+    # If the root resource is not visible to the user, return None
+    if root_id not in (row[0].id for row in row_list):
+        tree_dict = None
+    else:
+        tree_dict = db.resource_tree.get_resource_tree_for_ui(row_list)[0]
     return starlette.responses.JSONResponse(
         {
             'status': 'ok',
-            'tree': tree_list[0],
+            'tree': tree_dict,
         }
     )
 
@@ -285,12 +293,15 @@ async def post_permission_update(
     # side, or by setting a very low bandwidth limit in the browser dev tools.
     update_dict = await request.json()
     try:
+        start_ts = time.time()
         await dbi.set_permissions(
             token_profile_row,
             update_dict['resources'],
             update_dict['principalId'],
             update_dict['permissionLevel'],
         )
+        log.info('set_permissions(): %.3f sec', time.time() - start_ts)
+
     except ValueError as e:
         return starlette.responses.JSONResponse(
             {'status': 'error', 'message': str(e)},

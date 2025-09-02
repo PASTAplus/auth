@@ -9,6 +9,8 @@ import db.interface.profile
 import db.interface.search
 import db.interface.sync
 import db.models.identity
+import db.models.profile
+import db.models.group
 import util.avatar
 import util.exc
 
@@ -50,56 +52,46 @@ class DbInterface(
         has_avatar: bool,
     ) -> db.models.identity.Identity:
         """Create or update a profile and identity.
-        See the table definitions for Profile and Identity for more information on the fields.
+        - A full profile is a profile that has been logged into at least once, and so has a known
+        identity provider, and is filled in with user information from the identity provider.
+        - A skeleton profile is a profile that has been created via the API, and which does not have
+        a known identity provider, and no user information.
         """
+        assert idp_name != db.models.identity.IdpName.SKELETON
         try:
-            identity_row = await self.get_identity_by_idp_uid(idp_uid)
+            identity_row = await self.get_identity(idp_name, idp_uid)
+            # We have a full profile.
         except sqlalchemy.exc.NoResultFound:
             identity_row = None
-        except sqlalchemy.exc.MultipleResultsFound:
-            # On transitioning to EDI-IDs, it's very unlikely, but theoretically possible, that
-            # multiple identities exist for the same IdP UID.
-            raise util.exc.AuthError('Multiple identities found for the same IdP UID')
 
-        # See README.md: Strategy for dealing with Google emails historically used as identifiers
-        # If an identity does not exist under the IdP UID, we check if there is an identity with the
-        # same email.
+        # If a full profile and identity does not exist for this login. Check for a skeleton
+        # profile.
         if identity_row is None:
-            if idp_name == db.models.identity.IdpName.GOOGLE:
-                if email:
-                    # Check if the IdP UID contains an email address (Google legacy support)
-                    try:
-                        identity_row = await self.get_identity_by_idp_uid(email)
-                        # We have a legacy case where the IdP UID is an email address. Fix up the
-                        # record now.
-                        identity_row.idp_uid = idp_uid
-                        await self.flush()
-                    except sqlalchemy.exc.NoResultFound:
-                        identity_row = None
-                    except sqlalchemy.exc.MultipleResultsFound:
-                        raise util.exc.AuthError(
-                            'We have found multiple identities with the same email as IdP UID, '
-                            'and would not know which one to use. This is known possible problem '
-                            'with transitioning from legacy Google accounts.'
-                        )
+            try:
+                identity_row = await self.get_identity(db.models.identity.IdpName.SKELETON, idp_uid)
+                # We have a skeleton profile and identity. We will upgrade this to a full profile
+                # below.
+            except sqlalchemy.exc.NoResultFound:
+                pass
 
-        # If the identity exists, but the IdPName is UNKNOWN, this is the first login into a
-        # skeleton profile and identity which was created via the API. We can now convert these to
-        # regular profile and identity by updating both with values from the IdP.
-        if identity_row is not None and identity_row.idp_name == db.models.identity.IdpName.UNKNOWN:
-            assert idp_name != db.models.identity.IdpName.UNKNOWN
-            identity_row.idp_name = idp_name
-            identity_row.has_avatar = has_avatar
-            await self.flush()
-            await self.update_profile(
-                identity_row.profile, common_name=common_name, email=email, has_avatar=has_avatar
-            )
-            if has_avatar:
-                await util.avatar.copy_identity_to_profile_avatar(identity_row)
+        # See README.md: Strategy for dealing with Google emails historically used as identifiers.
+        # If an identity does not exist under the IdP UID, and we're logging in through Google, we
+        # check if there is a skeleton profile with the IdP email as the IdP UID.
+        if identity_row is None:
+            if idp_name == db.models.identity.IdpName.GOOGLE and email:
+                try:
+                    identity_row = await self.get_identity(
+                        db.models.identity.IdpName.SKELETON, email
+                    )
+                    # We have a legacy case where the IdP UID is an email address. Fix up the record
+                    # idp_uid now, and upgrade to full profile below.
+                    identity_row.idp_uid = idp_uid
+                except sqlalchemy.exc.NoResultFound:
+                    pass
 
-        try:
-            identity_row = await self.get_identity(idp_name=idp_name, idp_uid=idp_uid)
-        except sqlalchemy.exc.NoResultFound:
+        # If we still haven't found an identity, this is the first login into a new profile and
+        # identity. We can now create both and return.
+        if identity_row is None:
             profile_row = await self.create_profile(
                 common_name=common_name,
                 email=email,
@@ -117,13 +109,34 @@ class DbInterface(
             # Set the avatar for the profile to the avatar for the identity
             if has_avatar:
                 await util.avatar.copy_identity_to_profile_avatar(identity_row)
-        else:
-            # We do not update the profile if it exists, since the profile belongs to the user, and
-            # they may update their profile with their own information. However, we do update
-            # the identity, since it is associated with the IdP and may change over time.
-            await self.update_identity(
-                identity_row, idp_name, idp_uid, common_name, email, has_avatar
+            return identity_row
+
+        # We are logging into an existing profile. If this is a skeleton profile, upgrade it to
+        # full:
+        if identity_row.idp_name == db.models.identity.IdpName.SKELETON:
+            identity_row.idp_name = idp_name
+            await self.update_profile(
+                identity_row.profile, common_name=common_name, email=email, has_avatar=has_avatar
             )
+            await dbi.flush()
+            if has_avatar:
+                await util.avatar.copy_identity_to_profile_avatar(identity_row)
+
+        # Update the identity information (both for existing full and skeleton profiles).
+        # We always update the email address and common name in the identity row, but only set these
+        # in the profile when the profile is first created. So if the user has updated their info
+        # with the IdP, the updated info will be stored in the identity, but corresponding info in
+        # the profile remains unchanged.
+        identity_row.common_name = common_name
+        identity_row.email = email
+        identity_row.first_auth = identity_row.first_auth or datetime.datetime.now()
+        identity_row.last_auth = datetime.datetime.now()
+        # Normally, has_avatar will be True from the first time the user logs in with the identity.
+        # More rarely, it will go from False to True, if a user did not initially have an avatar at
+        # the IdP, but then creates one. More rarely still (if at all possible), this may go from
+        # True to False, if the user removes their avatar at the IdP. In this latter case, the
+        # avatar image in the filesystem will be orphaned here.
+        identity_row.has_avatar = has_avatar
 
         return identity_row
 
@@ -134,7 +147,8 @@ class DbInterface(
         into by the IdP UID.
 
         This method is idempotent, meaning that if a profile already exists for the provided
-        `idp_uid`, it will return the existing profile identifier instead of creating a new one.
+        `idp_uid`, it will return the existing profile identifier instead of creating a new one. The
+        existing profile may be a skeleton or a full profile.
 
         At this point, we don't know (without applying heuristics to the UID) by which IdP the UID
         was issued.
@@ -145,17 +159,45 @@ class DbInterface(
         try:
             return await self.get_identity_by_idp_uid(idp_uid)
         except sqlalchemy.exc.NoResultFound:
-            return await self.create_or_update_profile_and_identity(
-                idp_name=db.models.identity.IdpName.UNKNOWN,
-                idp_uid=idp_uid,
-                common_name=None,
-                email=None,
-                has_avatar=False,
-            )
+            pass
         except sqlalchemy.exc.MultipleResultsFound:
             # On transitioning to EDI-IDs, it's very unlikely, but theoretically possible, that
             # multiple identities exist for the same IdP UID.
             raise util.exc.AuthError('Multiple identities found for the same IdP UID')
+        # See README.md: Strategy for dealing with Google emails historically used as identifiers.
+        # The idp_uid may be an email address. If someone has signed in via Google, and their email
+        # address matches the idp_uid for the skeleton profile we are preparing to create, use that
+        # identity.
+        try:
+            return await self.get_identity_by_google_email(idp_uid)
+        except sqlalchemy.exc.NoResultFound:
+            pass
+        profile_row = await self.create_profile(idp_uid=idp_uid)
+        return await self.create_identity(profile_row, db.models.identity.IdpName.SKELETON, idp_uid)
+
+    async def is_existing_edi_id(self, edi_id: str) -> bool:
+        """Check if the given EDI-ID exists in the database.
+        - The EDI-ID can be for a profile or a group.
+        """
+        if (
+            await self.execute(
+                sqlalchemy.select(
+                    sqlalchemy.exists().where(
+                        db.models.profile.Profile.edi_id == edi_id,
+                    )
+                )
+            )
+        ).scalar_one():
+            return True
+        return (
+            await self.execute(
+                sqlalchemy.select(
+                    sqlalchemy.exists().where(
+                        db.models.group.Group.edi_id == edi_id,
+                    )
+                )
+            )
+        ).scalar_one()
 
     # Session management
 

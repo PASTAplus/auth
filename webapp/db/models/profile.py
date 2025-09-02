@@ -46,18 +46,21 @@ class Profile(db.models.base.Base):
         back_populates='profile',
         cascade_backrefs=False,
         cascade='all, delete-orphan',
+        passive_deletes=True,
     )
     groups = sqlalchemy.orm.relationship(
         'Group',
         back_populates='profile',
         cascade_backrefs=False,
         cascade='all, delete-orphan',
+        passive_deletes=True,
     )
     group_members = sqlalchemy.orm.relationship(
         'GroupMember',
         back_populates='profile',
         cascade_backrefs=False,
         cascade='all, delete-orphan',
+        passive_deletes=True,
     )
     # One-to-one relationship to the db.models.permission.Principal table.
     principal = sqlalchemy.orm.relationship(
@@ -72,6 +75,7 @@ class Profile(db.models.base.Base):
             ")"
         ),
         uselist=False,
+        passive_deletes=True,
     )
     # Resource searches performed by this profile in order to apply permissions.
     search_sessions = sqlalchemy.orm.relationship(
@@ -79,6 +83,7 @@ class Profile(db.models.base.Base):
         back_populates='profile',
         cascade_backrefs=False,
         cascade='all, delete-orphan',
+        passive_deletes=True,
     )
 
     @property
@@ -99,7 +104,10 @@ class ProfileHistory(db.models.base.Base):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     # Reference the user's current profile
     profile_id = sqlalchemy.Column(
-        sqlalchemy.Integer, sqlalchemy.ForeignKey('profile.id'), nullable=False, index=True
+        sqlalchemy.Integer,
+        sqlalchemy.ForeignKey('profile.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
     )
     # EDI-ID of a profile that has been merged by the user referenced by profile_id.
     edi_id = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True)

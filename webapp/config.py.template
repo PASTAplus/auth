@@ -88,8 +88,9 @@ class Config(object):
     # System principals
     #
 
-    # Replace 'EDI-...' with generated EDI-IDs in a new deployment. Use ./cli/gen_edi_id.py to
-    # generate EDI-IDs. Once the database is populated, these values must not be changed.
+    # Replace 'EDI-...' with new EDI-IDs in a new deployment. Use ./cli/gen_edi_id.py to generate
+    # EDI-IDs. If these values are changed, the database must be dropped and recreated with
+    # ./cli/db_manager.py.
 
     SERVICE_EDI_ID = 'EDI-6d92693416fde9af9c43fd7cd92d1028eadafa46'
     SERVICE_NAME = 'EDI IAM Service'
@@ -109,10 +110,12 @@ class Config(object):
     VETTED_GROUP_AVATAR_PATH = ASSETS_PATH / 'checkmark.svg'
 
     # Adding a profile to the superuser list has the following effects:
-    # - In the Groups tab, all groups will be available to view and edit
-    # - In the Permissions tab, all resources and permissions will be available to view and edit
-    # - The profile will not be available for adding to groups or assigning permissions (it is not
-    # included in principal search results)
+    # - In the Groups page, all groups will be available to view and edit
+    # (superusers have implicit write permission on all groups)
+    # - In the Permissions page, all resources and permissions will be available to view and edit
+    # (superusers have implicit changePermission on all resources)
+    # - The profile will not be available for adding to groups or assigning permissions
+    # (superusers are not included in principal search results)
     SUPERUSER_LIST = [
         # Always add the service itself as a superuser
         SERVICE_EDI_ID,

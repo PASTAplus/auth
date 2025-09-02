@@ -33,6 +33,7 @@ The resources of interest will always be a cross-section of:
     handle thousands of equivalent principals efficiently, should someone want that in the future.
 """
 
+import time
 import re
 
 import daiquiri
@@ -87,21 +88,17 @@ class PermissionInterface:
                 parent_row = await self.get_resource_by_id(parent_id)
             except sqlalchemy.exc.NoResultFound:
                 raise util.exc.InvalidRequestError(parent_id)
-            if not await self.is_authorized(
-                token_profile_row, parent_row, db.models.permission.PermissionLevel.CHANGE
-            ):
+            if not await self.is_authorized(token_profile_row, parent_row, PermissionLevel.CHANGE):
                 raise util.exc.ResourcePermissionDeniedError(
                     token_profile_row.edi_id,
                     parent_row.key,
-                    db.models.permission.PermissionLevel.WRITE,
+                    PermissionLevel.WRITE,
                 )
         resource_row = await self.create_resource(parent_id, key, label, type_str)
         principal_row = await self.get_principal_by_subject(
             token_profile_row.id, db.models.permission.SubjectType.PROFILE
         )
-        await self.create_or_update_rule(
-            resource_row, principal_row, db.models.permission.PermissionLevel.CHANGE
-        )
+        await self.create_or_update_rule(resource_row, principal_row, PermissionLevel.CHANGE)
         return resource_row
 
     async def get_resource_by_id(self, resource_id):
@@ -176,6 +173,8 @@ class PermissionInterface:
         This method implements the logic equivalent of the following pseudocode:
 
         def is_authorized(principal, resource, permission_level):
+            if is_superuser(principal):
+                return True
             acl = getAcl(resource)
             principals = getPrincipals(profile)
             for principal in principals:
@@ -185,6 +184,8 @@ class PermissionInterface:
                             return True
             return False
 
+        Superusers have all permissions on all resources.
+
         A profile may have a number of equivalents. These always include the Public Access profile,
         and may include one or more groups to which profile is a member. This method checks if the
         profile, or any of its equivalents, has the required permission or better on the resource.
@@ -193,6 +194,8 @@ class PermissionInterface:
         that has WRITE permission on the resource, this method will return True when checking for
         either READ or WRITE on the resource
         """
+        if util.profile_cache.is_superuser(token_profile_row):
+            return True
         result = await self.execute(
             sqlalchemy.select(
                 sqlalchemy.exists().where(
@@ -243,30 +246,6 @@ class PermissionInterface:
         if result.rowcount == 0:
             log.warning(f'No rows were deleted for key: {key}')
 
-    # async def get_resource_types(self, token_profile_row):
-    #     """Get a list of resource types that the profile has CHANGE permission on."""
-    #     result = await self.execute(
-    #         (
-    #             sqlalchemy.select(Resource.type)
-    #             .join(
-    #                 Rule,
-    #                 Rule.resource_id == Resource.id,
-    #             )
-    #             .join(
-    #                 Principal,
-    #                 Principal.id == Rule.principal_id,
-    #             )
-    #             .where(
-    #                 Principal.subject_id == token_profile_row.id,
-    #                 Principal.subject_type == SubjectType.PROFILE,
-    #                 Rule.permission >= PermissionLevel.CHANGE,
-    #             )
-    #             .order_by(Resource.type)
-    #             .distinct()
-    #         )
-    #     )
-    #     return result.scalars().all()
-
     async def set_permissions(
         self,
         token_profile_row,
@@ -295,17 +274,18 @@ class PermissionInterface:
         :param permission_level: The permission level to grant (READ, WRITE, CHANGE).
         """
 
-        permission_level = permission_level_int_to_enum(permission_level)
+        start_ts = time.time()
 
+        permission_level = permission_level_int_to_enum(permission_level)
+        principal_row = await self.get_principal(principal_id)
+
+        resource_id_set = set(resource_ids)
         parent_id_set = set()
 
         # Recursively find all parent IDs of the resources in resource_ids, and bump them up to the
         # permission_level if required. We never reduce the permission level of a parent, but we
         # need to make sure that the principal has the permissions required in order to be able to
         # walk down the tree to their resources.
-
-        # TODO: Check permissions on parents before updating?
-
         async def _find_parent_ids(resource_id_):
             result_ = await self.execute(
                 sqlalchemy.select(Resource.parent_id).where(Resource.id == resource_id_)
@@ -315,139 +295,39 @@ class PermissionInterface:
                 parent_id_set.add(parent_id_)
                 await _find_parent_ids(parent_id_)
 
-        for resource_id in resource_ids:
+        for resource_id in resource_id_set:
             await _find_parent_ids(resource_id)
 
+        parent_id_set -= resource_id_set
+
         for parent_id in parent_id_set:
-            result = await self.execute(sqlalchemy.select(Resource).where(Resource.id == parent_id))
-            try:
-                resource_row = result.scalar_one()
-            except sqlalchemy.exc.NoResultFound:
-                log.warning(f'Resource with ID "{parent_id}" does not exist, skipping.')
-                continue
-
-            if not await self.is_authorized(token_profile_row, resource_row, permission_level):
+            resource_row = await self.get_resource_by_id(parent_id)
+            if await self.is_authorized(token_profile_row, resource_row, PermissionLevel.CHANGE):
                 await self.create_or_update_rule(
-                    resource_row, token_profile_row.principal, permission_level
+                    resource_row, principal_row, permission_level, increase_only=True
                 )
 
-        await self._bulk_set_permissions(
-            token_profile_row,
-            resource_ids,
-            principal_id,
-            permission_level,
-        )
+        for resource_id in resource_id_set:
+            resource_row = await self.get_resource_by_id(resource_id)
+            if await self.is_authorized(token_profile_row, resource_row, PermissionLevel.CHANGE):
+                await self.create_or_update_rule(resource_row, principal_row, permission_level)
 
-    async def _bulk_set_permissions(
-        self,
-        token_profile_row,
-        resource_ids,
-        principal_id,
-        permission_level,
-    ):
-        # Databases have a limit to the number of parameters they can accept in a single query, so
-        # we chunk the list of resource IDs, which then also limits the number of rows we attempt to
-        # create or update in a single bulk query.
-        for i in range(0, len(resource_ids), Config.DB_CHUNK_SIZE):
-            resource_chunk_list = resource_ids[i : i + Config.DB_CHUNK_SIZE]
-            # Filter the resource_chunk_list to only include resources for which the
-            # token_profile_row has CHANGE permission (which also filters out any non-existing
-            # resource IDs).
-            # Superusers have permission on all resources, so we do not need to filter.
-            if util.profile_cache.is_superuser(token_profile_row):
-                change_resource_id_set = set(resource_chunk_list)
-            else:
-                # Get the resource IDs for which the token_profile_row has CHANGE permission.
-                result = await self.execute(
-                    (
-                        sqlalchemy.select(Resource.id)
-                        .join(
-                            Rule,
-                            Rule.resource_id == Resource.id,
-                        )
-                        .join(
-                            Principal,
-                            Principal.id == Rule.principal_id,
-                        )
-                        .where(
-                            # db.models.permission.Resource.id.in_(resource_chunk_list),
-                            Principal.subject_id == token_profile_row.id,
-                            Principal.subject_type == SubjectType.PROFILE,
-                            Rule.permission >= PermissionLevel.CHANGE,
-                        )
-                    )
-                )
-                # change_resource_id_set = {row for row, in result.all()}
-                change_resource_id_set = set(resource_chunk_list)
-
-            log.debug(f'change_resource_id_set: {change_resource_id_set}')
-            # If permission is NONE, all we need to do is delete any existing permission rows for
-            # the principal on the given resources.
-            if permission_level == PermissionLevel.NONE:
-                delete_stmt = sqlalchemy.delete(Rule).where(
-                    Rule.resource_id.in_(change_resource_id_set),
-                    Rule.principal_id == principal_id,
-                )
-                await self.execute(delete_stmt)
-                return
-            # Create a set of secure resource IDs for which there are no existing permission rows
-            # for the principal.
-            # We start by creating a subquery which returns the resource IDs for which the principal
-            # already has a permission row.
-            result = await self.execute(
-                sqlalchemy.select(Resource.id).where(
-                    Resource.id.in_(change_resource_id_set),
-                    ~Resource.id.in_(
-                        (
-                            sqlalchemy.select(Resource.id)
-                            .join(Rule)
-                            .where(
-                                Resource.id.in_(change_resource_id_set),
-                                Rule.principal_id == principal_id,
-                            )
-                        )
-                    ),
-                )
-            )
-            # Insert any absent permission rows for the principal.
-            insert_resource_id_set = {row for row, in result.all()}
-            log.debug(f'insert_resource_id_set: {insert_resource_id_set}')
-            if insert_resource_id_set:
-                await self.execute(
-                    sqlalchemy.insert(Rule),
-                    [
-                        {
-                            'resource_id': resource_id,
-                            'principal_id': principal_id,
-                            'permission': permission_level,
-                        }
-                        for resource_id in insert_resource_id_set
-                    ],
-                )
-            # Update any existing permission rows for the principal.
-            update_resource_id_set = change_resource_id_set - insert_resource_id_set
-            log.debug(f'update_resource_id_set: {update_resource_id_set}')
-            if update_resource_id_set:
-                update_stmt = (
-                    sqlalchemy.update(Rule)
-                    .where(
-                        Rule.resource_id.in_(update_resource_id_set),
-                        Rule.principal_id == principal_id,
-                    )
-                    .values(permission=permission_level)
-                )
-                await self.execute(update_stmt)
+        log.info('set_permissions(): %.3f sec', time.time() - start_ts)
 
     async def create_or_update_rule(
         self,
         resource_row,
         principal_row,
         permission_level,
+        increase_only=False,
     ):
         """Create or update a permission for a principal on a resource.
 
         CHANGE permission on the resource must already have been validated before calling this
         method.
+
+        increase_only: If True, method is a no-op if a rule already exists with same or higher
+        permission level.
         """
         assert isinstance(resource_row, Resource)
         assert isinstance(principal_row, Principal)
@@ -458,7 +338,13 @@ class PermissionInterface:
         except sqlalchemy.exc.NoResultFound:
             rule_row = None
 
-        if permission_level == 0:
+        if rule_row is not None:
+            if rule_row.permission == permission_level:
+                return
+            if increase_only and rule_row.permission.value > permission_level.value:
+                return
+
+        if permission_level == PermissionLevel.NONE:
             if rule_row is not None:
                 await self._session.delete(rule_row)
         else:
@@ -616,6 +502,7 @@ class PermissionInterface:
 
     async def get_resource_filter_gen(self, token_profile_row, resource_ids, permission_level):
         """Yield resources with associated ACRs for a list of resource IDs, filtered by permission.
+        - Yields rows of (Resource, Rule, Principal, Profile/Group)
         - Filters a list of resource IDs to only those for which the token has the required
         permission level or higher.
         - This method handles untrusted user input, and should be applied to all resource IDs

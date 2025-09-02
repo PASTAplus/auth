@@ -42,6 +42,7 @@ class Resource(db.models.base.Base):
     # The parent of this resource. If this is null, this resource is a root node.
     parent_id = sqlalchemy.Column(
         sqlalchemy.Integer,
+        # TODO: This cascading delete will delete all descendants in the tree. Is that what we want?
         sqlalchemy.ForeignKey('resource.id', ondelete='CASCADE'),
         nullable=True,
         index=True,
@@ -61,11 +62,20 @@ class Resource(db.models.base.Base):
     rules = sqlalchemy.orm.relationship(
         'Rule',
         back_populates='resource',
-        #     cascade_backrefs=False,
-        #     cascade='all, delete-orphan',
+        # We need 'passive_deletes' in all cases where (1) foreign key is nullable=False and
+        # ondelete='CASCADE', and (2) an ORM relationship (like this one) is defined. Without
+        # 'passive_deletes', SQLAlchemy tries to "disassociate" child objects by setting their
+        # foreign key to NULL before deleting the parent. Without the relationship, the DB will
+        # correctly perform cascading deletes on FKs with ondelete='CASCADE'.
+        passive_deletes=True,
     )
 
-    parent = sqlalchemy.orm.relationship('Resource', remote_side=[id], lazy='select')
+    parent = sqlalchemy.orm.relationship(
+        'Resource',
+        remote_side=[id],
+        lazy='select',
+        passive_deletes=True,
+    )
 
 
 class Principal(db.models.base.Base):
@@ -86,6 +96,7 @@ class Principal(db.models.base.Base):
         back_populates='principal',
         #     # cascade_backrefs=False,
         #     # cascade='all, delete-orphan',
+        passive_deletes=True,
     )
 
 
@@ -96,12 +107,17 @@ class Rule(db.models.base.Base):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     # The resource to which this permission applies.
     resource_id = sqlalchemy.Column(
-        sqlalchemy.Integer, sqlalchemy.ForeignKey('resource.id'), nullable=False, index=True
+        sqlalchemy.Integer,
+        sqlalchemy.ForeignKey('resource.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
     )
     # The principal (user profile or user group) to which the permission is granted.
-    # principal_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, index=True)
     principal_id = sqlalchemy.Column(
-        sqlalchemy.Integer, sqlalchemy.ForeignKey('principal.id'), nullable=False, index=True
+        sqlalchemy.Integer,
+        sqlalchemy.ForeignKey('principal.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
     )
     # The access level granted by this permission (enum of READ, WRITE or CHANGE).
     permission = sqlalchemy.Column(
@@ -121,12 +137,13 @@ class Rule(db.models.base.Base):
         'Resource',
         back_populates='rules',
         # cascade_backrefs=False,
-        # passive_deletes=True,
+        passive_deletes=True,
     )
 
     principal = sqlalchemy.orm.relationship(
         'Principal',
         back_populates='rules',
+        passive_deletes=True,
     )
 
     # cascade_backrefs=False,

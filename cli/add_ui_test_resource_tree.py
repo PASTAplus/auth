@@ -9,6 +9,7 @@ import argparse
 import asyncio
 import logging
 import pathlib
+import pprint
 import sys
 
 import daiquiri
@@ -35,26 +36,42 @@ WRITE = db.models.permission.PermissionLevel.WRITE
 CHANGE = db.models.permission.PermissionLevel.CHANGE
 
 PUBLIC = Config.PUBLIC_EDI_ID
-ROGER = 'EDI-3afe2e74621f44718e7ed28019772160'
-JOHN = 'EDI-11111111111111111111111111111111'
+ROGER = 'EDI-ff8622e9e9e269cb04174948b1dc70eaa8fd37cf'  # roger.dahl.unm
+ROGER2 = 'EDI-cf1bd9784e1d398e328fb8424793ecfd6c0b9d58'  # roger.dahl.home
+JOHN = 'EDI-1111111111111111111111111111111111111111'
+JANE = 'EDI-2222222222222222222222222222222222222222'
 
-TEST_TREE = {
-    ('pkg.1.2', 'package'): {
-        'perm': (
-            # (ROGER, READ),
-            (ROGER, CHANGE),
-            #     # (JOHN, WRITE),
-            #     # (JOHN, CHANGE),
-        ),
-        # 'child': {
-        #     ('r1', 'package'): {
-        #         'perm': (
-        #             # (PUBLIC, READ),
-        #             # (ROGER, READ),
-        #             # (JOHN, WRITE),
-        #         )
-        # }
-    }
+TREE_DICT = {
+    # Single package root, single owner with CHANGE permission
+    1: {
+        ('pkg.1.1', 'package'): {
+            'perm': (
+                # (ROGER, READ),
+                (ROGER, CHANGE),
+                #     # (JOHN, WRITE),
+                #     # (JOHN, CHANGE),
+            ),
+            # 'child': {
+            #     ('r1', 'package'): {
+            #         'perm': (
+            #             # (PUBLIC, READ),
+            #             # (ROGER, READ),
+            #             # (JOHN, WRITE),
+            #         )
+            # }
+        }
+    },
+    2: {
+        ('pkg.1.1', 'package'): {
+            'perm': ((ROGER, CHANGE),),
+        },
+        ('pkg.2.1', 'package'): {
+            'perm': ((ROGER, CHANGE),),
+        },
+        ('pkg.3.1', 'package'): {
+            'perm': ((ROGER, CHANGE),),
+        },
+    },
 }
 
 
@@ -62,6 +79,7 @@ async def main():
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
+    parser.add_argument('tree', help='Which tree to add', type=int, choices=TREE_DICT.keys())
     parser.add_argument('--debug', help='Debug level logging')
     args = parser.parse_args()
 
@@ -100,7 +118,11 @@ async def main():
         await dbi.execute(sqlalchemy.delete(db.models.permission.Resource))
         await dbi.flush()
 
-        await _build_test_tree(dbi, TEST_TREE)
+        log.info('Adding test resource tree:')
+        # log.info(pprint.pformat(TREE_DICT[args.tree]))
+
+        await _build_test_tree(dbi, TREE_DICT[args.tree])
+        # await dbi.commit()
 
     log.info('Success!')
 
