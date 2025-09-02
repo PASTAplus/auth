@@ -75,7 +75,7 @@
                             ]
                         }
                     ],
-                    "key": "1de21f6006464d208daadc3991be0c4e",
+                    "key": "CLOBBERED-RANDOM-KEY",
                     "principals": [
                         {
                             "description": "john@smith.com",
@@ -245,7 +245,7 @@
                             ]
                         }
                     ],
-                    "key": "46273f5581764cb3afe1263b5ad8baa2",
+                    "key": "CLOBBERED-RANDOM-KEY",
                     "principals": [
                         {
                             "description": "john@smith.com",

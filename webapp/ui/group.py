@@ -7,7 +7,7 @@ import starlette.templating
 
 import util.avatar
 import util.dependency
-import util.pasta_jwt
+import util.edi_token
 import util.redirect
 import util.search_cache
 import util.template
@@ -25,7 +25,7 @@ router = fastapi.APIRouter()
 @router.get('/ui/group')
 async def get_ui_group(
     request: starlette.requests.Request,
-    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
 ):
@@ -69,7 +69,7 @@ async def get_ui_group_member(
     group_id: int,
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
-    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     group_row = await dbi.get_owned_group(token_profile_row, group_id)

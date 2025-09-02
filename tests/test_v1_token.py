@@ -3,7 +3,7 @@
 import pytest
 
 import util.old_token
-import util.pasta_jwt
+import util.edi_token
 from config import Config
 
 pytestmark = [

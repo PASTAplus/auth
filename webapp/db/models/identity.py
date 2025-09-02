@@ -13,8 +13,8 @@ log = daiquiri.getLogger(__name__)
 class IdpName(enum.Enum):
     """The Identity Provider (IdP) names are used to identify the source of the identity."""
 
-    # The UNKNOWN IdP is used for identities created via the API, where the IdP is not known.
-    UNKNOWN = 0
+    # The SKELETON IdP is used for identities created via the API, where the IdP is not known.
+    SKELETON = 0
     LDAP = 1
     GITHUB = 2
     GOOGLE = 3
@@ -23,7 +23,7 @@ class IdpName(enum.Enum):
 
 
 IDP_NAME_ENUM_TO_DISPLAY_DICT = {
-    IdpName.UNKNOWN: 'Unknown',
+    IdpName.SKELETON: 'Automatically generated',
     IdpName.GITHUB: 'GitHub',
     IdpName.GOOGLE: 'Google',
     IdpName.LDAP: 'LDAP',

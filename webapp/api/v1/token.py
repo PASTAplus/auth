@@ -13,15 +13,20 @@ import util.dependency
 import util.exc
 import util.old_token
 import util.pasta_crypto
-import util.pasta_jwt
+import util.edi_token
 import util.profile_cache
 import util.url
 from config import Config
 
 router = fastapi.APIRouter()
 
-PUBLIC_KEY = util.pasta_crypto.import_key(Config.PASTA_TOKEN_PUBLIC_KEY_PATH)
-PRIVATE_KEY = util.pasta_crypto.import_key(Config.PASTA_TOKEN_PRIVATE_KEY_PATH)
+# For the old style PASTA token
+PUBLIC_KEY_OBJ = util.pasta_crypto.import_key(Config.PASTA_TOKEN_PUBLIC_KEY_PATH)
+PRIVATE_KEY_OBJ = util.pasta_crypto.import_key(Config.PASTA_TOKEN_PRIVATE_KEY_PATH)
+
+# For the new JWT EDI token
+PRIVATE_KEY_STR = Config.JWT_PRIVATE_KEY_PATH.read_text()
+PUBLIC_KEY_STR = Config.JWT_PUBLIC_KEY_PATH.read_text()
 
 
 @router.post('/refresh')
@@ -50,7 +55,7 @@ async def post_refresh(
         )
     # Verify the pasta-token signature
     try:
-        util.pasta_crypto.verify_auth_token(PUBLIC_KEY, pasta_token)
+        util.pasta_crypto.verify_auth_token(PUBLIC_KEY_OBJ, pasta_token)
     except ValueError as e:
         return api.utils.get_response_401_unauthorized(
             request, api_method, f'Attempted to refresh invalid pasta-token: {e}'
@@ -65,24 +70,25 @@ async def post_refresh(
         )
     # Update the pasta-token TTL
     new_pasta_token.ttl = new_pasta_token.new_ttl()
-    private_key = util.pasta_crypto.import_key(Config.PASTA_TOKEN_PRIVATE_KEY_PATH)
-    new_pasta_token = util.pasta_crypto.create_auth_token(private_key, new_pasta_token.to_string())
-
-    # Update the edi-token TTL (even if the edi-token is expired)
+    new_pasta_token = util.pasta_crypto.create_auth_token(
+        PRIVATE_KEY_OBJ, new_pasta_token.to_string()
+    )
+    # Update the edi-token TTL. We consider the old style pasta token to be 'authoritative', so we
+    # refresh the edi-token even if it has expired, as long as the old style token has not.
     edi_token_claims_dict = jwt.decode(
         edi_token,
-        # PUBLIC_KEY_STR,
+        PUBLIC_KEY_STR,
         algorithms=[Config.JWT_ALGORITHM],
-        options={'verify_exp': False, 'verify_signature': False},
+        options={'verify_exp': False},
     )
-    new_edi_token = util.pasta_jwt.PastaJwt(edi_token_claims_dict)
+    new_edi_token = util.edi_token.create_by_claims(**edi_token_claims_dict)
     return api.utils.get_response_200_ok(
         request,
         api_method,
         'PASTA and EDI tokens refreshed successfully',
         **{
             'pasta-token': new_pasta_token,
-            'edi-token': new_edi_token.encode(),
+            'edi-token': new_edi_token,
         },
     )
 
@@ -138,8 +144,8 @@ async def post_token(
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
 ):
     """Create a new token for an existing profile.
-    The token does not include the IdP information that is normally included in a token created via
-    the login flow, as that information may not exist for the profile being accessed.
+    - The token does not include the IdP information that is normally included in a token created
+    via the login flow, as that information may not exist for the profile being accessed.
     """
     api_method = 'getToken'
     # Check that the request body is valid JSON
@@ -170,14 +176,14 @@ async def post_token(
         api_method,
         'Token created successfully',
         edi_id=edi_id,
-        token=edi_token.encode(),
+        token=edi_token.create(),
     )
 
 
 async def create_edi_token(dbi, profile_row):
     principals_set = await dbi.get_equivalent_principal_edi_id_set(profile_row)
     principals_set.remove(profile_row.edi_id)
-    edi_token = util.pasta_jwt.PastaJwt(
+    edi_token = util.edi_token.EdiTokenClaims(
         {
             'sub': profile_row.edi_id,
             'cn': profile_row.common_name,

@@ -124,7 +124,7 @@ async def main():
             if args.command == 'create':
                 await create_db(dbi)
             elif args.command == 'drop':
-                await drop_tables_with_cascade(dbi)
+                await drop_db(dbi)
                 # await drop_tables_by_metadata(dbi)
             elif args.command == 'clear':
                 await clear_db(dbi)
@@ -474,6 +474,10 @@ async def _create_search_root_resource_trigger(dbi):
 #
 
 
+async def drop_db(dbi):
+    await drop_tables_with_cascade(dbi)
+    await drop_objects(dbi)
+
 async def drop_tables_with_cascade(dbi):
     for table in list(reversed(db.models.base.Base.metadata.sorted_tables)):
         log.info(f'Dropping table with cascade: {table.name}')
@@ -496,6 +500,24 @@ async def drop_tables_by_metadata(dbi):
     except SQLAlchemyError:
         log.error('Failed to drop all tables by metadata')
 
+
+async def drop_objects(dbi):
+    result = await dbi.execute(
+        sqlalchemy.text(
+            """
+            select n.nspname as schema, t.typname as name
+            from pg_type t
+            join pg_enum e on t.oid = e.enumtypid
+            join pg_namespace n on n.oid = t.typnamespace
+            where n.nspname not in ('pg_catalog', 'information_schema')
+            and t.typcategory = 'E'
+            group by n.nspname, t.typname
+            """
+        )
+    )
+    for row in result:
+        log.info(f'Dropping custom ENUM: {row.name}')
+        await dbi.execute(sqlalchemy.text(f'DROP TYPE IF EXISTS "{row.name}" CASCADE'))
 
 #
 # Clear

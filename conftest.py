@@ -253,31 +253,31 @@ async def jane_profile_row(populated_dbi):
 @pytest_asyncio.fixture(scope='function')
 async def service_token(populated_dbi, service_profile_row):
     """System profile: Service token"""
-    yield await tests.utils.make_jwt(populated_dbi, service_profile_row)
+    yield await tests.utils.make_edi_token(populated_dbi, service_profile_row)
 
 
 @pytest_asyncio.fixture(scope='function')
 async def public_token(populated_dbi, public_profile_row):
     """System profile: Public Access token"""
-    yield await tests.utils.make_jwt(populated_dbi, public_profile_row)
+    yield await tests.utils.make_edi_token(populated_dbi, public_profile_row)
 
 
 @pytest_asyncio.fixture(scope='function')
 async def authenticated_token(populated_dbi, authenticated_profile_row):
     """System profile: Authenticated Access token"""
-    yield await tests.utils.make_jwt(populated_dbi, authenticated_profile_row)
+    yield await tests.utils.make_edi_token(populated_dbi, authenticated_profile_row)
 
 
 @pytest_asyncio.fixture(scope='function')
 async def john_token(populated_dbi, john_profile_row):
     """User profile: john@smith.com token"""
-    yield await tests.utils.make_jwt(populated_dbi, john_profile_row)
+    yield await tests.utils.make_edi_token(populated_dbi, john_profile_row)
 
 
 @pytest_asyncio.fixture(scope='function')
 async def jane_token(populated_dbi, jane_profile_row):
     """User profile: jane@brown.com token"""
-    yield await tests.utils.make_jwt(populated_dbi, jane_profile_row)
+    yield await tests.utils.make_edi_token(populated_dbi, jane_profile_row)
 
 
 # Anon client

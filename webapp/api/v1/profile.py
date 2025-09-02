@@ -10,7 +10,7 @@ import starlette.responses
 import api.utils
 import util.dependency
 import util.exc
-import util.pasta_jwt
+import util.edi_token
 import util.url
 
 router = fastapi.APIRouter(prefix='/v1')
@@ -55,9 +55,10 @@ async def post_v1_profile(
     except sqlalchemy.exc.NoResultFound:
         # See README.md: Strategy for dealing with Google emails historically used as identifiers
         try:
-            identity_row = await dbi.get_identity_by_email(idp_uid)
+            identity_row = await dbi.get_identity_by_google_email(idp_uid)
         except sqlalchemy.exc.NoResultFound:
             identity_row = await dbi.create_skeleton_profile_and_identity(idp_uid=idp_uid)
+            await dbi.flush()
     return api.utils.get_response_200_ok(
         request, api_method, 'A new profile was created', edi_id=identity_row.profile.edi_id
     )

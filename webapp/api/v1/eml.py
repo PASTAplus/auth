@@ -267,6 +267,7 @@ async def _create_rules(dbi, resource_row, access_el):
                 )
         else:
             profile_row = await _get_or_create_profile(dbi, principal_str)
+            await dbi.flush()
             principal_row = await dbi.get_principal_by_edi_id(profile_row.edi_id)
         await dbi.create_or_update_rule(
             resource_row, principal_row, permission_level=permission_level
@@ -280,7 +281,7 @@ async def _get_or_create_profile(dbi, principal_str):
         try:
             # See README.md: Strategy for dealing with Google emails historically used as
             # identifiers
-            return (await dbi.get_identity_by_email(principal_str)).profile
+            return (await dbi.get_identity_by_google_email(principal_str)).profile
         except sqlalchemy.exc.NoResultFound:
             return (await dbi.create_skeleton_profile_and_identity(principal_str)).profile
     except sqlalchemy.exc.MultipleResultsFound:

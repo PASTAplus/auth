@@ -1,24 +1,27 @@
+import datetime
 import logging
 import pathlib
 import re
 
+import jwt
 import sqlalchemy
 import sqlalchemy.exc
 
 import db.models.profile
-import util.pasta_jwt
-import util.pasta_jwt
+import util.edi_token
 import util.pretty
+from config import Config
 
 HERE_PATH = pathlib.Path(__file__).parent.resolve()
 TEST_FILES_PATH = HERE_PATH / 'test_files'
+PRIVATE_KEY_STR = Config.JWT_PRIVATE_KEY_PATH.read_text()
 
 log = logging.getLogger(__name__)
 
 
 async def create_test_edi_token(edi_id, populated_dbi):
     profile_row = await populated_dbi.get_profile(edi_id)
-    return await util.pasta_jwt.make_jwt(populated_dbi, profile_row.identities[0])
+    return await util.edi_token.create(populated_dbi, profile_row.identities[0])
 
 
 async def get_edi_ids(populated_dbi):
@@ -34,8 +37,8 @@ def assert_edi_id_format(edi_id):
 
 async def assert_edi_id_in_db(edi_id, populated_dbi):
     """Check that the given EDI-ID exists in the DB"""
-    await assert_edi_id_format(edi_id)
-    profile_row = await populated_dbi.get_profile(edi_id)
+    assert_edi_id_format(edi_id)
+    await populated_dbi.get_profile(edi_id)
 
 
 def get_db_as_json(populated_dbi):
@@ -45,30 +48,12 @@ def get_db_as_json(populated_dbi):
     return util.pretty.to_pretty_json(profile_list)
 
 
-async def make_jwt(dbi, profile_row):
+async def make_edi_token(dbi, profile_row):
     """Create a test JWT for the given profile.
     The returned JWT is sufficient for testing, but does not include the Identity fields and some
     other fields that are normally present.
     """
-    principals_set = await dbi.get_equivalent_principal_edi_id_set(profile_row)
-    principals_set.remove(profile_row.edi_id)
-    pasta_jwt = util.pasta_jwt.PastaJwt(
-        {
-            'sub': profile_row.edi_id,
-            'cn': profile_row.common_name,
-            'email': profile_row.email,
-            'principals': principals_set,
-            'isEmailEnabled': profile_row.email_notifications,
-            'isEmailVerified': False,
-            'identityId': -1,
-            'idpName': 'testIdp',
-            'idpUid': 'testIdpUid',
-            'idpCname': 'testIdpCname',
-        }
-    )
-    # log.info('Created PASTA JWT:')
-    # log.info(pasta_jwt.claims_pp)
-    return pasta_jwt.encode()
+    return await util.edi_token.create_by_profile(dbi, profile_row)
 
 
 def dump_response(response):

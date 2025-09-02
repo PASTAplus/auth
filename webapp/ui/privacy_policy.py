@@ -4,7 +4,7 @@ import starlette.requests
 import starlette.templating
 
 import util.dependency
-import util.pasta_jwt
+import util.edi_token
 import util.redirect
 
 log = daiquiri.getLogger(__name__)

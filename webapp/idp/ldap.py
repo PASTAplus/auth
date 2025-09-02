@@ -12,7 +12,7 @@ import starlette.status
 import db.models.identity
 import util.dependency
 import util.old_token
-import util.pasta_jwt
+import util.edi_token
 import util.pasta_ldap
 from config import Config
 
@@ -72,11 +72,12 @@ async def get_login_pasta(
         email=None,
         has_avatar=False,
     )
+    await dbi.flush()
 
     # As described in the docstr, this response goes to the server side web app, so we create a
     # limited response that contains only the items checked for by the server.
     old_token_ = util.old_token.make_old_token(uid=ldap_dn, groups=Config.VETTED)
-    edi_token = await util.pasta_jwt.make_jwt(dbi, identity_row)
+    edi_token = await util.edi_token.create(dbi, identity_row)
     response = starlette.responses.Response('Login successful')
     response.set_cookie('auth-token', old_token_)
     response.set_cookie('edi-token', edi_token)

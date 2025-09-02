@@ -25,9 +25,9 @@ class IdentityInterface:
         profile,
         idp_name: IdpName,
         idp_uid: str,
-        common_name: str | None,
-        email: str | None,
-        has_avatar: bool,
+        common_name: str | None = None,
+        email: str | None = None,
+        has_avatar: bool = False,
     ):
         """Create a new identity for a given profile."""
         new_identity_row = Identity(
@@ -41,26 +41,6 @@ class IdentityInterface:
         self._session.add(new_identity_row)
         await self.flush()
         return new_identity_row
-
-    async def update_identity(
-        self, identity_row, idp_name, idp_uid, common_name, email, has_avatar
-    ):
-        assert identity_row.idp_name in (idp_name, IdpName.UNKNOWN)
-        assert identity_row.idp_uid == idp_uid
-        # We always update the email address and common name in the identity row, but only set these
-        # in the profile when the profile is first created. So if the user has updated their info
-        # with the IdP, the updated info will be stored in the identity, but corresponding info in
-        # the profile remains unchanged.
-        identity_row.common_name = common_name
-        identity_row.email = email
-        identity_row.first_auth = identity_row.first_auth or datetime.datetime.now()
-        identity_row.last_auth = datetime.datetime.now()
-        # Normally, has_avatar will be True from the first time the user logs in with the identity.
-        # More rarely, it will go from False to True, if a user did not initially have an avatar at
-        # the IdP, but then creates one. More rarely still (if at all possible), this may go from
-        # True to False, if the user removes their avatar at the IdP. In this latter case, the
-        # avatar image in the filesystem will be orphaned here.
-        identity_row.has_avatar = has_avatar
 
     async def get_identity(self, idp_name: IdpName, idp_uid: str):
         result = await self.execute(
@@ -87,12 +67,18 @@ class IdentityInterface:
         )
         return result.scalar_one()
 
-    async def get_identity_by_email(self, email: str):
-        """Get the most recently used identity for a profile by email."""
+    async def get_identity_by_google_email(self, email: str):
+        """Get the most recently used identity for a profile by email.
+        - See README.md: Strategy for dealing with Google emails historically used as identifiers.
+        - This will only return the identity for a full (not skeleton) profile.
+        """
         result = await self.execute(
             sqlalchemy.select(Identity)
             .options(sqlalchemy.orm.selectinload(Identity.profile))
-            .where(Identity.email == email)
+            .where(
+                Identity.idp_name == IdpName.GOOGLE,
+                Identity.email == email,
+            )
             .order_by(
                 Identity.last_auth.desc(),
                 Identity.id,

@@ -6,7 +6,7 @@ import starlette.templating
 import db.models.identity
 import util.avatar
 import util.dependency
-import util.pasta_jwt
+import util.edi_token
 import util.redirect
 import util.template
 import util.url
@@ -25,7 +25,7 @@ router = fastapi.APIRouter()
 async def get_ui_identity(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
-    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     identity_list = []

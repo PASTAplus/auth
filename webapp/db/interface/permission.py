@@ -329,10 +329,6 @@ class PermissionInterface:
         increase_only: If True, method is a no-op if a rule already exists with same or higher
         permission level.
         """
-        assert isinstance(resource_row, Resource)
-        assert isinstance(principal_row, Principal)
-        assert isinstance(permission_level, PermissionLevel)
-
         try:
             rule_row = await self.get_rule(resource_row, principal_row)
         except sqlalchemy.exc.NoResultFound:

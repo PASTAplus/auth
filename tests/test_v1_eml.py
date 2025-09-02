@@ -1,6 +1,8 @@
 """Tests for v1 EML API endpoints."""
 
 import logging
+import re
+
 import pytest
 import starlette.status
 
@@ -56,4 +58,16 @@ async def test_add_eml_vetted(populated_dbi, service_profile_row, john_client, j
     response = john_client.get('/v1/resource-tree/https://test.example/package/eml/icarus/3/1')
     # tests.utils.dump_response(response)
     assert response.status_code == starlette.status.HTTP_200_OK
-    tests.sample.assert_match(response.json(), 'add_eml_vetted.json')
+    response_dict = response.json()
+
+    def _d(r):
+        for k, v in r.items():
+            if k == 'key' and re.match(r'[0-9a-f]{32}', v):
+                r[k] = 'CLOBBERED-RANDOM-KEY'
+            elif k in ('tree', 'children'):
+                for child in v:
+                    _d(child)
+
+    _d(response_dict)
+
+    tests.sample.assert_match(response_dict, 'add_eml_vetted.json')

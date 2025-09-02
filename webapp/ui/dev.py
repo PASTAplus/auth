@@ -12,7 +12,7 @@ import starlette.templating
 import db.models.identity
 import util.avatar
 import util.dependency
-import util.pasta_jwt
+import util.edi_token
 import util.redirect
 import util.template
 from config import Config
@@ -38,7 +38,7 @@ def assert_dev_enabled(func):
 async def get_dev_profiles(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
-    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
 ):
     profile_list = await dbi.get_all_profiles()
     return util.template.templates.TemplateResponse(
@@ -63,6 +63,6 @@ async def get_dev_signin(
 ):
     response = util.redirect.internal('/ui/profile')
     identity_row = await dbi.get_identity(idp_name, idp_uid)
-    edi_token = await util.pasta_jwt.make_jwt(dbi, identity_row)
+    edi_token = await util.edi_token.create(dbi, identity_row)
     response.set_cookie(key='edi-token', value=edi_token)
     return response

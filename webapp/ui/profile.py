@@ -5,7 +5,7 @@ import starlette.templating
 
 import util.avatar
 import util.dependency
-import util.pasta_jwt
+import util.edi_token
 import util.pretty
 import util.redirect
 import util.template
@@ -26,7 +26,7 @@ router = fastapi.APIRouter()
 @router.api_route('/ui/profile', methods=['GET', 'POST'])
 async def get_post_ui_profile(
     request: starlette.requests.Request,
-    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     return util.template.templates.TemplateResponse(
@@ -49,7 +49,7 @@ async def get_post_ui_profile(
 async def get_ui_profile_edit(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
-    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     return util.template.templates.TemplateResponse(

@@ -9,12 +9,12 @@ import starlette.requests
 import db.db_interface
 import db.models.profile
 import db.session
-import util.pasta_jwt
+import util.edi_token
 
 # Create class refs here to use as type hints
 Profile = db.models.profile.Profile
 DbInterface = db.db_interface.DbInterface
-PastaJwt = util.pasta_jwt.PastaJwt
+EdiTokenClaims = util.edi_token.EdiTokenClaims
 
 log = daiquiri.getLogger(__name__)
 
@@ -67,19 +67,17 @@ async def dbi() -> typing.AsyncGenerator[DbInterface, typing.Any]:
 async def token(
     request: starlette.requests.Request,
     dbi_: DbInterface = fastapi.Depends(dbi),
-):
-    """Get token from the request cookie.
-    :returns: EDI token if edi-token cookie present in Request
-    :rtype: PastaJwt
+) -> EdiTokenClaims | None:
+    """Get edi-token from the request cookie. Returns None if the token is expired or otherwise invalid.
     """
     token_str = request.cookies.get('edi-token')
-    token_obj = await util.pasta_jwt.PastaJwt.decode(dbi_, token_str) if token_str else None
+    token_obj = await util.edi_token.decode(dbi_, token_str) if token_str else None
     yield token_obj
 
 
 async def token_profile_row(
     dbi_: DbInterface = fastapi.Depends(dbi),
-    token_: PastaJwt | None = fastapi.Depends(token),
+    token_: EdiTokenClaims | None = fastapi.Depends(token),
 ):
     """Get the profile row associated with the token.
     :returns: The profile row associated with the token, or None if the token is missing or invalid.

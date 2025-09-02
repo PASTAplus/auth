@@ -13,7 +13,7 @@ import db.resource_tree
 import util.avatar
 import util.dependency
 import util.exc
-import util.pasta_jwt
+import util.edi_token
 import util.pretty
 import util.redirect
 import util.search_cache
@@ -35,7 +35,7 @@ router = fastapi.APIRouter()
 async def get_ui_permission_search(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
-    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """Permissions Search page.
@@ -61,7 +61,7 @@ async def get_ui_permission(
     search_uuid: str,
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
-    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """Main Permissions page. The contents of the panels are loaded separately."""
