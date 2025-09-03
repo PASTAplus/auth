@@ -37,7 +37,7 @@ async def init_profiles(dbi):
     profile_list = cache['profile_list']
     profile_list.clear()
     async for profile_row, principal_row in dbi.get_all_profiles_generator():
-        if profile_row.edi_id in Config.SUPERUSER_LIST:
+        if not Config.ENABLE_DEV_MENU and profile_row.edi_id in Config.SUPERUSER_LIST:
             continue
         key_tup = (
             profile_row.common_name,

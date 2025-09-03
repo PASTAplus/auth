@@ -53,16 +53,14 @@ class EdiTokenClaims:
     iat: int | None = None
     nbf: int | None = None
     exp: int | None = None
-    link: dict | None = None
 
     @property
     def edi_id(self):
         return self.sub
 
 
-async def create(dbi, identity_row, link_claims: dict | None = None) -> str:
+async def create(dbi, identity_row) -> str:
     """Create an EDI JSON Web Token (JWT).
-    link_claims: Claims temporarily holding account information during an account linking procedure.
     """
     profile_row = identity_row.profile
     principals_set: set = await dbi.get_equivalent_principal_edi_id_set(profile_row)
@@ -82,7 +80,6 @@ async def create(dbi, identity_row, link_claims: dict | None = None) -> str:
             else identity_row.idp_uid
         ),
         idpCname=identity_row.common_name,
-        link=link_claims,
     )
     return _create(claims_obj)
 
@@ -109,11 +106,9 @@ def create_by_claims(**claims_dict):
 
 
 def _create(claims_obj) -> str:
-    log.info('Created PASTA JWT:')
-    log.info(claims_pformat(claims_obj))
     claims_dict = claims_obj.__dict__.copy()
     claims_dict['principals'] = list(sorted(claims_dict['principals']))
-    log.info(f'Encoding token: {claims_dict}')
+    log.info(f'Creating EDI token: {claims_dict}')
     return jwt.encode(claims_dict, PRIVATE_KEY_STR, algorithm=Config.JWT_ALGORITHM)
 
 
@@ -156,10 +151,40 @@ async def is_valid(dbi, token_str: str | None) -> bool:
     return await decode(dbi, token_str) is not None
 
 
-def claims_pformat(claims: EdiTokenClaims) -> str:
+async def claims_pformat(dbi, claims: EdiTokenClaims) -> str:
+    claims_dict = await format_claims_for_display(dbi, claims)
+    return pprint.pformat(claims_dict, indent=2, width=140, sort_dicts=False)
+
+
+async def format_claims_for_display(dbi, claims: EdiTokenClaims) -> dict[str, object]:
+    """Add context to claims for display.
+    - Add common names and group names to EDI-IDs.
+    - Add human-readable form of timestamps.
+    """
     claims_dict = claims.__dict__.copy()
+
+    principals_list = list(claims_dict['principals'])
+    claims_dict['principals'].clear()
+    for edi_id in principals_list:
+        claims_dict['principals'].add(await _add_title(dbi, edi_id))
+
+    claims_dict['sub'] = await _add_title(dbi, claims_dict["sub"])
+
     for k in ['iat', 'nbf', 'exp']:
-        ts = claims_dict.get(k)
-        if ts is not None:
-            claims_dict[k] = f'{ts} ({datetime.datetime.fromtimestamp(ts)})'
-    return pprint.pformat(claims_dict, indent=2, sort_dicts=False)
+        ts = claims_dict[k]
+        date_str = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S UTC')
+        claims_dict[k] = f'{ts} ({date_str})'
+
+    return claims_dict
+
+
+async def _add_title(dbi, edi_id) -> str:
+    try:
+        profile_row = await dbi.get_profile(edi_id)
+        return f'{edi_id} ({profile_row.common_name or "unspecified"})'
+    except sqlalchemy.exc.NoResultFound:
+        try:
+            group_row = await dbi.get_group(edi_id)
+            return f'{edi_id} ({group_row.name or "unspecified"})'
+        except sqlalchemy.exc.NoResultFound:
+            return f'{edi_id} (not found)'

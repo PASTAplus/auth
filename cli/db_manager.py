@@ -160,6 +160,7 @@ async def update_functions_and_triggers(dbi):
     await _create_search_package_scopes_trigger(dbi)
     await _create_search_resource_type_trigger(dbi)
     await _create_search_root_resource_trigger(dbi)
+    await _create_profile_link_trigger(dbi)
 
 
 async def _create_tables(dbi):
@@ -469,6 +470,47 @@ async def _create_search_root_resource_trigger(dbi):
     )
 
 
+async def _create_profile_link_trigger(dbi):
+    """Create a trigger to enforce disjointness of primary and secondary profiles in the
+    profile_link table.
+    """
+    await dbi.execute(
+        sqlalchemy.text(
+            """
+            create or replace function profile_link_trigger_func()
+            returns trigger
+            language plpgsql
+            as $body$
+            begin
+                if exists (
+                    select 1
+                    from profile_link
+                    where linked_profile_id = new.profile_id
+                ) then
+                    raise exception 'Cannot insert profile_id %: It already exists as a linked profile', 
+                        new.profile_id;
+                end if;
+                return new;
+            end;
+            $body$;
+            """
+        )
+    )
+    await dbi.execute(
+        sqlalchemy.text(
+            # language=sql
+            """
+            drop trigger if exists profile_link_trigger on profile_link;
+
+            create trigger profile_link_trigger
+            before insert on profile_link
+            for each row
+            execute function profile_link_trigger_func();
+            """
+        )
+    )
+
+
 #
 # Drop
 #
@@ -477,6 +519,7 @@ async def _create_search_root_resource_trigger(dbi):
 async def drop_db(dbi):
     await drop_tables_with_cascade(dbi)
     await drop_objects(dbi)
+
 
 async def drop_tables_with_cascade(dbi):
     for table in list(reversed(db.models.base.Base.metadata.sorted_tables)):
@@ -517,7 +560,8 @@ async def drop_objects(dbi):
     )
     for row in result:
         log.info(f'Dropping custom ENUM: {row.name}')
-        await dbi.execute(sqlalchemy.text(f'DROP TYPE IF EXISTS "{row.name}" CASCADE'))
+        await dbi.execute(sqlalchemy.text(f'drop type if exists "{row.name}" cascade'))
+
 
 #
 # Clear

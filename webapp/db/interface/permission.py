@@ -53,7 +53,16 @@ from db.models.permission import (
     PermissionLevel,
     Principal,
 )
-from db.models.profile import Profile
+from db.models.profile import (
+    Profile,
+    ProfileLink,
+)
+
+from db.models.group import (
+    Group,
+    GroupMember,
+)
+
 
 log = daiquiri.getLogger(__name__)
 
@@ -422,7 +431,7 @@ class PermissionInterface:
                 Rule,
                 Principal,
                 Profile,
-                db.models.group.Group,
+                Group,
             )
             .select_from(Resource)
             .join(
@@ -443,9 +452,9 @@ class PermissionInterface:
                 ),
             )
             .outerjoin(
-                db.models.group.Group,
+                Group,
                 sqlalchemy.and_(
-                    db.models.group.Group.id == Principal.subject_id,
+                    Group.id == Principal.subject_id,
                     Principal.subject_type == SubjectType.GROUP,
                 ),
             )
@@ -548,7 +557,7 @@ class PermissionInterface:
                     Rule,
                     Principal,
                     Profile,
-                    db.models.group.Group,
+                    Group,
                 )
                 .select_from(Resource)
                 .join(
@@ -571,9 +580,9 @@ class PermissionInterface:
                     ),
                 )
                 .outerjoin(
-                    db.models.group.Group,
+                    Group,
                     sqlalchemy.and_(
-                        db.models.group.Group.id == Principal.subject_id,
+                        Group.id == Principal.subject_id,
                         Principal.subject_type == SubjectType.GROUP,
                     ),
                 )
@@ -593,10 +602,12 @@ class PermissionInterface:
         except for the profile itself, are included in the 'principals' field of the JWT.
 
         The returned list includes the principal IDs of:
-            - The profile itself
-            - All groups in which this profile is a member
-            - the Public Access profile
-            - the Authenticated Access profile
+            - The Public Access profile
+            - The Authenticated Access profile
+            - The primary profile (referenced by token_profile_row)
+            - All linked (secondary) profiles
+            - And for the primary and all linked profiles:
+                - All groups in which the profiles are a member
 
         For the special cases of finding equivalent principals for the Public Access profile, we
         don't include the Authenticated Access profile, and vice versa.
@@ -617,19 +628,54 @@ class PermissionInterface:
                 ),
             )
             .outerjoin(
-                db.models.group.Group,
+                Group,
                 sqlalchemy.and_(
-                    db.models.group.Group.id == Principal.subject_id,
+                    Group.id == Principal.subject_id,
                     Principal.subject_type == SubjectType.GROUP,
                 ),
             )
+
+            # Join to get linked profiles for the token profile
             .outerjoin(
-                db.models.group.GroupMember,
+                ProfileLink,
+                ProfileLink.profile_id == token_profile_row.id,
+            )
+
+            # .outerjoin(
+            #     GroupMember,
+            #     sqlalchemy.and_(
+            #         GroupMember.group_id == Group.id,
+            #         GroupMember.profile_id == token_profile_row.id,
+            #     ),
+            # )
+
+            # Join group memberships for both the main profile and any linked profiles
+            .outerjoin(
+                GroupMember,
                 sqlalchemy.and_(
-                    db.models.group.GroupMember.group_id == db.models.group.Group.id,
-                    db.models.group.GroupMember.profile_id == token_profile_row.id,
+                    GroupMember.group_id == Group.id,
+                    sqlalchemy.or_(
+                        GroupMember.profile_id == token_profile_row.id,
+                        GroupMember.profile_id == ProfileLink.linked_profile_id,
+                    ),
                 ),
             )
+
+            .outerjoin(
+                ProfileLink,
+                sqlalchemy.or_(
+                    sqlalchemy.and_(
+                        ProfileLink.profile_id == token_profile_row.id,
+                        ProfileLink.linked_profile_id == Profile.id,
+                    ),
+                    sqlalchemy.and_(
+                        ProfileLink.linked_profile_id == token_profile_row.id,
+                        ProfileLink.profile_id == Profile.id,
+                    ),
+                ),
+            )
+
+
             .where(
                 sqlalchemy.or_(
                     # The profile itself
@@ -654,7 +700,7 @@ class PermissionInterface:
                         token_profile_row.id != public_profile_id,
                     ),
                     # Groups in which the profile is a member
-                    db.models.group.GroupMember.profile_id == token_profile_row.id,
+                    GroupMember.profile_id == token_profile_row.id,
                 )
             )
         )
@@ -673,16 +719,16 @@ class PermissionInterface:
                 sqlalchemy.case(
                     (
                         Principal.subject_type == SubjectType.GROUP,
-                        db.models.group.Group.edi_id,
+                        Group.edi_id,
                     ),
                     else_=Profile.edi_id,
                 )
             )
             .select_from(Principal)
             .outerjoin(
-                db.models.group.Group,
+                Group,
                 sqlalchemy.and_(
-                    db.models.group.Group.id == Principal.subject_id,
+                    Group.id == Principal.subject_id,
                     Principal.subject_type == SubjectType.GROUP,
                 ),
             )
@@ -749,9 +795,9 @@ class PermissionInterface:
                 ),
             )
             .outerjoin(
-                db.models.group.Group,
+                Group,
                 sqlalchemy.and_(
-                    db.models.group.Group.id == Principal.subject_id,
+                    Group.id == Principal.subject_id,
                     Principal.subject_type == SubjectType.GROUP,
                 ),
             )
@@ -763,7 +809,7 @@ class PermissionInterface:
                     ),
                     sqlalchemy.and_(
                         Principal.subject_type == SubjectType.GROUP,
-                        db.models.group.Group.edi_id == edi_id,
+                        Group.edi_id == edi_id,
                     ),
                 )
             )

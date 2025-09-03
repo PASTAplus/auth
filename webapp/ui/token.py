@@ -28,6 +28,7 @@ async def get_ui_token(
     request: starlette.requests.Request,
     token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
 ):
     return util.template.templates.TemplateResponse(
         'token.html',
@@ -38,7 +39,7 @@ async def get_ui_token(
             'profile': token_profile_row,
             # Page
             'request': request,
-            'token_pp': util.edi_token.claims_pformat(token),
+            'token_pp': await util.edi_token.claims_pformat(dbi, token),
             'filename': f'token-{token.edi_id}.jwt',
             'lifetime': token.exp - token.iat // 3600,
         },
@@ -61,7 +62,7 @@ async def get_token_download(
         raise starlette.exceptions.HTTPException(
             status_code=starlette.status.HTTP_403_FORBIDDEN, detail='No token provided'
         )
-    identity_row = await dbi.get_identity_by_id(token.claims.get('identityId'))
+    identity_row = await dbi.get_identity_by_id(token.identityId)
     response = starlette.responses.Response(
         content=(await util.edi_token.create(dbi, identity_row)).encode(),
         media_type='application/octet-stream',

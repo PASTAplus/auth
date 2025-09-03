@@ -23,9 +23,9 @@ async def main():
     args = parser.parse_args()
 
     async with util.dependency.get_dbi() as dbi:
-        token_obj = await util.edi_token.EdiTokenClaims.decode(dbi, args.token)
+        token_obj = await util.edi_token.decode(dbi, args.token)
 
-    print(token_obj.claims_pformat)
+        print(token_obj.claims_pformat)
 
 
 if __name__ == '__main__':

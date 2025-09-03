@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eml:eml packageId="icarus.3.1" system="https://pasta.edirepository.org"
+         xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0"
+         xmlns:stmml="http://www.xml-cml.org/schema/stmml-1.2"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0/eml.xsd https://eml.ecoinformatics.org/eml-2.2.0/eml.xsd">
+  <access
+      authSystem="https://pasta.edirepository.org/authentication"
+      order="allowFirst" scope="document"
+      system="https://pasta.edirepository.org">
+    <allow>
+      <principal>roger.dahl.home@gmail.com</principal>
+      <permission>all</permission>
+    </allow>
+    <allow>
+      <principal>public</principal>
+      <permission>read</permission>
+    </allow>
+  </access>
+  <dataset>
+    <title>pkg.2.3 with a legacy email based identifier from Google IdP</title>
+    <distribution
+        id="10.0311/FK2/23232323232323232323232323232323" scope="system"
+        system="https://pasta.edirepository.org">
+      <online>
+        <url
+            function="information">https://doi.org/10.0311/FK2/23232323232323232323232323232323
+        </url>
+      </online>
+    </distribution>
+    <dataTable
+        id="9a072c4e4af39f96f60954fc4f7d8be5" scope="document"
+        system="https://pasta.edirepository.org">
+      <entityName>pkg.2.3.entity-name.csv</entityName>
+      <entityDescription>A single entity for pkg.2.3</entityDescription>
+      <physical>
+        <objectName>pkg.2.3.object-name.csv</objectName>
+        <size
+            unit="bytes">123
+        </size>
+        <authentication method="MD5">23232323232323232323232323232323</authentication>
+        <distribution>
+          <online>
+            <url function="download">
+              https://pasta-s.lternet.edu/package/data/eml/edi/2/3/33333333333333333333333333333333
+            </url>
+          </online>
+          <access
+              authSystem="https://pasta.edirepository.org/authentication"
+              order="allowFirst" scope="document"
+              system="https://pasta.edirepository.org">
+            <allow>
+              <principal>uid=EDI,o=EDI,dc=edirepository,dc=org</principal>
+              <permission>all</permission>
+            </allow>
+          </access>
+        </distribution>
+      </physical>
+      <attributeList>
+        <attribute>
+          <attributeName>Single column for pkg.2.3 CSV</attributeName>
+        </attribute>
+      </attributeList>
+    </dataTable>
+  </dataset>
+  <additionalMetadata>
+    <info>
+      Hand edited for testing with a legacy email based identifier from Google IdP
+    </info>
+  </additionalMetadata>
+</eml:eml>

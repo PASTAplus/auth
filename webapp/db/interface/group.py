@@ -66,12 +66,7 @@ class GroupInterface:
         )
         return result.scalar_one()
 
-    async def get_group(self, group_id):
-        """Get a group by its ID."""
-        result = await self.execute(sqlalchemy.select(Group).where(Group.id == group_id))
-        return result.scalar_one()
-
-    async def get_group_by_edi_id(self, edi_id):
+    async def get_group(self, edi_id):
         """Get a group by its EDI-ID."""
         result = await self.execute(sqlalchemy.select(Group).where(Group.edi_id == edi_id))
         return result.scalar_one()

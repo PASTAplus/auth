@@ -171,7 +171,7 @@ class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
             # Note: It's important to not run this code for the unit tests, as it creates a separate
             # session in which is_valid() will not find the test profiles.
             async with util.dependency.get_dbi() as dbi:
-                if not await util.edi_token.EdiTokenClaims.is_valid(
+                if not await util.edi_token.is_valid(
                     dbi, request.cookies.get('edi-token')
                 ):
                     log.debug('Redirecting to /ui/signin: UI page requested without valid token')

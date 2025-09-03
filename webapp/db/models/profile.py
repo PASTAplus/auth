@@ -97,17 +97,27 @@ class Profile(db.models.base.Base):
         return str(util.avatar.get_profile_avatar_url(self))
 
 
-class ProfileHistory(db.models.base.Base):
-    """History of merged user profiles."""
+class ProfileLink(db.models.base.Base):
+    """Link user profiles."""
 
-    __tablename__ = 'profile_history'
+    __tablename__ = 'profile_link'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    # Reference the user's current profile
+    # The primary profile is the one that the user will be logged into.
     profile_id = sqlalchemy.Column(
         sqlalchemy.Integer,
         sqlalchemy.ForeignKey('profile.id', ondelete='CASCADE'),
         nullable=False,
         index=True,
+        unique=True,
     )
-    # EDI-ID of a profile that has been merged by the user referenced by profile_id.
-    edi_id = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True)
+    # One or more profiles can be linked to the primary profile.
+    linked_profile_id = sqlalchemy.Column(
+        sqlalchemy.Integer,
+        sqlalchemy.ForeignKey('profile.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
+    )
+    link_date = sqlalchemy.Column(
+        sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now
+    )
+    __table_args__ = (sqlalchemy.UniqueConstraint('profile_id', 'linked_profile_id'),)

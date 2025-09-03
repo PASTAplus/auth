@@ -32,7 +32,7 @@ async def post_v1_group_member(
         return api.utils.get_response_401_unauthorized(request, api_method)
     # Check that the group exists
     try:
-        group_row = await dbi.get_group_by_edi_id(group_edi_id)
+        group_row = await dbi.get_group(group_edi_id)
     except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_404_not_found(
             request, api_method, f'Group does not exist', group=group_edi_id

@@ -1,3 +1,5 @@
+import datetime
+
 import daiquiri
 import sqlalchemy
 import sqlalchemy.ext.asyncio
@@ -8,9 +10,9 @@ import db.interface.permission
 import db.interface.profile
 import db.interface.search
 import db.interface.sync
+import db.models.group
 import db.models.identity
 import db.models.profile
-import db.models.group
 import util.avatar
 import util.exc
 
@@ -115,10 +117,11 @@ class DbInterface(
         # full:
         if identity_row.idp_name == db.models.identity.IdpName.SKELETON:
             identity_row.idp_name = idp_name
+            identity_row.has_avatar = has_avatar
             await self.update_profile(
                 identity_row.profile, common_name=common_name, email=email, has_avatar=has_avatar
             )
-            await dbi.flush()
+            await self.flush()
             if has_avatar:
                 await util.avatar.copy_identity_to_profile_avatar(identity_row)
 
