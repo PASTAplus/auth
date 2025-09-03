@@ -11,18 +11,18 @@
                             "key": "https://test.example/package/metadata/eml/icarus/3/1",
                             "principals": [
                                 {
+                                    "description": null,
+                                    "edi_id": "EDI-078e6e3cee4f7f2812f150701da9351acb51e089",
+                                    "permission": "read",
+                                    "principal_type": "profile",
+                                    "title": "Public Access"
+                                },
+                                {
                                     "description": "john@smith.com",
                                     "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
                                     "permission": "changePermission",
                                     "principal_type": "profile",
                                     "title": "John Smith"
-                                },
-                                {
-                                    "description": null,
-                                    "edi_id": "EDI-15de03b88734fbaf33746fdb95e8e71511081299",
-                                    "permission": "read",
-                                    "principal_type": "profile",
-                                    "title": null
                                 },
                                 {
                                     "description": null,
@@ -45,18 +45,18 @@
                             "key": "https://test.example/package/report/eml/icarus/3/1",
                             "principals": [
                                 {
+                                    "description": null,
+                                    "edi_id": "EDI-078e6e3cee4f7f2812f150701da9351acb51e089",
+                                    "permission": "read",
+                                    "principal_type": "profile",
+                                    "title": "Public Access"
+                                },
+                                {
                                     "description": "john@smith.com",
                                     "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
                                     "permission": "changePermission",
                                     "principal_type": "profile",
                                     "title": "John Smith"
-                                },
-                                {
-                                    "description": null,
-                                    "edi_id": "EDI-15de03b88734fbaf33746fdb95e8e71511081299",
-                                    "permission": "read",
-                                    "principal_type": "profile",
-                                    "title": null
                                 },
                                 {
                                     "description": null,
@@ -78,18 +78,18 @@
                     "key": "CLOBBERED-RANDOM-KEY",
                     "principals": [
                         {
+                            "description": null,
+                            "edi_id": "EDI-078e6e3cee4f7f2812f150701da9351acb51e089",
+                            "permission": "read",
+                            "principal_type": "profile",
+                            "title": "Public Access"
+                        },
+                        {
                             "description": "john@smith.com",
                             "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
                             "permission": "changePermission",
                             "principal_type": "profile",
                             "title": "John Smith"
-                        },
-                        {
-                            "description": null,
-                            "edi_id": "EDI-15de03b88734fbaf33746fdb95e8e71511081299",
-                            "permission": "read",
-                            "principal_type": "profile",
-                            "title": null
                         },
                         {
                             "description": null,
@@ -248,18 +248,18 @@
                     "key": "CLOBBERED-RANDOM-KEY",
                     "principals": [
                         {
+                            "description": null,
+                            "edi_id": "EDI-078e6e3cee4f7f2812f150701da9351acb51e089",
+                            "permission": "read",
+                            "principal_type": "profile",
+                            "title": "Public Access"
+                        },
+                        {
                             "description": "john@smith.com",
                             "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
                             "permission": "changePermission",
                             "principal_type": "profile",
                             "title": "John Smith"
-                        },
-                        {
-                            "description": null,
-                            "edi_id": "EDI-15de03b88734fbaf33746fdb95e8e71511081299",
-                            "permission": "read",
-                            "principal_type": "profile",
-                            "title": null
                         },
                         {
                             "description": null,
@@ -281,18 +281,18 @@
             "key": "https://test.example/package/eml/icarus/3/1",
             "principals": [
                 {
+                    "description": null,
+                    "edi_id": "EDI-078e6e3cee4f7f2812f150701da9351acb51e089",
+                    "permission": "read",
+                    "principal_type": "profile",
+                    "title": "Public Access"
+                },
+                {
                     "description": "john@smith.com",
                     "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
                     "permission": "changePermission",
                     "principal_type": "profile",
                     "title": "John Smith"
-                },
-                {
-                    "description": null,
-                    "edi_id": "EDI-15de03b88734fbaf33746fdb95e8e71511081299",
-                    "permission": "read",
-                    "principal_type": "profile",
-                    "title": null
                 },
                 {
                     "description": null,

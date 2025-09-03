@@ -129,7 +129,6 @@ async def populated_test_session(test_session):
         table_tup = (
             'profile',
             'identity',
-            'profile_history',
             'group',
             'group_member',
             'principal',

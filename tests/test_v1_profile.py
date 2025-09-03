@@ -257,13 +257,15 @@ async def test_delete_profile_by_non_owner(jane_client):
     assert response.status_code == starlette.status.HTTP_403_FORBIDDEN
 
 
-async def test_delete_profile_by_owner(john_client):
+async def test_delete_profile_by_owner(populated_dbi, john_client):
     """deleteProfile()
     Owner deletes own profile -> 200 OK, profile deleted.
     This also immediately invalidates the user's token, since it no longer connects to a profile.
     """
     response = john_client.delete(f'/v1/profile/{tests.edi_id.JOHN}')
     assert response.status_code == starlette.status.HTTP_200_OK
+    await populated_dbi.flush()
+
     # Since the profile is now deleted, the user's token no longer connects to a profile.
     response = john_client.get(f'/v1/profile/{tests.edi_id.JOHN}')
     assert response.status_code == starlette.status.HTTP_401_UNAUTHORIZED

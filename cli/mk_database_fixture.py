@@ -14,7 +14,6 @@ To create the fixture, commands are typically run in this order:
 Order of tables, with dependencies before their dependents:
 
 profile
-profile_history
 identity
 group
 group_member

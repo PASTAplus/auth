@@ -16,6 +16,10 @@
       <principal>public</principal>
       <permission>read</permission>
     </allow>
+    <allow>
+      <principal>EDI-ff8622e9e9e269cb04174948b1dc70eaa8fd37cf</principal>
+      <permission>read</permission>
+    </allow>
   </access>
   <dataset>
     <title>pkg.2.3 with a legacy email based identifier from Google IdP</title>

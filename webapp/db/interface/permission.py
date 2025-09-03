@@ -602,12 +602,12 @@ class PermissionInterface:
         except for the profile itself, are included in the 'principals' field of the JWT.
 
         The returned list includes the principal IDs of:
+            - The primary profile (referenced by token_profile_row)
             - The Public Access profile
             - The Authenticated Access profile
-            - The primary profile (referenced by token_profile_row)
             - All linked (secondary) profiles
-            - And for the primary and all linked profiles:
-                - All groups in which the profiles are a member
+            - All groups in which the profiles are a member (for the primary and all linked
+            profiles)
 
         For the special cases of finding equivalent principals for the Public Access profile, we
         don't include the Authenticated Access profile, and vice versa.
@@ -618,91 +618,58 @@ class PermissionInterface:
         authenticated_profile_id = await util.profile_cache.get_authenticated_access_profile_id(
             self
         )
-        return (
-            sqlalchemy.select(Principal.id)
-            .outerjoin(
-                Profile,
+
+        return sqlalchemy.select(Principal.id).where(
+            sqlalchemy.or_(
+                # The primary profile
                 sqlalchemy.and_(
-                    Profile.id == Principal.subject_id,
                     Principal.subject_type == SubjectType.PROFILE,
+                    Principal.subject_id == token_profile_row.id,
                 ),
-            )
-            .outerjoin(
-                Group,
+                # Public Access
                 sqlalchemy.and_(
-                    Group.id == Principal.subject_id,
+                    Principal.subject_type == SubjectType.PROFILE,
+                    Principal.subject_id == public_profile_id,
+                    token_profile_row.id != authenticated_profile_id,
+                ),
+                # Authenticated access
+                sqlalchemy.and_(
+                    Principal.subject_type == SubjectType.PROFILE,
+                    Principal.subject_id == authenticated_profile_id,
+                    token_profile_row.id != public_profile_id,
+                ),
+                # Any linked profiles
+                sqlalchemy.and_(
+                    Principal.subject_type == SubjectType.PROFILE,
+                    Principal.subject_id.in_(
+                        sqlalchemy.select(ProfileLink.linked_profile_id).where(
+                            ProfileLink.profile_id == token_profile_row.id
+                        )
+                    ),
+                ),
+                # Any groups in which the primary profile is a member
+                sqlalchemy.and_(
                     Principal.subject_type == SubjectType.GROUP,
+                    Principal.subject_id.in_(
+                        sqlalchemy.select(GroupMember.group_id).where(
+                            GroupMember.profile_id == token_profile_row.id,
+                        )
+                    ),
                 ),
-            )
-
-            # Join to get linked profiles for the token profile
-            .outerjoin(
-                ProfileLink,
-                ProfileLink.profile_id == token_profile_row.id,
-            )
-
-            # .outerjoin(
-            #     GroupMember,
-            #     sqlalchemy.and_(
-            #         GroupMember.group_id == Group.id,
-            #         GroupMember.profile_id == token_profile_row.id,
-            #     ),
-            # )
-
-            # Join group memberships for both the main profile and any linked profiles
-            .outerjoin(
-                GroupMember,
+                # Any groups in which any linked profile is a member
                 sqlalchemy.and_(
-                    GroupMember.group_id == Group.id,
-                    sqlalchemy.or_(
-                        GroupMember.profile_id == token_profile_row.id,
-                        GroupMember.profile_id == ProfileLink.linked_profile_id,
+                    Principal.subject_type == SubjectType.GROUP,
+                    Principal.subject_id.in_(
+                        sqlalchemy.select(GroupMember.group_id).where(
+                            GroupMember.profile_id.in_(
+                                sqlalchemy.select(ProfileLink.linked_profile_id).where(
+                                    ProfileLink.profile_id == token_profile_row.id
+                                )
+                            )
+                        )
                     ),
                 ),
-            )
-
-            .outerjoin(
-                ProfileLink,
-                sqlalchemy.or_(
-                    sqlalchemy.and_(
-                        ProfileLink.profile_id == token_profile_row.id,
-                        ProfileLink.linked_profile_id == Profile.id,
-                    ),
-                    sqlalchemy.and_(
-                        ProfileLink.linked_profile_id == token_profile_row.id,
-                        ProfileLink.profile_id == Profile.id,
-                    ),
-                ),
-            )
-
-
-            .where(
-                sqlalchemy.or_(
-                    # The profile itself
-                    sqlalchemy.and_(
-                        Principal.subject_id == token_profile_row.id,
-                        Principal.subject_type == SubjectType.PROFILE,
-                    ),
-                    # Public Access
-                    sqlalchemy.and_(
-                        Principal.subject_id == public_profile_id,
-                        Principal.subject_type == SubjectType.PROFILE,
-                        # Don't include the authenticated profile in the list of equivalent
-                        # IDs for the public profile.
-                        token_profile_row.id != authenticated_profile_id,
-                    ),
-                    # Authenticated access
-                    sqlalchemy.and_(
-                        Principal.subject_id == authenticated_profile_id,
-                        Principal.subject_type == SubjectType.PROFILE,
-                        # Don't include the public profile in the list of equivalent
-                        # IDs for the authenticated profile.
-                        token_profile_row.id != public_profile_id,
-                    ),
-                    # Groups in which the profile is a member
-                    GroupMember.profile_id == token_profile_row.id,
-                )
-            )
+            ),
         )
 
     async def get_equivalent_principal_edi_id_set(self, token_profile_row):
@@ -849,4 +816,3 @@ class PermissionInterface:
             )
         )
         assert result.rowcount == 1, f'No principal found for profile EDI-ID: {profile_row.edi_id}'
-

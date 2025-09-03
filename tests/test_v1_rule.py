@@ -39,6 +39,7 @@ async def test_create_rule_by_non_owner(
     """
     # John creates a resource, and becomes the owner
     await tests.utils.add_vetted(populated_dbi, service_profile_row, john_profile_row)
+    await populated_dbi.flush()
     response = john_client.post(
         '/v1/resource',
         json={
@@ -49,6 +50,7 @@ async def test_create_rule_by_non_owner(
         },
     )
     assert response.status_code == starlette.status.HTTP_200_OK
+    await populated_dbi.flush()
     # Jane tries to create a rule on John's resource without having any ACRs on the resource
     response = jane_client.post(
         '/v1/rule',
