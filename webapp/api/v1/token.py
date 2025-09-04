@@ -170,7 +170,7 @@ async def post_token(
         return api.utils.get_response_404_not_found(
             request, api_method, 'Invalid request', edi_id=edi_id
         )
-    edi_token = await create_edi_token(dbi, profile_row)
+    edi_token = await util.edi_token.create_by_profile(dbi, profile_row)
     return api.utils.get_response_200_ok(
         request,
         api_method,
@@ -178,23 +178,3 @@ async def post_token(
         edi_id=edi_id,
         token=edi_token.create(),
     )
-
-
-async def create_edi_token(dbi, profile_row):
-    principals_set = await dbi.get_equivalent_principal_edi_id_set(profile_row)
-    principals_set.remove(profile_row.edi_id)
-    edi_token = util.edi_token.EdiTokenClaims(
-        {
-            'sub': profile_row.edi_id,
-            'cn': profile_row.common_name,
-            'email': profile_row.email,
-            'principals': principals_set,
-            'isEmailEnabled': profile_row.email_notifications,
-            'isEmailVerified': False,
-            'identityId': -1,
-            'idpName': 'Unknown',
-            'idpUid': 'Unknown',
-            'idpCname': 'Unknown',
-        }
-    )
-    return edi_token

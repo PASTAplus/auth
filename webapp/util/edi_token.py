@@ -39,8 +39,8 @@ class EdiTokenClaims:
         self.exp = self.exp or int((now_dt + Config.JWT_EXPIRATION_DELTA).timestamp())
 
     sub: str
-    cn: str
-    email: str
+    cn: str | None = None
+    email: str | None = None
     principals: set[str] = dataclasses.field(default_factory=set)
     isEmailEnabled: bool = False
     isEmailVerified: bool = False
