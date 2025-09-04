@@ -176,5 +176,5 @@ async def post_token(
         api_method,
         'Token created successfully',
         edi_id=edi_id,
-        token=edi_token.create(),
+        token=edi_token,
     )
