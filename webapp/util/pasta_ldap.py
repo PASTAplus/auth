@@ -14,7 +14,7 @@ def bind(dn: str, password: str):
             host = Config.LDAP_DOMAIN_DICT[rdn]
     if host is not None:
         try:
-            server = ldap3.Server(host, use_ssl=True, get_info=ldap3.ALL)
+            server = ldap3.Server(host=host, port=Config.LDAP_PORT, use_ssl=True, get_info=ldap3.ALL)
             conn = ldap3.Connection(
                 server=server,
                 user=dn,

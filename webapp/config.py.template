@@ -170,6 +170,8 @@ class Config(object):
     LDAP_DOMAIN_DICT = {
         'o=EDI,dc=edirepository,dc=org': 'ldap.edirepository.org',
     }
+    LDAP_PORT = 636
+
     # GitHub OAuth client
     GITHUB_CLIENT_ID = 'github-client-id'
     GITHUB_CLIENT_SECRET = 'github-client-secret'
