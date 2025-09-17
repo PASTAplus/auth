@@ -50,8 +50,8 @@ def get_db_as_json(populated_dbi):
 
 async def make_edi_token(dbi, profile_row):
     """Create a test JWT for the given profile.
-    The returned JWT is sufficient for testing, but does not include the Identity fields and some
-    other fields that are normally present.
+    The returned JWT is sufficient for testing, but does not include the IdP fields and some other
+    fields that are normally present.
     """
     return await util.edi_token.create_by_profile(dbi, profile_row)
 

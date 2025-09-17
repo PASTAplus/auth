@@ -23,19 +23,17 @@ router = fastapi.APIRouter()
 async def get_ui_membership(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
-    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     return util.template.templates.TemplateResponse(
         'membership.html',
         {
             # Base
-            'token': token,
+            'profile': token_profile_row,
             'avatar_url': util.avatar.get_profile_avatar_url(
                 token_profile_row,
                 refresh=request.query_params.get('refresh') == 'true',
             ),
-            'profile': token_profile_row,
             # Page
             'request': request,
             'group_membership_list': await dbi.get_group_membership_list(token_profile_row),

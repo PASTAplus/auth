@@ -8,7 +8,7 @@ import xml.etree.ElementTree
 
 import starlette.datastructures
 
-import db.models.identity
+import db.models.profile
 
 
 class CustomJSONEncoder(json.JSONEncoder):

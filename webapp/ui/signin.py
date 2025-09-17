@@ -3,7 +3,7 @@ import fastapi
 import starlette.requests
 import starlette.status
 
-import db.models.identity
+import db.models.profile
 import util.avatar
 import util.dependency
 import util.login
@@ -28,15 +28,14 @@ router = fastapi.APIRouter()
 @router.get('/ui/signin')
 async def get_ui_signin(
     request: starlette.requests.Request,
-    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    if token:
+    if token_profile_row:
         return util.redirect.internal('/ui/profile')
     return util.template.templates.TemplateResponse(
         'signin.html',
         {
             # Base
-            'token': None,
             'profile': None,
             #
             'request': request,
@@ -54,7 +53,6 @@ async def get_ui_signin(
 @router.get('/ui/signin/merge')
 async def get_ui_signin(
     request: starlette.requests.Request,
-    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
 ):
     # if token:
     #     return util.redirect.internal('/ui/profile')
@@ -62,7 +60,6 @@ async def get_ui_signin(
         'signin-merge.html',
         {
             # Base
-            'token': None,
             'profile': None,
             #
             'request': request,
@@ -80,17 +77,14 @@ async def get_ui_signin(
 @router.get('/ui/signin/link')
 async def get_ui_signin_link(
     request: starlette.requests.Request,
-    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
-    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     return util.template.templates.TemplateResponse(
         'signin.html',
         {
             # Base
-            'token': token,
+            'profile': token_profile_row,
             'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
-            'profile': None,
             # Page
             'request': request,
             'login_type': 'link',
@@ -119,16 +113,13 @@ async def get_ui_signin_link(
 @router.get('/ui/signin/reset')
 async def get_ui_signin_reset(
     request: starlette.requests.Request,
-    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     return util.template.templates.TemplateResponse(
         'signin-reset-pw.html',
         {
             # Base
-            'token': token,
-            'profile': None,
-            # 'avatar_url': util.get_profile_avatar_url(profile_row),
-            #
+            'profile': token_profile_row,
             'request': request,
         },
     )
@@ -143,6 +134,7 @@ async def get_ui_signin_reset(
 async def post_signin_ldap(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """Handle LDAP sign in from the Auth sign in page. This duplicates some of the logic in
     idp/ldap.py, but interacts with the browser instead of a server side client.
@@ -161,9 +153,10 @@ async def post_signin_ldap(
     return await util.login.handle_successful_login(
         request=request,
         dbi=dbi,
+        token_profile_row=token_profile_row,
         login_type=login_type,
         target_url=str(util.url.url('/ui/profile')),
-        idp_name=db.models.identity.IdpName.LDAP,
+        idp_name=db.models.profile.IdpName.LDAP,
         idp_uid=ldap_dn,
         common_name=username,
         email=None,

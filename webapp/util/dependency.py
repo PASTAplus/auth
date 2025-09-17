@@ -1,8 +1,10 @@
-import daiquiri
 import contextlib
 import typing
+from typing import Any, AsyncGenerator
 
+import daiquiri
 import fastapi
+import sqlalchemy.exc
 import sqlalchemy.ext.asyncio
 import starlette.requests
 
@@ -10,6 +12,7 @@ import db.db_interface
 import db.models.profile
 import db.session
 import util.edi_token
+from util.edi_token import EdiTokenClaims
 
 # Create class refs here to use as type hints
 Profile = db.models.profile.Profile
@@ -67,8 +70,9 @@ async def dbi() -> typing.AsyncGenerator[DbInterface, typing.Any]:
 async def token(
     request: starlette.requests.Request,
     dbi_: DbInterface = fastapi.Depends(dbi),
-) -> EdiTokenClaims | None:
-    """Get edi-token from the request cookie. Returns None if the token is expired or otherwise invalid.
+) -> AsyncGenerator[EdiTokenClaims | None, Any]:
+    """Get EDI token claims from the request cookie.
+    - Yields None if the token is missing, expired or otherwise invalid.
     """
     token_str = request.cookies.get('edi-token')
     token_obj = await util.edi_token.decode(dbi_, token_str) if token_str else None
@@ -78,11 +82,14 @@ async def token(
 async def token_profile_row(
     dbi_: DbInterface = fastapi.Depends(dbi),
     token_: EdiTokenClaims | None = fastapi.Depends(token),
-):
+) -> AsyncGenerator[Profile | None, Any]:
     """Get the profile row associated with the token.
-    :returns: The profile row associated with the token, or None if the token is missing or invalid.
-    :rtype: Profile | None
+    - Yields None if the token is missing, expired or otherwise invalid.
     """
-    if token_ is not None:
-        return await dbi_.get_profile(token_.edi_id)
-    return None
+    if token_:
+        try:
+            yield await dbi_.get_profile(token_.edi_id)
+            return
+        except sqlalchemy.exc.NoResultFound:
+            pass
+    yield None

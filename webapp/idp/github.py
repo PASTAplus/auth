@@ -6,7 +6,7 @@ import requests
 import starlette.requests
 import starlette.status
 
-import db.models.identity
+import db.models.profile
 import util.avatar
 import util.dependency
 import util.login
@@ -36,7 +36,7 @@ async def get_login_github(
 
     return util.redirect.idp(
         Config.GITHUB_AUTH_ENDPOINT,
-        db.models.identity.IdpName.GITHUB,
+        db.models.profile.IdpName.GITHUB,
         login_type,
         target_url,
         client_id=Config.GITHUB_CLIENT_ID,
@@ -50,6 +50,7 @@ async def get_login_github(
 async def get_callback_github(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     login_type, target_url = util.login.unpack_state(request.query_params.get('state'))
     log.debug(f'callback_github() login_type="{login_type}" target_url="{target_url}"')
@@ -138,9 +139,10 @@ async def get_callback_github(
     return await util.login.handle_successful_login(
         request=request,
         dbi=dbi,
+        token_profile_row=token_profile_row,
         login_type=login_type,
         target_url=target_url,
-        idp_name=db.models.identity.IdpName.GITHUB,
+        idp_name=db.models.profile.IdpName.GITHUB,
         idp_uid=idp_uid,
         common_name=common_name,
         email=user_dict.get('email'),

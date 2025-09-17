@@ -5,7 +5,7 @@ import urllib.parse
 import daiquiri
 import starlette.datastructures
 
-import db.models.identity
+import db.models.profile
 from config import Config
 
 CACHE_BUSTER_VERSION = None
@@ -48,7 +48,7 @@ def build_query_string(**query_param_dict) -> str:
 #     return str(url).lstrip("/")
 
 
-def get_idp_logo_url(idp_name: db.models.identity.IdpName):
+def get_idp_logo_url(idp_name: db.models.profile.IdpName):
     """Return the URL to the logo image for the given IdP."""
     return f'/static/idp-logos/{idp_name.name.lower()}.svg'
 

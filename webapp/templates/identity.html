@@ -49,48 +49,70 @@
         {% for identity in identity_list %}
 
           <div class='grid-row'>
+            {# Avatar #}
             <div class='grid-child'>
               <img src='{{ identity.avatar_url }}' alt='Avatar' class='avatar avatar-smaller'>
             </div>
+            {# IdP logo #}
             <div class='grid-child'>
               <div class='idp-logo'>
-                {% if identity.idp_name == IdpName.GOOGLE %}
+                {% if profile.idp_name == IdpName.GOOGLE %}
                   <img class='idp-logo-google' src='{{ url('/static/svg/idp/google-text.svg') }}'
                        alt='Google'>
-                {% elif identity.idp_name == IdpName.MICROSOFT %}
+                {% elif profile.idp_name == IdpName.MICROSOFT %}
                   <img class='idp-logo-microsoft' src='{{ url('/static/svg/idp/microsoft.svg') }}'
                        alt='Microsoft'>
-                {% elif identity.idp_name == IdpName.GITHUB %}
+                {% elif profile.idp_name == IdpName.GITHUB %}
                   <img class='idp-logo-github-symbol'
                        src='{{ url('/static/svg/idp/github-symbol.svg') }}' alt='GitHub'>
                   <img class='idp-logo-github-text'
                        src='{{ url('/static/svg/idp/github-text.svg') }}' alt='GitHub'>
-                {% elif identity.idp_name == IdpName.ORCID %}
+                {% elif profile.idp_name == IdpName.ORCID %}
                   <img class='idp-logo-orcid' src='{{ url('/static/svg/idp/orcid.svg') }}'
                        alt='ORCID'>
-                {% elif identity.idp_name == IdpName.LDAP %}
+                {% elif profile.idp_name == IdpName.LDAP %}
                   <img class='idp-logo-edi-ldap' src='{{ url('/static/svg/idp/edi-logo.svg') }}'
                        alt='EDI LDAP'>
                 {% else %}
-                  {{ identity.idp_name }}
+                  {{ profile.idp_name }}
                 {% endif %}
               </div>
             </div>
+            {# Common name / email #}
             <div class='grid-child'>
               {{ identity.common_name or identity.email or '' }}
             </div>
+            {# Profile #}
+            <div class='grid-child'>
+              {{ identity.profile }}
+            </div>
+            {# Copy ID #}
+            <div class='edi-id-parent'>
+              <div class='edi-id-child-text'>
+                {{ identity.edi_id }}
+              </div>
+              <div class='edi-id-child-icon'>
+                <img src='{{ url('/static/svg/copy.svg') }}'
+                     alt='Copy EDI Identifier'
+                     class='edi-id-copy-button'
+                >
+              </div>
+            </div>
+            {# Unlink button #}
             <div class='grid-child'>
               {% if identity_list|length > 1 %}
                 <button class='icon-text-button' data-bs-toggle='modal'
-                        data-bs-target='#unlinkIdentityModal'
-                        data-idp-name='{{ identity.idp_name.name }}'
-                        data-idp-uid='{{ identity.idp_uid }}'
+                        data-bs-target='#unlinkProfileModal'
+                        data-idp-name='{{ profile.idp_name.name }}'
+                        data-idp-uid='{{ Profile.idp_uid }}'
                 >
                   <span><img src='{{ url('/static/svg/unlink.svg') }}' alt='Unlink'></span>
                   <span>Unlink</span>
                 </button>
               {% endif %}
             </div>
+
+
           </div>
 
         {% endfor %}
@@ -99,14 +121,18 @@
     </div>
 
     {% if identity_list|length == 1 %}
-      <p class='alert alert-info'>
-        To unlink this account, first link another account to maintain access to your profile.
-        Alternatively, you can delete your entire profile on the
-        <a href='{{ url('/ui/profile/edit') }}'>Edit Profile</a>
-        page, which will also unlink this account.
-      </p>
-      <p>
-      </p>
+      <div class='alert alert-info alert-row'>
+        <div>
+          <img src='{{ url('/static/lib/bootstrap-icons/info-circle.svg') }}' alt='Info'
+               class='alert-icon'>
+        </div>
+        <div>
+          To unlink this account, first link another account to maintain access to your profile.
+          Alternatively, you can delete your entire profile on the
+          <a href='{{ url('/ui/profile/edit') }}'>Edit Profile</a>
+          page, which will also unlink this account.
+        </div>
+      </div>
     {% endif %}
 
   </div>
@@ -117,7 +143,7 @@
 
   {# Modal unlink confirmation dialog #}
 
-  <div class='modal fade' id='unlinkIdentityModal' tabindex='-1' data-bs-backdrop='static'>
+  <div class='modal fade' id='unlinkProfileModal' tabindex='-1' data-bs-backdrop='static'>
     <div class='modal-dialog modal-dialog-centered'>
       <div class='modal-content'>
         <div class='modal-header'>
@@ -126,9 +152,9 @@
                   aria-label='Close'></button>
         </div>
         <div class='modal-body'>
-          <form action='{{ url('/ui/api/identity/unlink') }}' method='post' id='unlinkIdentityForm'>
-            <input type='hidden' name='idp_name' id='unlinkIdentityIdpName'>
-            <input type='hidden' name='idp_uid' id='unlinkIdentityUid'>
+          <form action='{{ url('/ui/api/identity/unlink') }}' method='post' id='unlinkProfileForm'>
+            <input type='hidden' name='idp_name' id='unlinkProfileIdpName'>
+            <input type='hidden' name='idp_uid' id='unlinkProfileUid'>
             <div class='form-group'>
               <p>
                 Click 'Unlink' to remove this account from your profile.

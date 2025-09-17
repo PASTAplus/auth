@@ -24,7 +24,6 @@ import idp.orcid
 import ui.avatar
 import ui.dev
 import ui.group
-import ui.identity
 import ui.index
 import ui.membership
 import ui.permission
@@ -202,7 +201,6 @@ app.include_router(idp.orcid.router)
 app.include_router(ui.avatar.router)
 app.include_router(ui.dev.router)
 app.include_router(ui.group.router)
-app.include_router(ui.identity.router)
 app.include_router(ui.index.router)
 app.include_router(ui.membership.router)
 app.include_router(ui.permission.router)

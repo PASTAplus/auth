@@ -35,7 +35,6 @@ router = fastapi.APIRouter()
 async def get_ui_permission_search(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
-    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """Permissions Search page.
@@ -45,9 +44,8 @@ async def get_ui_permission_search(
         'permission-search.html',
         {
             # Base
-            'token': token,
-            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
             'profile': token_profile_row,
+            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
             # Page
             'request': request,
             'package_scope_list': await dbi.get_search_package_scopes(),
@@ -61,7 +59,6 @@ async def get_ui_permission(
     search_uuid: str,
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
-    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """Main Permissions page. The contents of the panels are loaded separately."""
@@ -92,9 +89,8 @@ async def get_ui_permission(
         'permission.html',
         {
             # Base
-            'token': token,
-            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
             'profile': token_profile_row,
+            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
             # Page
             'request': request,
             'public_edi_id': Config.PUBLIC_EDI_ID,
@@ -127,7 +123,6 @@ async def post_ui_permission_search(
 async def get_ui_api_permission_slice(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
-    # token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """Called when the permission search results panel is scrolled or first opened.
     Returns a slice of root resources for the current search session.

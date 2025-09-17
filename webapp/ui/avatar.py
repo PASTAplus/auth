@@ -6,7 +6,7 @@ import starlette.responses
 import starlette.status
 import starlette.templating
 
-import db.models.identity
+import db.models.profile
 import util.avatar
 import util.dependency
 import util.edi_token
@@ -26,8 +26,6 @@ router = fastapi.APIRouter()
 @router.get('/ui/avatar')
 async def get_ui_avatar(
     request: starlette.requests.Request,
-    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
-    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     avatar_list = [
@@ -41,7 +39,7 @@ async def get_ui_avatar(
         if identity_row.has_avatar:
             avatar_list.append(
                 {
-                    'url': util.avatar.get_identity_avatar_url(identity_row),
+                    'url': util.avatar.get_profile_avatar_url(identity_row),
                     'idp_name': identity_row.idp_name.name,
                     'idp_uid': identity_row.idp_uid,
                 }
@@ -51,7 +49,6 @@ async def get_ui_avatar(
         'avatar.html',
         {
             # Base
-            'token': token,
             'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
             'profile': token_profile_row,
             # Page
@@ -84,7 +81,7 @@ async def post_avatar_update(
         avatar_path.unlink(missing_ok=True)
     else:
         token_profile_row.has_avatar = True
-        idp_name = db.models.identity.IdpName[idp_name_str]
+        idp_name = db.models.profile.IdpName[idp_name_str]
         avatar_img = util.avatar.get_avatar_path(idp_name.name.lower(), idp_uid).read_bytes()
         util.avatar.save_avatar(avatar_img, 'profile', token_profile_row.edi_id)
 

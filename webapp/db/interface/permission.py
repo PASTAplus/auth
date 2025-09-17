@@ -70,11 +70,11 @@ log = daiquiri.getLogger(__name__)
 # noinspection PyTypeChecker,PyUnresolvedReferences
 class PermissionInterface:
     def __init__(self, session: sqlalchemy.ext.asyncio.AsyncSession):
-        self._session = session
+        self.session = session
 
     @property
     def session(self):
-        return self._session
+        return self.session
 
     async def create_resource(self, parent_id, key, label, type_str):
         """Create a new resource."""
@@ -84,7 +84,7 @@ class PermissionInterface:
             label=label,
             type=type_str,
         )
-        self._session.add(new_resource_row)
+        self.session.add(new_resource_row)
         await self.flush()
         return new_resource_row
 
@@ -351,7 +351,7 @@ class PermissionInterface:
 
         if permission_level == PermissionLevel.NONE:
             if rule_row is not None:
-                await self._session.delete(rule_row)
+                await self.session.delete(rule_row)
         else:
             if rule_row is None:
                 rule_row = Rule(
@@ -359,7 +359,7 @@ class PermissionInterface:
                     principal=principal_row,
                     permission=permission_level,
                 )
-                self._session.add(rule_row)
+                self.session.add(rule_row)
             else:
                 rule_row.permission = permission_level
 
@@ -588,7 +588,7 @@ class PermissionInterface:
                 )
             )
 
-            result = await self._session.stream(stmt)
+            result = await self.session.stream(stmt)
             async for row in result.yield_per(Config.DB_YIELD_ROWS):
                 yield row
 
@@ -597,9 +597,11 @@ class PermissionInterface:
     #
 
     async def _get_equivalent_principal_id_query(self, token_profile_row):
-        """Return a query that returns the principal IDs for all principals that the profile has
-        access to. We refer to these as the profile's equivalent principals. These principals,
-        except for the profile itself, are included in the 'principals' field of the JWT.
+        """Return a Select object for use in SQLAlchemy 'where' and 'in' clauses for rules.
+
+        The Select query returns the principal IDs for all principals that the profile has access
+        to. We refer to these as the profile's equivalent principals. These principals, except for
+        the profile itself, are included in the 'principals' field of the JWT.
 
         The returned list includes the principal IDs of:
             - The primary profile (referenced by token_profile_row)
@@ -611,8 +613,6 @@ class PermissionInterface:
 
         For the special cases of finding equivalent principals for the Public Access profile, we
         don't include the Authenticated Access profile, and vice versa.
-
-        :returns: Query object for use in SQLAlchemy 'where' and 'in' clauses for rules.
         """
         public_profile_id = await util.profile_cache.get_public_access_profile_id(self)
         authenticated_profile_id = await util.profile_cache.get_authenticated_access_profile_id(
@@ -717,7 +717,7 @@ class PermissionInterface:
         subject_id and subject_type are unique together.
         """
         new_principal_row = Principal(subject_id=subject_id, subject_type=subject_type)
-        self._session.add(new_principal_row)
+        self.session.add(new_principal_row)
         await self.flush()
         return new_principal_row
 
@@ -780,13 +780,6 @@ class PermissionInterface:
                     ),
                 )
             )
-        )
-        return result.scalar_one()
-
-    async def get_principal_by_identity(self, identity):
-        """Get a principal by its identity."""
-        result = await self.execute(
-            sqlalchemy.select(Principal).where(Principal.identity == identity)
         )
         return result.scalar_one()
 

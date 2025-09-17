@@ -28,15 +28,15 @@ def save_avatar(avatar_img: bytes, namespace_str: str, id_str: str, ext=None):
     return avatar_path
 
 
-async def copy_identity_to_profile_avatar(identity_row):
-    """Copy the avatar image from the identity to the profile."""
-    assert identity_row.has_avatar
-    identity_avatar_path = get_avatar_path(identity_row.idp_name.name.lower(), identity_row.idp_uid)
-    assert identity_avatar_path.exists()
-    profile_avatar_path = get_avatar_path('profile', identity_row.profile.edi_id)
-    with filelock.FileLock(profile_avatar_path.with_suffix('.lock')):
-        shutil.copy(identity_avatar_path, profile_avatar_path)
-    identity_row.profile.has_avatar = True
+# async def copy_identity_to_profile_avatar(identity_row):
+#     """Copy the avatar image from the identity to the profile."""
+#     assert identity_row.has_avatar
+#     identity_avatar_path = get_avatar_path(identity_row.idp_name.name.lower(), identity_row.idp_uid)
+#     assert identity_avatar_path.exists()
+#     profile_avatar_path = get_avatar_path('profile', identity_row.profile.edi_id)
+#     with filelock.FileLock(profile_avatar_path.with_suffix('.lock')):
+#         shutil.copy(identity_avatar_path, profile_avatar_path)
+#     identity_row.profile.has_avatar = True
 
 
 def get_avatar_path(namespace_str, id_str, ext=None):
@@ -75,7 +75,7 @@ def get_profile_avatar_url(profile_row, refresh=False):
     return avatar_url
 
 
-def get_identity_avatar_url(identity_row, refresh=False):
+def get_profile_avatar_url(identity_row, refresh=False):
     """Return the URL to the avatar image for the given IdP and idp_uid."""
     if not identity_row.has_avatar:
         return get_anon_avatar_url()

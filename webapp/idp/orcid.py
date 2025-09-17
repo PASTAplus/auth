@@ -3,7 +3,7 @@ import fastapi
 import requests
 import starlette.requests
 
-import db.models.identity
+import db.models.profile
 import util.dependency
 import util.login
 import util.pretty
@@ -32,7 +32,7 @@ async def get_login_orcid(
 
     return util.redirect.idp(
         Config.ORCID_AUTH_ENDPOINT,
-        db.models.identity.IdpName.ORCID,
+        db.models.profile.IdpName.ORCID,
         login_type,
         target_url,
         client_id=Config.ORCID_CLIENT_ID,
@@ -46,6 +46,7 @@ async def get_login_orcid(
 async def get_callback_orcid(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     login_type, target_url = util.login.unpack_state(request.query_params.get('state'))
     log.debug(f'callback_orcid() login_type="{login_type}" target_url="{target_url}"')
@@ -90,9 +91,10 @@ async def get_callback_orcid(
     return await util.login.handle_successful_login(
         request=request,
         dbi=dbi,
+        token_profile_row=token_profile_row,
         login_type=login_type,
         target_url=target_url,
-        idp_name=db.models.identity.IdpName.ORCID,
+        idp_name=db.models.profile.IdpName.ORCID,
         idp_uid=Config.ORCID_DNS + token_dict['orcid'],
         common_name=token_dict['name'],
         email=token_dict.get('email'),

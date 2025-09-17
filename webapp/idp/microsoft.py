@@ -7,7 +7,7 @@ import requests
 import starlette.requests
 import starlette.responses
 
-import db.models.identity
+import db.models.profile
 import util.avatar
 import util.dependency
 import util.login
@@ -37,7 +37,7 @@ async def get_login_microsoft(
 
     return util.redirect.idp(
         Config.MICROSOFT_AUTH_ENDPOINT,
-        db.models.identity.IdpName.MICROSOFT,
+        db.models.profile.IdpName.MICROSOFT,
         login_type,
         target_url,
         client_id=Config.MICROSOFT_CLIENT_ID,
@@ -55,6 +55,7 @@ async def get_login_microsoft(
 async def get_callback_microsoft(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """On successful login, redeem a code for an access token. Otherwise, just redirect to the
     target URL.
@@ -130,9 +131,10 @@ async def get_callback_microsoft(
     return await util.login.handle_successful_login(
         request=request,
         dbi=dbi,
+        token_profile_row=token_profile_row,
         login_type=login_type,
         target_url=target_url,
-        idp_name=db.models.identity.IdpName.MICROSOFT,
+        idp_name=db.models.profile.IdpName.MICROSOFT,
         idp_uid=user_dict['sub'],
         common_name=user_dict['name'],
         email=user_dict['email'],

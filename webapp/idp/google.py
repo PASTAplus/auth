@@ -6,7 +6,7 @@ import requests
 import starlette.requests
 import starlette.status
 
-import db.models.identity
+import db.models.profile
 import util.avatar
 import util.dependency
 import util.login
@@ -49,7 +49,7 @@ async def get_login_google(
 
     return util.redirect.idp(
         google_provider_cfg['authorization_endpoint'],
-        db.models.identity.IdpName.GOOGLE,
+        db.models.profile.IdpName.GOOGLE,
         login_type,
         target_url,
         client_id=Config.GOOGLE_CLIENT_ID,
@@ -65,6 +65,7 @@ async def get_login_google(
 async def get_callback_google(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     login_type, target_url = util.login.unpack_state(request.query_params.get('state'))
     log.debug(f'callback_google() login_type="{login_type}" target_url="{target_url}"')
@@ -149,9 +150,10 @@ async def get_callback_google(
     return await util.login.handle_successful_login(
         request=request,
         dbi=dbi,
+        token_profile_row=token_profile_row,
         login_type=login_type,
         target_url=target_url,
-        idp_name=db.models.identity.IdpName.GOOGLE,
+        idp_name=db.models.profile.IdpName.GOOGLE,
         idp_uid=user_dict['sub'],
         common_name=user_dict['name'],
         email=user_dict['email'],

@@ -15,7 +15,7 @@ import daiquiri
 import jwt
 import sqlalchemy.exc
 
-import db.models.identity
+import db.models.profile
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -44,10 +44,8 @@ class EdiTokenClaims:
     principals: set[str] = dataclasses.field(default_factory=set)
     isEmailEnabled: bool = False
     isEmailVerified: bool = False
-    identityId: int | None = None
     idpName: str | None = None
     idpUid: str | None = None
-    idpCname: str | None = None
     iss: str = Config.JWT_ISSUER
     hd: str = Config.JWT_HOSTED_DOMAIN
     iat: int | None = None
@@ -59,10 +57,13 @@ class EdiTokenClaims:
         return self.sub
 
 
-async def create(dbi, identity_row) -> str:
-    """Create an EDI JSON Web Token (JWT).
-    """
-    profile_row = identity_row.profile
+async def create(dbi, profile_row) -> str:
+    """Create an EDI JSON Web Token (JWT)."""
+    claims_obj = await create_claims(dbi, profile_row)
+    return _create(claims_obj)
+
+
+async def create_claims(dbi, profile_row) -> EdiTokenClaims:
     principals_set: set = await dbi.get_equivalent_principal_edi_id_set(profile_row)
     principals_set.discard(profile_row.edi_id)
     claims_obj = EdiTokenClaims(
@@ -72,33 +73,14 @@ async def create(dbi, identity_row) -> str:
         principals=principals_set,
         isEmailEnabled=profile_row.email_notifications,
         isEmailVerified=False,
-        identityId=identity_row.id,
-        idpName=identity_row.idp_name.name.lower(),
+        idpName=profile_row.idp_name.name.lower(),
         idpUid=(
-            identity_row.email
-            if identity_row.idp_name == db.models.identity.IdpName.GOOGLE
-            else identity_row.idp_uid
+            profile_row.email
+            if profile_row.idp_name == db.models.profile.IdpName.GOOGLE
+            else profile_row.idp_uid
         ),
-        idpCname=identity_row.common_name,
     )
-    return _create(claims_obj)
-
-
-async def create_by_profile(dbi, profile_row):
-    """Create an EDI JSON Web Token (JWT) by the given profile.
-    - The normal create() method takes an Identity in order to include information about which
-    account was used for the current sign in to the profile. In some cases, we don't have identity
-    information, but we can still create a JWT with just profile information.
-    """
-    principals_set = await dbi.get_equivalent_principal_edi_id_set(profile_row)
-    principals_set.discard(profile_row.edi_id)
-    claims_obj = EdiTokenClaims(
-        sub=profile_row.edi_id,
-        cn=profile_row.common_name,
-        email=profile_row.email,
-        principals=principals_set,
-    )
-    return _create(claims_obj)
+    return claims_obj
 
 
 def create_by_claims(**claims_dict):

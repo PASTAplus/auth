@@ -147,30 +147,30 @@ async def main():
 
 
 async def create_db(dbi):
-    await _create_tables(dbi)
-    await _create_system_profiles(dbi)
-    await _create_system_groups(dbi)
+    await create_tables(dbi)
+    await create_system_profiles(dbi)
+    await create_system_groups(dbi)
     await update_functions_and_triggers(dbi)
 
 
 async def update_functions_and_triggers(dbi):
-    await _create_function_get_resource_descendants(dbi)
-    await _create_function_get_resource_ancestors(dbi)
-    await _create_sync_triggers(dbi)
-    await _create_search_package_scopes_trigger(dbi)
-    await _create_search_resource_type_trigger(dbi)
-    await _create_search_root_resource_trigger(dbi)
-    await _create_profile_link_trigger(dbi)
+    await create_function_get_resource_descendants(dbi)
+    await create_function_get_resource_ancestors(dbi)
+    await create_sync_triggers(dbi)
+    await create_search_package_scopes_trigger(dbi)
+    await create_search_resource_type_trigger(dbi)
+    await create_search_root_resource_trigger(dbi)
+    await create_profile_link_trigger(dbi)
 
 
-async def _create_tables(dbi):
+async def create_tables(dbi):
     await dbi.session.run_sync(
         lambda sync_session: db.models.base.Base.metadata.create_all(bind=sync_session.bind)
     )
     await dbi.flush()
 
 
-async def _create_system_profiles(dbi):
+async def create_system_profiles(dbi):
     """Create the system profiles for the Public and Authenticated profiles. This is a no-op for
     profiles that already exist.
     """
@@ -192,6 +192,7 @@ async def _create_system_profiles(dbi):
         ),
     ):
         await dbi.create_profile(
+            idp_name=db.models.profile.IdpName.SYSTEM,
             common_name=common_name,
             has_avatar=True,
             edi_id=edi_id,
@@ -199,7 +200,7 @@ async def _create_system_profiles(dbi):
         util.avatar.init_system_avatar(edi_id, avatar_path)
 
 
-async def _create_system_groups(dbi):
+async def create_system_groups(dbi):
     """Create the system groups, currently just the Vetted group."""
     for owner_edi_id, group_edi_id, name, description, avatar_path in (
         (
@@ -214,7 +215,7 @@ async def _create_system_groups(dbi):
         await dbi.create_group(profile_row, name, description, group_edi_id)
 
 
-async def _create_function_get_resource_descendants(dbi):
+async def create_function_get_resource_descendants(dbi):
     """Create a function to get the resource tree starting from a given resource ID."""
     await dbi.execute(
         sqlalchemy.text(
@@ -242,7 +243,7 @@ async def _create_function_get_resource_descendants(dbi):
     )
 
 
-async def _create_function_get_resource_ancestors(dbi):
+async def create_function_get_resource_ancestors(dbi):
     """Create a function to get all ancestors of a list of resources in the tree."""
     await dbi.execute(
         sqlalchemy.text(
@@ -272,7 +273,7 @@ async def _create_function_get_resource_ancestors(dbi):
     )
 
 
-async def _create_sync_triggers(dbi):
+async def create_sync_triggers(dbi):
     """Create triggers to track table changes for synchronization with in-memory caches."""
     # Create trigger function. This function is called by the triggers to update the sync table.
     # A row for the given table name is created if it does not exist, or updated if it does.
@@ -323,7 +324,7 @@ async def _create_sync_triggers(dbi):
         )
 
 
-async def _create_search_package_scopes_trigger(dbi):
+async def create_search_package_scopes_trigger(dbi):
     """Create a trigger to update the search_package_scope table with any new scope when a package
     resource is created or updated, with label matching the package scope.identifier.revision
     pattern.
@@ -363,7 +364,7 @@ async def _create_search_package_scopes_trigger(dbi):
     )
 
 
-async def _create_search_resource_type_trigger(dbi):
+async def create_search_resource_type_trigger(dbi):
     """Create a trigger to update the search_resource_type table with any new resource type when a
     non-package root resource is created or updated.
     """
@@ -401,7 +402,7 @@ async def _create_search_resource_type_trigger(dbi):
     )
 
 
-async def _create_search_root_resource_trigger(dbi):
+async def create_search_root_resource_trigger(dbi):
     """Create a trigger to update the search_root_resource table if a new root resource
     (parent_id=null) is created or updated.
     """
@@ -470,7 +471,7 @@ async def _create_search_root_resource_trigger(dbi):
     )
 
 
-async def _create_profile_link_trigger(dbi):
+async def create_profile_link_trigger(dbi):
     """Create a trigger to enforce disjointness of primary and secondary profiles in the
     profile_link table.
     """
@@ -503,7 +504,7 @@ async def _create_profile_link_trigger(dbi):
             drop trigger if exists profile_link_trigger on profile_link;
 
             create trigger profile_link_trigger
-            before insert on profile_link
+            before insert or update on profile_link
             for each row
             execute function profile_link_trigger_func();
             """
@@ -579,8 +580,8 @@ async def clear_db(dbi):
         except SQLAlchemyError as e:
             log.error(f'Failed to clear table {table.name}: {e}')
 
-    await _create_system_profiles(dbi)
-    await _create_system_groups(dbi)
+    await create_system_profiles(dbi)
+    await create_system_groups(dbi)
 
 
 async def clear_resources(dbi):

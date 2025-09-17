@@ -3,7 +3,7 @@ import starlette.datastructures
 import starlette.responses
 import starlette.status
 
-import db.models.identity
+import db.models.profile
 import util.login
 import util.pretty
 from config import Config
@@ -36,7 +36,7 @@ def internal(
 
 def idp(
     idp_auth_url: str,
-    idp_name: db.models.identity.IdpName,
+    idp_name: db.models.profile.IdpName,
     login_type: str,
     target_url: str,
     **query_param_dict,
@@ -69,7 +69,7 @@ def target(
     common_name: str,
     email: str,
     idp_uid: str,
-    idp_name: db.models.identity.IdpName,
+    idp_name: db.models.profile.IdpName,
     sub: str,
 ):
     """Create Response that redirects to the final target URL, providing the old style and new style

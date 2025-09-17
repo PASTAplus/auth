@@ -408,3 +408,13 @@ table td, table th {
     overflow-x: auto;
 }
 
+/* Alerts */
+
+.alert-icon {
+    height: 1.5rem;
+}
+
+.alert-row {
+    display: flex;
+    gap: 1rem;
+}
