@@ -98,8 +98,6 @@ async def get_callback_orcid(
         idp_uid=Config.ORCID_DNS + token_dict['orcid'],
         common_name=token_dict['name'],
         email=token_dict.get('email'),
-        has_avatar=False,
-        is_vetted=False,
     )
 
 

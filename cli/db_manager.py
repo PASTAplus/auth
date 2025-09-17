@@ -194,7 +194,6 @@ async def create_system_profiles(dbi):
         await dbi.create_profile(
             idp_name=db.models.profile.IdpName.SYSTEM,
             common_name=common_name,
-            has_avatar=True,
             edi_id=edi_id,
         )
         util.avatar.init_system_avatar(edi_id, avatar_path)

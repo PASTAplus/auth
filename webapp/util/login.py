@@ -20,8 +20,8 @@ async def handle_successful_login(
     idp_uid,
     common_name,
     email,
-    has_avatar,
-    is_vetted,
+    avatar_img=None,
+    avatar_ver=None,
 ):
     """After user has successfully authenticated with an IdP, handle the final steps of the login
     process.
@@ -34,49 +34,50 @@ async def handle_successful_login(
             idp_uid,
             common_name,
             email,
-            has_avatar,
-            is_vetted,
+            avatar_img,
+            avatar_ver,
         )
     elif login_type == 'link':
         return await handle_link_identity(
-            dbi, token_profile_row, idp_name, idp_uid, common_name, email, has_avatar
+            dbi, token_profile_row, idp_name, idp_uid, common_name, email, avatar_img, avatar_ver
         )
     else:
         raise ValueError(f'Unknown login_type: {login_type}')
 
 
 async def handle_client_login(
-    dbi, target_url, idp_name, idp_uid, common_name, email, has_avatar, is_vetted
+    dbi, target_url, idp_name, idp_uid, common_name, email, avatar_img, avatar_ver
 ):
     """We are currently signed out, and are signing in with a new or existing identity."""
     target_url = target_url
-    identity_row = await dbi.create_or_update_profile(
-        idp_name, idp_uid, common_name, email, has_avatar
+    profile_row = await dbi.create_or_update_profile(
+        idp_name, idp_uid, common_name, email, avatar_img, avatar_ver
     )
     await dbi.flush()
-    if idp_name == db.models.profile.IdpName.GOOGLE:
-        old_uid = email
-    else:
-        old_uid = idp_uid
+
+    old_uid = email if idp_name == db.models.profile.IdpName.GOOGLE else idp_uid
     old_token_ = util.old_token.make_old_token(
-        uid=old_uid, groups=Config.VETTED if is_vetted else Config.AUTHENTICATED
+        uid=old_uid,
+        groups=(
+            Config.VETTED if idp_name == db.models.profile.IdpName.LDAP else Config.AUTHENTICATED
+        ),
     )
-    edi_token = await util.edi_token.create(dbi, identity_row)
+    edi_token = await util.edi_token.create(dbi, profile_row)
     return util.redirect.target(
         target_url,
         token=old_token_,
         edi_token=edi_token,
-        edi_id=identity_row.profile.edi_id,
-        common_name=identity_row.common_name,
-        email=identity_row.profile.email,
-        idp_uid=identity_row.idp_uid,
-        idp_name=identity_row.idp_name,
-        sub=identity_row.idp_uid,
+        edi_id=profile_row.edi_id,
+        common_name=profile_row.common_name,
+        email=profile_row.email,
+        idp_uid=profile_row.idp_uid,
+        idp_name=profile_row.idp_name,
+        sub=profile_row.idp_uid,
     )
 
 
 async def handle_link_identity(
-    dbi, token_profile_row, idp_name, idp_uid, common_name, email, has_avatar
+    dbi, token_profile_row, idp_name, idp_uid, common_name, email, avatar_img, avatar_ver
 ):
     """We are currently signed in, and are linking a new or existing identity to the profile to
     which we are signed in.
@@ -165,11 +166,14 @@ async def handle_link_identity(
     """
     # If this is a new identity (the IdP UID is not already linked to any profile), link it to
     # the currently signed in profile.
+
+    assert False  # TODO
+
     try:
         identity_row = await dbi.get_profile(idp_name, idp_uid)
     except sqlalchemy.exc.NoResultFound:
         await link_identity(
-            dbi, token_profile_row, idp_name, idp_uid, common_name, email, has_avatar
+            dbi, token_profile_row, idp_name, idp_uid, common_name, email, avatar_img, avatar_ver
         )
         return util.redirect.internal('/ui/identity', success_msg='Account linked successfully.')
     # If we found an existing identity with this IdP UID, the identity may already be linked to the
@@ -202,10 +206,10 @@ async def handle_link_identity(
     # link table that have this profile as primary, then inserting a new row in the profile
     # link table.
 
-
     result = await dbi.session.execute(
-        sqlalchemy.select(dbi.profile_link_table).filter_by(linked_profile_id=identity_row.profile
-        .id)
+        sqlalchemy.select(dbi.profile_link_table).filter_by(
+            linked_profile_id=identity_row.profile.id
+        )
     )
 
     # We now know that the identity linked to an unrelated profile.
@@ -233,25 +237,25 @@ async def handle_link_identity(
     )
 
 
-async def link_identity(dbi, token_profile_row, idp_name, idp_uid, common_name, email, has_avatar):
+async def link_identity(
+    dbi, token_profile_row, idp_name, idp_uid, common_name, email, avatar_img, avatar_ver
+):
     try:
         identity_row = await dbi.get_profile(db.models.profile.IdpName.SKELETON, idp_uid)
         identity_row.idp_name = idp_name
         await dbi.update_profile(
-            identity_row.profile, common_name=common_name, email=email, has_avatar=has_avatar
+            identity_row.profile, common_name=common_name, email=email, has_avatar=False
         )
-        await dbi.flush()
+        # await dbi.flush()
 
-        identity_row.common_name = common_name
-        identity_row.email = email
-        identity_row.first_auth = identity_row.first_auth or datetime.datetime.now()
-        identity_row.last_auth = datetime.datetime.now()
-        identity_row.has_avatar = has_avatar
+        # identity_row.common_name = common_name
+        # identity_row.email = email
+        # identity_row.first_auth = identity_row.first_auth or datetime.datetime.now()
+        # identity_row.last_auth = datetime.datetime.now()
+        # identity_row.has_avatar = has_avatar
 
     except sqlalchemy.exc.NoResultFound:
         pass
-
-    await dbi.create_identity(token_profile_row, idp_name, idp_uid, common_name, email, has_avatar)
 
 
 def get_redirect_uri(idp_name_str):

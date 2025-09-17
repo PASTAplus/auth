@@ -52,29 +52,31 @@
 
       <ul class='navbar-nav mr-auto'>
 
+
+
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/profile') }}'
+          <a class='nav-link {% if not profile %}disabled{% endif %}' href='{{ url('/ui/profile') }}'
              data-pages='profile'
           >Profile</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/identity') }}'
+          <a class='nav-link {% if not profile %}disabled{% endif %}' href='{{ url('/ui/identity') }}'
              data-pages='identity'
           >Accounts</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/group') }}'
+          <a class='nav-link {% if not profile %}disabled{% endif %}' href='{{ url('/ui/group') }}'
              data-pages='group'
           >Groups</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}'
+          <a class='nav-link {% if not profile %}disabled{% endif %}'
              href='{{ url('/ui/membership') }}'
              data-pages='membership'
           >Memberships</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}'
+          <a class='nav-link {% if not profile %}disabled{% endif %}'
              href='{{ url('/ui/permission/search') }}'
              {#href='{{ url('/ui/permission') }}'#}
              data-pages='permission, search'
@@ -92,7 +94,7 @@
           </button>
           <ul class='dropdown-menu' aria-labelledby='dropdownMenuButton1'>
             <li class='nav-item'>
-              <a class='nav-link {% if not token %}disabled{% endif %}'
+              <a class='nav-link {% if not profile %}disabled{% endif %}'
                  href='{{ url('/ui/perm2') }}'>Perm2</a>
             </li>
             <li><a class='dropdown-item' href='{{ url('/ui/api/dev/profiles') }}'>View Profiles</a>
@@ -119,13 +121,13 @@
       {# Menu, right #}
 
       <ul class='navbar-nav mr-auto navbar-right'>
-        {% if not token %}
+        {% if not profile %}
           <li class='nav-item'>
             <a class='nav-link active' href='{{ url('/ui/signin') }}'>Sign in</a>
           </li>
         {% endif %}
 
-        {% if token %}
+        {% if profile %}
           <li class='nav-item'>
             <div class='row-center-parent'>
               <div class='row-center-child'>

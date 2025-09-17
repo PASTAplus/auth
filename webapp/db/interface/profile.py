@@ -5,10 +5,11 @@ import sqlalchemy
 import sqlalchemy.ext.asyncio
 import sqlalchemy.orm
 
+import db.models.group
 import util.edi_id
 from config import Config
 from db.models.permission import SubjectType, Principal
-from db.models.profile import Profile, ProfileLink
+from db.models.profile import Profile, ProfileLink, IdpName
 
 log = daiquiri.getLogger(__name__)
 
@@ -28,7 +29,8 @@ class ProfileInterface:
         idp_uid: str | None,
         common_name: str | None,
         email: str | None,
-        has_avatar: bool,
+        avatar_img: bytes | None,
+        avatar_ver: str | None,
     ) -> Profile:
         """Create or update a profile and identity.
         - A full profile is a profile that has been logged into at least once, and so has a known
@@ -73,7 +75,8 @@ class ProfileInterface:
                 idp_uid=idp_uid,
                 common_name=common_name,
                 email=email,
-                has_avatar=has_avatar,
+                avatar_img=avatar_img,
+                avatar_ver=avatar_ver,
             )
             return profile_row
         # We are logging into an existing profile. If this is a skeleton profile, upgrade it to
@@ -84,20 +87,21 @@ class ProfileInterface:
                 idp_name=idp_name,
                 common_name=common_name,
                 email=email,
-                has_avatar=has_avatar,
+                avatar_img=avatar_img,
+                avatar_ver=avatar_ver,
             )
             await self.flush()
         # Update the profile's last_auth time, and first_auth time if not already set.
-        profile_row.first_auth = profile_row.first_auth or datetime.datetime.now(),
-        profile_row.last_auth = datetime.datetime.now(),
+        profile_row.first_auth = (profile_row.first_auth or datetime.datetime.now(),)
+        profile_row.last_auth = (datetime.datetime.now(),)
         # Normally, has_avatar will be True from the first time the user logs in with the identity.
         # More rarely, it will go from False to True, if a user did not initially have an avatar at
         # the IdP, but then creates one. More rarely still (if at all possible), this may go from
         # True to False, if the user removes their avatar at the IdP. In this latter case, the
         # avatar image in the filesystem will be orphaned here.
-        profile_row.has_avatar = has_avatar
-        if not has_avatar:
-            profile_row.avatar_etag = None
+        # profile_row.has_avatar = has_avatar
+        # if not has_avatar:
+        #     profile_row.avatar_ver = None
         return profile_row
 
     async def create_skeleton_profile(self, idp_uid: str) -> Profile:
@@ -126,8 +130,10 @@ class ProfileInterface:
             return await self.get_profile_by_google_email(idp_uid)
         except sqlalchemy.exc.NoResultFound:
             pass
-        profile_row = await self.create_profile(idp_uid=idp_uid)
-        return await self.create_identity(profile_row, IdpName.SKELETON, idp_uid)
+        return await self.create_profile(
+            idp_name=IdpName.SKELETON,
+            idp_uid=idp_uid,
+        )
 
     async def is_existing_edi_id(self, edi_id: str) -> bool:
         """Check if the given EDI-ID exists in the database.
@@ -230,10 +236,11 @@ class ProfileInterface:
         self,
         idp_name: IdpName,
         idp_uid: str = None,
+        edi_id: str = None,
         common_name: str | None = None,
         email: str | None = None,
-        has_avatar: bool = False,
-        edi_id: str = None,
+        avatar_img: bytes | None = None,
+        avatar_ver: str | None = None,
     ):
         """Create a new profile.
         - If the edi_id is provided, it is used as the profile's EDI-ID.
@@ -252,10 +259,10 @@ class ProfileInterface:
         new_profile_row = Profile(
             idp_name=idp_name,
             idp_uid=idp_uid,
+            edi_id=edi_id,
             common_name=common_name,
             email=email,
-            has_avatar=has_avatar,
-            edi_id=edi_id,
+            avatar_ver=avatar_ver,
         )
         self.session.add(new_profile_row)
         await self.flush()
@@ -392,3 +399,14 @@ class ProfileInterface:
         """
         await self.delete_profile_links(token_profile_row.id)
         await self.create_profile_link(token_profile_row, new_primary_profile_id)
+
+    #
+    # Avatar
+    #
+
+    async def update_avatar_ver(self, token_profile_row, avatar_ver):
+        token_profile_row.avatar_ver = avatar_ver
+        await self.flush()
+
+    async def get_avatar_ver(self, token_profile_row):
+        return token_profile_row.avatar_ver

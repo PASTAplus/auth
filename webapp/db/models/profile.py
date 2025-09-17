@@ -17,6 +17,7 @@ class IdpName(enum.Enum):
     """The Identity Provider (IdP) names are used to identify the source of the identity provider
     account associated with the profile.
     """
+
     # The SYSTEM IdP is used for system accounts that are not associated with a real user.
     SYSTEM = 0
     # The SKELETON IdP is used for user profiles created via the API, where the IdP is not known.
@@ -87,10 +88,9 @@ class Profile(db.models.base.Base):
     # The email address that the user has chosen as their contact email. Initially set to the email
     # address provided by the IdP.
     email = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    # True if an avatar has been successfully downloaded and stored in the file system.
-    has_avatar = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False, default=False)
-    # Avatar ETag value, if known. Used to determine if the avatar has changed at the source.
-    avatar_etag = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    # Avatar version (ETag / entity tag, or other key), if known. Used to determine if the avatar
+    # has changed at the source. If NULL, this profile has no avatar.
+    avatar_ver = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     # Alternate avatar profile. If set, this profile's avatar is taken from the alternate profile
     # instead of from this profile's avatar fields. This is set if the user has chosen to use the
     # avatar from one of their linked profiles. This should only be set on primary profiles, not on
@@ -150,8 +150,11 @@ class Profile(db.models.base.Base):
     @property
     def initials(self):
         if not self.common_name:
-            return None
-        return ''.join(s[0] for s in self.common_name.split()).upper()
+            return '?'
+        part_tup = self.common_name.split()
+        if len(part_tup) > 3:
+            part_tup = part_tup[0], part_tup[1], part_tup[-1]
+        return ''.join(s[0] for s in part_tup).upper()
 
     @property
     def avatar_url(self):

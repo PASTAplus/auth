@@ -28,17 +28,6 @@ def save_avatar(avatar_img: bytes, namespace_str: str, id_str: str, ext=None):
     return avatar_path
 
 
-# async def copy_identity_to_profile_avatar(identity_row):
-#     """Copy the avatar image from the identity to the profile."""
-#     assert identity_row.has_avatar
-#     identity_avatar_path = get_avatar_path(identity_row.idp_name.name.lower(), identity_row.idp_uid)
-#     assert identity_avatar_path.exists()
-#     profile_avatar_path = get_avatar_path('profile', identity_row.profile.edi_id)
-#     with filelock.FileLock(profile_avatar_path.with_suffix('.lock')):
-#         shutil.copy(identity_avatar_path, profile_avatar_path)
-#     identity_row.profile.has_avatar = True
-
-
 def get_avatar_path(namespace_str, id_str, ext=None):
     avatar_path = (
         Config.AVATARS_PATH
@@ -50,15 +39,11 @@ def get_avatar_path(namespace_str, id_str, ext=None):
     return avatar_path
 
 
-def get_profile_avatar_url(profile_row, refresh=False):
-    """Return the URL to the avatar image for the given IdP and idp_uid."""
-    # TODO: The refresh function does not work correctly, as next time the avatar is requested
-    # without the refresh parameter, the browser will revert to the cached version.
-    if not profile_row.has_avatar:
-        if profile_row.initials is None:
-            return get_anon_avatar_url()
+def get_profile_avatar_url(profile_row):
+    """Return the URL to the avatar image for the given profile."""
+    if not profile_row.avatar_ver:
         return get_initials_avatar_url(profile_row.initials)
-    avatar_url = util.url.url(
+    return util.url.url(
         '/'.join(
             (
                 Config.AVATARS_URL,
@@ -67,33 +52,9 @@ def get_profile_avatar_url(profile_row, refresh=False):
                     util.filesystem.get_safe_reversible_path_element(profile_row.edi_id)
                 ),
             )
-        )
+        ),
+        v=profile_row.avatar_ver if profile_row.avatar_ver else datetime.datetime.now().timestamp(),
     )
-    if refresh:
-        timestamp = int(datetime.datetime.now().timestamp())
-        avatar_url = avatar_url.include_query_params(refresh=timestamp)
-    return avatar_url
-
-
-def get_profile_avatar_url(identity_row, refresh=False):
-    """Return the URL to the avatar image for the given IdP and idp_uid."""
-    if not identity_row.has_avatar:
-        return get_anon_avatar_url()
-    avatar_url = util.url.url(
-        '/'.join(
-            (
-                Config.AVATARS_URL,
-                identity_row.idp_name.name.lower(),
-                urllib.parse.quote(
-                    util.filesystem.get_safe_reversible_path_element(identity_row.idp_uid)
-                ),
-            )
-        )
-    )
-    if refresh:
-        timestamp = int(datetime.datetime.now().timestamp())
-        avatar_url = avatar_url.include_query_params(refresh=timestamp)
-    return avatar_url
 
 
 def get_anon_avatar_url():

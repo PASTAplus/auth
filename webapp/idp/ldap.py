@@ -70,7 +70,6 @@ async def get_login_pasta(
         idp_uid=ldap_dn,
         common_name=dn_uid,
         email=None,
-        has_avatar=False,
     )
     await dbi.flush()
 

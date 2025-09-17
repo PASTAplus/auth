@@ -161,7 +161,6 @@ async def post_signin_ldap(
         common_name=username,
         email=None,
         has_avatar=False,
-        is_vetted=True,
     )
 
 

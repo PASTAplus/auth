@@ -4,6 +4,7 @@ import daiquiri
 import fastapi
 import jwt
 import requests
+import sqlalchemy.exc
 import starlette.requests
 import starlette.responses
 
@@ -111,15 +112,23 @@ async def get_callback_microsoft(
         audience=Config.MICROSOFT_CLIENT_ID,
     )
 
-    # Fetch the avatar
-    has_avatar = False
+    idp_uid = user_dict['sub']
+
+    avatar_img = None
+    avatar_ver = None
     try:
-        avatar_img = get_user_avatar(token_dict['access_token'])
-    except fastapi.HTTPException as e:
-        log.error(f'Failed to fetch user avatar: {e.detail}')
-    else:
-        util.avatar.save_avatar(avatar_img, 'microsoft', user_dict['sub'])
-        has_avatar = True
+        profile_row = await dbi.get_profile_by_idp(
+            idp_name=db.models.profile.IdpName.MICROSOFT,
+            idp_uid=idp_uid,
+        )
+        avatar_ver = 'TEST'
+        if profile_row.avatar_ver != avatar_ver:
+            try:
+                avatar_img = get_user_avatar(user_dict['avatar_url'])
+            except fastapi.HTTPException as e:
+                log.error(f'Failed to fetch user avatar: {e.detail}')
+    except sqlalchemy.exc.NoResultFound:
+        pass
 
     log.debug('-' * 80)
     log.debug('login_microsoft_callback() - login successful')
@@ -135,11 +144,11 @@ async def get_callback_microsoft(
         login_type=login_type,
         target_url=target_url,
         idp_name=db.models.profile.IdpName.MICROSOFT,
-        idp_uid=user_dict['sub'],
+        idp_uid=idp_uid,
         common_name=user_dict['name'],
         email=user_dict['email'],
-        has_avatar=has_avatar,
-        is_vetted=False,
+        avatar_img=avatar_img,
+        avatar_ver=avatar_ver,
     )
 
 
@@ -242,10 +251,13 @@ async def get_logout_microsoft_clear_session(request: starlette.requests.Request
 
 def get_user_avatar(access_token):
     """Fetch the user's avatar from Microsoft Graph API."""
-    response = requests.get(
-        'https://graph.microsoft.com/v1.0/me/photo/$value',
-        headers={'Authorization': f'Bearer {access_token}', 'Accept': 'image/*'},
-    )
-    if not response.ok:
-        raise fastapi.HTTPException(status_code=response.status_code, detail=response.text)
-    return response.content
+    try:
+        response = requests.get(
+            'https://graph.microsoft.com/v1.0/me/photo/$value',
+            headers={'Authorization': f'Bearer {access_token}', 'Accept': 'image/*'},
+        )
+        if response.ok:
+            return response.content
+    except requests.RequestException as e:
+        log.error(f'Error fetching user avatar: {e}')
+    return None

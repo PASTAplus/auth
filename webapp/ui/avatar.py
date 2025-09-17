@@ -26,25 +26,30 @@ router = fastapi.APIRouter()
 @router.get('/ui/avatar')
 async def get_ui_avatar(
     request: starlette.requests.Request,
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     avatar_list = [
         {
             'url': util.avatar.get_initials_avatar_url(token_profile_row.initials),
-            'idp_name': None,
-            'idp_uid': '',
+            'profile_id': token_profile_row.id,
         }
     ]
-    for identity_row in token_profile_row.identities:
-        if identity_row.has_avatar:
+    if token_profile_row.avatar_ver:
+        avatar_list.append(
+            {
+                'url': util.avatar.get_profile_avatar_url(token_profile_row),
+                'profile_id': token_profile_row.id,
+            }
+        )
+    for linked_profile_row in await dbi.get_linked_profiles(token_profile_row.id):
+        if linked_profile_row.avatar_ver:
             avatar_list.append(
                 {
-                    'url': util.avatar.get_profile_avatar_url(identity_row),
-                    'idp_name': identity_row.idp_name.name,
-                    'idp_uid': identity_row.idp_uid,
+                    'url': util.avatar.get_profile_avatar_url(linked_profile_row),
+                    'profile_id': linked_profile_row.id,
                 }
             )
-
     return util.template.templates.TemplateResponse(
         'avatar.html',
         {

@@ -70,7 +70,7 @@ log = daiquiri.getLogger(__name__)
 # noinspection PyTypeChecker,PyUnresolvedReferences
 class PermissionInterface:
     def __init__(self, session: sqlalchemy.ext.asyncio.AsyncSession):
-        self.session = session
+        self._session = session
 
     @property
     def session(self):

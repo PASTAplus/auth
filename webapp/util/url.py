@@ -5,7 +5,6 @@ import urllib.parse
 import daiquiri
 import starlette.datastructures
 
-import db.models.profile
 from config import Config
 
 CACHE_BUSTER_VERSION = None
@@ -42,13 +41,19 @@ def build_query_string(**query_param_dict) -> str:
     return urllib.parse.urlencode(query_param_dict)
 
 
-# def build_query_string(**query_param_dict) -> str:
-#     """Build a query string from keyword arguments using starlette.datastructures.URL"""
-#     url = starlette.datastructures.URL("/").include_query_params(**query_param_dict)
-#     return str(url).lstrip("/")
+def get_query_param(url_str: str, param_name: str) -> str | None:
+    """Get the value of a query parameter from a URL string.
+    - If the parameter is not present, return None.
+    - If the parameter is present multiple times, return the first value.
+    """
+    query_str = starlette.datastructures.URL(url_str).query
+    try:
+        return urllib.parse.parse_qs(query_str)[param_name][0]
+    except (KeyError, IndexError):
+        return None
 
 
-def get_idp_logo_url(idp_name: db.models.profile.IdpName):
+def get_idp_logo_url(idp_name):
     """Return the URL to the logo image for the given IdP."""
     return f'/static/idp-logos/{idp_name.name.lower()}.svg'
 
