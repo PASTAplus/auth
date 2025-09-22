@@ -1,0 +1,14 @@
+/* Limit the width of paragraphs in the help section for better readability */
+.narrow {
+    max-width: 60rem;
+}
+
+h2 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+/* Add spacing between bullet points in help content */
+li {
+    margin-bottom: 0.5rem;
+}

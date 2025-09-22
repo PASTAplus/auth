@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% set active_page = 'identity' %}
+
+{% block title %}
+  Help
+{% endblock %}
+
+{% block head %}
+  <link rel='stylesheet' href='{{ url_buster('/static/css/help.css') }}'>
+{% endblock %}
+
+{% block content %}
+
+  <div class='indent narrow'>
+
+    <h2>Overview</h2>
+
+    The EDI Identity and Access Management (EDI IAM) Service allows you to control access to your
+    resources in the EDI repository.
+
+    <h2>Accounts and Profiles</h2>
+
+    <ul>
+      <li>
+        Each account (e.g., Google, ORCID) you use to sign in creates a separate profile in the EDI
+        Identity and Access Management Service.
+      </li>
+    </ul>
+
+    <h2 id='linking'>Linking Profiles</h2>
+
+    <ul>
+      <li>
+        Linking your profiles enables you to gain combined access to all resources across those
+        profiles, while signing in to just one of them.
+      </li>
+      <li>
+        The profile you are currently signed in to (shown at the top right) is your primary profile.
+        The profile you sign in to during the linking procedure, becomes a linked profile. After
+        linking, signing in to either will sign you in to your primary profile.
+      </li>
+      <li>
+        Your primary profile keeps all its resources and gains access to those of linked profiles.
+        Linked profiles also keep their resources.
+      </li>
+      <li>
+        If you link an account already linked to other profiles, all those profiles become linked to
+        your primary profile.
+      </li>
+      <li>
+        If the account you link does not have a profile, one is created and linked automatically.
+      </li>
+    </ul>
+
+    <h2 id='unlinking'>Unlinking Profiles</h2>
+
+    <ul>
+      <li>
+        You can unlink profiles anytime from the <a href='{{ url('/ui/identity') }}'>Accounts</a>
+        page.
+      </li>
+      <li>
+        Unlinking a profile causes it to become a primary profile, which you can sign in to
+        separately again.
+      </li>
+      <li>
+        Your primary profile keeps all its resources and loses access to those of the unlinked
+        profile.
+      </li>
+      <li>
+        The unlinked profile also keeps its resources.
+      </li>
+      <li>
+        No profiles or resources are removed.
+      </li>
+    </ul>
+  </div>
+
+{% endblock %}
