@@ -37,19 +37,15 @@ async def get_ui_avatar(
             'profile_id': 0,
         }
     ]
-    if token_profile_row.avatar_ver:
-        avatar_list.append(
-            {
-                'url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
-                'profile_id': token_profile_row.id,
-            }
-        )
-    for linked_profile_row in await dbi.get_linked_profile_list(token_profile_row.id):
-        if linked_profile_row.avatar_ver:
+    profile_row_list = [token_profile_row] + await dbi.get_linked_profile_list(token_profile_row.id)
+
+    for profile_row in profile_row_list:
+        avatar_url = util.avatar.get_profile_avatar_url_for_select(profile_row)
+        if avatar_url is not None:
             avatar_list.append(
                 {
-                    'url': await util.avatar.get_profile_avatar_url(dbi, linked_profile_row),
-                    'profile_id': linked_profile_row.id,
+                    'url': avatar_url,
+                    'profile_id': profile_row.id,
                 }
             )
     return util.template.templates.TemplateResponse(
@@ -82,7 +78,12 @@ async def post_avatar_update(
     profile_id = int(form_data.get('profile_id'))
     if profile_id == 0:
         profile_id = None
-    await dbi.update_profile(token_profile_row, avatar_profile_id=profile_id)
+        anonymous_avatar = True
+    else:
+        anonymous_avatar = False
+    await dbi.update_profile(
+        token_profile_row, avatar_profile_id=profile_id, anonymous_avatar=anonymous_avatar
+    )
     return util.redirect.internal('/ui/profile', success='Avatar updated successfully.')
 
 

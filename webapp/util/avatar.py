@@ -51,6 +51,26 @@ async def get_profile_avatar_url(dbi, profile_row):
     )
 
 
+def get_profile_avatar_url_for_select(profile_row):
+    """Return the URL to the avatar image for the given profile, without resolving avatar_profile_id.
+    - This is used when displaying a list of profiles for the user to select from.
+    - If the profile has no avatar, return None.
+    """
+    if not profile_row.avatar_ver:
+        return None
+    return str(
+        util.url.url(
+            '/'.join(
+                (
+                    Config.AVATARS_URL,
+                    _get_safe_rel_path('profile', profile_row.edi_id).as_posix(),
+                )
+            ),
+            v=profile_row.avatar_ver,
+        )
+    )
+
+
 def get_anon_avatar_url():
     """Return the URL to the anonymous avatar."""
     return str(util.url.url(f'/static/svg/edi-anon-avatar.svg'))
