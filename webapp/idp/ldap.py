@@ -9,10 +9,10 @@ import starlette.requests
 import starlette.responses
 import starlette.status
 
-import db.models.identity
+import db.models.profile
 import util.dependency
-import util.old_token
 import util.edi_token
+import util.old_token
 import util.pasta_ldap
 from config import Config
 
@@ -29,21 +29,20 @@ async def get_login_pasta(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
 ):
-    """Accept LDAP credentials, validate them against an external LDAP service, and
-    return a response with cookie containing the old style token.
+    """Accept LDAP credentials, validate them against an external LDAP service, and return a
+    response with cookie containing the old style token.
 
     NOTES:
 
-    - This endpoint is not called by a browser. It is called from the server side of the
-    web app (Portal and ezEML), so any information added to the response here will not
-    make it to the client, and will not be acted on by the web app.
+    - This endpoint is not called by a browser. It is called from the server side of the web app
+    (Portal and ezEML), so any information added to the response here will not make it to the
+    client, and will not be acted on by the web app.
 
-    - The server side checks for 200 response code and then pulls the token from the
-    Set-Cookie header with key 'auth-token'. For the Portal, the token is then added
-    to the Java Session.
+    - The server side checks for 200 response code and then pulls the token from the Set-Cookie
+    header with key 'auth-token'. For the Portal, the token is then added to the Java Session.
 
-    - Since calls to this endpoint is not initiated by browser, there's no opportunity
-    to redirect back to Auth in order set a cookie in the browser.
+    - Since calls to this endpoint is not initiated by browser, there's no opportunity to redirect
+    back to Auth in order set a cookie in the browser.
     """
     target_url = request.query_params.get('target')
     log.debug(f'login_pasta() target_url="{target_url}"')
@@ -65,19 +64,18 @@ async def get_login_pasta(
 
     log.debug(f'login_pasta() - login successful: {ldap_dn}')
 
-    identity_row = await dbi.create_or_update_profile_and_identity(
-        idp_name=db.models.identity.IdpName.LDAP,
+    profile_row = await dbi.create_or_update_profile(
+        idp_name=db.models.profile.IdpName.LDAP,
         idp_uid=ldap_dn,
         common_name=dn_uid,
         email=None,
-        has_avatar=False,
     )
     await dbi.flush()
 
     # As described in the docstr, this response goes to the server side web app, so we create a
     # limited response that contains only the items checked for by the server.
     old_token_ = util.old_token.make_old_token(uid=ldap_dn, groups=Config.VETTED)
-    edi_token = await util.edi_token.create(dbi, identity_row)
+    edi_token = await util.edi_token.create(dbi, profile_row)
     response = starlette.responses.Response('Login successful')
     response.set_cookie('auth-token', old_token_)
     response.set_cookie('edi-token', edi_token)

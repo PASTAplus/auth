@@ -50,10 +50,10 @@ def get_db_as_json(populated_dbi):
 
 async def make_edi_token(dbi, profile_row):
     """Create a test JWT for the given profile.
-    The returned JWT is sufficient for testing, but does not include the Identity fields and some
-    other fields that are normally present.
+    The returned JWT is sufficient for testing, but does not include the IdP fields and some other
+    fields that are normally present.
     """
-    return await util.edi_token.create_by_profile(dbi, profile_row)
+    return await util.edi_token.create(dbi, profile_row)
 
 
 def dump_response(response):
@@ -77,7 +77,9 @@ def load_test_file(filename):
 
 
 async def add_vetted(populated_dbi, service_profile_row, profile_row):
-    """Add the given profile to the Vetted system group."""
+    """Add the given profile to the Vetted system group.
+    - No-op if the profile is already vetted.
+    """
     if await populated_dbi.is_vetted(profile_row):
         return
     await populated_dbi.add_group_member(

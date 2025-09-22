@@ -1,3 +1,7 @@
+import functools
+import random
+import string
+
 import cryptography.hazmat.backends
 import cryptography.x509
 import daiquiri
@@ -7,7 +11,7 @@ import requests
 import starlette.requests
 import starlette.responses
 
-import db.models.identity
+import db.models.profile
 import util.avatar
 import util.dependency
 import util.login
@@ -37,7 +41,7 @@ async def get_login_microsoft(
 
     return util.redirect.idp(
         Config.MICROSOFT_AUTH_ENDPOINT,
-        db.models.identity.IdpName.MICROSOFT,
+        db.models.profile.IdpName.MICROSOFT,
         login_type,
         target_url,
         client_id=Config.MICROSOFT_CLIENT_ID,
@@ -55,6 +59,7 @@ async def get_login_microsoft(
 async def get_callback_microsoft(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """On successful login, redeem a code for an access token. Otherwise, just redirect to the
     target URL.
@@ -110,16 +115,6 @@ async def get_callback_microsoft(
         audience=Config.MICROSOFT_CLIENT_ID,
     )
 
-    # Fetch the avatar
-    has_avatar = False
-    try:
-        avatar_img = get_user_avatar(token_dict['access_token'])
-    except fastapi.HTTPException as e:
-        log.error(f'Failed to fetch user avatar: {e.detail}')
-    else:
-        util.avatar.save_avatar(avatar_img, 'microsoft', user_dict['sub'])
-        has_avatar = True
-
     log.debug('-' * 80)
     log.debug('login_microsoft_callback() - login successful')
     util.pretty.log_dict(log.debug, 'jwt_unverified_header_dict', jwt_unverified_header_dict)
@@ -130,14 +125,15 @@ async def get_callback_microsoft(
     return await util.login.handle_successful_login(
         request=request,
         dbi=dbi,
+        token_profile_row=token_profile_row,
         login_type=login_type,
         target_url=target_url,
-        idp_name=db.models.identity.IdpName.MICROSOFT,
-        idp_uid=user_dict['sub'],
+        idp_name=db.models.profile.IdpName.MICROSOFT,
+        idp_uid=(user_dict['sub']),
         common_name=user_dict['name'],
         email=user_dict['email'],
-        has_avatar=has_avatar,
-        is_vetted=False,
+        fetch_avatar_func=functools.partial(fetch_user_avatar, token_dict["access_token"]),
+        avatar_ver=''.join(random.choices(string.ascii_letters, k=16))
     )
 
 
@@ -238,12 +234,13 @@ async def get_logout_microsoft_clear_session(request: starlette.requests.Request
 #
 
 
-def get_user_avatar(access_token):
+def fetch_user_avatar(access_token):
     """Fetch the user's avatar from Microsoft Graph API."""
     response = requests.get(
         'https://graph.microsoft.com/v1.0/me/photo/$value',
         headers={'Authorization': f'Bearer {access_token}', 'Accept': 'image/*'},
     )
-    if not response.ok:
-        raise fastapi.HTTPException(status_code=response.status_code, detail=response.text)
-    return response.content
+    if response.ok:
+        return response.content
+    log.error(f'Failed to fetch user avatar: {response.status_code} {response.text}')
+    return None

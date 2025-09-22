@@ -24,6 +24,7 @@ import idp.orcid
 import ui.avatar
 import ui.dev
 import ui.group
+import ui.help
 import ui.identity
 import ui.index
 import ui.membership
@@ -31,7 +32,6 @@ import ui.permission
 import ui.privacy_policy
 import ui.profile
 import ui.signin
-import ui.token
 import ui.token
 import util.avatar
 import util.dependency
@@ -166,6 +166,7 @@ class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
         if (
             request.url.path.startswith(str(util.url.url('/ui')))
             and not request.url.path.startswith(str(util.url.url('/ui/signin')))
+            and not request.url.path.startswith(str(util.url.url('/ui/help')))
             and not request.url.path.startswith(str(util.url.url('/ui/api/')))
         ):
             # Note: It's important to not run this code for the unit tests, as it creates a separate
@@ -187,8 +188,8 @@ app.add_middleware(RootPathMiddleware)
 app.add_middleware(RedirectToSigninMiddleware)
 
 # Include all routers
-app.include_router(api.v1.group.router)
 app.include_router(api.v1.eml.router)
+app.include_router(api.v1.group.router)
 app.include_router(api.v1.ping.router)
 app.include_router(api.v1.profile.router)
 app.include_router(api.v1.resource.router)
@@ -202,6 +203,7 @@ app.include_router(idp.orcid.router)
 app.include_router(ui.avatar.router)
 app.include_router(ui.dev.router)
 app.include_router(ui.group.router)
+app.include_router(ui.help.router)
 app.include_router(ui.identity.router)
 app.include_router(ui.index.router)
 app.include_router(ui.membership.router)

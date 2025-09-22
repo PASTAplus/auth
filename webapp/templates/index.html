@@ -9,7 +9,7 @@
 
   {#<div class='container-left-margin'>#}
 
-  <h1>Profiles</h1>
+  <h3>Profiles</h3>
 
   <table>
     <thead>
@@ -41,7 +41,7 @@
           <tbody>
           {% for identity in profile.identities %}
             <tr>
-              <td>{{ identity.idp_name }}</td>
+              <td>{{ profile.idp_name }}</td>
               <td>{{ identity.email }}</td>
             </tr>
           {% endfor %}

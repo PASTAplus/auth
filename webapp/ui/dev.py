@@ -9,7 +9,7 @@ import starlette.responses
 import starlette.status
 import starlette.templating
 
-import db.models.identity
+import db.models.profile
 import util.avatar
 import util.dependency
 import util.edi_token
@@ -38,17 +38,19 @@ def assert_dev_enabled(func):
 async def get_dev_profiles(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
-    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     profile_list = await dbi.get_all_profiles()
     return util.template.templates.TemplateResponse(
         'index.html',
         {
             # Base
-            'token': token,
-            'profile': None,
-            # Page
             'request': request,
+            'profile': token_profile_row,
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
+            'error_msg': request.query_params.get('error'),
+            'success_msg': request.query_params.get('success'),
+            # Page
             'profile_list': profile_list,
         },
     )
@@ -57,12 +59,12 @@ async def get_dev_profiles(
 @router.get('/ui/api/dev/signin/{idp_name}/{idp_uid}')
 @assert_dev_enabled
 async def get_dev_signin(
-    idp_name: db.models.identity.IdpName,
+    idp_name: db.models.profile.IdpName,
     idp_uid: str,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
 ):
     response = util.redirect.internal('/ui/profile')
-    identity_row = await dbi.get_identity(idp_name, idp_uid)
+    identity_row = await dbi.get_profile(idp_name, idp_uid)
     edi_token = await util.edi_token.create(dbi, identity_row)
     response.set_cookie(key='edi-token', value=edi_token)
     return response

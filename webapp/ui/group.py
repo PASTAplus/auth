@@ -25,9 +25,8 @@ router = fastapi.APIRouter()
 @router.get('/ui/group')
 async def get_ui_group(
     request: starlette.requests.Request,
-    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
-    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     group_list = []
 
@@ -54,11 +53,12 @@ async def get_ui_group(
         'group.html',
         {
             # Base
-            'token': token,
-            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
-            'profile': token_profile_row,
-            # Page
             'request': request,
+            'profile': token_profile_row,
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
+            'error_msg': request.query_params.get('error'),
+            'success_msg': request.query_params.get('success'),
+            # Page
             'group_list': group_list,
         },
     )
@@ -69,7 +69,6 @@ async def get_ui_group_member(
     group_id: int,
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
-    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     group_row = await dbi.get_owned_group(token_profile_row, group_id)
@@ -79,11 +78,12 @@ async def get_ui_group_member(
         'member.html',
         {
             # Base
-            'token': token,
-            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
-            'profile': token_profile_row,
-            # Page
             'request': request,
+            'profile': token_profile_row,
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
+            'error_msg': request.query_params.get('error'),
+            'success_msg': request.query_params.get('success'),
+            # Page
             'group_row': group_row,
         },
     )
@@ -136,7 +136,6 @@ async def post_group_delete(
 @router.get('/ui/api/group/member/list/{group_id}')
 async def get_group_member_list(
     group_id: int,
-    # request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
@@ -157,7 +156,7 @@ async def get_group_member_list(
                     'edi_id': p.edi_id,
                     'title': p.common_name,
                     'description': p.email,
-                    'avatar_url': p.avatar_url,
+                    'avatar_url': await util.avatar.get_profile_avatar_url(dbi, p),
                 }
                 for p in [m.profile for m in member_list]
             ],
@@ -168,8 +167,8 @@ async def get_group_member_list(
 @router.post('/ui/api/group/member/search')
 async def post_group_member_search(
     request: starlette.requests.Request,
-    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     # Prevent this from being called by anyone not logged in
     if token_profile_row is None:

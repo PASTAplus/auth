@@ -24,7 +24,7 @@ class SyncInterface:
             sync_row = result.scalar_one()
         except sqlalchemy.exc.NoResultFound:
             sync_row = Sync(name=name)
-            self._session.add(sync_row)
+            self.session.add(sync_row)
         # No-op update to trigger onupdate
         sync_row.name = sync_row.name
 

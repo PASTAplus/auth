@@ -36,7 +36,7 @@ class GroupInterface:
             name=name,
             description=description or None,
         )
-        self._session.add(new_group_row)
+        self.session.add(new_group_row)
         await self.flush()
         # Create the principal for the group. The principal gives us a single ID, the principal ID,
         # to use when referencing the group in rules for other resources. This principal is not
@@ -153,10 +153,10 @@ class GroupInterface:
         """
         group_row = await self.get_owned_group(token_profile_row, group_id)
         # Deleting the group also deletes group members by cascade.
-        await self._session.delete(group_row)
+        await self.session.delete(group_row)
         # Deleting the principal also deletes rules referencing the group by cascade.
         principal_row = await self.get_principal_by_subject(group_row.id, SubjectType.GROUP)
-        await self._session.delete(principal_row)
+        await self.session.delete(principal_row)
         # Deleting the resource holding permissions for the group also deletes rules for the
         # resource by cascade.
         await self._remove_resource_by_key(group_row.edi_id)
@@ -170,7 +170,7 @@ class GroupInterface:
             group=group_row,
             profile_id=member_profile_id,
         )
-        self._session.add(new_member_row)
+        self.session.add(new_member_row)
         group_row.updated = datetime.datetime.now()
 
     async def delete_group_member(self, token_profile_row, group_id, member_profile_id):
@@ -185,7 +185,7 @@ class GroupInterface:
             )
         )
         member_row = result.scalar_one()
-        await self._session.delete(member_row)
+        await self.session.delete(member_row)
         group_row.updated = datetime.datetime.now()
 
     async def delete_all_group_members(self, group_row):
@@ -238,7 +238,6 @@ class GroupInterface:
             (
                 sqlalchemy.select(Group)
                 .options(
-                    # sqlalchemy.orm.selectinload(db.models.group.GroupMember.group),
                     sqlalchemy.orm.joinedload(Group.profile),
                 )
                 .join(GroupMember)
@@ -265,10 +264,10 @@ class GroupInterface:
         )
         member_row = result.scalar_one()
         member_row.group.updated = datetime.datetime.now()
-        await self._session.delete(member_row)
+        await self.session.delete(member_row)
 
     async def get_all_groups_generator(self):
-        result = await self._session.stream(
+        result = await self.session.stream(
             (
                 sqlalchemy.select(
                     Group,

@@ -2,7 +2,7 @@
 
 """Fill the Profile, Resource, Rule, Group and GroupMember tables with randomized test objects.
 - This assumes that the database is empty and was prepared with 'db_manager.py'.
-- As we do not insert Identity records, it's not possible to log into the profiles that are created.
+- As we do not insert IdPs, it's not possible to log into the profiles that are created.
 - Triggers automatically populate the PackageScope, ResourceType and RootResource search tables as
 the resources are created.
 """
@@ -82,8 +82,12 @@ async def add_profiles(dbi):
     for common_name in RANDOM_PERSON_NAME_LIST:
         given_name, family_name = common_name.split(' ')
         email = f'{given_name.lower()}@{family_name.lower()}.com'
-        await dbi.create_profile(common_name, email)
-
+        await dbi.create_profile(
+            idp_name=db.models.profile.IdpName.SKELETON,
+            idp_uid=None,
+            common_name=common_name,
+            email=email,
+        )
     log.info('Profiles have been added')
 
 
@@ -147,7 +151,7 @@ async def add_permissions(session):
             for ver in range(1, ver_count):
                 label = f'{scope}.{id_}.{ver}'
                 log.info(label)
-              # Package (root resource)
+                # Package (root resource)
                 package_id = await insert_resource(
                     session, None, await get_random_resource_key(), label, 'package'
                 )

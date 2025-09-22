@@ -128,7 +128,6 @@ async def populated_test_session(test_session):
         # We populate the tables in order of their foreign key dependencies.
         table_tup = (
             'profile',
-            'identity',
             'group',
             'group_member',
             'principal',

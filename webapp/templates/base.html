@@ -13,15 +13,13 @@
 
   <title>
     {% block title %}
-      Environmental Data Initiative (EDI)
-    {% endblock %}
+    {% endblock %} - EDI
   </title>
 
-  {# Preload Bootstrap CSS #}
-  <link rel='preload' href='{{ url('/static/lib/bootstrap/css/bootstrap.css') }}' as='style'>
-  <link href='{{ url('/static/lib/bootstrap/css/bootstrap.css') }}' rel='stylesheet'>
+  {# Bootstrap CSS #}
+  <link href='{{ url('/static/bootstrap/bootstrap/css/bootstrap.min.css') }}' rel='stylesheet'>
+  <link href='{{ url('/static/bootstrap/bootstrap-icons/bootstrap-icons.min.css') }}' rel='stylesheet'>
   {# Extra styles for auth #}
-  <link rel='preload' href='{{ url_buster('/static/css/base.css') }}' as='style'>
   <link href='{{ url_buster('/static/css/base.css') }}' rel='stylesheet'>
   {% block head %}
   {% endblock %}
@@ -36,7 +34,7 @@
     <a class='navbar-brand' href='{{ url('/') }}'>
       <img src='{{ url('/static/svg/EDI-logo-no-padding.svg') }}'
            alt='Environmental Data Initiative Logo'>
-      <span class='navbar-brand-pad'>Environmental Data Initiative</span>
+      <span class='navbar-brand-pad'>EDI Identity and Access Management</span>
     </a>
 
     {% block navbar_menu %}
@@ -52,33 +50,41 @@
 
       <ul class='navbar-nav mr-auto'>
 
+
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/profile') }}'
+          <a class='nav-link {% if not profile %}disabled{% endif %}'
+             href='{{ url('/ui/profile') }}'
              data-pages='profile'
           >Profile</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/identity') }}'
+          <a class='nav-link {% if not profile %}disabled{% endif %}'
+             href='{{ url('/ui/identity') }}'
              data-pages='identity'
           >Accounts</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/group') }}'
+          <a class='nav-link {% if not profile %}disabled{% endif %}' href='{{ url('/ui/group') }}'
              data-pages='group'
           >Groups</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}'
+          <a class='nav-link {% if not profile %}disabled{% endif %}'
              href='{{ url('/ui/membership') }}'
              data-pages='membership'
           >Memberships</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}'
+          <a class='nav-link {% if not profile %}disabled{% endif %}'
              href='{{ url('/ui/permission/search') }}'
-             {#href='{{ url('/ui/permission') }}'#}
              data-pages='permission, search'
           >Permissions</a>
+        </li>
+        <li class='nav-item'>
+          <a class='nav-link'
+             href='{{ url('/ui/help') }}'
+             data-pages='help'
+          >Help</a>
         </li>
       </ul>
 
@@ -92,7 +98,7 @@
           </button>
           <ul class='dropdown-menu' aria-labelledby='dropdownMenuButton1'>
             <li class='nav-item'>
-              <a class='nav-link {% if not token %}disabled{% endif %}'
+              <a class='nav-link {% if not profile %}disabled{% endif %}'
                  href='{{ url('/ui/perm2') }}'>Perm2</a>
             </li>
             <li><a class='dropdown-item' href='{{ url('/ui/api/dev/profiles') }}'>View Profiles</a>
@@ -119,13 +125,7 @@
       {# Menu, right #}
 
       <ul class='navbar-nav mr-auto navbar-right'>
-        {% if not token %}
-          <li class='nav-item'>
-            <a class='nav-link active' href='{{ url('/ui/signin') }}'>Sign in</a>
-          </li>
-        {% endif %}
-
-        {% if token %}
+        {% if profile %}
           <li class='nav-item'>
             <div class='row-center-parent'>
               <div class='row-center-child'>
@@ -146,10 +146,15 @@
               <div class='row-center-child'>
                 <a class='nav-link' href='{{ url('/signout') }}'>
                   <img src='{{ url('/static/svg/sign-out.svg') }}' alt='Sign out' class='icon-link'>
+                  {#<i class='bi bi-box-arrow-right'></i>#}
                   Sign out
                 </a>
               </div>
             </div>
+          </li>
+        {% else %}
+          <li class='nav-item'>
+            <a class='nav-link active' href='{{ url('/ui/signin') }}'>Sign in</a>
           </li>
         {% endif %}
 
@@ -161,10 +166,33 @@
 </nav>
 
 <main role='main' class='container'>
+  <h1 aria-label>{{ self.title() }}</h1>
+
+  {% if error_msg %}
+    <div class='indent alert alert-warning alert-row'>
+      <div>
+        <i class='bi bi-exclamation-triangle'></i>
+      </div>
+      <div>
+        {{ error_msg }}
+      </div>
+    </div>
+  {% endif %}
+
+  {% if success_msg %}
+    <div class='indent alert alert-info alert-row'>
+      <div>
+        <i class='bi bi-info-circle'></i>
+      </div>
+      <div>
+        {{ success_msg }}
+      </div>
+    </div>
+  {% endif %}
+
   {% block content %}
   {% endblock %}
 </main>
-
 
 {# Modal Privacy Policy accept dialog #}
 
@@ -243,7 +271,7 @@
 </div>
 
 {# Bootstrap Bundle with Popper #}
-<script src='{{ url('/static/lib/bootstrap/js/bootstrap.bundle.js') }}'></script>
+<script src='{{ url('/static/bootstrap/bootstrap/js/bootstrap.bundle.js') }}'></script>
 {# JS that runs on all pages #}
 <script src='{{ url_buster('/static/js/base.js') }}'></script>
 {% block scripts %}

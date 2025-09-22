@@ -276,13 +276,13 @@ async def _create_rules(dbi, resource_row, access_el):
 
 async def _get_or_create_profile(dbi, principal_str):
     try:
-        return (await dbi.get_identity_by_idp_uid(principal_str)).profile
+        return await dbi.get_profile_by_idp_uid(principal_str)
     except sqlalchemy.exc.NoResultFound:
         try:
             # See README.md: Strategy for dealing with Google emails historically used as
             # identifiers
-            return (await dbi.get_identity_by_google_email(principal_str)).profile
+            return await dbi.get_profile_by_google_email(principal_str)
         except sqlalchemy.exc.NoResultFound:
-            return (await dbi.create_skeleton_profile_and_identity(principal_str)).profile
+            return await dbi.create_skeleton_profile(principal_str)
     except sqlalchemy.exc.MultipleResultsFound:
         raise util.exc.EmlError(f'Multiple identities found for principal "{principal_str}". ')

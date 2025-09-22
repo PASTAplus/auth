@@ -2,7 +2,7 @@
 {% set active_page = 'profile' %}
 
 {% block title %}
-  Profile
+  Edit Profile
 {% endblock %}
 
 {% block head %}
@@ -15,15 +15,7 @@
 
 {% block content %}
 
-  <h1 aria-label>Edit Profile</h1>
-
   <div class='indent'>
-
-    {% if msg %}
-      <p class='alert alert-info'>
-        {{ msg }}
-      </p>
-    {% endif %}
 
     <form id='editProfileForm' class='needs-validation' novalidate
           action='{{ url('/ui/api/profile/edit/update') }}' method='post'

@@ -1,12 +1,14 @@
+import functools
 import json
 
 import daiquiri
 import fastapi
 import requests
+import sqlalchemy.exc
 import starlette.requests
 import starlette.status
 
-import db.models.identity
+import db.models.profile
 import util.avatar
 import util.dependency
 import util.login
@@ -36,7 +38,7 @@ async def get_login_github(
 
     return util.redirect.idp(
         Config.GITHUB_AUTH_ENDPOINT,
-        db.models.identity.IdpName.GITHUB,
+        db.models.profile.IdpName.GITHUB,
         login_type,
         target_url,
         client_id=Config.GITHUB_CLIENT_ID,
@@ -50,6 +52,9 @@ async def get_login_github(
 async def get_callback_github(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    # token_profile_row is None if the user is logging in
+    # token_profile_row is set if the user is linking a profile
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     login_type, target_url = util.login.unpack_state(request.query_params.get('state'))
     log.debug(f'callback_github() login_type="{login_type}" target_url="{target_url}"')
@@ -111,41 +116,25 @@ async def get_callback_github(
         log.error(f'Login unsuccessful: {userinfo_response.text}', exc_info=True)
         return util.redirect.client_error(target_url, 'Login unsuccessful')
 
-    # Fetch the avatar
-    has_avatar = False
-    try:
-        avatar_img = get_user_avatar(user_dict['avatar_url'])
-    except fastapi.HTTPException as e:
-        log.error(f'Failed to fetch user avatar: {e.detail}')
-    else:
-        util.avatar.save_avatar(avatar_img, 'github', user_dict['html_url'])
-        has_avatar = True
-
+    idp_uid = user_dict['html_url']
     log.debug('-' * 80)
     log.debug('github_callback() - login successful')
     util.pretty.log_dict(log.debug, 'token_dict', token_dict)
     util.pretty.log_dict(log.debug, 'user_dict', user_dict)
     log.debug('-' * 80)
 
-    idp_uid = user_dict['html_url']
-    if 'name' in user_dict and user_dict['name'] is not None:
-        common_name = user_dict['name']
-    elif 'login' in user_dict and user_dict['login'] is not None:
-        common_name = user_dict['login']
-    else:
-        common_name = idp_uid
-
     return await util.login.handle_successful_login(
         request=request,
         dbi=dbi,
+        token_profile_row=token_profile_row,
         login_type=login_type,
         target_url=target_url,
-        idp_name=db.models.identity.IdpName.GITHUB,
+        idp_name=db.models.profile.IdpName.GITHUB,
         idp_uid=idp_uid,
-        common_name=common_name,
+        common_name=user_dict.get('name') or user_dict.get('login') or idp_uid,
         email=user_dict.get('email'),
-        has_avatar=has_avatar,
-        is_vetted=False,
+        fetch_avatar_func=functools.partial(fetch_user_avatar, user_dict['avatar_url']),
+        avatar_ver=util.url.get_query_param(user_dict['avatar_url'], 'v'),
     )
 
 
@@ -212,8 +201,9 @@ def get_error_message(
     return f'{error_title}: {error_description} ({error_uri})'
 
 
-def get_user_avatar(avatar_url):
+def fetch_user_avatar(avatar_url):
     response = requests.get(avatar_url)
-    if not response.ok:
-        raise fastapi.HTTPException(status_code=response.status_code, detail=response.text)
-    return response.content
+    if response.ok:
+        return response.content
+    log.error(f'Failed to fetch user avatar: {response.status_code} {response.text}')
+    return None

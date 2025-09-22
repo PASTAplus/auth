@@ -331,18 +331,6 @@ table td, table th {
     height: 1.2rem;
 }
 
-/* For accessibility, we can show the label only to screen readers */
-.screen-reader-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
-    padding: 0;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    border: 0;
-}
-
 /* Pasta ID with copy button */
 
 .edi-id-parent {
@@ -397,7 +385,7 @@ table td, table th {
     padding: .5rem;
 }
 
-/* Errors */
+/* Error dialog */
 
 #errorMsg {
     font-family: monospace;
@@ -408,3 +396,33 @@ table td, table th {
     overflow-x: auto;
 }
 
+/* Alerts */
+
+.alert .bi {
+    font-size: 1.6rem;
+}
+
+.alert-icon {
+    height: 1.6rem;
+}
+
+.alert-row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* Button with question mark icon */
+
+.help-button {
+    position: relative;
+    color: #a0a0a0;
+    font-size: 1.2rem;
+    border-radius: .3rem;
+    padding: .2rem .5rem .2rem .5rem;
+}
+
+.help-button:hover {
+    transition: transform 0.3s ease-in-out, background-color 0.3s ease-in-out;
+    background-color: rgba(0, 0, 0, 0.15);
+}

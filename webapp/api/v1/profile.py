@@ -8,9 +8,10 @@ import starlette.requests
 import starlette.responses
 
 import api.utils
+import util.avatar
 import util.dependency
-import util.exc
 import util.edi_token
+import util.exc
 import util.url
 
 router = fastapi.APIRouter(prefix='/v1')
@@ -22,7 +23,9 @@ async def post_v1_profile(
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    """createProfile(): Create a skeleton profile"""
+    """createProfile(): Create a skeleton profile.
+    - Only available to users in the Vetted system group.
+    """
     api_method = 'createProfile'
     # Check token
     if token_profile_row is None:
@@ -46,21 +49,22 @@ async def post_v1_profile(
         return api.utils.get_response_400_bad_request(
             request, api_method, f'Missing field in JSON in request body: {e}'
         )
-    # Check if the identity already exists
+    # Check if the profile already exists
     try:
-        identity_row = await dbi.get_identity_by_idp_uid(idp_uid)
+        profile_row = await dbi.get_profile_by_idp_uid(idp_uid)
         return api.utils.get_response_200_ok(
-            request, api_method, 'An existing profile was used', edi_id=identity_row.profile.edi_id
+            request, api_method, 'An existing profile was used', edi_id=profile_row.edi_id
         )
     except sqlalchemy.exc.NoResultFound:
         # See README.md: Strategy for dealing with Google emails historically used as identifiers
         try:
-            identity_row = await dbi.get_identity_by_google_email(idp_uid)
+            profile_row = await dbi.get_profile_by_google_email(idp_uid)
         except sqlalchemy.exc.NoResultFound:
-            identity_row = await dbi.create_skeleton_profile_and_identity(idp_uid=idp_uid)
+            profile_row = await dbi.create_skeleton_profile(idp_uid=idp_uid)
+            # Flush here so we can read out the new edi_id
             await dbi.flush()
     return api.utils.get_response_200_ok(
-        request, api_method, 'A new profile was created', edi_id=identity_row.profile.edi_id
+        request, api_method, 'A new profile was created', edi_id=profile_row.edi_id
     )
 
 
@@ -93,7 +97,7 @@ async def get_v1_profile(
         result_dict.update(
             dict(
                 email=profile_row.email,
-                avatar_url=util.url.get_abs_url(profile_row.avatar_url),
+                avatar_url=await util.avatar.get_profile_avatar_url(dbi, profile_row),
                 email_notifications=profile_row.email_notifications,
                 privacy_policy_accepted=profile_row.privacy_policy_accepted,
                 privacy_policy_accepted_date=profile_row.privacy_policy_accepted_date,
@@ -225,7 +229,7 @@ async def delete_v1_profile(
 # @router.post('/v1/identity/drop')
 # async def identity_drop(
 #     token_str: str,
-#     idp_name: db.models.identity.IdpName,
+#     idp_name: db.models.profile.IdpName,
 #     idp_uid: str,
 #     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
 # ):
@@ -253,6 +257,6 @@ async def delete_v1_profile(
 #     token = util.old_token.OldToken()
 #     token.from_auth_token(token_str)
 #     identity_list = []
-#     for identity_row in await dbi.get_identity_list(token.uid):
+#     for identity_row in await dbi.get_profile_list(token.uid):
 #         identity_list.append(identity_row.as_dict())
 #     return starlette.responses.Response(util.pretty.to_pretty_json(identity_list))

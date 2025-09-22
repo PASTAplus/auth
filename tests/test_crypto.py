@@ -2,10 +2,9 @@
 
 import Crypto.PublicKey.RSA
 import daiquiri
-import pytest
 
-from util import pasta_crypto
 from config import Config
+from util import pasta_crypto
 
 log = daiquiri.getLogger(__name__)
 

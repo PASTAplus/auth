@@ -15,7 +15,7 @@ pytestmark = [
 async def test_token_refresh(anon_client, john_token):
     pasta_token = util.old_token.make_old_token(Config.TEST_USER_DN, Config.VETTED)
     response = anon_client.post(
-        '/refresh',
+        '/v1/token/refresh',
         json={
             'pasta-token': pasta_token,
             'edi-token': john_token,

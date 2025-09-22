@@ -2,7 +2,7 @@
 {% set active_page = 'signin' %}
 
 {% block title %}
-  Login
+  {{ title }}
 {% endblock %}
 
 {% block head %}
@@ -14,16 +14,44 @@
 {% endblock %}
 
 {% block content %}
-  <h1 aria-label>{{ title }}</h1>
 
   <div class='indent'>
     <p>
       {{ text | safe }}
     </p>
 
+    {% if login_type == 'link' %}
+      <p>
+        Sign in to the profile you wish to link to this profile.
+      </p>
+      <p>
+        <a href='{{ url('/ui/identity') }}' class='icon-text-button'>
+        <span>
+          <img src='{{ url('/static/svg/back.svg') }}' alt='Back to Accounts'>
+        </span>
+          <span>Back to Accounts</span>
+        </a>
+      </p>
+
+      <div class='alert alert-info alert-row'>
+        <i class='bi bi-info-circle'></i>
+        <div>
+          Linking your profiles enables you to gain combined access to all resources
+          across those profiles, while signing in to just one of them.
+          <br>
+          <a href='{{ url('/ui/help#links') }}' target='_blank'>
+            More information about linking profiles
+          </a>
+        </div>
+      </div>
+
+    {% endif %}
+
     <p>
-      Use your EDI account to upload data (contact support@edirepository.org to create an account or click <a
-        href='https://dashboard.edirepository.org/dashboard/auth/reset_password_init'>here</a> to reset your password):
+      Use your EDI account to upload data (contact support@edirepository.org to create an account or
+      click <a
+        href='https://dashboard.edirepository.org/dashboard/auth/reset_password_init'>here</a> to
+      reset your password):
     </p>
 
     {% if error %}
@@ -43,19 +71,22 @@
                   <label for='username' class='form-label'>User name:</label>
                 </div>
                 <div>
-                  <input type='text' class='form-control' id='username' name='username' autocomplete='username' required>
+                  <input type='text' class='form-control' id='username' name='username'
+                         autocomplete='username' required>
                 </div>
                 <div>
                   <label for='password' class='form-label'>Password:</label>
                 </div>
                 <div>
-                  <input type='password' class='form-control' id='password' name='password' autocomplete='current-password' required>
+                  <input type='password' class='form-control' id='password' name='password'
+                         autocomplete='current-password' required>
                 </div>
                 <div>
                   {# Empty cell in column to move buttons to below input elements #}
                 </div>
                 <div>
-                  <button type='button' class='btn btn-secondary' id='clearFormButton'>Clear</button>
+                  <button type='button' class='btn btn-secondary' id='clearFormButton'>Clear
+                  </button>
                   <button type='submit' class='btn btn-primary'>Sign in</button>
                 </div>
               </form>
@@ -90,7 +121,8 @@
         <a href='{{ url('/login/github') }}?login_type={{ login_type }}&target={{ target_url }}'>
           <div class='grid-child'>
             <div class='grid-child-button'>
-              <img class='grid-logo-github-symbol' src='{{ url('/static/svg/idp/github-symbol.svg') }}'
+              <img class='grid-logo-github-symbol'
+                   src='{{ url('/static/svg/idp/github-symbol.svg') }}'
                    alt='Log in with GitHub'>
               <img class='grid-logo-github-text' src='{{ url('/static/svg/idp/github-text.svg') }}'
                    alt='Log in with GitHub'>

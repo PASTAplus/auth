@@ -107,7 +107,13 @@ async def main():
             await dbi.get_profile(JOHN)
         except sqlalchemy.exc.NoResultFound:
             log.info(f'Creating profile for {JOHN}')
-            await dbi.create_profile('John', 'john@gmail.com', False, JOHN)
+            await dbi.create_profile(
+                idp_name=db.models.profile.IdpName.SKELETON,
+                idp_uid=None,
+                common_name='John',
+                email='john@gmail.com',
+                edi_id=JOHN,
+            )
 
         await dbi.execute(sqlalchemy.delete(db.models.search.SearchResult))
         await dbi.execute(sqlalchemy.delete(db.models.search.SearchSession))

@@ -26,21 +26,19 @@ router = fastapi.APIRouter()
 @router.api_route('/ui/profile', methods=['GET', 'POST'])
 async def get_post_ui_profile(
     request: starlette.requests.Request,
-    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     return util.template.templates.TemplateResponse(
         'profile.html',
         {
             # Base
-            'token': token,
-            'avatar_url': util.avatar.get_profile_avatar_url(
-                token_profile_row,
-                refresh=request.query_params.get('refresh') == 'true',
-            ),
-            'profile': token_profile_row,
-            # Page
             'request': request,
+            'profile': token_profile_row,
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
+            'error_msg': request.query_params.get('error'),
+            'success_msg': request.query_params.get('success'),
+            # Page
         },
     )
 
@@ -49,22 +47,18 @@ async def get_post_ui_profile(
 async def get_ui_profile_edit(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
-    token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     return util.template.templates.TemplateResponse(
         'profile-edit.html',
         {
             # Base
-            'token': token,
-            'avatar_url': util.avatar.get_profile_avatar_url(
-                token_profile_row,
-                refresh=request.query_params.get('refresh') == 'true',
-            ),
-            'profile': token_profile_row,
-            # Page
             'request': request,
-            'msg': request.query_params.get('msg'),
+            'profile': token_profile_row,
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
+            'error_msg': request.query_params.get('error'),
+            'success_msg': request.query_params.get('success'),
+            # Page
         },
     )
 

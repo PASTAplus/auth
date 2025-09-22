@@ -1,6 +1,6 @@
-# EDI Identity and access management (IAM) Service
+# EDI Identity and Access Management (IAM) Service
 
-Multiverse authentication service for the PASTA+ Data Repository environment.
+Authentication service for the PASTA+ Data Repository environment.
 
 - EDI services support signing in via LDAP and via selected 3rd party identity providers (IdPs) using OAuth2 / OpenID Connect (OIDC)
 - LDAP accounts are managed by EDI and provide membership in the `vetted` group
@@ -18,31 +18,33 @@ Auth provides a REST API for managing user profiles, identities, and access cont
 
 ## Strategy for dealing with Google emails historically used as identifiers
 
-This procedure describes how we'll handle the IdP UID (stored in Identity.idp_uid) in a way that lets us migrate away from using Google emails as identifiers, while still allowing users to log in with their Google accounts, and moving to using Google's OAuth2 UID as the unique identifier for users.
+TODO: Review and update this section
+
+This procedure describes how we'll handle the IdP UID (stored in Profile.idp_uid) in a way that lets us migrate away from using Google emails as identifiers, while still allowing users to log in with their Google accounts, and moving to using Google's OAuth2 UID as the unique identifier for users.
 
 - When a new profile is created through the API:
   - Always use whatever unique user identifier string provided by the client, as the IdP UID
-  - If the unique string already exists in the Identity.idp_uid field:
+  - If the unique string already exists in the Profile.idp_uid field:
     - The existing profile is returned
   - If not:
-    - If the unique string is in the Identity.email field:
+    - If the unique string is in the Profile.email field:
       - The user profile already exists for someone who logs in through Google
       - The existing profile is returned
     - If not:
-      - Create the new identity record with the IdP UID and enter it into the Identity.idp_uid field; create new profile and return profile identifier
+      - Create the new profile record with the IdP UID and enter it into the Profile.idp_uid field; create new profile and return profile identifier
 
 - When someone logs in with an IdP other than Google:
   - Follow regular logic, which is to create an identity and profile if one doesn't exist, and then log in the user.
 - When someone logs in with Google as their IdP:
-  - If an identity exists under the Google IdP UID in the Identity.idp_uid field:
+  - If an identity exists under the Google IdP UID in the Profile.idp_uid field:
     - Log the user in as normal.
   - If not:
-    - If the Google IdP email matches an Identity.idp_uid:
-      - Set the new Google IdP UID in Identity.idp_uid
+    - If the Google IdP email matches a Profile.idp_uid:
+      - Set the new Google IdP UID in Profile.idp_uid
       - Set all other fields
       - Log the user in as normal
     - If not:
-      - Create a new identity and profile using the Google IdP UID
+      - Create a new profile using the Google IdP UID
       - Set all other fields
       - Log the user into the new profile
 

@@ -36,7 +36,7 @@ class SearchInterface:
         """
         # Delete all existing search package scopes. Since we're in a transaction, the temporarily
         # empty table will not be visible to other transactions.
-        await self._session.execute(sqlalchemy.delete(PackageScope))
+        await self.session.execute(sqlalchemy.delete(PackageScope))
 
         stmt = sqlalchemy.insert(PackageScope).from_select(
             ['id', 'scope'],
@@ -52,12 +52,12 @@ class SearchInterface:
             )
             .distinct(),
         )
-        await self._session.execute(stmt)
+        await self.session.execute(stmt)
 
     async def get_search_package_scopes(self):
         """Get all package scopes from the database."""
         stmt = sqlalchemy.select(PackageScope).order_by(PackageScope.scope)
-        result = await self._session.execute(stmt)
+        result = await self.session.execute(stmt)
         return result.scalars().all()
 
     async def init_search_resource_types(self):
@@ -66,7 +66,7 @@ class SearchInterface:
         This table is for providing a list of resource types that can be searched. The resources
         must be root resources and cannot be of type 'package' since those are handled separately.
         """
-        await self._session.execute(sqlalchemy.delete(ResourceType))
+        await self.session.execute(sqlalchemy.delete(ResourceType))
 
         # Insert new resource types based on the Resource labels, ensuring uniqueness.
         stmt = (
@@ -86,20 +86,20 @@ class SearchInterface:
             )
             .execution_options(synchronize_session='fetch')
         )
-        await self._session.execute(stmt)
+        await self.session.execute(stmt)
 
     async def get_search_resource_types(self):
         """Get all resource types that can be used in a non-package search.
         - Only types of non-package root resources are returned.
         """
         stmt = sqlalchemy.select(ResourceType).order_by(ResourceType.type)
-        result = await self._session.execute(stmt)
+        result = await self.session.execute(stmt)
         return result.scalars().all()
 
     async def sync_search_root_resources(self):
         """Copy all root nodes from the Resource table to the RootResource table."""
         # Delete all existing root resources.
-        await self._session.execute(sqlalchemy.delete(RootResource))
+        await self.session.execute(sqlalchemy.delete(RootResource))
         # Order resources by label, with a special case for scope.id.version package identifiers.
         # Labels not matching the pattern are ordered by the full string value.
         regex_match = sqlalchemy.func.regexp_match(Resource.label, PACKAGE_RX)
@@ -170,21 +170,21 @@ class SearchInterface:
             )
             .execution_options(synchronize_session='fetch')
         )
-        await self._session.execute(stmt)
-        # await self._session.commit()
+        await self.session.execute(stmt)
+        # await self.session.commit()
 
     async def get_root_resources(self, start_idx, limit):
         """Get a list of root resources with pagination."""
         stmt = (
             sqlalchemy.select(RootResource).order_by(RootResource.id).offset(start_idx).limit(limit)
         )
-        result = await self._session.execute(stmt)
+        result = await self.session.execute(stmt)
         return result.scalars().all()
 
     async def get_root_count(self):
         """Get the count of root resources."""
         stmt = sqlalchemy.select(sqlalchemy.func.count(RootResource.id))
-        result = await self._session.execute(stmt)
+        result = await self.session.execute(stmt)
         return result.scalar_one()
 
     async def create_search_session(
@@ -201,7 +201,7 @@ class SearchInterface:
             search_params=search_params,
             uuid=uuid.uuid4().hex,
         )
-        self._session.add(new_search_session)
+        self.session.add(new_search_session)
         return new_search_session
 
     #
@@ -213,7 +213,7 @@ class SearchInterface:
         - This also updates the accessed timestamp.
         """
         stmt = sqlalchemy.select(SearchSession).where(SearchSession.uuid == search_uuid)
-        result = await self._session.execute(stmt)
+        result = await self.session.execute(stmt)
         session_row = result.scalar_one()
         session_row.accessed = datetime.datetime.now()
         return session_row
@@ -225,7 +225,7 @@ class SearchInterface:
             .join(SearchSession, SearchResult.search_session_id == SearchSession.id)
             .where(SearchSession.uuid == search_uuid)
         )
-        result = await self._session.execute(stmt)
+        result = await self.session.execute(stmt)
         return result.scalar_one()
 
     async def get_search_result_slice(self, search_uuid: str, start_idx: int, limit: int):
@@ -238,7 +238,7 @@ class SearchInterface:
             .offset(start_idx)
             .limit(limit)
         )
-        result = await self._session.execute(stmt)
+        result = await self.session.execute(stmt)
         return result.scalars().all()
 
     async def populate_search_session(
@@ -260,7 +260,7 @@ class SearchInterface:
         # If the session is already populated, we clear it and repopulate it. This happens if the
         # user refreshes the main Permissions page. The search result may differ from the original
         # search if the user has changed permissions on resources since then.
-        await self._session.execute(
+        await self.session.execute(
             sqlalchemy.delete(SearchResult).where(SearchResult.search_session == search_session_row)
         )
 
@@ -349,7 +349,7 @@ class SearchInterface:
 
     async def _is_search_session_populated(self, search_session_row):
         """Check if a search session has any results populated"""
-        result = await self._session.execute(
+        result = await self.session.execute(
             sqlalchemy.select(
                 sqlalchemy.exists().where(SearchResult.search_session == search_session_row)
             )
@@ -428,11 +428,11 @@ class SearchInterface:
             ],
             select_query.distinct(),
         )
-        await self._session.execute(stmt)
+        await self.session.execute(stmt)
 
     async def _expire_search_sessions(self):
         """Expire search sessions that are older than the configured expiration delta."""
         expiration_dt = datetime.datetime.now() - Config.SEARCH_SESSION_EXPIRATION_DELTA
         # Search results are deleted by foreign key cascade.
         stmt = sqlalchemy.delete(SearchSession).where(SearchSession.accessed < expiration_dt)
-        await self._session.execute(stmt)
+        await self.session.execute(stmt)
