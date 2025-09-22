@@ -53,10 +53,12 @@ async def get_ui_group(
         'group.html',
         {
             # Base
-            'profile': token_profile_row,
-            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
-            # Page
             'request': request,
+            'profile': token_profile_row,
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
+            'error_msg': request.query_params.get('error'),
+            'success_msg': request.query_params.get('success'),
+            # Page
             'group_list': group_list,
         },
     )
@@ -76,10 +78,12 @@ async def get_ui_group_member(
         'member.html',
         {
             # Base
-            'profile': token_profile_row,
-            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
-            # Page
             'request': request,
+            'profile': token_profile_row,
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
+            'error_msg': request.query_params.get('error'),
+            'success_msg': request.query_params.get('success'),
+            # Page
             'group_row': group_row,
         },
     )
@@ -152,7 +156,7 @@ async def get_group_member_list(
                     'edi_id': p.edi_id,
                     'title': p.common_name,
                     'description': p.email,
-                    'avatar_url': p.avatar_url,
+                    'avatar_url': await util.avatar.get_profile_avatar_url(dbi, p),
                 }
                 for p in [m.profile for m in member_list]
             ],

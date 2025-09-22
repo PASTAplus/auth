@@ -35,8 +35,8 @@ async def post_refresh(
 ):
     """Validate and refresh PASTA and EDI authentication tokens.
     - A refreshed token matches the original token but has a new TTL.
-    - We consider the old style pasta token to be 'authoritative', so we refresh the edi-token even
-    if it has expired, as long as the old style token has not.
+    - We consider the EDI token to be 'authoritative', so we refresh the pasta-token even if it has
+    expired, as long as the EDI token has not.
     - This method is optimized for high traffic. It works directly with the tokens and does not
     query the database, LDAP, or the OAuth2 IdPs.
     """
@@ -56,6 +56,18 @@ async def post_refresh(
         return api.utils.get_response_400_bad_request(
             request, api_method, f'Missing field in JSON in request body: {e}'
         )
+    # Update the edi-token TTL
+    try:
+        edi_token_claims_dict = jwt.decode(
+            edi_token,
+            PUBLIC_KEY_STR,
+            algorithms=[Config.JWT_ALGORITHM],
+        )
+        new_edi_token = util.edi_token.create_by_claims(**edi_token_claims_dict)
+    except (jwt.PyJWTError, TypeError) as e:
+        return api.utils.get_response_401_unauthorized(
+            request, api_method, f'Attempted to refresh invalid edi-token: {e}'
+        )
     # Verify the pasta-token signature
     try:
         util.pasta_crypto.verify_auth_token(PUBLIC_KEY_OBJ, pasta_token)
@@ -66,24 +78,11 @@ async def post_refresh(
     # Deserialize the old pasta-token and start building the new pasta-token
     new_pasta_token = util.old_token.OldToken()
     new_pasta_token.from_auth_token(pasta_token)
-    # Verify the pasta-token TTL
-    if not new_pasta_token.is_valid_ttl():
-        return api.utils.get_response_401_unauthorized(
-            request, api_method, 'Attempted to refresh invalid token: Token has expired'
-        )
     # Update the pasta-token TTL
     new_pasta_token.ttl = new_pasta_token.new_ttl()
     new_pasta_token = util.pasta_crypto.create_auth_token(
         PRIVATE_KEY_OBJ, new_pasta_token.to_string()
     )
-    # Update the edi-token TTL
-    edi_token_claims_dict = jwt.decode(
-        edi_token,
-        PUBLIC_KEY_STR,
-        algorithms=[Config.JWT_ALGORITHM],
-        options={'verify_exp': False},
-    )
-    new_edi_token = util.edi_token.create_by_claims(**edi_token_claims_dict)
     return api.utils.get_response_200_ok(
         request,
         api_method,
@@ -101,10 +100,7 @@ async def post_token(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
 ):
-    """Create a new token for an existing profile.
-    - The token does not include the IdP information that is normally included in a token created
-    via the login flow, as that information may not exist for the profile being accessed.
-    """
+    """Create a new token for an existing profile."""
     api_method = 'getToken'
     # Check that the request body is valid JSON
     try:
@@ -128,11 +124,13 @@ async def post_token(
         return api.utils.get_response_404_not_found(
             request, api_method, 'Invalid request', edi_id=edi_id
         )
-    edi_token = await util.edi_token.create_by_profile(dbi, profile_row)
+    edi_token = await util.edi_token.create(dbi, profile_row)
     return api.utils.get_response_200_ok(
         request,
         api_method,
         'Token created successfully',
         edi_id=edi_id,
-        token=edi_token,
+        **{
+            'edi-token': edi_token,
+        },
     )

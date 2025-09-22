@@ -63,7 +63,7 @@ async def init_profiles(dbi):
                     'edi_id': profile_row.edi_id,
                     'title': profile_row.common_name,
                     'description': profile_row.email,
-                    'avatar_url': profile_row.avatar_url,
+                    'avatar_url': await util.avatar.get_profile_avatar_url(dbi, profile_row),
                 },
             )
         )
@@ -89,7 +89,7 @@ async def init_groups(dbi):
                     'edi_id': group_row.edi_id,
                     'title': group_row.name,
                     'description': (group_row.description or ''),
-                    'avatar_url': str(util.avatar.get_group_avatar_url()),
+                    'avatar_url': util.avatar.get_group_avatar_url(),
                 },
             )
         )

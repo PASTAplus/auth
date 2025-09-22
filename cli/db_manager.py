@@ -18,6 +18,7 @@ import asyncio
 import logging
 import pathlib
 import sys
+import time
 
 import daiquiri
 import sqlalchemy
@@ -174,6 +175,7 @@ async def create_system_profiles(dbi):
     """Create the system profiles for the Public and Authenticated profiles. This is a no-op for
     profiles that already exist.
     """
+    avatar_ver = int(time.time())
     for edi_id, common_name, avatar_path in (
         (
             Config.SERVICE_EDI_ID,
@@ -195,6 +197,7 @@ async def create_system_profiles(dbi):
             idp_name=db.models.profile.IdpName.SYSTEM,
             common_name=common_name,
             edi_id=edi_id,
+            avatar_ver=avatar_ver,
         )
         util.avatar.init_system_avatar(edi_id, avatar_path)
 

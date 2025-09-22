@@ -45,9 +45,12 @@ async def get_dev_profiles(
         'index.html',
         {
             # Base
-            'profile': token_profile_row,
-            # Page
             'request': request,
+            'profile': token_profile_row,
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
+            'error_msg': request.query_params.get('error'),
+            'success_msg': request.query_params.get('success'),
+            # Page
             'profile_list': profile_list,
         },
     )

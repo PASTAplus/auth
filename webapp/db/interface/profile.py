@@ -2,10 +2,12 @@ import datetime
 
 import daiquiri
 import sqlalchemy
+import sqlalchemy.exc
 import sqlalchemy.ext.asyncio
 import sqlalchemy.orm
 
 import db.models.group
+import util.avatar
 import util.edi_id
 from config import Config
 from db.models.permission import SubjectType, Principal
@@ -29,14 +31,16 @@ class ProfileInterface:
         idp_uid: str | None,
         common_name: str | None,
         email: str | None,
-        avatar_img: bytes | None,
-        avatar_ver: str | None,
+        fetch_avatar_func=None,
+        avatar_ver: str | None = None,
     ) -> Profile:
-        """Create or update a profile and identity.
+        """Create or update to a full profile.
         - A full profile is a profile that has been logged into at least once, and so has a known
-        identity provider, and is filled in with user information from the identity provider.
-        - A skeleton profile is a profile that has been created via the API, and which does not have
-        a known identity provider, and no user information.
+        identity provider, and is filled in with user information, with defaults provided by the
+        identity provider.
+        - If a skeleton profile already exists for the given idp_uid, it is upgraded to a full
+        profile.
+        - Skeleton profiles are created in a separate function.
         """
         assert idp_name != IdpName.SKELETON
         try:
@@ -44,7 +48,6 @@ class ProfileInterface:
             # We have a full profile.
         except sqlalchemy.exc.NoResultFound:
             profile_row = None
-
         # If a full profile and identity does not exist for this login. Check for a skeleton
         # profile.
         if profile_row is None:
@@ -54,7 +57,6 @@ class ProfileInterface:
                 # below.
             except sqlalchemy.exc.NoResultFound:
                 pass
-
         # See README.md: Strategy for dealing with Google emails historically used as identifiers.
         # If an identity does not exist under the IdP UID, and we're logging in through Google, we
         # check if there is a skeleton profile with the IdP email as the IdP UID.
@@ -68,59 +70,61 @@ class ProfileInterface:
                 except sqlalchemy.exc.NoResultFound:
                     pass
         # If we still haven't found a profile, this is the first login into a new profile. We can
-        # now create the profile and return.
+        # now create the profile.
         if profile_row is None:
             profile_row = await self.create_profile(
                 idp_name=idp_name,
                 idp_uid=idp_uid,
                 common_name=common_name,
                 email=email,
-                avatar_img=avatar_img,
-                avatar_ver=avatar_ver,
             )
-            return profile_row
-        # We are logging into an existing profile. If this is a skeleton profile, upgrade it to
-        # full.
+        # We now have a profile, either previously existing or newly created.
+        # If this is a previously existing skeleton profile, upgrade it to full.
         if profile_row.idp_name == IdpName.SKELETON:
             await self.update_profile(
                 profile_row,
                 idp_name=idp_name,
                 common_name=common_name,
                 email=email,
-                avatar_img=avatar_img,
-                avatar_ver=avatar_ver,
             )
-            await self.flush()
+        # Refresh the avatar
+        if (
+            avatar_ver is not None
+            and profile_row.avatar_ver != avatar_ver
+            and fetch_avatar_func is not None
+        ):
+            avatar_img = fetch_avatar_func()
+            if avatar_img:
+                util.avatar.save_avatar(avatar_img, 'profile', profile_row.edi_id)
+                profile_row.avatar_ver = avatar_ver
+            else:
+                profile_row.avatar_ver = None
         # Update the profile's last_auth time, and first_auth time if not already set.
-        profile_row.first_auth = (profile_row.first_auth or datetime.datetime.now(),)
-        profile_row.last_auth = (datetime.datetime.now(),)
-        # Normally, has_avatar will be True from the first time the user logs in with the identity.
-        # More rarely, it will go from False to True, if a user did not initially have an avatar at
-        # the IdP, but then creates one. More rarely still (if at all possible), this may go from
-        # True to False, if the user removes their avatar at the IdP. In this latter case, the
-        # avatar image in the filesystem will be orphaned here.
-        # profile_row.has_avatar = has_avatar
-        # if not has_avatar:
-        #     profile_row.avatar_ver = None
+        profile_row.first_auth = profile_row.first_auth or datetime.datetime.now()
+        profile_row.last_auth = datetime.datetime.now()
         return profile_row
 
     async def create_skeleton_profile(self, idp_uid: str) -> Profile:
         """Create a 'skeleton' EDI profile that can be used in permissions, and which can be logged
         into by the IdP UID.
+        - A skeleton profile is a profile that has been created via the API, and which does not have
+        a known identity provider, and no user information.
         - This method is idempotent, meaning that if a profile already exists for the provided
         `idp_uid`, it will return the existing profile identifier instead of creating a new one. The
         existing profile may be a skeleton or a full profile.
         - At this point, we don't know (without applying heuristics to the UID) by which IdP the UID
         was issued.
         - If and when a user logs into the profile for the first time, the profile is updated from a
-        skeleton to regular with the information provided by the IdP.
+        skeleton to regular profile with the information provided by the IdP.
         """
         try:
             return await self.get_profile_by_idp_uid(idp_uid)
         except sqlalchemy.exc.NoResultFound:
             pass
         except sqlalchemy.exc.MultipleResultsFound:
-            # We enforce uniqueness of (idp_name, idp_uid), so this should never happen.
+            # We enforce uniqueness of (idp_name, idp_uid), and in practice, the idp_uid is unique
+            # by itself because the IdPs use different formats on their UIDs, so this should never
+            # happen.
             assert False, 'Unreachable'
         # See README.md: Strategy for dealing with Google emails historically used as identifiers.
         # The idp_uid may be an email address. If someone has signed in via Google, and their email
@@ -239,7 +243,6 @@ class ProfileInterface:
         edi_id: str = None,
         common_name: str | None = None,
         email: str | None = None,
-        avatar_img: bytes | None = None,
         avatar_ver: str | None = None,
     ):
         """Create a new profile.
@@ -350,7 +353,19 @@ class ProfileInterface:
         )
         await self.session.execute(stmt)
 
-    async def get_linked_profiles(self, profile_id):
+    async def get_link_history_list(self, token_profile_row):
+        """Get profiles linked to the given profile ordered by link_date."""
+        result = await self.execute(
+            (
+                sqlalchemy.select(Profile.edi_id, ProfileLink.link_date)
+                .join(ProfileLink, ProfileLink.linked_profile_id == Profile.id)
+                .where(ProfileLink.profile_id == token_profile_row.id)
+                .order_by(ProfileLink.link_date)
+            )
+        )
+        return result.all()
+
+    async def get_linked_profile_list(self, profile_id):
         """Get profiles linked to the given profile."""
         result = await self.execute(
             (
@@ -363,6 +378,17 @@ class ProfileInterface:
             )
         )
         return result.scalars().all()
+
+    async def is_linked_profile(self, profile_id):
+        """Check if the given profile is a linked profile"""
+        result = await self.execute(
+            sqlalchemy.select(
+                sqlalchemy.exists().where(
+                    ProfileLink.linked_profile_id == profile_id,
+                )
+            )
+        )
+        return result.scalar_one()
 
     async def delete_profile_links(self, profile_id):
         """Delete all links for the given profile.
@@ -378,27 +404,29 @@ class ProfileInterface:
             )
         )
 
-    async def is_primary_profile(self, profile_id):
-        """Check if the given profile is a primary profile"""
+    async def unlink_profile(self, token_profile_row, link_profile_id):
+        """Unlink the given profile from the token profile."""
+        await self.session.execute(
+            sqlalchemy.delete(ProfileLink).where(
+                ProfileLink.profile_id == token_profile_row.id,
+                ProfileLink.linked_profile_id == link_profile_id,
+            )
+        )
+
+    async def get_primary_profile(self, profile_row):
+        """Get the primary profile for the given linked profile.
+        """
         result = await self.execute(
-            sqlalchemy.select(
-                sqlalchemy.exists().where(
-                    ProfileLink.profile_id == profile_id,
+            (
+                sqlalchemy.select(Profile)
+                .options(
+                    sqlalchemy.orm.selectinload(Profile.principal),
                 )
+                .join(ProfileLink, ProfileLink.profile_id == Profile.id)
+                .where(ProfileLink.linked_profile_id == profile_row.id)
             )
         )
         return result.scalar_one()
-
-    # async def
-
-    async def relink_profile(self, token_profile_row, new_primary_profile_id):
-        """Make the given profile the primary profile for the token profile's identities.
-        This involves:
-        - Deleting all existing links for the token profile
-        - Creating a link from the new primary profile to the token profile
-        """
-        await self.delete_profile_links(token_profile_row.id)
-        await self.create_profile_link(token_profile_row, new_primary_profile_id)
 
     #
     # Avatar

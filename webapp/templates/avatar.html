@@ -15,16 +15,14 @@
 
 {% block content %}
 
-  <h1 aria-label>Avatars</h1>
-
   <div class='indent'>
     <p>
       Select the avatar you would like to use.
     </p>
     <p>
-      You can add avatars to this list by linking accounts from the Profile page. If you update your avatar in an
-      account, it will be reflected here. Currently, avatars are only supported for Google, Microsoft and GitHub
-      accounts.
+      You can add avatars to this list by linking profiles from the Accounts page. If you update
+      your avatar in an identity provider account, it will be reflected here. Currently, avatars are
+      only supported for Google, Microsoft and GitHub accounts.
     </p>
 
     <p>
@@ -39,8 +37,7 @@
       {% for avatar in avatar_list %}
         <div class='grid-child'>
           <form action='{{ url('/ui/api/avatar/update') }}' method='post'>
-            <input type='hidden' name='idp_name' value='{{ avatar.idp_name }}'>
-            <input type='hidden' name='idp_uid' value='{{ avatar.idp_uid }}'>
+            <input type='hidden' name='profile_id' value='{{ avatar.profile_id }}'>
             <button type='submit' class='avatar-button'>
               <img src='{{ avatar.url }}' alt='Avatar' class='avatar'>
             </button>

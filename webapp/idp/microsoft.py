@@ -1,10 +1,13 @@
+import functools
+import random
+import string
+
 import cryptography.hazmat.backends
 import cryptography.x509
 import daiquiri
 import fastapi
 import jwt
 import requests
-import sqlalchemy.exc
 import starlette.requests
 import starlette.responses
 
@@ -112,24 +115,6 @@ async def get_callback_microsoft(
         audience=Config.MICROSOFT_CLIENT_ID,
     )
 
-    idp_uid = user_dict['sub']
-
-    avatar_img = None
-    avatar_ver = None
-    try:
-        profile_row = await dbi.get_profile_by_idp(
-            idp_name=db.models.profile.IdpName.MICROSOFT,
-            idp_uid=idp_uid,
-        )
-        avatar_ver = 'TEST'
-        if profile_row.avatar_ver != avatar_ver:
-            try:
-                avatar_img = get_user_avatar(user_dict['avatar_url'])
-            except fastapi.HTTPException as e:
-                log.error(f'Failed to fetch user avatar: {e.detail}')
-    except sqlalchemy.exc.NoResultFound:
-        pass
-
     log.debug('-' * 80)
     log.debug('login_microsoft_callback() - login successful')
     util.pretty.log_dict(log.debug, 'jwt_unverified_header_dict', jwt_unverified_header_dict)
@@ -144,11 +129,11 @@ async def get_callback_microsoft(
         login_type=login_type,
         target_url=target_url,
         idp_name=db.models.profile.IdpName.MICROSOFT,
-        idp_uid=idp_uid,
+        idp_uid=(user_dict['sub']),
         common_name=user_dict['name'],
         email=user_dict['email'],
-        avatar_img=avatar_img,
-        avatar_ver=avatar_ver,
+        fetch_avatar_func=functools.partial(fetch_user_avatar, token_dict["access_token"]),
+        avatar_ver=''.join(random.choices(string.ascii_letters, k=16))
     )
 
 
@@ -249,15 +234,13 @@ async def get_logout_microsoft_clear_session(request: starlette.requests.Request
 #
 
 
-def get_user_avatar(access_token):
+def fetch_user_avatar(access_token):
     """Fetch the user's avatar from Microsoft Graph API."""
-    try:
-        response = requests.get(
-            'https://graph.microsoft.com/v1.0/me/photo/$value',
-            headers={'Authorization': f'Bearer {access_token}', 'Accept': 'image/*'},
-        )
-        if response.ok:
-            return response.content
-    except requests.RequestException as e:
-        log.error(f'Error fetching user avatar: {e}')
+    response = requests.get(
+        'https://graph.microsoft.com/v1.0/me/photo/$value',
+        headers={'Authorization': f'Bearer {access_token}', 'Accept': 'image/*'},
+    )
+    if response.ok:
+        return response.content
+    log.error(f'Failed to fetch user avatar: {response.status_code} {response.text}')
     return None

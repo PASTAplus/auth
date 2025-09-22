@@ -42,6 +42,7 @@ class EdiTokenClaims:
     cn: str | None = None
     email: str | None = None
     principals: set[str] = dataclasses.field(default_factory=set)
+    links: list[tuple[str, int]] = dataclasses.field(default_factory=list)
     isEmailEnabled: bool = False
     isEmailVerified: bool = False
     idpName: str | None = None
@@ -65,12 +66,14 @@ async def create(dbi, profile_row) -> str:
 
 async def create_claims(dbi, profile_row) -> EdiTokenClaims:
     principals_set: set = await dbi.get_equivalent_principal_edi_id_set(profile_row)
+    links_list = await dbi.get_link_history_list(profile_row)
     principals_set.discard(profile_row.edi_id)
     claims_obj = EdiTokenClaims(
         sub=profile_row.edi_id,
         cn=profile_row.common_name,
         email=profile_row.email,
         principals=principals_set,
+        links=[(r.edi_id, int(r.link_date.timestamp())) for r in links_list],
         isEmailEnabled=profile_row.email_notifications,
         isEmailVerified=False,
         idpName=profile_row.idp_name.name.lower(),
@@ -135,7 +138,7 @@ async def is_valid(dbi, token_str: str | None) -> bool:
 
 async def claims_pformat(dbi, claims: EdiTokenClaims) -> str:
     claims_dict = await format_claims_for_display(dbi, claims)
-    return pprint.pformat(claims_dict, indent=2, width=140, sort_dicts=False)
+    return pprint.pformat(claims_dict, indent=2, width=120, sort_dicts=False)
 
 
 async def format_claims_for_display(dbi, claims: EdiTokenClaims) -> dict[str, object]:

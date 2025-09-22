@@ -71,6 +71,8 @@ def target(
     idp_uid: str,
     idp_name: db.models.profile.IdpName,
     sub: str,
+    success_msg: str | None = None,
+    error_msg: str | None = None,
 ):
     """Create Response that redirects to the final target URL, providing the old style and new style
     tokens, and other information
@@ -80,6 +82,12 @@ def target(
 
     target_url: The URL to which the client originally requested to be redirected.
     """
+    msg_dict = {}
+    if success_msg:
+        msg_dict['success'] = success_msg
+    if error_msg:
+        msg_dict['error'] = error_msg
+
     response = redirect(
         target_url,
         # The old token is passed in 'token'
@@ -97,6 +105,7 @@ def target(
         # For ezEML
         common_name=common_name,
         sub=sub,
+        **msg_dict,
     )
     # auth-token is the location of the old proprietary token
     response.set_cookie('auth-token', token)

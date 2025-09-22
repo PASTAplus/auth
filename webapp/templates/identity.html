@@ -2,7 +2,7 @@
 {% set active_page = 'identity' %}
 
 {% block title %}
-  Identities
+  Accounts
 {% endblock %}
 
 {% block head %}
@@ -14,131 +14,120 @@
 {% endblock %}
 
 {% block content %}
-  <h1 aria-label>Accounts</h1>
 
-  <div class='indent'>
-
-    {% if error_msg %}
-      <p class='alert alert-warning'>
-        {{ error_msg }}
-      </p>
-    {% endif %}
-
-    {% if success_msg %}
-      <p class='alert alert-success'>
-        {{ success_msg }}
-      </p>
-    {% endif %}
-
-    <p>
-      Linked accounts are external accounts that you have connected to your profile. These accounts
-      allow you to sign in using different identity providers.
-    </p>
-    <p>
-      {% if identity_list|length == 1 %}
-        One account is currently linked to your profile:
-      {% else %}
-        Accounts that are currently linked to your profile:
-      {% endif %}
-    </p>
+  {#<div class='indent'>#}
+  {#  <p>#}
+  {#    This is a list of your profiles and their associated identity provider accounts.#}
+  {#  </p>#}
 
     <div class='indent'>
 
       <div class='grid'>
 
-        {% for identity in identity_list %}
+        {% for iter_profile in profile_list %}
+
+          {% if loop.index == 1 %}
+            <div class='grid-row'>
+              <div class='grid-child grid-child-span-all'>
+                The profile with which you are currently signed in (your primary profile):
+              </div>
+            </div>
+          {% endif %}
+
+          {% if loop.index == 2 %}
+            <div class='grid-child grid-child-span-all'>
+              The following profile(s) are linked to your primary profile:
+            </div>
+          {% endif %}
 
           <div class='grid-row'>
             {# Avatar #}
             <div class='grid-child'>
-              <img src='{{ identity.avatar_url }}' alt='Avatar' class='avatar avatar-smaller'>
+              <img src='{{ iter_profile.avatar_url }}' alt='Avatar' class='avatar avatar-smaller'>
             </div>
             {# IdP logo #}
             <div class='grid-child'>
               <div class='idp-logo'>
-                {% if profile.idp_name == IdpName.GOOGLE %}
+                {% if iter_profile.idp_name == IdpName.GOOGLE %}
                   <img class='idp-logo-google' src='{{ url('/static/svg/idp/google-text.svg') }}'
                        alt='Google'>
-                {% elif profile.idp_name == IdpName.MICROSOFT %}
+                {% elif iter_profile.idp_name == IdpName.MICROSOFT %}
                   <img class='idp-logo-microsoft' src='{{ url('/static/svg/idp/microsoft.svg') }}'
                        alt='Microsoft'>
-                {% elif profile.idp_name == IdpName.GITHUB %}
+                {% elif iter_profile.idp_name == IdpName.GITHUB %}
                   <img class='idp-logo-github-symbol'
                        src='{{ url('/static/svg/idp/github-symbol.svg') }}' alt='GitHub'>
                   <img class='idp-logo-github-text'
                        src='{{ url('/static/svg/idp/github-text.svg') }}' alt='GitHub'>
-                {% elif profile.idp_name == IdpName.ORCID %}
+                {% elif iter_profile.idp_name == IdpName.ORCID %}
                   <img class='idp-logo-orcid' src='{{ url('/static/svg/idp/orcid.svg') }}'
                        alt='ORCID'>
-                {% elif profile.idp_name == IdpName.LDAP %}
+                {% elif iter_profile.idp_name == IdpName.LDAP %}
                   <img class='idp-logo-edi-ldap' src='{{ url('/static/svg/idp/edi-logo.svg') }}'
                        alt='EDI LDAP'>
                 {% else %}
-                  {{ profile.idp_name }}
+                  {{ iter_profile.idp_name }}
                 {% endif %}
               </div>
             </div>
-            {# Common name / email #}
+            {# email #}
             <div class='grid-child'>
-              {{ identity.common_name or identity.email or '' }}
+              {{ iter_profile.email or '' }}
             </div>
-            {# Profile #}
+            {# Common name #}
             <div class='grid-child'>
-              {{ identity.profile }}
+              {{ iter_profile.common_name or '' }}
             </div>
             {# Copy ID #}
-            <div class='edi-id-parent'>
-              <div class='edi-id-child-text'>
-                {{ identity.edi_id }}
-              </div>
-              <div class='edi-id-child-icon'>
-                <img src='{{ url('/static/svg/copy.svg') }}'
-                     alt='Copy EDI Identifier'
-                     class='edi-id-copy-button'
-                >
+            <div class='grid-child'>
+              <div class='edi-id-parent'>
+                <div class='edi-id-child-text'>
+                  {{ iter_profile.edi_id }}
+                </div>
+                <div class='edi-id-child-icon'>
+                  <img src='{{ url('/static/svg/copy.svg') }}'
+                       alt='Copy EDI Identifier'
+                       class='edi-id-copy-button'
+                  >
+                </div>
               </div>
             </div>
             {# Unlink button #}
             <div class='grid-child'>
-              {% if identity_list|length > 1 %}
+              {% if loop.index >= 2 %}
                 <button class='icon-text-button' data-bs-toggle='modal'
                         data-bs-target='#unlinkProfileModal'
-                        data-idp-name='{{ profile.idp_name.name }}'
-                        data-idp-uid='{{ Profile.idp_uid }}'
+                        data-profile-id='{{ iter_profile.profile_id }}'
                 >
                   <span><img src='{{ url('/static/svg/unlink.svg') }}' alt='Unlink'></span>
                   <span>Unlink</span>
                 </button>
               {% endif %}
             </div>
-
-
           </div>
+
+          {% if profile_list|length == 1 %}
+            <div class='grid-row'>
+              <div class='grid-child grid-child-span-all'>
+                You have no linked profiles.
+              </div>
+            </div>
+          {% endif %}
 
         {% endfor %}
 
       </div>
     </div>
 
-    {% if identity_list|length == 1 %}
-      <div class='alert alert-info alert-row'>
-        <div>
-          <img src='{{ url('/static/lib/bootstrap-icons/info-circle.svg') }}' alt='Info'
-               class='alert-icon'>
-        </div>
-        <div>
-          To unlink this account, first link another account to maintain access to your profile.
-          Alternatively, you can delete your entire profile on the
-          <a href='{{ url('/ui/profile/edit') }}'>Edit Profile</a>
-          page, which will also unlink this account.
-        </div>
-      </div>
-    {% endif %}
-
-  </div>
+  {#</div>#}
 
   <div class='indent'>
-    <a href='{{ url('/ui/signin/link') }}' class='btn btn-primary'>Link Account</a>
+    <div class='d-flex align-items-center gap-2'>
+      <a href='{{ url('/ui/signin/link') }}' class='btn btn-primary'>Link Profile</a>
+      <a href='{{ url('/ui/help#linking') }}' target='_blank'>
+        <i class='bi bi-question-circle help-button'></i>
+      </a>
+    </div>
   </div>
 
   {# Modal unlink confirmation dialog #}
@@ -152,19 +141,14 @@
                   aria-label='Close'></button>
         </div>
         <div class='modal-body'>
-          <form action='{{ url('/ui/api/identity/unlink') }}' method='post' id='unlinkProfileForm'>
-            <input type='hidden' name='idp_name' id='unlinkProfileIdpName'>
-            <input type='hidden' name='idp_uid' id='unlinkProfileUid'>
+          <form action='{{ url('/ui/api/profile/unlink') }}' method='post' id='unlinkProfileForm'>
+            <input type='hidden' name='unlink-profile-id' id='unlinkProfileId'>
             <div class='form-group'>
               <p>
-                Click 'Unlink' to remove this account from your profile.
-              </p>
-              <p>
-                Unlinking your account will not affect your account at the identity provider (e.g.,
-                Google, Microsoft). You can relink this account to your profile anytime using the
-                'Link Account' button. Alternatively, you can create a new profile with the unlinked
-                account by signing out of your current profile and signing back in with the unlinked
-                account.
+                Unlink this profile from your primary profile?
+                <a href='{{ url('/ui/help#unlinking') }}' target='_blank'>
+                  <i class='bi bi-question-circle help-button'></i>
+                </a>
               </p>
             </div>
             <div class='modal-footer'>

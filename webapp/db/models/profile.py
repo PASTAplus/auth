@@ -88,19 +88,25 @@ class Profile(db.models.base.Base):
     # The email address that the user has chosen as their contact email. Initially set to the email
     # address provided by the IdP.
     email = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    # Avatar version (ETag / entity tag, or other key), if known. Used to determine if the avatar
-    # has changed at the source. If NULL, this profile has no avatar.
+    # Avatar version (ETag / entity tag, or other key). Used both to determine if the avatar has
+    # changed at the source, and as a cache buster version appended to avatar URLs. If NULL, this
+    # profile has no avatar.
     avatar_ver = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     # Alternate avatar profile. If set, this profile's avatar is taken from the alternate profile
     # instead of from this profile's avatar fields. This is set if the user has chosen to use the
     # avatar from one of their linked profiles. This should only be set on primary profiles, not on
-    # linked profiles, but this is not enforced at the DB level.
+    # linked profiles, but this is not enforced at the DB level. If NULL, this profile uses its
+    # own avatar.
     avatar_profile_id = sqlalchemy.Column(
         sqlalchemy.Integer,
         sqlalchemy.ForeignKey('profile.id', ondelete='SET NULL'),
         nullable=True,
         index=True,
     )
+    # If set, the user has chosen to use an anonymous avatar (a generic avatar image with just the
+    # initials), OR no avatar was provided by the IdP. This overrides any avatar image that might be
+    # available from the IdP.
+    anonymous_avatar = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False, default=False)
     # Permit notifications to be sent to this email address.
     email_notifications = sqlalchemy.Column(sqlalchemy.Boolean(), nullable=False, default=False)
     # Initially false, then set to true when the user accepts the privacy policy. We store this flag
@@ -147,19 +153,6 @@ class Profile(db.models.base.Base):
         passive_deletes=True,
     )
 
-    @property
-    def initials(self):
-        if not self.common_name:
-            return '?'
-        part_tup = self.common_name.split()
-        if len(part_tup) > 3:
-            part_tup = part_tup[0], part_tup[1], part_tup[-1]
-        return ''.join(s[0] for s in part_tup).upper()
-
-    @property
-    def avatar_url(self):
-        return str(util.avatar.get_profile_avatar_url(self))
-
 
 class ProfileLink(db.models.base.Base):
     """Link user profiles."""
@@ -172,7 +165,7 @@ class ProfileLink(db.models.base.Base):
         sqlalchemy.ForeignKey('profile.id', ondelete='CASCADE'),
         nullable=False,
         index=True,
-        unique=True,
+        unique=False,
     )
     # One or more profiles can be linked to the primary profile.
     linked_profile_id = sqlalchemy.Column(
@@ -180,6 +173,7 @@ class ProfileLink(db.models.base.Base):
         sqlalchemy.ForeignKey('profile.id', ondelete='CASCADE'),
         nullable=False,
         index=True,
+        unique=True,
     )
     link_date = sqlalchemy.Column(
         sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now

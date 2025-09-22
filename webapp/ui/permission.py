@@ -44,10 +44,12 @@ async def get_ui_permission_search(
         'permission-search.html',
         {
             # Base
-            'profile': token_profile_row,
-            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
-            # Page
             'request': request,
+            'profile': token_profile_row,
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
+            'error_msg': request.query_params.get('error'),
+            'success_msg': request.query_params.get('success'),
+            # Page
             'package_scope_list': await dbi.get_search_package_scopes(),
             'resource_type_list': await dbi.get_search_resource_types(),
         },
@@ -89,10 +91,12 @@ async def get_ui_permission(
         'permission.html',
         {
             # Base
-            'profile': token_profile_row,
-            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
-            # Page
             'request': request,
+            'profile': token_profile_row,
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
+            'error_msg': request.query_params.get('error'),
+            'success_msg': request.query_params.get('success'),
+            # Page
             'public_edi_id': Config.PUBLIC_EDI_ID,
             'authenticated_edi_id': Config.AUTHENTICATED_EDI_ID,
             'root_count': root_count,
@@ -209,7 +213,7 @@ async def get_aggregate_permission_list(dbi, resource_generator):
                 'edi_id': profile_row.edi_id,
                 'title': profile_row.common_name,
                 'description': profile_row.email,
-                'avatar_url': profile_row.avatar_url,
+                'avatar_url': await util.avatar.get_profile_avatar_url(dbi, profile_row),
             }
         elif group_row is not None:
             # Principal is a group
@@ -220,7 +224,7 @@ async def get_aggregate_permission_list(dbi, resource_generator):
                 'edi_id': group_row.edi_id,
                 'title': group_row.name,
                 'description': (group_row.description or ''),
-                'avatar_url': str(util.avatar.get_group_avatar_url()),
+                'avatar_url': util.avatar.get_group_avatar_url(),
             }
         else:
             assert False, 'Unreachable'
@@ -246,8 +250,8 @@ async def get_aggregate_permission_list(dbi, resource_generator):
             'principal_type': 'profile',
             'edi_id': public_row.edi_id,
             'title': public_row.common_name,
-            'description': (public_row.email or ''),
-            'avatar_url': public_row.avatar_url,
+            'description': public_row.email or '',
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, public_row),
         }
 
     return sorted(principal_dict.values(), key=db.resource_tree._get_principal_sort_key)

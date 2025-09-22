@@ -7,15 +7,20 @@
     grid-template-columns: repeat(6, max-content);
     align-items: center;
     justify-items: left;
-}
-
-.grid-child {
-    white-space: nowrap;
-    padding: 1rem 1rem 1rem 1rem;
+    gap: 1rem;
 }
 
 .grid-row {
     display: contents;
+}
+
+.grid-child {
+    /* white-space: nowrap; */
+    padding: 0 0 1rem 0;
+}
+
+.grid-child-span-all {
+    grid-column: 1 / -1;
 }
 
 .grid-logo {

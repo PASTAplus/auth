@@ -1,5 +1,8 @@
+import functools
 import logging
+import random
 import re
+import string
 
 import fastapi
 import requests
@@ -133,25 +136,6 @@ async def get_callback_google(
         return util.redirect.client_error(target_url, 'Login unsuccessful: Email not verified')
 
     # Fetch the avatar
-    idp_uid = user_dict['sub']
-
-    avatar_img = None
-    avatar_ver = None
-    try:
-        profile_row = await dbi.get_profile_by_idp(
-            idp_name=db.models.profile.IdpName.GOOGLE,
-            idp_uid=idp_uid,
-        )
-        avatar_ver = 'TEST'
-        if profile_row.avatar_ver != avatar_ver:
-            try:
-                avatar_img = get_user_avatar(user_dict['avatar_url'])
-            except fastapi.HTTPException as e:
-                log.error(f'Failed to fetch user avatar: {e.detail}')
-    except sqlalchemy.exc.NoResultFound:
-        pass
-
-
     log.debug('-' * 80)
     log.debug('login_google_callback() - login successful')
     util.pretty.log_dict(log.debug, 'token_dict', token_dict)
@@ -165,11 +149,11 @@ async def get_callback_google(
         login_type=login_type,
         target_url=target_url,
         idp_name=db.models.profile.IdpName.GOOGLE,
-        idp_uid=idp_uid,
+        idp_uid=user_dict['sub'],
         common_name=user_dict['name'],
         email=user_dict['email'],
-        avatar_img=avatar_img,
-        avatar_ver=avatar_ver,
+        fetch_avatar_func=functools.partial(fetch_user_avatar, token_dict["access_token"]),
+        avatar_ver=''.join(random.choices(string.ascii_letters, k=16)),
     )
 
 
@@ -223,43 +207,29 @@ async def get_revoke_google(
 #
 
 
-def get_user_avatar(access_token):
+def fetch_user_avatar(access_token):
     response_url = requests.get(
         'https://people.googleapis.com/v1/people/me?personFields=photos',
         headers={'Authorization': f'Bearer {access_token}'},
     )
-
     try:
         response_dict = response_url.json()
     except requests.JSONDecodeError:
-        raise fastapi.HTTPException(
-            status_code=starlette.status.HTTP_404_NOT_FOUND,
-            detail=response_url.text,
-        )
-
-    util.pretty.log_dict(log.debug, 'google: get_user_avatar()', response_dict)
-
+        log.error(f'Error decoding Google people response: {response_url.text}')
+        return None
     photos = response_dict.get('photos')
     if not photos:
-        raise fastapi.HTTPException(
-            status_code=starlette.status.HTTP_404_NOT_FOUND,
-            detail='No photos found',
-        )
-
+        log.error('No photos found in Google people response')
+        return None
     # Assuming the first photo is the highest resolution available
     avatar_url = photos[0].get('url')
     if avatar_url is None:
-        raise fastapi.HTTPException(
-            status_code=starlette.status.HTTP_404_NOT_FOUND,
-            detail='No avatar URL found',
-        )
-
+        log.error('No URL found for the photo in Google people response')
+        return None
     # Fetch higher resolution avatar
     hirez_avatar_url = re.sub(r'=s\d+$', '=s500', avatar_url)
     response_img = requests.get(hirez_avatar_url)
     if not response_img.ok:
-        raise fastapi.HTTPException(
-            status_code=starlette.status.HTTP_404_NOT_FOUND,
-            detail=response_img.text,
-        )
+        log.error(f'Failed to fetch user avatar: {response_img.status_code} {response_img.text}')
+        return None
     return response_img.content

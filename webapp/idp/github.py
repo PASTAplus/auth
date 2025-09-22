@@ -1,3 +1,4 @@
+import functools
 import json
 
 import daiquiri
@@ -116,24 +117,6 @@ async def get_callback_github(
         return util.redirect.client_error(target_url, 'Login unsuccessful')
 
     idp_uid = user_dict['html_url']
-
-    avatar_img = None
-    avatar_ver = None
-    try:
-        profile_row = await dbi.get_profile_by_idp(
-            idp_name=db.models.profile.IdpName.GITHUB,
-            idp_uid=idp_uid,
-        )
-        # For GitHub, we use the avatar_url ?v=VERSION query param as the version.
-        avatar_ver = util.url.get_query_param(user_dict['avatar_url'], 'v')
-        if profile_row.avatar_ver != avatar_ver:
-            try:
-                avatar_img = get_user_avatar(user_dict['avatar_url'])
-            except fastapi.HTTPException as e:
-                log.error(f'Failed to fetch user avatar: {e.detail}')
-    except sqlalchemy.exc.NoResultFound:
-        pass
-
     log.debug('-' * 80)
     log.debug('github_callback() - login successful')
     util.pretty.log_dict(log.debug, 'token_dict', token_dict)
@@ -150,8 +133,8 @@ async def get_callback_github(
         idp_uid=idp_uid,
         common_name=user_dict.get('name') or user_dict.get('login') or idp_uid,
         email=user_dict.get('email'),
-        avatar_img=avatar_img,
-        avatar_ver=avatar_ver,
+        fetch_avatar_func=functools.partial(fetch_user_avatar, user_dict['avatar_url']),
+        avatar_ver=util.url.get_query_param(user_dict['avatar_url'], 'v'),
     )
 
 
@@ -218,8 +201,9 @@ def get_error_message(
     return f'{error_title}: {error_description} ({error_uri})'
 
 
-def get_user_avatar(avatar_url):
+def fetch_user_avatar(avatar_url):
     response = requests.get(avatar_url)
-    if not response.ok:
-        raise fastapi.HTTPException(status_code=response.status_code, detail=response.text)
-    return response.content
+    if response.ok:
+        return response.content
+    log.error(f'Failed to fetch user avatar: {response.status_code} {response.text}')
+    return None

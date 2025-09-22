@@ -36,18 +36,18 @@ async def get_ui_signin(
         'signin.html',
         {
             # Base
-            'profile': None,
-            #
             'request': request,
+            'profile': None,
+            'avatar_url': None,
+            'error_msg': request.query_params.get('error'),
+            'success_msg': request.query_params.get('success'),
+            # Page
             'login_type': 'client',
             'target_url': Config.SERVICE_BASE_URL + '/ui/profile',
             'title': 'Sign in',
             'text': 'Select your identity provider to sign in.',
-            'error': request.query_params.get('error'),
         },
     )
-
-
 
 
 @router.get('/ui/signin/merge')
@@ -60,67 +60,38 @@ async def get_ui_signin(
         'signin-merge.html',
         {
             # Base
-            'profile': None,
-            #
             'request': request,
+            'profile': None,
+            'avatar_url': None,
+            'error_msg': request.query_params.get('error'),
+            'success_msg': request.query_params.get('success'),
+            # Page
             # 'login_type': 'client',
             # 'target_url': Config.SERVICE_BASE_URL + '/ui/identity',
-            'error': request.query_params.get('error'),
             'skeleton_profile': True,
         },
     )
 
 
-
-
-
 @router.get('/ui/signin/link')
 async def get_ui_signin_link(
     request: starlette.requests.Request,
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     return util.template.templates.TemplateResponse(
         'signin.html',
         {
             # Base
-            'profile': token_profile_row,
-            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
-            # Page
             'request': request,
+            'profile': token_profile_row,
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
+            'error_msg': request.query_params.get('error'),
+            'success_msg': request.query_params.get('success'),
+            # Page
             'login_type': 'link',
             'target_url': Config.SERVICE_BASE_URL + '/ui/identity',
-            'title': 'Link Account',
-            'text':
-            # language=html
-            f"""
-            <p>
-            Sign in to the account you wish to link to this profile.
-            </p>
-            <p>
-            Linking accounts allows you to sign in with multiple identity providers.
-            </p>
-            <p>
-                <a href='{util.url.url('/ui/identity')}' class='icon-text-button'>
-                    <span><img src='{util.url.url('/static/svg/back.svg')}' alt='Back to Accounts'></span>
-                    <span>Back to Accounts</span>
-                </a>
-            </p>
-            """,
-        },
-    )
-
-
-@router.get('/ui/signin/reset')
-async def get_ui_signin_reset(
-    request: starlette.requests.Request,
-    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
-):
-    return util.template.templates.TemplateResponse(
-        'signin-reset-pw.html',
-        {
-            # Base
-            'profile': token_profile_row,
-            'request': request,
+            'title': 'Link Profile',
         },
     )
 
@@ -160,7 +131,8 @@ async def post_signin_ldap(
         idp_uid=ldap_dn,
         common_name=username,
         email=None,
-        has_avatar=False,
+        fetch_avatar_func=None,
+        avatar_ver=None,
     )
 
 

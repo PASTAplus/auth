@@ -8,9 +8,10 @@ import starlette.requests
 import starlette.responses
 
 import api.utils
+import util.avatar
 import util.dependency
-import util.exc
 import util.edi_token
+import util.exc
 import util.url
 
 router = fastapi.APIRouter(prefix='/v1')
@@ -96,7 +97,7 @@ async def get_v1_profile(
         result_dict.update(
             dict(
                 email=profile_row.email,
-                avatar_url=util.url.get_abs_url(profile_row.avatar_url),
+                avatar_url=await util.avatar.get_profile_avatar_url(dbi, profile_row),
                 email_notifications=profile_row.email_notifications,
                 privacy_policy_accepted=profile_row.privacy_policy_accepted,
                 privacy_policy_accepted_date=profile_row.privacy_policy_accepted_date,

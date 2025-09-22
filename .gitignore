@@ -9,7 +9,7 @@
 ___*
 config.py
 avatars/
-webapp/static/lib/
+webapp/static/bootstrap/
 # Put pre-rendered images in docs/images instead
 docs/schemas/*.png
 certs/

@@ -1,3 +1,4 @@
+import re
 import subprocess
 import time
 import urllib.parse
@@ -72,6 +73,10 @@ def is_true(v: str | None) -> bool:
             f'Invalid boolean value: {v}. '
             f'Expected one of: true, false, yes, no, 1, 0 (case insensitive).'
         )
+
+
+def collapse_whitespace(s):
+    return re.sub(r'\s+', ' ', s).strip()
 
 
 def _get_cache_buster_version() -> str:
