@@ -43,6 +43,7 @@ class ProfileInterface:
         - Skeleton profiles are created in a separate function.
         """
         assert idp_name != IdpName.SKELETON
+        success_msg = "Signed in successfully."
         try:
             profile_row = await self.get_profile_by_idp(idp_name, idp_uid)
             # We have a full profile.
@@ -53,8 +54,11 @@ class ProfileInterface:
         if profile_row is None:
             try:
                 profile_row = await self.get_profile_by_idp(IdpName.SKELETON, idp_uid)
-                # We have a skeleton profile and identity. We will upgrade this to a full profile
-                # below.
+                # We have a skeleton profile. We will upgrade this to a full profile below
+                success_msg = """Signed in successfully. The profile to which you signed in was
+                initially created automatically as a placeholder. As a result, we have now filled
+                in the profile with the information provided by your identity provider.
+                """
             except sqlalchemy.exc.NoResultFound:
                 pass
         # See README.md: Strategy for dealing with Google emails historically used as identifiers.
@@ -67,6 +71,11 @@ class ProfileInterface:
                     # We have a legacy case where the IdP UID is an email address. Fix up the record
                     # idp_uid now, and upgrade to full profile below.
                     profile_row.idp_uid = idp_uid
+                    success_msg = """Signed in successfully. The profile to which you signed in was
+                    initially created automatically as a placeholder, using a legacy Google
+                    account. As a result, we have now filled in the profile with the information
+                    provided by your identity provider.
+                    """
                 except sqlalchemy.exc.NoResultFound:
                     pass
         # If we still haven't found a profile, this is the first login into a new profile. We can
@@ -78,6 +87,7 @@ class ProfileInterface:
                 common_name=common_name,
                 email=email,
             )
+            success_msg = "A new profile has been created for you."
         # We now have a profile, either previously existing or newly created.
         # If this is a previously existing skeleton profile, upgrade it to full.
         if profile_row.idp_name == IdpName.SKELETON:
@@ -102,7 +112,7 @@ class ProfileInterface:
         # Update the profile's last_auth time, and first_auth time if not already set.
         profile_row.first_auth = profile_row.first_auth or datetime.datetime.now()
         profile_row.last_auth = datetime.datetime.now()
-        return profile_row
+        return profile_row, success_msg
 
     async def create_skeleton_profile(self, idp_uid: str) -> Profile:
         """Create a 'skeleton' EDI profile that can be used in permissions, and which can be logged
@@ -414,8 +424,7 @@ class ProfileInterface:
         )
 
     async def get_primary_profile(self, profile_row):
-        """Get the primary profile for the given linked profile.
-        """
+        """Get the primary profile for the given linked profile."""
         result = await self.execute(
             (
                 sqlalchemy.select(Profile)

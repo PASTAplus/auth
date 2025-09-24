@@ -64,13 +64,15 @@ async def get_login_pasta(
 
     log.debug(f'login_pasta() - login successful: {ldap_dn}')
 
-    profile_row = await dbi.create_or_update_profile(
+    profile_row, success_msg = await dbi.create_or_update_profile(
         idp_name=db.models.profile.IdpName.LDAP,
         idp_uid=ldap_dn,
         common_name=dn_uid,
         email=None,
     )
     await dbi.flush()
+
+    log.debug(f'Login message: {success_msg}')
 
     # As described in the docstr, this response goes to the server side web app, so we create a
     # limited response that contains only the items checked for by the server.

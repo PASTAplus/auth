@@ -18,7 +18,8 @@
 
   {# Bootstrap CSS #}
   <link href='{{ url('/static/bootstrap/bootstrap/css/bootstrap.min.css') }}' rel='stylesheet'>
-  <link href='{{ url('/static/bootstrap/bootstrap-icons/bootstrap-icons.min.css') }}' rel='stylesheet'>
+  <link href='{{ url('/static/bootstrap/bootstrap-icons/bootstrap-icons.min.css') }}'
+        rel='stylesheet'>
   {# Extra styles for auth #}
   <link href='{{ url_buster('/static/css/base.css') }}' rel='stylesheet'>
   {% block head %}
@@ -144,7 +145,8 @@
                 </div>
               </div>
               <div class='row-center-child'>
-                <a class='nav-link' href='{{ url('/signout') }}'>
+                <a class='nav-link'
+                   href='{{ url('/signout') }}?success=You have been signed out successfully.'>
                   <img src='{{ url('/static/svg/sign-out.svg') }}' alt='Sign out' class='icon-link'>
                   {#<i class='bi bi-box-arrow-right'></i>#}
                   Sign out

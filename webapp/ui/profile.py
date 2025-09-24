@@ -82,7 +82,7 @@ async def post_profile_edit_update(
         email=form_data.get('email'),
         email_notifications='email-notifications' in form_data,
     )
-    return util.redirect.internal('/ui/profile/edit', msg='Profile updated')
+    return util.redirect.internal('/ui/profile/edit', success='Profile updated successfully.')
 
 
 @router.post('/ui/api/profile/edit/delete')
@@ -91,4 +91,4 @@ async def post_profile_edit_delete(
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     await dbi.delete_profile(token_profile_row)
-    return util.redirect.internal('/signout')
+    return util.redirect.internal('/signout', success='Profile deleted successfully.')

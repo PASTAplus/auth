@@ -56,21 +56,16 @@ async def handle_client_login(
     dbi, target_url, idp_name, idp_uid, common_name, email, fetch_avatar_func, avatar_ver
 ):
     """We are currently signed out, and are signing in to a new or existing profile."""
-    profile_row = await dbi.create_or_update_profile(
+    profile_row, success_msg = await dbi.create_or_update_profile(
         idp_name, idp_uid, common_name, email, fetch_avatar_func, avatar_ver
     )
     await dbi.flush()
-
     # If this is a linked profile, redirect to the primary profile.
-    msg_dict = {}
     try:
         profile_row = await dbi.get_primary_profile(profile_row)
-        msg_dict['success_msg'] = util.url.collapse_whitespace(
-            """
-            You have signed in successfully. You signed in to a linked profile, and have been
-            redirected to your primary profile.
-            """
-        )
+        success_msg = """Signed in successfully. You signed in to a linked profile, and have been
+        redirected to your primary profile.
+        """
     except sqlalchemy.exc.NoResultFound:
         pass
 
@@ -92,7 +87,7 @@ async def handle_client_login(
         idp_uid=profile_row.idp_uid,
         idp_name=profile_row.idp_name,
         sub=profile_row.idp_uid,
-        **msg_dict,
+        success_msg=success_msg,
     )
 
 
@@ -105,8 +100,8 @@ async def handle_link_identity(
     This process is reversible by unlinking the profile.
 
     Signing in to a linked profile will redirect to the primary profile, so it is only possible to
-    be signed in to a primary profile. In other words, if token_profile_row is in the profile link
-    table, it can only be in the primary column.
+    be signed in to a primary profile. So, if token_profile_row is in the profile link table, it can
+    only be in the primary column.
     """
 
     # Unknown profile: If we found no profile for the identity, this is the easy case. It's the same
@@ -121,7 +116,16 @@ async def handle_link_identity(
         await dbi.flush()
         await dbi.create_profile_link(token_profile_row, profile_row.id)
         return util.redirect.internal(
-            '/ui/identity', success='A new profile was created and linked successfully.'
+            '/ui/identity',
+            success=util.url.collapse_whitespace(
+                """
+                The account with which you signed in, was not already associated with a profile. As
+                a result, we have created a new profile for the account, and linked it to the
+                profile to which you are currently signed in (your primary profile). You can now
+                sign in to your primary profile using either account. If this was not what you
+                intended, you can unlink the account, then sign in to it and edit or remove it.
+                """
+            ),
         )
 
     # Currently signed in profile: If we found the profile to which we are already signed in, this
@@ -131,7 +135,7 @@ async def handle_link_identity(
             '/ui/identity',
             error=util.url.collapse_whitespace(
                 """
-                The profile you are attempting to link is the profile with which you are currently
+                The profile you are attempting to link is the profile to which you are currently
                 signed in (your primary profile).
                 """
             ),
@@ -143,7 +147,12 @@ async def handle_link_identity(
     if profile_row.id in (row.id for row in linked_profile_list):
         return util.redirect.internal(
             '/ui/identity',
-            error='The account you are attempting to link was already linked to this profile.',
+            error=util.url.collapse_whitespace(
+                """
+                The profile you are attempting to link was already linked to the profile to which
+                you are currently signed in (your primary profile).
+                """
+            ),
         )
 
     indirect_linked_profile_id_list = list(
@@ -155,7 +164,7 @@ async def handle_link_identity(
         # and is not linked to any other profile, we can simply link it to the currently signed in
         # profile.
         await dbi.create_profile_link(token_profile_row, profile_row.id)
-        return util.redirect.internal('/ui/identity', success='Account linked successfully.')
+        return util.redirect.internal('/ui/identity', success='Profile linked successfully.')
 
     # Linked profile, linked to another profile: If the profile we found is a linked profile, we
     # re-link the primary profile to which it is linked, along its linked profiles, to the currently
@@ -179,9 +188,11 @@ async def handle_link_identity(
         '/ui/identity',
         success=util.url.collapse_whitespace(
             """
-            The profile you linked is already associated with another profile. As a result, we have
-            linked both the profile and any of its linked profiles, to your profile. You can undo
-            this by clicking the 'Unlink' button next to the account(s).
+            The profile you linked was already linked with another profile. As a result, we have
+            linked both the profile and any of its linked profiles, to the profile to which you are
+            currently signed in (your primary profile). If this was not what you intended, you can
+            unlink the profile(s), then sign in to them to restore the links you would like to
+            keep.
             """
         ),
     )
