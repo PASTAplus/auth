@@ -118,8 +118,6 @@ Permissions:
   The caller must have 'write' permission on the group.
 ```
 
-
-
 ## Add User Profile to Group
 
 Add an EDI user profile to a group.
@@ -177,3 +175,4 @@ removeGroupMember(edi_token, group_edi_id, profile_edi_id)
 Permissions:
   The caller must have 'write' permission on the group.
 ```
+

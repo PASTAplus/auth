@@ -1,3 +1,4 @@
+import db.models.profile
 import pathlib
 import contextlib
 import io
@@ -27,6 +28,9 @@ def save_avatar(avatar_img: bytes, namespace_str: str, id_str: str, ext=None):
 
 async def get_profile_avatar_url(dbi, profile_row):
     """Return the URL to the avatar image for the given profile."""
+    # If this is a skeleton profile, we unconditionally return the anonymous avatar.
+    if profile_row.idp_name == db.models.profile.IdpName.SKELETON:
+        return get_anon_avatar_url()
     # We allow one level of indirection for the avatar image, to support the case where the user has
     # chosen to use the avatar from one of their linked profiles.
     if profile_row.avatar_profile_id is not None:
@@ -81,7 +85,7 @@ def get_initials_avatar_url(initials_str: str):
     - This returns an API endpoint which will generate and cache the avatar image if it does not
     exist.
     """
-    return str(util.url.url(f'/ui/api/avatar/gen/{initials_str}'))
+    return str(util.url.url(f'/ui/api/avatar/gen/{util.url.urlenc(initials_str)}'))
 
 
 def get_initials_avatar_path(initials_str: str):

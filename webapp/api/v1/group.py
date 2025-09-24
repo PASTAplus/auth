@@ -23,7 +23,7 @@ async def post_v1_group_member(
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    """addGroupMember(): Add one or more EDI user profiles to a group
+    """addGroupMember(): Add an EDI user profile to a group
     ./docs/api/group.md
     """
     api_method = 'addGroupMember'
