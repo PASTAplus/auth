@@ -76,7 +76,8 @@ principalListEl.addEventListener('mousedown', function (ev) {
 });
 
 // Get value of selected group-select radio button
-function getGroupId() {
+function getGroupId()
+{
   return document.querySelector('input[name="group-select"]:checked').value;
 }
 
@@ -99,18 +100,24 @@ document.addEventListener('click', function (ev) {
 function fetchPrincipalSearch()
 {
   const searchStr = principalSearchEl.value;
-  fetch(`${BASE_PATH}/ui/api/group/member/search`, {
+  fetch(`${BASE_PATH}/int/api/group/member/search`, {
     method: 'POST', headers: {
       'Content-Type': 'application/json',
     }, body: JSON.stringify({query: searchStr}),
   })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 401) {
+          window.location = `${BASE_PATH}/ui/signin?info=expired`;
+          return Promise.reject('Unauthorized');
+        }
+        return response.json();
+      })
       .then((resultObj) => {
         if (resultObj.error) {
           errorDialog(resultObj.error);
         }
         else {
-          searchProfileArray = resultObj.principal_list;
+          searchProfileArray = resultObj;
           refreshPrincipals();
         }
       })
@@ -122,21 +129,27 @@ function fetchPrincipalSearch()
 
 function fetchMembers(groupId)
 {
-  fetch(`/ui/api/group/member/list/${groupId}`, {
+  fetch(`/int/api/group/member/list/${groupId}`, {
     method: 'GET', headers: {
       'Content-Type': 'application/json',
     },
   })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 401) {
+          window.location = `${BASE_PATH}/ui/signin?info=expired`;
+          return Promise.reject('Unauthorized');
+        }
+        return response.json();
+      })
       .then((resultObj) => {
         if (resultObj.error) {
           errorDialog(resultObj.error);
         }
         else {
-          memberProfileArray = resultObj.member_list;
+          memberProfileArray = resultObj;
           refreshMembers();
           setMemberCount(groupId, memberProfileArray.length);
-          principalSearchEl.placeholder='Add Users and Groups';
+          principalSearchEl.placeholder = 'Add Users and Groups';
           principalSearchEl.disabled = false;
         }
       })
@@ -151,13 +164,19 @@ function fetchAddRemoveMember(groupId, memberProfileId, isAdd)
   if (hasMember(memberProfileId) && isAdd) {
     return;
   }
-  fetch(`${BASE_PATH}/ui/api/group/member/add-remove`, {
+  fetch(`${BASE_PATH}/int/api/group/member/add-remove`, {
     method: 'POST', headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({group_id: groupId, member_profile_id: memberProfileId, is_add: isAdd}),
   })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 401) {
+          window.location = `${BASE_PATH}/ui/signin?info=expired`;
+          return Promise.reject('Unauthorized');
+        }
+        return response.json();
+      })
       .then((resultObj) => {
         if (resultObj.error) {
           errorDialog(resultObj.error);
@@ -180,7 +199,6 @@ function setMemberCount(groupId, count)
   const countEl = detailsEl.querySelector('.member-count');
   countEl.textContent = `${count} member${count === 1 ? '' : 's'}`;
 }
-
 
 
 //
@@ -246,7 +264,8 @@ deleteGroupModal.addEventListener('show.bs.modal', function (ev) {
 // Util
 //
 
-function hasMember(profileId) {
+function hasMember(profileId)
+{
   return memberProfileArray.some((profileObj) => profileObj.profile_id === profileId);
 }
 
@@ -262,7 +281,8 @@ function removeMember(profileId)
 function refreshMembers()
 {
   if (!memberProfileArray.length) {
-    memberListEl.innerHTML = `<div class='grid-msg'>No members have been added to this group yet.</div>`;
+    memberListEl.innerHTML =
+        `<div class='grid-msg'>No members have been added to this group yet.</div>`;
     return;
   }
   const fragment = document.createDocumentFragment();
@@ -321,7 +341,8 @@ function addPrincipalDiv(parentEl, principalObj)
 }
 
 
-function addRemoveButtonDiv(parentEl, principalObj) {
+function addRemoveButtonDiv(parentEl, principalObj)
+{
   const removeEl = document.createElement('div');
   removeEl.dataset.profileId = principalObj.profile_id;
   removeEl.innerHTML = `

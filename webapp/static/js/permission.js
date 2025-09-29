@@ -371,7 +371,7 @@ function fetchBlock(blockIdx, version)
   if (blockPromises.has(blockIdx)) {
     return blockPromises.get(blockIdx).promise;
   }
-  const url = new URL(`${BASE_PATH}/ui/api/permission/slice`, window.location.origin);
+  const url = new URL(`${BASE_PATH}/int/api/permission/slice`, window.location.origin);
   url.search = new URLSearchParams({
     uuid: SEARCH_UUID,
     start: (blockIdx * blockSize).toString(),
@@ -399,7 +399,7 @@ function fetchBlock(blockIdx, version)
 function fetchTree(rootId)
 {
   log('fetchTree()', {rootId});
-  const url = new URL(`${BASE_PATH}/ui/api/permission/tree/${rootId}`, window.location.origin);
+  const url = new URL(`${BASE_PATH}/int/api/permission/tree/${rootId}`, window.location.origin);
   return fetch(url.toString())
       .then(res => res.json())
       .then(tree => {
@@ -641,7 +641,7 @@ function fetchSelectedResourcePermissions()
     permissionListEl.innerHTML = `<div class='grid-msg'>Loading permissions...</div>`;
   }, 2000);
 
-  fetch(`${BASE_PATH}/ui/api/permission/aggregate/get`, {
+  fetch(`${BASE_PATH}/int/api/permission/aggregate/get`, {
     method: 'POST', headers: {
       'Content-Type': 'application/json',
     }, body: JSON.stringify(resources),
@@ -675,7 +675,7 @@ function fetchSelectedResourcePermissions()
 function fetchSetPermission(resources, principalId, permissionLevel)
 {
   log('fetchSetPermission() START', {resources, principalId, permissionLevel});
-  fetch(`${BASE_PATH}/ui/api/permission/update`, {
+  fetch(`${BASE_PATH}/int/api/permission/update`, {
     method: 'POST', headers: {
       'Content-Type': 'application/json',
     }, body: JSON.stringify({
@@ -710,7 +710,7 @@ function fetchSetPermission(resources, principalId, permissionLevel)
 function fetchPrincipalSearch()
 {
   const searchStr = principalSearchEl.value;
-  fetch(`${BASE_PATH}/ui/api/permission/principal/search`, {
+  fetch(`${BASE_PATH}/int/api/permission/principal/search`, {
     method: 'POST', headers: {
       'Content-Type': 'application/json',
     }, body: JSON.stringify({query: searchStr}),
