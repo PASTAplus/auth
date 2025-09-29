@@ -56,16 +56,17 @@ async def handle_client_login(
     dbi, target_url, idp_name, idp_uid, common_name, email, fetch_avatar_func, avatar_ver
 ):
     """We are currently signed out, and are signing in to a new or existing profile."""
-    profile_row, success_msg = await dbi.create_or_update_profile(
+    profile_row, info_msg = await dbi.create_or_update_profile(
         idp_name, idp_uid, common_name, email, fetch_avatar_func, avatar_ver
     )
     await dbi.flush()
     # If this is a linked profile, redirect to the primary profile.
     try:
         profile_row = await dbi.get_primary_profile(profile_row)
-        success_msg = """Signed in successfully. You signed in to a linked profile, and have been
-        redirected to your primary profile.
+        info_msg = """You signed in to a linked profile, and have been redirected to your primary
+            profile.
         """
+
     except sqlalchemy.exc.NoResultFound:
         pass
 
@@ -87,7 +88,7 @@ async def handle_client_login(
         idp_uid=profile_row.idp_uid,
         idp_name=profile_row.idp_name,
         sub=profile_row.idp_uid,
-        success_msg=success_msg,
+        info_msg=util.url.msg(f'Welcome to the EDI Identity and Access Manager! {info_msg}'),
     )
 
 
@@ -117,7 +118,7 @@ async def handle_link_identity(
         await dbi.create_profile_link(token_profile_row, profile_row.id)
         return util.redirect.internal(
             '/ui/identity',
-            success=util.url.collapse_whitespace(
+            info=util.url.msg(
                 """
                 The account with which you signed in, was not already associated with a profile. As
                 a result, we have created a new profile for the account, and linked it to the
@@ -133,7 +134,7 @@ async def handle_link_identity(
     if profile_row.id == token_profile_row.id:
         return util.redirect.internal(
             '/ui/identity',
-            error=util.url.collapse_whitespace(
+            error=util.url.msg(
                 """
                 The profile you are attempting to link is the profile to which you are currently
                 signed in (your primary profile).
@@ -147,7 +148,7 @@ async def handle_link_identity(
     if profile_row.id in (row.id for row in linked_profile_list):
         return util.redirect.internal(
             '/ui/identity',
-            error=util.url.collapse_whitespace(
+            error=util.url.msg(
                 """
                 The profile you are attempting to link was already linked to the profile to which
                 you are currently signed in (your primary profile).
@@ -164,7 +165,7 @@ async def handle_link_identity(
         # and is not linked to any other profile, we can simply link it to the currently signed in
         # profile.
         await dbi.create_profile_link(token_profile_row, profile_row.id)
-        return util.redirect.internal('/ui/identity', success='Profile linked successfully.')
+        return util.redirect.internal('/ui/identity', info='Profile linked successfully.')
 
     # Linked profile, linked to another profile: If the profile we found is a linked profile, we
     # re-link the primary profile to which it is linked, along its linked profiles, to the currently
@@ -186,7 +187,7 @@ async def handle_link_identity(
         await dbi.create_profile_link(token_profile_row, indirect_linked_profile_id)
     return util.redirect.internal(
         '/ui/identity',
-        success=util.url.collapse_whitespace(
+        info=util.url.msg(
             """
             The profile you linked was already linked with another profile. As a result, we have
             linked both the profile and any of its linked profiles, to the profile to which you are

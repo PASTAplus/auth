@@ -24,7 +24,12 @@ class Config(object):
     JWT_PUBLIC_KEY_PATH = HERE_PATH / 'path/to/jwt_public_key.pem'
     JWT_PRIVATE_KEY_PATH = HERE_PATH / 'path/to/jwt_private_key.pem'
     JWT_ALGORITHM = 'ES256'
+    # Token TTL
     JWT_EXPIRATION_DELTA = datetime.timedelta(hours=8)
+    # Refresh the token if it's older than this delta. This allows a session to be extended
+    # indefinitely, as long as the user is actively using the service, while avoiding overhead
+    # caused by refreshing the token on every request.
+    JWT_REFRESH_DELTA = datetime.timedelta(hours=1)
     JWT_ISSUER = 'https://auth.edirepository.org'
     JWT_AUDIENCE = 'https://auth.edirepository.org'
     JWT_HOSTED_DOMAIN = 'edirepository.org'

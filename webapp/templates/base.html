@@ -146,7 +146,7 @@
               </div>
               <div class='row-center-child'>
                 <a class='nav-link'
-                   href='{{ url('/signout') }}?success=You have been signed out successfully.'>
+                   href='{{ url('/signout') }}?info=You have been signed out successfully.'>
                   <img src='{{ url('/static/svg/sign-out.svg') }}' alt='Sign out' class='icon-link'>
                   {#<i class='bi bi-box-arrow-right'></i>#}
                   Sign out
@@ -181,13 +181,18 @@
     </div>
   {% endif %}
 
-  {% if success_msg %}
+  {% if info_msg %}
     <div class='indent alert alert-info alert-row'>
       <div>
         <i class='bi bi-info-circle'></i>
       </div>
       <div>
-        {{ success_msg }}
+        {% if info_msg == 'expired' %}
+          You have been signed out for your security due to inactivity. Please sign in again to
+          continue.
+        {% else %}
+          {{ info_msg }}
+        {% endif %}
       </div>
     </div>
   {% endif %}

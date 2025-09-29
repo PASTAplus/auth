@@ -40,7 +40,7 @@ async def get_ui_signin(
             'profile': None,
             'avatar_url': None,
             'error_msg': request.query_params.get('error'),
-            'success_msg': request.query_params.get('success'),
+            'info_msg': request.query_params.get('info'),
             # Page
             'login_type': 'client',
             'target_url': Config.SERVICE_BASE_URL + '/ui/profile',
@@ -64,7 +64,7 @@ async def get_ui_signin(
             'profile': None,
             'avatar_url': None,
             'error_msg': request.query_params.get('error'),
-            'success_msg': request.query_params.get('success'),
+            'info_msg': request.query_params.get('info'),
             # Page
             # 'login_type': 'client',
             # 'target_url': Config.SERVICE_BASE_URL + '/ui/identity',
@@ -87,7 +87,7 @@ async def get_ui_signin_link(
             'profile': token_profile_row,
             'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
             'error_msg': request.query_params.get('error'),
-            'success_msg': request.query_params.get('success'),
+            'info_msg': request.query_params.get('info'),
             # Page
             'login_type': 'link',
             'target_url': Config.SERVICE_BASE_URL + '/ui/identity',

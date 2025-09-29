@@ -12,7 +12,6 @@ import db.db_interface
 import db.models.profile
 import db.session
 import util.edi_token
-from util.edi_token import EdiTokenClaims
 
 # Create class refs here to use as type hints
 Profile = db.models.profile.Profile
@@ -83,7 +82,7 @@ async def token_profile_row(
     dbi_: DbInterface = fastapi.Depends(dbi),
     token_: EdiTokenClaims | None = fastapi.Depends(token),
 ) -> AsyncGenerator[Profile | None, Any]:
-    """Get the profile row associated with the token.
+    """Get the profile row associated with the token subject.
     - Yields None if the token is missing, expired or otherwise invalid.
     """
     if token_:

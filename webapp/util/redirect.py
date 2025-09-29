@@ -71,7 +71,7 @@ def target(
     idp_uid: str,
     idp_name: db.models.profile.IdpName,
     sub: str,
-    success_msg: str | None = None,
+    info_msg: str | None = None,
     error_msg: str | None = None,
 ):
     """Create Response that redirects to the final target URL, providing the old style and new style
@@ -83,8 +83,8 @@ def target(
     target_url: The URL to which the client originally requested to be redirected.
     """
     msg_dict = {}
-    if success_msg:
-        msg_dict['success'] = success_msg
+    if info_msg:
+        msg_dict['info'] = info_msg
     if error_msg:
         msg_dict['error'] = error_msg
 

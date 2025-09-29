@@ -30,7 +30,6 @@ async def get_ui_token(
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
     token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
 ):
-    claims_obj = await util.edi_token.create_claims(dbi, token_profile_row)
     return util.template.templates.TemplateResponse(
         'token.html',
         {
@@ -39,9 +38,9 @@ async def get_ui_token(
             'profile': token_profile_row,
             'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
             'error_msg': request.query_params.get('error'),
-            'success_msg': request.query_params.get('success'),
+            'info_msg': request.query_params.get('info'),
             # Page
-            'token_pp': await util.edi_token.claims_pformat(dbi, claims_obj),
+            'token_pp': await util.edi_token.claims_pformat(dbi, request.state.claims),
             'filename': f'token-{token.edi_id}.jwt',
             'lifetime': token.exp - token.iat // 3600,
         },

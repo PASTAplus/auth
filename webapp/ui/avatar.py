@@ -56,7 +56,7 @@ async def get_ui_avatar(
             'profile': token_profile_row,
             'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
             'error_msg': request.query_params.get('error'),
-            'success_msg': request.query_params.get('success'),
+            'info_msg': request.query_params.get('info'),
             # Page
             'avatar_list': avatar_list,
         },
@@ -84,7 +84,7 @@ async def post_avatar_update(
     await dbi.update_profile(
         token_profile_row, avatar_profile_id=profile_id, anonymous_avatar=anonymous_avatar
     )
-    return util.redirect.internal('/ui/profile', success='Avatar updated successfully.')
+    return util.redirect.internal('/ui/profile', info='Avatar updated successfully.')
 
 
 @router.get('/ui/api/avatar/gen/{initials}')
