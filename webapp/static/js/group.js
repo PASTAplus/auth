@@ -219,8 +219,8 @@ Array.prototype.filter.call(forms, function (form) {
 });
 
 // Handle new/edit group buttons and update modal before displaying
-let groupModal = document.getElementById('groupModal');
-groupModal.addEventListener('show.bs.modal', function (ev) {
+let editGroupModal = document.getElementById('editGroupModal');
+editGroupModal.addEventListener('show.bs.modal', function (ev) {
   let button = ev.relatedTarget;
 
   let formTarget = button.getAttribute('data-form-target');
@@ -230,12 +230,12 @@ groupModal.addEventListener('show.bs.modal', function (ev) {
   let groupDescription = button.getAttribute('data-group-description');
   let submitText = button.getAttribute('data-submit-text');
 
-  let formEl = groupModal.querySelector('#groupForm');
-  let titleEl = groupModal.querySelector('#groupTitle');
-  let IdEl = groupModal.querySelector('#groupId');
-  let nameEl = groupModal.querySelector('#groupName');
-  let descriptionEl = groupModal.querySelector('#groupDescription');
-  let submitEl = groupModal.querySelector('#groupButton');
+  let formEl = editGroupModal.querySelector('#groupForm');
+  let titleEl = editGroupModal.querySelector('#groupTitle');
+  let IdEl = editGroupModal.querySelector('#groupId');
+  let nameEl = editGroupModal.querySelector('#groupName');
+  let descriptionEl = editGroupModal.querySelector('#groupDescription');
+  let submitEl = editGroupModal.querySelector('#groupButton');
 
   formEl.action = formTarget;
   titleEl.textContent = groupTitle;

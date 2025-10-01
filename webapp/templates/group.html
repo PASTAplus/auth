@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% set active_page = 'identity' %}
+{% set highlight_menu = 'group' %}
 
 {% block title %}
   Groups
@@ -13,34 +13,28 @@
   <script src='{{ url_buster('/static/js/group.js') }}'></script>
 {% endblock %}
 
+{% block header %}
+  <h1 aria-label>Groups
+    <a href='{{ url('/ui/help#groups') }}' target='_blank'>
+      <i class='bi bi-question-circle help-button'></i>
+    </a>
+  </h1>
+{% endblock %}
+
 {% block content %}
   <div class='split-container'>
 
-    <div class=''>
-
-      <div class='header-container'
-           data-base-path='{{ url('') }}'
-          {#data-group-id='{{ group_row.id }}'#}
-      >
-      </div>
-
-      <div class='indent'>
-        <p>
-          Groups allow you to organize access to your data objects efficiently. Instead of granting
-          access to individuals one by one, you can add them to a group and manage access
-          collectively. Adding a member to a group grants them immediate access to all resources the
-          group has access to, while removing them revokes that access.
-        </p>
-      </div>
-
+    <div class='header-container'
+         data-highlight-menu='group'
+         data-base-path='{{ url('') }}'
+    >
     </div>
 
-    {#<div class='indent'>#}
     <div class='split-main'>
 
       <div class='split-section split-left'>
 
-        <h4>Groups</h4>
+        <h4>Group Details</h4>
 
         <div class='indent'>
           <p>
@@ -66,7 +60,7 @@
                     {# Edit group name and description #}
                     <button class='icon-button'
                             data-bs-toggle='modal'
-                            data-bs-target='#groupModal'
+                            data-bs-target='#editGroupModal'
                             data-form-target='{{ url('/ui/api/group/edit') }}'
                             data-title='Edit group'
                             data-group-id='{{ group.id }}'
@@ -103,7 +97,7 @@
                       <div class='edi-id-child-icon'>
                         <img src='{{ url('/static/svg/copy.svg') }}'
                              alt='Copy Group Identifier'
-                            class='edi-id-copy-button'
+                             class='edi-id-copy-button'
                         >
                       </div>
                     </div>
@@ -126,7 +120,7 @@
           </div>
           <button type='button' class='btn btn-primary' id='newGroupButton'
                   data-bs-toggle='modal'
-                  data-bs-target='#groupModal'
+                  data-bs-target='#editGroupModal'
                   data-form-target='{{ url('/ui/api/group/new') }}'
                   data-title='Create a new group'
                   data-group-id=''
@@ -161,7 +155,7 @@
   {#</div>#}
 
   {# New/edit group modal #}
-  <div class='modal fade' id='groupModal' tabindex='-1' data-bs-backdrop='static'>
+  <div class='modal fade' id='editGroupModal' tabindex='-1' data-bs-backdrop='static'>
     <div class='modal-dialog modal-dialog-centered'>
       <div class='modal-content'>
         <div class='modal-header'>

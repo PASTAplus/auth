@@ -1,3 +1,9 @@
+:root {
+    /* Variables set in JS */
+    /* Height of the navbar, used to calculate the height of the main container */
+    --navbar-height: 0px;
+}
+
 /*
 Main grid
 */
@@ -5,9 +11,6 @@ Main grid
 /*
 +-----------------------------+
 |        split-container      |
-|  +-----------------------+  |
-|  |      split-top        |  |
-|  +-----------------------+  |
 |  +-----------------------+  |
 |  |      split-main       |  |
 |  |  +-------+  +-------+ |  |
@@ -19,20 +22,42 @@ Main grid
 +-----------------------------+
 */
 
-.split-container {
-    display: grid;
-    grid-template-rows: auto 1fr;
+
+/*
+The container wraps everything on the page except for the navbar.
+
+We use a flex column layout to allow the split-container to take up the remaining space below the
+navbar. The container height is set to the full size of the viewport minus the navbar height, so the
+split-container can use flex: 1 to take up the remaining space.
+*/
+.container {
+    display: flex;
+    flex-direction: column;
+    /* Include padding and border in element's total width and height */
+    box-sizing: border-box;
     height: calc(100vh - var(--navbar-height));
+    /* Prevent scrollbars on main page */
+    overflow: hidden;
+    /*border: 3px solid red;*/
 }
 
-.split-top{
-    /* background-color: #80bdff; */
+.split-container {
+    /* display: grid; */
+    /* grid-template-rows: auto 1fr; */
+    /* height: 100vh; */
+    /* height: 100%; */
+    /* box-sizing: border-box; */
+    /* Prevent overflow */
+    overflow: auto;
+    flex: 1;
 }
 
 .split-main {
     display: flex;
     /* Add vertical scrolling */
-    overflow-y: auto;
+    /* overflow-y: auto; */
+    height: 100%;
+    overflow: auto;
     margin-left: 1rem;
 }
 
@@ -40,6 +65,8 @@ Main grid
     /* Allow the container to take up the remaining space */
     flex: 1;
     overflow-y: auto;
+
+    /*height: 50%;*/
 }
 
 .split-left {
