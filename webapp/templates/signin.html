@@ -21,10 +21,6 @@
   </div>
 
   <div class='indent'>
-    <p>
-      {{ text | safe }}
-    </p>
-
     {% if login_type == 'link' %}
       <p>
         Sign in to the profile you wish to link to this profile.
@@ -38,7 +34,54 @@
         </a>
       </p>
 
+    {% else %}
+
+      <p>
+        Sign in with your EDI account (contact support@edirepository.org to create an account or
+        click <a href='https://dashboard.edirepository.org/dashboard/auth/reset_password_init'>
+        here </a> to reset your password):
+      </p>
+
     {% endif %}
+
+    <div class='indent'>
+      <div id='ldapLoginForm' aria-labelledby='ldapLoginFormLabel' aria-hidden='true'>
+        <div class='modal-dialog'>
+          <div class='modal-content'>
+            <div class='modal-body'>
+              <form id='loginForm' action='{{ url('/ui/api/signin/ldap') }}' method='post'>
+                <input type='hidden' name='login_type' value='{{ login_type }}'>
+                <div>
+                  <label for='username' class='form-label'>User name:</label>
+                </div>
+                <div>
+                  <input type='text' class='form-control' id='username' name='username'
+                         autocomplete='username' required>
+                </div>
+                <div>
+                  <label for='password' class='form-label'>Password:</label>
+                </div>
+                <div>
+                  <input type='password' class='form-control' id='password' name='password'
+                         autocomplete='current-password' required>
+                </div>
+                <div>
+                </div>
+                <div>
+                  <button type='button' class='btn btn-secondary' id='ldapLoginClearButton'>Clear
+                  </button>
+                  <button type='submit' class='btn btn-primary'>Sign in</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p>
+      Or use an alternate identity provider:
+    </p>
 
     <div class='indent'>
       {# Google #}
@@ -81,72 +124,18 @@
             </div>
           </div>
         </a>
-        {# EDI LDAP #}
-        <div class='grid-child'>
-          <div class='grid-child-button'
-               data-bs-toggle='modal'
-               data-bs-target='#ldapLoginModal'
-          >
-            <img class='grid-logo-edi' src='{{ url('/static/svg/idp/edi-logo.svg') }}'
-                 alt='Sign in with EDI'>
-            EDI
-          </div>
-        </div>
 
       </div>
 
     </div>
+
+    <p>
+      Please review our
+      <a href='https://edirepository.org/about/edi-policy#privacy-policy'>privacy policy</a>
+      to learn what information we collect, how we use it, and your privacy rights.
+    </p>
   </div>
 
-  <p>
-    Please review our
-    <a href='https://edirepository.org/about/edi-policy#privacy-policy'>privacy policy</a>
-    to learn what information we collect, how we use it, and your privacy rights.
-  </p>
-
-  <div class='modal fade' id='ldapLoginModal' tabindex='-1' data-bs-backdrop='static'>
-    <div class='modal-dialog'>
-      <div class='modal-content'>
-        <div class='modal-header'>
-          <h5 class='modal-title'>Sign in with your EDI (LDAP) account</h5>
-          <button type='button' class='btn-close' data-bs-dismiss='modal'
-                  aria-label='Close'></button>
-        </div>
-        <div class='modal-body'>
-          <form id='loginForm' action='{{ url('/ui/api/signin/ldap') }}' method='post'>
-            <div>
-              <label for='username' class='form-label'>User name:</label>
-            </div>
-            <div>
-              <input type='text' class='form-control' id='username' name='username'
-                     autocomplete='username' required>
-            </div>
-            <div>
-              <label for='password' class='form-label'>Password:</label>
-            </div>
-            <div>
-              <input type='password' class='form-control' id='password' name='password'
-                     autocomplete='current-password' required>
-            </div>
-            <div>
-            </div>
-            <div>
-              <a href='https://dashboard.edirepository.org/dashboard/auth/reset_password_init'>
-                Forgot password
-              </a>
-            </div>
-            <div>
-            </div>
-            <div class='modal-footer'>
-              <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Cancel
-              </button>
-              <button type='submit' class='btn btn-primary'>Sign in</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
 
 
 {% endblock %}

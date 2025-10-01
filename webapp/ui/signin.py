@@ -45,7 +45,6 @@ async def get_ui_signin(
             'login_type': 'client',
             'target_url': Config.SERVICE_BASE_URL + '/ui/profile',
             'title': 'Sign in',
-            'text': 'Select your identity provider to sign in.',
         },
     )
 

@@ -1,3 +1,3 @@
-document.getElementById('clearFormButton').addEventListener('click', function() {
-    document.getElementById('loginForm').reset();
+document.getElementById('ldapLoginClearButton').addEventListener('click', function () {
+  document.getElementById('ldapLoginForm').reset();
 });
