@@ -214,12 +214,21 @@ Create or update the `requirements.txt` file (for use by GitHub Dependabot, and 
 pip list --format freeze > requirements.txt
 ```
 
-### Procedure for updating the Conda environment and all dependencies
+### Server: Procedure for updating the Conda environment and all dependencies
 
 ```shell
-conda update -n base -c conda-forge conda
+conda deactivate
+conda update -n base -c defaults conda # conda-forge
+conda env remove --name auth
+conda env create --file environment-min.yml
 conda activate auth
-conda update --all
+```
+
+### Dev: Procedure for updating the Conda environment and all dependencies
+
+Full "Server" procedure, plus update the `environment.yml` and `requirements.txt` files:
+
+```shell
 conda env export --no-builds > environment.yml
 pip list --format freeze > requirements.txt
 ```

@@ -102,8 +102,8 @@ resourceTreeEl.addEventListener('click', (ev) => {
     const treeIdx = parseInt(treeContainerEl.dataset.treeIdx);
     fetchTree(rootId).then(tree => {
       log('Placeholder expand click - Fetched first real tree for root_id:', {rootId});
-      if (tree.tree) {
-        updateValidTree(treeContainerEl, tree.tree, treeIdx, rootId);
+      if (tree) {
+        updateValidTree(treeContainerEl, tree, treeIdx, rootId);
         scheduleRender();
       }
       else {
@@ -254,7 +254,7 @@ resourceTreeEl.addEventListener('change', ev => {
       log('Placeholder checkbox click - Fetched first real tree for root_id:', {rootId});
       // Remove fixed height
       treeContainerEl.style.height = 'auto';
-      const treeHtml = formatResourceTreeRecursive([tree.tree], false);
+      const treeHtml = formatResourceTreeRecursive([tree], false);
       treeContainerEl.innerHTML = treeHtml;
       // Propagate click on resource checkbox to child checkboxes.
       const checkboxEls = treeContainerEl.querySelectorAll('.tree-checkbox');
@@ -542,8 +542,8 @@ function refreshExpandedTrees()
     const rootId = expandedTreeRootId.get(treeIdx);
     fetchTree(rootId).then(tree => {
       log('refreshExpandedTrees() - fetched tree:', {treeIdx, rootId});
-      if (tree.tree) {
-        refreshExpandedValidTree(treeIdx, tree.tree);
+      if (tree) {
+        refreshExpandedValidTree(treeIdx, tree);
       }
       else {
         // Tree is no longer valid (e.g. resource deleted or permissions changed)
@@ -653,14 +653,9 @@ function fetchSelectedResourcePermissions()
         return response.json();
       })
       .then((resultObj) => {
-        if (resultObj.error) {
-          errorDialog(resultObj.error);
-        }
-        else {
-          permissionArray = resultObj.permissionArray;
-          clearTimeout(msgDelay);
-          refreshPermissions();
-        }
+        permissionArray = resultObj;
+        clearTimeout(msgDelay);
+        refreshPermissions();
       })
       .catch((error) => {
         if (error !== 'Unauthorized') {
@@ -686,17 +681,11 @@ function fetchSetPermission(resources, principalId, permissionLevel)
           redirectToLogin();
           return Promise.reject('Unauthorized');
         }
-        return response.json();
       })
-      .then((resultObj) => {
-        if (resultObj.error) {
-          errorDialog(resultObj.error);
-        }
-        else {
-          principalSearchEl.value = '';
-          refreshExpandedTrees();
-          fetchSelectedResourcePermissions();
-        }
+      .then(() => {
+        principalSearchEl.value = '';
+        refreshExpandedTrees();
+        fetchSelectedResourcePermissions();
       })
       .catch((error) => {
         if (error !== 'Unauthorized') {
@@ -722,13 +711,8 @@ function fetchPrincipalSearch()
         return response.json();
       })
       .then((resultObj) => {
-        if (resultObj.error) {
-          errorDialog(resultObj.error);
-        }
-        else {
-          principalArray = resultObj.principals;
-          refreshPrincipals();
-        }
+        principalArray = resultObj;
+        refreshPrincipals();
       })
       .catch((error) => {
         if (error !== 'Unauthorized') {
