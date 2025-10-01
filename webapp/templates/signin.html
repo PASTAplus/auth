@@ -21,80 +21,81 @@
   </div>
 
   <div class='indent'>
-  <p>
-    {{ text | safe }}
-  </p>
-
-  {% if login_type == 'link' %}
     <p>
-      Sign in to the profile you wish to link to this profile.
+      {{ text | safe }}
     </p>
-    <p>
-      <a href='{{ url('/ui/identity') }}' class='icon-text-button'>
+
+    {% if login_type == 'link' %}
+      <p>
+        Sign in to the profile you wish to link to this profile.
+      </p>
+      <p>
+        <a href='{{ url('/ui/identity') }}' class='icon-text-button'>
         <span>
           <img src='{{ url('/static/svg/back.svg') }}' alt='Back to Accounts'>
         </span>
-        <span>Back to Accounts</span>
-      </a>
-    </p>
+          <span>Back to Accounts</span>
+        </a>
+      </p>
 
-  {% endif %}
+    {% endif %}
 
-  <div class='indent'>
-    {# Google #}
-    <div class='grid'>
-      <a href='{{ url('/login/google') }}?login_type={{ login_type }}&target={{ target_url }}'>
+    <div class='indent'>
+      {# Google #}
+      <div class='grid'>
+        <a href='{{ url('/login/google') }}?login_type={{ login_type }}&target={{ target_url }}'>
+          <div class='grid-child'>
+            <div class='grid-child-button'>
+              <img class='grid-logo-google' src='{{ url('/static/svg/idp/google-text.svg') }}'
+                   alt='Sign in with Microsoft'>
+            </div>
+          </div>
+        </a>
+        {# Microsoft #}
+        <a href='{{ url('/login/microsoft') }}?login_type={{ login_type }}&target={{ target_url }}'>
+          <div class='grid-child'>
+            <div class='grid-child-button'>
+              <img class='grid-logo-microsoft' src='{{ url('/static/svg/idp/microsoft.svg') }}'
+                   alt='Sign in with Microsoft'>
+            </div>
+          </div>
+        </a>
+        {# GitHub #}
+        <a href='{{ url('/login/github') }}?login_type={{ login_type }}&target={{ target_url }}'>
+          <div class='grid-child'>
+            <div class='grid-child-button'>
+              <img class='grid-logo-github-symbol'
+                   src='{{ url('/static/svg/idp/github-symbol.svg') }}'
+                   alt='Sign in with GitHub'>
+              <img class='grid-logo-github-text' src='{{ url('/static/svg/idp/github-text.svg') }}'
+                   alt='Sign in with GitHub'>
+            </div>
+          </div>
+        </a>
+        {# ORCID #}
+        <a href='{{ url('/login/orcid') }}?login_type={{ login_type }}&target={{ target_url }}'>
+          <div class='grid-child'>
+            <div class='grid-child-button'>
+              <img class='grid-logo-orcid' src='{{ url('/static/svg/idp/orcid.svg') }}'
+                   alt='Sign in with ORCID'>
+            </div>
+          </div>
+        </a>
+        {# EDI LDAP #}
         <div class='grid-child'>
-          <div class='grid-child-button'>
-            <img class='grid-logo-google' src='{{ url('/static/svg/idp/google-text.svg') }}'
-                 alt='Log in with Microsoft'>
+          <div class='grid-child-button'
+               data-bs-toggle='modal'
+               data-bs-target='#ldapLoginModal'
+          >
+            <img class='grid-logo-edi' src='{{ url('/static/svg/idp/edi-logo.svg') }}'
+                 alt='Sign in with EDI'>
+            EDI
           </div>
         </div>
-      </a>
-      {# Microsoft #}
-      <a href='{{ url('/login/microsoft') }}?login_type={{ login_type }}&target={{ target_url }}'>
-        <div class='grid-child'>
-          <div class='grid-child-button'>
-            <img class='grid-logo-microsoft' src='{{ url('/static/svg/idp/microsoft.svg') }}'
-                 alt='Log in with Microsoft'>
-          </div>
-        </div>
-      </a>
-      {# GitHub #}
-      <a href='{{ url('/login/github') }}?login_type={{ login_type }}&target={{ target_url }}'>
-        <div class='grid-child'>
-          <div class='grid-child-button'>
-            <img class='grid-logo-github-symbol'
-                 src='{{ url('/static/svg/idp/github-symbol.svg') }}'
-                 alt='Log in with GitHub'>
-            <img class='grid-logo-github-text' src='{{ url('/static/svg/idp/github-text.svg') }}'
-                 alt='Log in with GitHub'>
-          </div>
-        </div>
-      </a>
-      {# ORCID #}
-      <a href='{{ url('/login/orcid') }}?login_type={{ login_type }}&target={{ target_url }}'>
-        <div class='grid-child'>
-          <div class='grid-child-button'>
-            <img class='grid-logo-orcid' src='{{ url('/static/svg/idp/orcid.svg') }}'
-                 alt='Log in with ORCID'>
-          </div>
-        </div>
-      </a>
-      {# EDI LDAP #}
-      <div class='grid-child'>
-        <div class='grid-child-button'
-             data-bs-toggle='modal'
-             data-bs-target='#ldapLoginModal'
-        >
-          <img class='grid-logo-edi' src='{{ url('/static/svg/idp/edi-logo.svg') }}'
-               alt='Log in with EDI'>
-          EDI
-        </div>
+
       </div>
 
     </div>
-
   </div>
 
   <p>
