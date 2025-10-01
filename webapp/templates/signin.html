@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% set active_page = 'signin' %}
+{% set highlight_menu = 'signin' %}
 
 {% block title %}
   {{ title }}
@@ -15,138 +15,136 @@
 
 {% block content %}
 
-  <div class='indent'>
-    <p>
-      {{ text | safe }}
-    </p>
+  <div class='header-container'
+       data-highlight-menu='signin'
+  >
+  </div>
 
-    {% if login_type == 'link' %}
-      <p>
-        Sign in to the profile you wish to link to this profile.
-      </p>
-      <p>
-        <a href='{{ url('/ui/identity') }}' class='icon-text-button'>
+  <div class='indent'>
+  <p>
+    {{ text | safe }}
+  </p>
+
+  {% if login_type == 'link' %}
+    <p>
+      Sign in to the profile you wish to link to this profile.
+    </p>
+    <p>
+      <a href='{{ url('/ui/identity') }}' class='icon-text-button'>
         <span>
           <img src='{{ url('/static/svg/back.svg') }}' alt='Back to Accounts'>
         </span>
-          <span>Back to Accounts</span>
-        </a>
-      </p>
+        <span>Back to Accounts</span>
+      </a>
+    </p>
 
-      <div class='alert alert-info alert-row'>
-        <i class='bi bi-info-circle'></i>
-        <div>
-          Linking your profiles enables you to gain combined access to all resources
-          across those profiles, while signing in to just one of them.
-          <br>
-          <a href='{{ url('/ui/help#links') }}' target='_blank'>
-            More information about linking profiles
-          </a>
+  {% endif %}
+
+  <div class='indent'>
+    {# Google #}
+    <div class='grid'>
+      <a href='{{ url('/login/google') }}?login_type={{ login_type }}&target={{ target_url }}'>
+        <div class='grid-child'>
+          <div class='grid-child-button'>
+            <img class='grid-logo-google' src='{{ url('/static/svg/idp/google-text.svg') }}'
+                 alt='Log in with Microsoft'>
+          </div>
+        </div>
+      </a>
+      {# Microsoft #}
+      <a href='{{ url('/login/microsoft') }}?login_type={{ login_type }}&target={{ target_url }}'>
+        <div class='grid-child'>
+          <div class='grid-child-button'>
+            <img class='grid-logo-microsoft' src='{{ url('/static/svg/idp/microsoft.svg') }}'
+                 alt='Log in with Microsoft'>
+          </div>
+        </div>
+      </a>
+      {# GitHub #}
+      <a href='{{ url('/login/github') }}?login_type={{ login_type }}&target={{ target_url }}'>
+        <div class='grid-child'>
+          <div class='grid-child-button'>
+            <img class='grid-logo-github-symbol'
+                 src='{{ url('/static/svg/idp/github-symbol.svg') }}'
+                 alt='Log in with GitHub'>
+            <img class='grid-logo-github-text' src='{{ url('/static/svg/idp/github-text.svg') }}'
+                 alt='Log in with GitHub'>
+          </div>
+        </div>
+      </a>
+      {# ORCID #}
+      <a href='{{ url('/login/orcid') }}?login_type={{ login_type }}&target={{ target_url }}'>
+        <div class='grid-child'>
+          <div class='grid-child-button'>
+            <img class='grid-logo-orcid' src='{{ url('/static/svg/idp/orcid.svg') }}'
+                 alt='Log in with ORCID'>
+          </div>
+        </div>
+      </a>
+      {# EDI LDAP #}
+      <div class='grid-child'>
+        <div class='grid-child-button'
+             data-bs-toggle='modal'
+             data-bs-target='#ldapLoginModal'
+        >
+          <img class='grid-logo-edi' src='{{ url('/static/svg/idp/edi-logo.svg') }}'
+               alt='Log in with EDI'>
+          EDI
         </div>
       </div>
 
-    {% endif %}
+    </div>
 
-    <p>
-      Use your EDI account to upload data (contact support@edirepository.org to create an account or
-      click <a
-        href='https://dashboard.edirepository.org/dashboard/auth/reset_password_init'>here</a> to
-      reset your password):
-    </p>
+  </div>
 
-    {% if error %}
-      <p class='alert alert-info'>
-        {{ error }}
-      </p>
-    {% endif %}
+  <p>
+    Please review our
+    <a href='https://edirepository.org/about/edi-policy#privacy-policy'>privacy policy</a>
+    to learn what information we collect, how we use it, and your privacy rights.
+  </p>
 
-    <div class='indent'>
-      <div id='loginModal' aria-labelledby='loginModalLabel' aria-hidden='true'>
-        <div class='modal-dialog'>
-          <div class='modal-content'>
-            <div class='modal-body'>
-              <form id='loginForm' action='{{ url('/ui/api/signin/ldap') }}' method='post'>
-                <input type='hidden' name='login_type' value='{{ login_type }}'>
-                <div>
-                  <label for='username' class='form-label'>User name:</label>
-                </div>
-                <div>
-                  <input type='text' class='form-control' id='username' name='username'
-                         autocomplete='username' required>
-                </div>
-                <div>
-                  <label for='password' class='form-label'>Password:</label>
-                </div>
-                <div>
-                  <input type='password' class='form-control' id='password' name='password'
-                         autocomplete='current-password' required>
-                </div>
-                <div>
-                  {# Empty cell in column to move buttons to below input elements #}
-                </div>
-                <div>
-                  <button type='button' class='btn btn-secondary' id='clearFormButton'>Clear
-                  </button>
-                  <button type='submit' class='btn btn-primary'>Sign in</button>
-                </div>
-              </form>
+  <div class='modal fade' id='ldapLoginModal' tabindex='-1' data-bs-backdrop='static'>
+    <div class='modal-dialog'>
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <h5 class='modal-title'>Sign in with your EDI (LDAP) account</h5>
+          <button type='button' class='btn-close' data-bs-dismiss='modal'
+                  aria-label='Close'></button>
+        </div>
+        <div class='modal-body'>
+          <form id='loginForm' action='{{ url('/ui/api/signin/ldap') }}' method='post'>
+            <div>
+              <label for='username' class='form-label'>User name:</label>
             </div>
-          </div>
+            <div>
+              <input type='text' class='form-control' id='username' name='username'
+                     autocomplete='username' required>
+            </div>
+            <div>
+              <label for='password' class='form-label'>Password:</label>
+            </div>
+            <div>
+              <input type='password' class='form-control' id='password' name='password'
+                     autocomplete='current-password' required>
+            </div>
+            <div>
+            </div>
+            <div>
+              <a href='https://dashboard.edirepository.org/dashboard/auth/reset_password_init'>
+                Forgot password
+              </a>
+            </div>
+            <div>
+            </div>
+            <div class='modal-footer'>
+              <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Cancel
+              </button>
+              <button type='submit' class='btn btn-primary'>Sign in</button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
-
-    <p>
-      Or use an alternate identity provider to access data requiring user authentication:
-    </p>
-
-    <div class='indent'>
-      <div class='grid'>
-        <a href='{{ url('/login/google') }}?login_type={{ login_type }}&target={{ target_url }}'>
-          <div class='grid-child'>
-            <div class='grid-child-button'>
-              <img class='grid-logo-google' src='{{ url('/static/svg/idp/google-text.svg') }}'
-                   alt='Log in with Microsoft'>
-            </div>
-          </div>
-        </a>
-        <a href='{{ url('/login/microsoft') }}?login_type={{ login_type }}&target={{ target_url }}'>
-          <div class='grid-child'>
-            <div class='grid-child-button'>
-              <img class='grid-logo-microsoft' src='{{ url('/static/svg/idp/microsoft.svg') }}'
-                   alt='Log in with Microsoft'>
-            </div>
-          </div>
-        </a>
-        <a href='{{ url('/login/github') }}?login_type={{ login_type }}&target={{ target_url }}'>
-          <div class='grid-child'>
-            <div class='grid-child-button'>
-              <img class='grid-logo-github-symbol'
-                   src='{{ url('/static/svg/idp/github-symbol.svg') }}'
-                   alt='Log in with GitHub'>
-              <img class='grid-logo-github-text' src='{{ url('/static/svg/idp/github-text.svg') }}'
-                   alt='Log in with GitHub'>
-            </div>
-          </div>
-        </a>
-        <a href='{{ url('/login/orcid') }}?login_type={{ login_type }}&target={{ target_url }}'>
-          <div class='grid-child'>
-            <div class='grid-child-button'>
-              <img class='grid-logo-orcid' src='{{ url('/static/svg/idp/orcid.svg') }}'
-                   alt='Log in with ORCID'>
-            </div>
-          </div>
-        </a>
-      </div>
-    </div>
-
-    <p>
-      Please read our
-      <a href='https://edirepository.org/about/edi-policy#privacy-policy'>privacy policy</a>
-      to know what information we collect about you and to understand your privacy
-      rights.
-    </p>
-
   </div>
 
 
