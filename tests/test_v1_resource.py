@@ -82,7 +82,7 @@ async def test_read_resource_by_non_owner(
     """readResource()
     Call by non-owner (no changePermission ACR on resource) -> 403 Forbidden
     """
-    # John creates a resource, and becomes the owner
+    # John creates a resource and becomes the owner
     await tests.utils.add_vetted(populated_dbi, service_profile_row, john_profile_row)
     john_client.post(
         '/v1/resource',
@@ -188,7 +188,7 @@ async def test_update_resource_valid_parent(
     """updateResource()
     Move resource from one parent to another -> Successful update, 200 OK.
     """
-    # John creates two roots, and a child resource on one of the roots
+    # John creates two roots and a child resource on one of the roots
     await _mk_resource(
         john_client,
         'john-root-1',

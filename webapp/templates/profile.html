@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% set active_page = 'profile' %}
+{% set highlight_menu = 'profile' %}
 
 {% block title %}
   Profile
@@ -13,7 +13,19 @@
   <script src='{{ url_buster('/static/js/profile_edit.js') }}'></script>
 {% endblock %}
 
+{% block header %}
+  <h1 aria-label>User Profile
+    <a href='{{ url('/ui/help#profiles') }}' target='_blank'>
+      <i class='bi bi-question-circle help-button'></i>
+    </a>
+  </h1>
+{% endblock %}
+
 {% block content %}
+
+  <div class='header-container'
+       data-highlight-menu='profile'>
+  </div>
 
   <div class='profile-container'>
 

@@ -17,8 +17,8 @@ def get_edi_id(idp_uid):
 def get_random_edi_id():
     """Generate a random EDI-ID.
     - In some cases, we need EDI-IDs for profiles for which no one will ever log in, such as system
-    profiles (the service itself, public access, authenticated access), and system groups (the
-    vetted access group).
+    profiles (the service itself, public access, authenticated access) and system groups (the vetted
+    access group).
     - This is also used for creating EDI-IDs during tests.
     """
     return get_edi_id(uuid.uuid4().hex)

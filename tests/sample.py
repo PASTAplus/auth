@@ -87,8 +87,8 @@ def _to_normalized_json(received_obj):
 
 
 def _meld(left_str, filename):
-    """Open the meld command, with the contents of left_str in the left pane, and the contents of
-    the named sample file in the right pane.
+    """Open the meld command with the contents of left_str in the left pane, and the contents of the
+    named sample file in the right pane.
     - The function waits until the user closes the meld window, and then returns True if the
     contents are identical, or False if not.
     """

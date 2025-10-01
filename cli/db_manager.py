@@ -6,11 +6,11 @@ This script provides commands to create, drop, or clear objects in the database 
 
 Create: Creates all the persistent objects in the database, such as tables, functions, and triggers.
 Also creates the system profiles and groups. These are currently the Service, Public and
-Authenticated profiles, and the Vetted group.
+Authenticated profiles and the Vetted group.
 
 Drop: Drops all the persistent objects in the database, such as tables, functions, and triggers.
 
-Clear: Clears the tables of user data, but keeps system profiles and groups, and the schema,
+Clear: Clears the tables of user data but keeps system profiles and groups, and the schema,
 unmodified.
 """
 import argparse

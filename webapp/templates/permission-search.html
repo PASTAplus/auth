@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{#{% set active_page = 'permission' %}#}
+{% set highlight_menu = 'search' %}
 
 {% block title %}
   Resource Selection
@@ -15,6 +15,7 @@
 
 {% block content %}
   <div class='header-container'
+       data-highlight-menu='permission'
        data-base-path='{{ url('') }}'
        data-public-edi-id='{{ public_edi_id }}'
        data-authenticated-edi-id='{{ authenticated_edi_id }}'

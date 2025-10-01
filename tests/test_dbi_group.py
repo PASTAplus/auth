@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 
 
 async def test_create_group(populated_dbi, john_profile_row):
-    """Create a new group -> new group, and a new resource with CHANGE for the creator"""
+    """Create a new group -> new group and a new resource with CHANGE for the creator"""
     await populated_dbi.create_group(john_profile_row, 'Test Group', 'Group Description')
     # TODO: Verify the created group and resource
 

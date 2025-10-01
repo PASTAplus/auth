@@ -91,7 +91,7 @@ resourceTreeEl.addEventListener('scroll', () => {
 // so we would need to attach a listener to each details element.
 resourceTreeEl.addEventListener('click', (ev) => {
   // On the first expand on a placeholder root, we fetch the real tree from the server and render
-  // it. The new tree also replaces the placeholder root, and does not have the 'placeholder-root'
+  // it. The new tree also replaces the placeholder root and does not have the 'placeholder-root'
   // class, so this event listener won't be triggered again for the same tree.
   if (ev.target.classList.contains('placeholder-root')) {
     log('Click on placeholder root', ev);
@@ -598,8 +598,7 @@ function refreshExpandedNullTree(treeIdx)
   expandedTreeOffset.set(treeIdx, 0);
   // Setting to null marks this tree as invalid (no longer has permissions for the current user), so
   // we don't try to render it again. We use null instead of deleting the key, so we can distinguish
-  // between trees that have not been expanded yet, and trees that were expanded but are now
-  // invalid.
+  // between trees that have not been expanded yet and trees that were expanded but are now invalid.
   expandedTreeHtml.set(treeIdx, null);
   requestAnimationFrame(() => {
     scheduleRender();

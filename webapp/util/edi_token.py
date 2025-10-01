@@ -2,7 +2,7 @@
 - EDI Tokens are JSON Web Token (JWTs). A JWT consists of a header, a JSON payload, and a signature.
 These are Base64URL encoded and combined into a single string with the parts separated by dots.
 - The header specifies the algorithm used to sign the token, and other metadata.
-- The payload contains the claims, which are statements about a user profile, and metadata about the
+- The payload contains the claims, which are statements about a user profile and metadata about the
 token itself.
 - The signature ensures that the token was created by EDI and has not been modified.
 """
@@ -28,7 +28,7 @@ PUBLIC_KEY_STR = Config.JWT_PUBLIC_KEY_PATH.read_text()
 class EdiTokenClaims:
     """Hold the claims of an EDI JWT.
     - We use this instead of the plain dict that represents the JSON in a decoded JWT in order to
-    formalize the claims. This also enables convenient access via attributes, and helps the IDE with
+    formalize the claims. This also enables convenient access via attributes and helps the IDE with
     autocomplete, syntax checking, etc.
     """
 

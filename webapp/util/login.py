@@ -55,7 +55,7 @@ async def handle_successful_login(
 async def handle_client_login(
     dbi, target_url, idp_name, idp_uid, common_name, email, fetch_avatar_func, avatar_ver
 ):
-    """We are currently signed out, and are signing in to a new or existing profile."""
+    """We are currently signed out and are signing in to a new or existing profile."""
     profile_row, info_msg = await dbi.create_or_update_profile(
         idp_name, idp_uid, common_name, email, fetch_avatar_func, avatar_ver
     )
@@ -63,7 +63,7 @@ async def handle_client_login(
     # If this is a linked profile, redirect to the primary profile.
     try:
         profile_row = await dbi.get_primary_profile(profile_row)
-        info_msg = """You signed in to a linked profile, and have been redirected to your primary
+        info_msg = """You signed in to a linked profile and have been redirected to your primary
             profile.
         """
 
@@ -95,7 +95,7 @@ async def handle_client_login(
 async def handle_link_identity(
     dbi, token_profile_row, idp_name, idp_uid, common_name, email, fetch_avatar_func, avatar_ver
 ):
-    """We are currently signed in, and are linking a new or existing identity to the profile to
+    """We are currently signed in and are linking a new or existing identity to the profile to
     which we are signed in.
 
     This process is reversible by unlinking the profile.
@@ -111,7 +111,7 @@ async def handle_link_identity(
     try:
         profile_row = await dbi.get_profile_by_idp(idp_name, idp_uid)
     except sqlalchemy.exc.NoResultFound:
-        profile_row = await dbi.create_or_update_profile(
+        profile_row, _ = await dbi.create_or_update_profile(
             idp_name, idp_uid, common_name, email, fetch_avatar_func, avatar_ver
         )
         await dbi.flush()
@@ -120,11 +120,10 @@ async def handle_link_identity(
             '/ui/identity',
             info=util.url.msg(
                 """
-                The account with which you signed in, was not already associated with a profile. As
-                a result, we have created a new profile for the account, and linked it to the
-                profile to which you are currently signed in (your primary profile). You can now
-                sign in to your primary profile using either account. If this was not what you
-                intended, you can unlink the account, then sign in to it and edit or remove it.
+                The account you signed in with wasn’t yet linked to a profile. We’ve created a new
+                profile for it and linked it to your primary profile. You can now sign in to your
+                primary profile using either account. If this wasn’t your intention, you can unlink
+                the account, then sign in to it to edit or remove it.
                 """
             ),
         )
@@ -136,8 +135,8 @@ async def handle_link_identity(
             '/ui/identity',
             error=util.url.msg(
                 """
-                The profile you are attempting to link is the profile to which you are currently
-                signed in (your primary profile).
+                The profile you are attempting to link is the profile you're currently signed in
+                with (your primary profile).
                 """
             ),
         )
@@ -150,8 +149,8 @@ async def handle_link_identity(
             '/ui/identity',
             error=util.url.msg(
                 """
-                The profile you are attempting to link was already linked to the profile to which
-                you are currently signed in (your primary profile).
+                The profile you are attempting to link was already linked to the profile you're
+                currently signed in to (your primary profile).
                 """
             ),
         )
@@ -169,7 +168,7 @@ async def handle_link_identity(
 
     # Linked profile, linked to another profile: If the profile we found is a linked profile, we
     # re-link the primary profile to which it is linked, along its linked profiles, to the currently
-    # signed in profile. We inform the user that this has happened, and that they can undo this by
+    # signed in profile. We inform the user that this has happened and that they can undo this by
     # unlinking the account.
     #
     # Primary profile: If the profile we found is a primary profile, it is about to become a linked
@@ -180,7 +179,7 @@ async def handle_link_identity(
 
     # Delete all links for the other profile, both as primary and as linked.
     await dbi.delete_profile_links(profile_row.id)
-    # Create new links from the currently signed in profile to the other profile, and to all of
+    # Create new links from the currently signed in profile to the other profile and to all of
     # its linked profiles.
     await dbi.create_profile_link(token_profile_row, profile_row.id)
     for indirect_linked_profile_id in indirect_linked_profile_id_list:
@@ -189,11 +188,10 @@ async def handle_link_identity(
         '/ui/identity',
         info=util.url.msg(
             """
-            The profile you linked was already linked with another profile. As a result, we have
-            linked both the profile and any of its linked profiles, to the profile to which you are
-            currently signed in (your primary profile). If this was not what you intended, you can
-            unlink the profile(s), then sign in to them to restore the links you would like to
-            keep.
+            The profile you linked was already associated with another profile. We’ve now linked it
+            and any profiles already linked to it to your primary profile. If this wasn’t your
+            intention, you can unlink the profile(s) and sign in to them, then restore the links you
+            want to keep.
             """
         ),
     )

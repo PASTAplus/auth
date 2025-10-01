@@ -60,7 +60,7 @@ class Profile(db.models.base.Base):
         # unique identifiers)
         sqlalchemy.UniqueConstraint('idp_name', 'idp_uid', name='idp_name_uid_unique'),
     )
-    # At the DB level, we use an 'id' integer primary key for rows, and for foreign key
+    # At the DB level, we use an 'id' integer primary key for rows and for foreign key
     # relationships.
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     # Our name for the IdP. This acts as a namespace for the subject (sub) provided by the IdP.
@@ -79,8 +79,8 @@ class Profile(db.models.base.Base):
     # idp_name is SKELETON.
     last_auth = sqlalchemy.Column(sqlalchemy.DateTime, nullable=True)
     # The EDI-ID for the user. This is the primary key for the user in our system. We don't use it
-    # as a primary key in the DB, however, since it's a string, and string indexes are less
-    # efficient than integer indexes.
+    # as a primary key in the DB, however, since it's a string and string indexes are less efficient
+    # than integer indexes.
     edi_id = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True)
     # The user's common (full) name. This is typically given name and family name when using Western
     # naming conventions, but any string is accepted. Should only be NULL if idp_name is SKELETON.
@@ -89,7 +89,7 @@ class Profile(db.models.base.Base):
     # address provided by the IdP.
     email = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     # Avatar version (ETag / entity tag, or other key). Used both to determine if the avatar has
-    # changed at the source, and as a cache buster version appended to avatar URLs. If NULL, this
+    # changed at the source and as a cache buster version appended to avatar URLs. If NULL, this
     # profile has no avatar.
     avatar_ver = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     # Alternate avatar profile. If set, this profile's avatar is taken from the alternate profile

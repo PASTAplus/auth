@@ -146,13 +146,13 @@ class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     """
     Middleware to redirect unauthenticated users to the sign-in page.
     - If a request is made to a '/ui' path without a valid token, the user is redirected to
-    '/signout', which removes the invalid (usually expired) cookie, and which then redirects to
+    '/signout', which removes the invalid (usually expired) cookie and which then redirects to
     '/ui/signin'.
     - For any other request without a valid token, a 401 Unauthorized response is returned.
     """
 
     async def dispatch(self, request: starlette.requests.Request, call_next):
-        if re.match(fr'^{util.url.url("/ui")}(?!/(?:signin(?!/link)|help|api/))', request.url.path):
+        if re.match(fr'{util.url.url("/ui")}(?!/(?:signin(?!/link)|help|api/))', request.url.path):
             if request.state.claims is None:
                 # log.debug('Redirecting to /ui/signin: UI page requested without valid token')
                 return util.redirect.internal('/signout', info='expired')
@@ -187,8 +187,12 @@ class TokenProfileMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
         response = await call_next(request)
 
         if (
+            # token is still valid
             claims_obj is not None
+            # but older than the refresh delta
             and time.time() - claims_obj.iat > Config.JWT_REFRESH_DELTA.total_seconds()
+            # and we're not currently signing out
+            and not re.match(str(util.url.url('/ui/signout')), request.url.path)
         ):
             async with util.dependency.get_dbi() as dbi:
                 profile_row = await dbi.get_profile(claims_obj.edi_id)
