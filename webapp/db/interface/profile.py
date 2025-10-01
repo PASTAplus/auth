@@ -369,7 +369,14 @@ class ProfileInterface:
         """Get profiles linked to the given profile ordered by link_date."""
         result = await self.execute(
             (
-                sqlalchemy.select(Profile.edi_id, ProfileLink.link_date)
+                sqlalchemy.select(
+                    Profile.edi_id,
+                    Profile.common_name,
+                    Profile.email,
+                    Profile.idp_name,
+                    Profile.idp_uid,
+                    ProfileLink.link_date,
+                )
                 .join(ProfileLink, ProfileLink.linked_profile_id == Profile.id)
                 .where(ProfileLink.profile_id == token_profile_row.id)
                 .order_by(ProfileLink.link_date)

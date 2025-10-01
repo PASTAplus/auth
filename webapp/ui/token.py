@@ -30,6 +30,9 @@ async def get_ui_token(
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
     token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
 ):
+    # We create a new EdiTokenClaims here, in order to pick up any changes that have been made to
+    # the profile since the last login.
+    claims_obj = await util.edi_token.create_claims(dbi, token_profile_row)
     return util.template.templates.TemplateResponse(
         'token.html',
         {
@@ -40,7 +43,7 @@ async def get_ui_token(
             'error_msg': request.query_params.get('error'),
             'info_msg': request.query_params.get('info'),
             # Page
-            'token_pp': await util.edi_token.claims_pformat(dbi, request.state.claims),
+            'token_pp': await util.edi_token.claims_pformat(dbi, claims_obj),
             'filename': f'token-{token.edi_id}.jwt',
             'lifetime': token.exp - token.iat // 3600,
         },
@@ -58,10 +61,9 @@ async def get_token_download(
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
     token: util.dependency.EdiTokenClaims | None = fastapi.Depends(util.dependency.token),
 ):
-    x = await util.edi_token.create(dbi, token_profile_row)
-    # claims_obj = await util.edi_token.create_claims(dbi, token_profile_row)
+    token_str = await util.edi_token.create(dbi, token_profile_row)
     response = starlette.responses.Response(
-        content=x.encode(),
+        content=token_str.encode(),
         media_type='application/octet-stream',
     )
     response.headers['Content-Disposition'] = f'attachment; filename="token-{token.edi_id}.jwt"'
