@@ -131,7 +131,7 @@ async def get_ui_api_permission_slice(
     """Called when the permission search results panel is scrolled or first opened.
     Returns a slice of root resources for the current search session.
     """
-    if request.state.token_profile_row is None:
+    if request.state.claims is None:
         return starlette.responses.Response(status_code=starlette.status.HTTP_401_UNAUTHORIZED)
     query_dict = request.query_params
     search_uuid = query_dict.get('uuid')
@@ -159,7 +159,7 @@ async def get_ui_api_permission_tree(
     """Called when user clicks the expand button or checkbox in a root element.
     - This method takes a single root ID and returns a single tree with that root.
     """
-    if request.state.token_profile_row is None:
+    if request.state.claims is None:
         return starlette.responses.Response(status_code=starlette.status.HTTP_401_UNAUTHORIZED)
     resource_id_set = await dbi.get_resource_descendants_id_set([root_id])
     resource_generator = dbi.get_resource_filter_gen(
@@ -181,7 +181,7 @@ async def post_permission_aggregate_get(
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """Called when the user changes a resource check box in the resource tree."""
-    if request.state.token_profile_row is None:
+    if request.state.claims is None:
         return starlette.responses.Response(status_code=starlette.status.HTTP_401_UNAUTHORIZED)
     resource_list = await request.json()
     resource_generator = dbi.get_resource_filter_gen(
@@ -264,7 +264,7 @@ async def post_permission_principal_search(
     ),
 ):
     """Called when user types in the principal search box."""
-    if request.state.token_profile_row is None:
+    if request.state.claims is None:
         return starlette.responses.Response(status_code=starlette.status.HTTP_401_UNAUTHORIZED)
     query_dict = await request.json()
     query_str = query_dict.get('query')
@@ -279,7 +279,7 @@ async def post_permission_update(
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """Called when the user changes the permission level dropdown for a profile."""
-    if request.state.token_profile_row is None:
+    if request.state.claims is None:
         return starlette.responses.Response(status_code=starlette.status.HTTP_401_UNAUTHORIZED)
     # TODO: There is a race condition where changes can be lost if the user changes multiple times
     # quickly for the same profile. This probably happens because the change is asynchronously sent

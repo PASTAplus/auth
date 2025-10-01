@@ -113,13 +113,8 @@ function fetchPrincipalSearch()
         return response.json();
       })
       .then((resultObj) => {
-        if (resultObj.error) {
-          errorDialog(resultObj.error);
-        }
-        else {
-          searchProfileArray = resultObj;
-          refreshPrincipals();
-        }
+        searchProfileArray = resultObj;
+        refreshPrincipals();
       })
       .catch((error) => {
         errorDialog(error);
@@ -142,16 +137,11 @@ function fetchMembers(groupId)
         return response.json();
       })
       .then((resultObj) => {
-        if (resultObj.error) {
-          errorDialog(resultObj.error);
-        }
-        else {
-          memberProfileArray = resultObj;
-          refreshMembers();
-          setMemberCount(groupId, memberProfileArray.length);
-          principalSearchEl.placeholder = 'Add Users and Groups';
-          principalSearchEl.disabled = false;
-        }
+        memberProfileArray = resultObj;
+        refreshMembers();
+        setMemberCount(groupId, memberProfileArray.length);
+        principalSearchEl.placeholder = 'Add Users and Groups';
+        principalSearchEl.disabled = false;
       })
       .catch((error) => {
         errorDialog(error);
@@ -178,13 +168,7 @@ function fetchAddRemoveMember(groupId, memberProfileId, isAdd)
         return response.json();
       })
       .then((resultObj) => {
-        if (resultObj.error) {
-          errorDialog(resultObj.error);
-        }
-        else {
-          fetchMembers(getGroupId());
-          // refreshMembers();
-        }
+        fetchMembers(getGroupId());
       })
       .catch((error) => {
         errorDialog(error);
