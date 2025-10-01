@@ -1,0 +1,8 @@
+{
+    "label": "Updated Resource Label",
+    "method": "readResource",
+    "msg": "Resource retrieved successfully",
+    "parent_key": null,
+    "resource_key": "john-resource-key",
+    "type": "Update Resource Type"
+}

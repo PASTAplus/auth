@@ -1,0 +1,23 @@
+@startuml
+skinparam sequenceMessageAlign center
+actor client as "EDI-ABC"
+participant ezEML
+participant auth
+
+title Update EML model "xyz" by user ""EDI-ABC"
+
+client -> ezEML: updateEML('xyz')\nEDI-ABC
+ezEML -> auth: is_authorized('EDI-ABC',\n'xyz', 'write') EDI-ezEML
+activate auth
+auth -> auth: is_authorized('EDI-ezEML',\n'is_authorized', 'read')
+note right
+    Auth service verifies that
+    EDI-ezEML can execute the
+    "is_authorized" service.
+end note
+auth -> auth: is_authorized('EDI-ABC',\n'xyz', 'write')
+ezEML <-- auth: 200 OK
+deactivate auth
+ezEML -> ezEML: write('xyz')
+client <-- ezEML: done
+@enduml

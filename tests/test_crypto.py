@@ -1,10 +1,11 @@
+"""Tests for the pasta_crypto module."""
+
 import Crypto.PublicKey.RSA
 import daiquiri
 
+from config import Config
 from util import pasta_crypto
-from webapp.config import Config
 
-# sys.path.insert(0, os.path.abspath("../src"))
 log = daiquiri.getLogger(__name__)
 
 

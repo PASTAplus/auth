@@ -1,170 +1,163 @@
+:root {
+    /* Variables set in JS */
+    /* Path for the expand/collapse SVG icon used in the resource tree */
+    --expand-collapse-path: '';
+    /* Height of the navbar, used to calculate the height of the main container */
+    --navbar-height: 0px;
+}
+
+.indent {
+    margin: 0 0 0 2rem;;
+}
+
 /*
-Main grid
+Main layout
 */
 
 /*
+
 +-----------------------------+
-|        split-container      |
+|          container          |
 |  +-----------------------+  |
-|  |      split-top        |  |
+|  |      main-content     |  |
+|  |  +-------+ +-------+  |  |
+|  |  | panel | | panel |  |  |
+|  |  |  top  | |  top  |  |  |
+|  |  |-------| |-------|  |  |
+|  |  |bottom | |bottom |  |  |
+|  |  +-------+ +-------+  |  |
 |  +-----------------------+  |
-|  +-----------------------+  |
-|  |      split-main       |  |
-|  |  +-------+  +-------+ |  |
-|  |  | split-|  | split-| |  |
-|  |  | left- |  | right-| |  |
-|  |  |section|  |section| |  |
-|  |  +-------+  +-------+ |  |
-|  +-----------------------+  |
-+-----------------------------+
++-----------------------------+*/
+
+/*
+The container wraps everything on the page except for the navbar.
 */
-
-.split-container {
-    display: grid;
-    /* Declaring only rows gives us a single implicit column */
-    /* auto for dynamic height of container, 1fr for remaining space */
-    grid-template-rows: auto 1fr;
-    height: calc(100vh - var(--navbar-height));
-}
-
-.split-top{
-    /* background-color: #80bdff; */
-}
-
-.split-main {
+.container {
     display: flex;
-    /* Add vertical scrolling */
-    overflow-y: auto;
-    padding-left: 1rem;
+    flex-direction: column;
+    height: calc(100vh - var(--navbar-height) - 1rem);
+    /* Include padding and border in element's total width and height */
+    box-sizing: border-box;
+    /* Prevent scrollbars on main page */
+    overflow: hidden;
 }
 
-.split-section {
-    /* Allow the container to take up the remaining space */
+.main-content {
+    margin-top: 1rem;
+    margin-left: 2rem;
+    display: flex;
     flex: 1;
-    overflow-y: auto;
+    overflow: hidden;
 }
 
-.split-left {
-    /* Border between the left and right sides */
-    /* padding: 0 3px 0 3px; */
-        /* margin-right: 1rem; */
-    /* background-color: #444400; */
-    /* Boxes */
-    border: 2px solid #d0d0d0;
-    border-radius: 5px;
-    margin-left: 1rem;
-    margin-bottom: 1rem;
-    margin-top: 1rem;
+.panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+.panel-top {
+    /* Expand only to fit the contents */
+    flex: 0 0 auto;
     padding: 1rem;
-    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
-}
-
-.split-right {
-    /* Border between the left and right sides */
-    /* padding: 0 3px 0 .8rem; */
-    /* border-left: 2px solid #d0d0d0; */
-    /* margin-left: .8rem; */
-    /* background-color: #004444; */
-    /* Boxes */
-    border: 2px solid #d0d0d0;
-    border-radius: 5px;
-    margin-left: 1rem;
+    background-color: #f9f9f9;
+    border-bottom: 1px solid #ddd;
     margin-bottom: 1rem;
-    margin-top: 1rem;
-    padding: 1rem;
-    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
 }
 
-
-.main-grid {
-    /* display: grid; */
-    /* grid-template-columns: 50% 50%; */
-    /* gap: 1rem; */
-
-    /* max-height: 100vh; */
-    /* position: relative; */
-    /* padding: 1rem; */
-    /* margin: 1rem; */
-    /* overflow-y: auto; /* Add this line to enable vertical scrolling */
-    /* max-height: 400px; /* Set a maximum height */
+.panel-bottom {
+    /* Take up the remaining space */
+    flex: 1;
+    overflow: hidden;
+    position: relative;
 }
 
-.main-grid-child {
-    /* display: flex; */
-    /* flex-direction: column; */
-    /* gap: 1rem; */
-    /* padding: 1rem; */
-    /* border: black 1px solid; */
-    /* border-radius: 7px; */
-    /* overflow: hidden; */
-    /* box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.5); */
-
-    /* max-height: 70vh; */
+.panel + .panel {
+    /* Space between panels */
+    margin-left: 1rem;
 }
 
 /*
 Resource Tree (left side)
 */
 
-#resourceFilter{
-    margin-bottom: 1rem;
+/* Resource tree */
+
+#resourceTree {
+    position: relative;
+    overflow-y: auto;
+    height: 100%;
 }
 
-.tree-right {
-    text-align: right;
-    /* Space between top right checkboxes and collection tree */
-    margin-bottom: 1rem;
+#spacer {
+    height: 0; /* dynamically set in JS */
 }
 
-/* Styles applicable to multiple levels of the resource tree */
+#visible-trees {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+.tree-container {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 35px; /* match JS collapsedTreeHeight */
+    padding: 5px;
+    box-sizing: border-box;
+    border-bottom: 1px solid #ddd;
+    background: #fff;
+    white-space: nowrap; /* Prevent wrapping */
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+    overflow-y: hidden; /* Prevent vertical scrolling */
+    margin: .5rem;
+}
 
 .tree-indent {
     white-space: nowrap;
-    padding-left: 2rem;
+    /* padding-left: 2rem; */
+    /*padding-bottom: 10rem;*/
 }
 
-.tree-checkbox {
-}
-
-.tree-type-label {
-    font-weight: bold;
+.tree-resource-type {
     text-transform: capitalize;
     font-size: smaller;
     padding: .2rem;
-    border: .1rem solid #d0d0d0;
+    border: 1px solid #d0d0d0;
     border-radius: 10px;
     background-color: #f9f9f9;
     margin: 0 1rem 0 1rem;
 }
 
-.tree-title {
+.tree-resource-title {
     font-weight: bold;
 }
 
-/* Collections are at the top level of the tree if present */
 
-.tree-collection-item {
-    /* padding-bottom: 1rem; */
+.temp-container {
+    position: absolute;
+    visibility: hidden;
+    height: auto;
 }
 
-.tree-collection-type {
-    /* font-weight: bold; */
+.tree-measuring > summary {
+    /* Keep the summary visible */
+    visibility: visible;
 }
 
-/* Resource types are at the 2nd level of the tree for collections */
-
-.tree-resource-type {
-    text-transform: capitalize;
-    /* font-weight: bold; */
+.tree-measuring > ul {
+    /* Only hide the content being expanded */
+    visibility: hidden;
 }
 
-.tree-resource-hidden {
-    display: none;
-}
 
-/* Resource items are at the 1st level of the tree if collections are not present */
-
-/* Principals are at the bottom level of the tree */
+/* Principals */
 
 .tree-principal {
     display: flex;
@@ -172,7 +165,9 @@ Resource Tree (left side)
     gap: 1rem;
 }
 
-.tree-principal-name {
+.tree-principal-name:empty {
+    /* Hide the principal name if it is empty */
+    display: none;
 }
 
 
@@ -185,12 +180,12 @@ Resource Tree (left side)
     margin-left: auto;
 }
 
-.tree-principal-pasta-id {
+.tree-principal-edi-id {
     font-size: smaller;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 6rem;
+    max-width: 5rem;
     margin: 0;
     padding: 0;
 }
@@ -206,7 +201,7 @@ Col 2: PermissionLevel dropdown
 */
 .permission-grid {
     display: grid;
-     grid-template-columns: max-content max-content;
+    grid-template-columns: 1fr auto;
     /* Use full width of each column */
     /*grid-template-columns: 1fr auto;*/
     align-items: center;
@@ -218,7 +213,7 @@ Col 2: PermissionLevel dropdown
     /* overflow: hidden; */
     /*text-overflow: ellipsis;*/
     /*!* Make room for shadows around buttons at edges *!*/
-    /* padding: 2px; */
+    padding: 0 1rem 0 1rem;
     /* Ensures padding and border are included in the element's total width */
     /* box-sizing: border-box; */
 }
@@ -265,30 +260,20 @@ Principal (2 col row)
 }
 
 .principal-info {
-    /* display: flex; */
-    /* justify-content: center; */
-    /*white-space: nowrap; */
-    /*padding: 0 0 0 0; */
-    /*max-width: 10rem; */
-    /*overflow: hidden; */
-    /*text-overflow: ellipsis; */
-    /* background-color: green; */
+    /* Prefer breaking at spaces, but break long words if needed */
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
-.principal-info-child {
-    /*padding: 1rem 1rem 1rem 1rem;*/
-    /* background-color: yellow; */
+.principal-title {
+    font-weight: bold;
+}
+
+.principal-description {
 }
 
 .principal-public {
     font-weight: bold;
-    /* display: flex; */
-    /* border: #ffa01f 5px dot-dash; */
-    /* border-radius: 5px; */
-    /* padding: 1rem; */
-    /* background-color: #f9f9f9; */
-    /* border-color: black; */
-    /* border-width: 100px; */
 }
 
 /*
@@ -303,49 +288,12 @@ Rule dropdown
     transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-/*select option:checked {*/
-/*    !* background-color: #f0f0f0; !* Set your desired background color *! *!*/
-/*    !* background-color: rgba(0, 0, 0, 0.15); *!*/
-/*}*/
-
-/*#levelDropdown:focus {*/
-/*    !* border-color: #007bff; *!*/
-/*    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);*/
-/*}*/
-
-/*#levelDropdown option:hover {*/
-/*    !* background-color: #f0f000 !important; *!*/
-/*    !* color: red; *!*/
-/*}*/
-
-/*#levelDropdown option {*/
-/*    !* padding: 0.5rem; *!*/
-/*}*/
-
-/*#levelDropdown:hover  {*/
-/*    !* background-color: #f0f000 !important; *!*/
-/*    !* color: red; *!*/
-/*}*/
-
-/*select option:hover {*/
-/*    background-color: #f0f000 !important; !* Set your desired highlight color *!*/
-/*    color: red; !* Set your desired text color *!*/
-/*}*/
-
-/*!*    !* padding: 1rem 1rem 1rem 1rem; *!*!*/
-/*!*    !* background-color: yellow; *!*!*/
-/*!*}*!*/
-
-/*#xyz123 option::hover {*/
-/*    color: green;*/
-/*}*/
-
 /*
 Principal search
 */
 
 #principalSearch {
-    margin-bottom: 1rem;
+    /* margin-bottom: 1rem; */
 }
 
 #principalList {
@@ -380,5 +328,93 @@ Principal search
     background-color: rgba(0, 0, 0, 0.15);
     transition: background-color .3s ease-in-out;
     cursor: pointer;
+}
+
+
+/*************************************************/
+/* Based on: https://iamkate.com/code/tree-views */
+
+.tree {
+    --spacing: 1.3rem;
+    --radius: 10px;
+    padding-left: 0;
+    margin-bottom: 0;
+}
+
+.tree li {
+    display: block;
+    position: relative;
+    padding-left: calc(2 * var(--spacing) - var(--radius) - 0px);
+}
+
+.tree ul {
+    margin-left: calc(var(--radius) - var(--spacing));
+    padding-left: 0;
+}
+
+.tree ul li {
+    /* border-left: 2px solid #ddd; */
+}
+
+.tree ul li:last-child {
+    border-color: transparent;
+}
+
+.tree ul li::before {
+    /* Vertical lines */
+    content: '';
+    display: block;
+    position: absolute;
+    top: calc(var(--spacing) / -2);
+    left: -2px;
+    width: calc(var(--spacing) + 2px);
+    height: calc(var(--spacing) + 1px);
+    border: solid #ddd;
+    border-width: 0 0 2px 2px;
+}
+
+.tree summary {
+    display: block;
+    cursor: pointer;
+}
+
+.tree summary::marker,
+.tree summary::-webkit-details-marker {
+    display: none;
+}
+
+.tree summary:focus {
+    outline: none;
+}
+
+.tree summary:focus-visible {
+    outline: 1px dotted #000;
+}
+
+.tree li::after,
+.tree summary::before {
+    content: '';
+    display: block;
+    position: absolute;
+    top: calc(var(--spacing) / 2 - var(--radius));
+    left: calc(var(--spacing) - var(--radius) - 1px);
+    width: calc(2 * var(--radius));
+    height: calc(2 * var(--radius));
+    border-radius: 50%;
+    background: #ddd;
+}
+
+.tree summary::before {
+    z-index: 1;
+    background: #0075ff var(--expand-collapse-path) 0 0;
+}
+
+.tree details[open] > summary::before {
+    background-position: calc(-2 * var(--radius)) 0;
+}
+
+.tree input[type="checkbox"] {
+    width: calc(2 * var(--radius));
+    height: calc(1.5 * var(--radius));
 }
 

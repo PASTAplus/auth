@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% set highlight_menu = 'help' %}
+
+{% block title %}
+  Help
+{% endblock %}
+
+{% block head %}
+  <link rel='stylesheet' href='{{ url_buster('/static/css/help.css') }}'>
+{% endblock %}
+
+{% block scripts %}
+  <script src='{{ url_buster('/static/js/help.js') }}'></script>
+{% endblock %}
+
+{% block header %}
+  <h1 aria-label>Help</h1>
+  <div id='close-btn' class='icon-text-button d-none' onclick='window.close()'>
+    Close
+  </div>
+{% endblock %}
+
+{% block content %}
+
+  <div class='header-container'
+       data-highlight-menu='help'
+  >
+  </div>
+
+  <div class='indent narrow'>
+
+    <h2>Overview</h2>
+
+    The EDI Identity and Access Management (EDI IAM) Service allows you to control access to your
+    resources in the EDI repository.
+
+    <h2 id='profiles'>User Profiles</h2>
+
+    <ul>
+      <li>
+        A user profile represents a unique identity in the EDI IAM Service.
+      </li>
+      <li>
+        You can have multiple profiles if you sign in with different identity provider accounts
+        (e.g., Google, ORCID).
+      </li>
+    </ul>
+
+    <h2 id='accounts'>Accounts</h2>
+
+    <ul>
+      <li>
+        The Accounts page shows a list of your profiles and their associated identity provider
+        accounts.
+      </li>
+      <li>
+        Each account (e.g., Google, ORCID) you use to sign in creates a separate user profile.
+      </li>
+    </ul>
+
+    <h2 id='groups'>Groups</h2>
+
+    <ul>
+      <li>
+        Groups allow you to organize access to your data objects efficiently. Instead of granting
+        access to individuals one by one, you can add them to a group and manage access
+        collectively.
+      </li>
+      <li>
+        Adding a member to a group grants them immediate access to all resources the group has
+        access to, while removing them revokes that access.
+      </li>
+    </ul>
+
+    <h2 id='memberships'>Group Memberships</h2>
+
+    <ul>
+      <li>
+        The Group Memberships page shows all groups you belong to.
+      </li>
+      <li>
+        Each group has one or more owners who can manage group membership and settings.
+      </li>
+      <li>
+        To join a group, contact the group owner. If you are the owner, you can join your own group
+        from the Groups page.
+      </li>
+      <li>
+        Group memberships grant you access to the group's resources. Leaving a group will revoke
+        this access.
+      </li>
+      <li>
+        You can leave groups you no longer wish to be part of.
+      </li>
+    </ul>
+
+    <h2 id='linking'>Linking Profiles</h2>
+
+    <ul>
+      <li>
+        Linking your profiles enables you to gain combined access to all resources across those
+        profiles, while signing in to just one of them.
+      </li>
+      <li>
+        The profile you are currently signed in to (shown at the top right) is your primary profile.
+        The profile you sign in to during the linking procedure, becomes a linked profile. After
+        linking, signing in to either will sign you in to your primary profile.
+      </li>
+      <li>
+        Your primary profile keeps all its resources and gains access to those of linked profiles.
+        Linked profiles also keep their resources.
+      </li>
+      <li>
+        If you link an account already linked to other profiles, all those profiles become linked to
+        your primary profile.
+      </li>
+      <li>
+        If the account you link does not have a profile, one is created and linked automatically.
+      </li>
+    </ul>
+
+    <h2 id='unlinking'>Unlinking Profiles</h2>
+
+    <ul>
+      <li>
+        You can unlink profiles anytime from the <a href='{{ url('/ui/identity') }}'>Accounts</a>
+        page.
+      </li>
+      <li>
+        Unlinking a profile causes it to become a primary profile, which you can sign in to
+        separately again.
+      </li>
+      <li>
+        Your primary profile keeps all its resources and loses access to those of the unlinked
+        profile.
+      </li>
+      <li>
+        The unlinked profile also keeps its resources.
+      </li>
+      <li>
+        No profiles or resources are removed.
+      </li>
+    </ul>
+  </div>
+
+{% endblock %}

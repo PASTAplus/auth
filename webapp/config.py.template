@@ -9,25 +9,33 @@ class Config(object):
     DEBUG = True
 
     # Logging
-    LOG_PATH = pathlib.Path('/var/log/pasta')
+    LOG_PATH = pathlib.Path('/var/log/pasta/auth.log')
     LOG_LEVEL = logging.DEBUG
     LOG_DB_QUERIES = False
+    TEST_LOG_DB_QUERIES = False
+    LOG_FORMAT = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+    LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
     # SSL/TLS
-    TLS_CERT_PATH = '/path/to/server_tls_cert.crt'
-    TLS_KEY_PATH = '/path/to/server_tls_key.key'
+    TLS_CERT_PATH = '/path/to/server.crt'
+    TLS_KEY_PATH = '/path/to/server.key'
 
     # JWT
     JWT_PUBLIC_KEY_PATH = HERE_PATH / 'path/to/jwt_public_key.pem'
     JWT_PRIVATE_KEY_PATH = HERE_PATH / 'path/to/jwt_private_key.pem'
     JWT_ALGORITHM = 'ES256'
+    # Token TTL
     JWT_EXPIRATION_DELTA = datetime.timedelta(hours=8)
+    # Refresh the token if it's older than this delta. This allows a session to be extended
+    # indefinitely, as long as the user is actively using the service, while avoiding overhead
+    # caused by refreshing the token on every request.
+    JWT_REFRESH_DELTA = datetime.timedelta(hours=1)
     JWT_ISSUER = 'https://auth.edirepository.org'
     JWT_AUDIENCE = 'https://auth.edirepository.org'
     JWT_HOSTED_DOMAIN = 'edirepository.org'
 
     # Database
-    DB_DRIVER = 'postgresql+psycopg2'
+    DB_DRIVER = 'postgresql+psycopg'
     DB_HOST = 'localhost'
     DB_PORT = 5432
     DB_NAME = 'auth'
@@ -37,19 +45,32 @@ class Config(object):
     DB_MAX_OVERFLOW = 20
     DB_YIELD_ROWS = 1000
     DB_CHUNK_SIZE = 8192
+    # Log raw SQL queries and execution times at INFO level
+    DB_QUERY_PROFILING = False
+
+    TEST_DB_DRIVER = 'postgresql+psycopg'
+    TEST_DB_HOST = 'localhost'
+    TEST_DB_PORT = 5432
+    TEST_DB_NAME = 'auth'
+    TEST_DB_USER = 'db-user'
+    TEST_DB_PW = 'db-password'
+    TEST_DB_POOL_SIZE = 10
+    TEST_DB_MAX_OVERFLOW = 20
+    TEST_DB_YIELD_ROWS = 1000
+    TEST_DB_CHUNK_SIZE = 8192
 
     # Filesystem paths
     STATIC_PATH = HERE_PATH / 'static'
     AVATARS_PATH = HERE_PATH / '../avatars'
     TEMPLATES_PATH = HERE_PATH / 'templates'
+    ASSETS_PATH = HERE_PATH / 'assets'
 
     # URLs
     SERVICE_BASE_URL = 'https://localhost:5443/auth'
-    # The path under which the auth service is available. Must match settings in the
-    # reverse proxy.
+    # The path under which the auth service is available. Must match settings in the reverse proxy.
     ROOT_PATH = '/auth'
     # For testing ORCID, the entire app must be running from 127.0.0.1. This is because ORCID does
-    # not allow localhost as a redirect URI, and because the base URL must match the redirect URI in
+    # not allow localhost as a redirect URI and because the base URL must match the redirect URI in
     # order for the target cookie to be assigned to the correct domain.
     # SERVICE_BASE_URL = 'https://127.0.0.1:5443'
 
@@ -72,27 +93,74 @@ class Config(object):
     # System principals
     #
 
-    PUBLIC_EDI_ID = 'EDI-...'
-    PUBLIC_NAME = 'Public Access'
+    # Replace 'EDI-...' with new EDI-IDs in a new deployment. Use ./cli/gen_edi_id.py to generate
+    # EDI-IDs. If these values are changed, the database must be dropped and recreated with
+    # ./cli/db_manager.py.
 
+    SERVICE_EDI_ID = 'EDI-6d92693416fde9af9c43fd7cd92d1028eadafa46'
+    SERVICE_NAME = 'EDI IAM Service'
+    SERVICE_AVATAR_PATH = ASSETS_PATH / 'shield-edi.svg'
+
+    PUBLIC_EDI_ID = 'EDI-078e6e3cee4f7f2812f150701da9351acb51e089'
+    PUBLIC_NAME = 'Public Access'
+    PUBLIC_AVATAR_PATH = ASSETS_PATH / 'public-avatar.svg'
+
+    AUTHENTICATED_EDI_ID = 'EDI-7be3510d08def0dfc667824ebd4f4f1bbd770234'
+    AUTHENTICATED_NAME = 'Authenticated Access'
+    AUTHENTICATED_AVATAR_PATH = ASSETS_PATH / 'signed-black.svg'
+
+    VETTED_GROUP_EDI_ID = 'EDI-bdae74972ed710c56b1e0df18ccb6e23c31f60f6'
+    VETTED_GROUP_NAME = 'Vetted Access'
+    VETTED_GROUP_DESCRIPTION = 'Group for users who have been vetted by EDI'
+    VETTED_GROUP_AVATAR_PATH = ASSETS_PATH / 'checkmark.svg'
+
+    # Adding a profile to the superuser list has the following effects:
+    # - In the Groups page, all groups will be available to view and edit
+    # (superusers have implicit write permission on all groups)
+    # - In the Permissions page, all resources and permissions will be available to view and edit
+    # (superusers have implicit changePermission on all resources)
+    # - The profile will not be available for adding to groups or assigning permissions
+    # (superusers are not included in principal search results)
     SUPERUSER_LIST = [
+        # Always add the service itself as a superuser
+        SERVICE_EDI_ID,
         'EDI-...',
         'EDI-...',
     ]
+
+    TOKEN_KEY = ''
 
     #
     # UI
     #
 
     AVATAR_WIDTH, AVATAR_HEIGHT = 200, 200
-    AVATAR_FONT_PATH = HERE_PATH / 'assets/NimbusRoman-BoldItalic.otf'
+    AVATAR_FONT_PATH = ASSETS_PATH / 'NimbusRoman-BoldItalic.otf'
     AVATAR_FONT_HEIGHT = 0.5
     AVATAR_BG_COLOR = (197, 197, 197, 255)
     AVATAR_TEXT_COLOR = (0, 0, 0, 255)
-    AVATAR_PUBLIC = HERE_PATH / 'assets/public-avatar.svg'
 
     # Maximum number of results that can be returned in search for user and group members.
     SEARCH_LIMIT = 5
+
+    # Amount of time to keep a search session in the database.
+    # - The only likely way someone would access an expired session is by bookmarking the URL
+    # directly to the Permissions page.
+    # - Normally, a session will not be accessed again after the user's short-lived authentication
+    # token expires.
+    # - If a user tries to access a session after it has expired, they will be redirected to the
+    # search page to start a new search.
+    # - Each time a session is accessed, the expiration time is reset, so a session will remain
+    # available as long as it's accessed more often than this delta.
+    # - Expired sessions are checked for and removed each time a new search is started.
+    SEARCH_SESSION_EXPIRATION_DELTA = datetime.timedelta(days=30)
+
+    # Maximum number of trees (mostly packages) that can be returned to the browser.
+    # This is to limit the number of DOM elements that must be created by the browser in order to
+    # render the tree. It's recommended that the number of DOM elements is kept well below 10,000,
+    # where 10,000 nodes correspond to roughly 500 trees. Too many DOM elements will cause the
+    # browser to become unresponsive.
+    MAX_TREE_COUNT = 200
 
     # The Dev menu allows switching profiles and other development features.
     ENABLE_DEV_MENU = False
@@ -107,6 +175,8 @@ class Config(object):
     LDAP_DOMAIN_DICT = {
         'o=EDI,dc=edirepository,dc=org': 'ldap.edirepository.org',
     }
+    LDAP_PORT = 636
+
     # GitHub OAuth client
     GITHUB_CLIENT_ID = 'github-client-id'
     GITHUB_CLIENT_SECRET = 'github-client-secret'
@@ -122,7 +192,7 @@ class Config(object):
     GOOGLE_DISCOVERY_URL = 'https://accounts.google.com/.well-known/openid-configuration'
     # GOOGLE_LOGOUT_ENDPOINT = 'https://accounts.google.com/Logout'
 
-    # Orcid OAuth client
+    # ORCID OAuth client
     ORCID_CLIENT_ID = 'orcid-client-id'
     ORCID_CLIENT_SECRET = 'orcid-client-secret'
     ORCID_DNS = 'https://orcid.org/'

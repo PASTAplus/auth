@@ -3,19 +3,6 @@
     font-size: 16px;
 }
 
-.container {
-    /*margin-top: 2rem;*/
-    /*margin-bottom: 2rem;*/
-}
-
-.header-container {
-    display: flex;
-    align-items: center;
-}
-
-.header-container h1 {
-}
-
 /*
     Navbar Menu
 */
@@ -74,41 +61,19 @@
 
 /* Headers */
 
-/* Reduce all header sizes by 0.2rem from default */
-h1 {
-    font-size: 1.8rem;
-}
-
-h2 {
-    font-size: 1.6rem;
-}
-
-h3 {
-    font-size: 1.4rem;
-}
-
-h4 {
-    font-size: 1.2rem;
-}
-
-h5 {
-    font-size: 1.0rem;
-}
-
-h6 {
-    font-size: 0.8rem;
-}
-
 h1 {
     /* We use h1 headers for the title at the top of each page.
     Open up some space between the navbar and the title. */
     padding-top: 2rem;
+    font-size: 1.8rem;
 }
 
-h1, h2, h3, h4, h5, h6 {
-    /* margin: 0; */
-    /* margin-top: 1rem; */
-    /* margin-bottom: 1rem; */
+h2 {
+    font-size: 1.4rem;
+}
+
+h3 {
+    font-size: 1.2rem;
 }
 
 table td, table th {
@@ -321,18 +286,6 @@ table td, table th {
     color: inherit;
 }
 
-.icon-text-button a {
-  /* position: absolute; */
-  /* top: 0; */
-  /* left: 0; */
-  /* width: 100%; */
-  /* height: 100%; */
-  /* display: flex; */
-  /* align-items: center; */
-  /* justify-content: center; */
-  /* z-index: 1; */
-}
-
 .icon-text-button:hover {
     /* box-shadow: 0 0 .2rem rgba(0, 0, 0, 0.5); */
     background-color: rgba(0, 0, 0, 0.15);
@@ -353,45 +306,21 @@ table td, table th {
     height: 1.2rem;
 }
 
-/* For accessibility, we can show the label only to screen readers */
-.screen-reader-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
-    padding: 0;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    border: 0;
-}
-
-/*.pasta-id-copy-button {*/
-/*    display: flex;*/
-/*    align-items: center;*/
-/*    gap: 0.5rem;*/
-/*    border: none;*/
-/*    background: transparent;*/
-/*    border-radius: .3rem;*/
-/*    padding: 0.3em;*/
-/*    transition: background-color .3s ease-in-out;*/
-/*}*/
-
 /* Pasta ID with copy button */
 
-.pasta-id-parent {
+.edi-id-parent {
     display: flex;
     align-items: center;
-    /* gap: 0.5rem; */
-    max-width: 10rem;
+    max-width: 8rem;
 }
 
-.pasta-id-child-text {
+.edi-id-child-text {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.pasta-id-child-icon {
+.edi-id-child-icon {
     cursor: pointer;
     border-radius: .3rem;
     padding: 0 .5rem 0 .5rem;
@@ -399,26 +328,39 @@ table td, table th {
     /* width: 1.2rem; */
 }
 
-.pasta-id-child-icon img {
+.edi-id-child-icon img {
     height: 1.05rem;
 }
 
-.pasta-id-child-icon:hover {
+.edi-id-child-icon:hover {
     transition: background-color .3s ease-in-out;
     background-color: rgba(0, 0, 0, 0.15);
 }
 
-.pasta-id-child-icon:active {
+.edi-id-child-icon:active {
     transform: scale(0.95);
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
 }
 
-/* Add a bit of space between BootStrap form-group's */
+.edi-id-copied-box {
+    position: absolute;
+    /* Move 'Copied' box to the right of the copy button */
+    transform: translateX(30%) translateY(-100%);
+    border-radius: .5rem;
+    z-index: 1000;
+    padding: .2rem 1rem .2rem 1rem;
+    border: 1px solid #ccc;
+    margin-top: .2rem;
+    background-color: white;
+}
+
+/* Add a bit of space between BootStrap form-groups */
+
 .form-group {
     padding: .5rem;
 }
 
-/* Errors */
+/* Error dialog */
 
 #errorMsg {
     font-family: monospace;
@@ -429,3 +371,33 @@ table td, table th {
     overflow-x: auto;
 }
 
+/* Alerts */
+
+.alert .bi {
+    font-size: 1.6rem;
+}
+
+.alert-icon {
+    height: 1.6rem;
+}
+
+.alert-row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* Button with question mark icon */
+
+.help-button {
+    position: relative;
+    color: #a0a0a0;
+    font-size: 1.2rem;
+    border-radius: .3rem;
+    padding: .2rem .5rem .2rem .5rem;
+}
+
+.help-button:hover {
+    transition: transform 0.3s ease-in-out, background-color 0.3s ease-in-out;
+    background-color: rgba(0, 0, 0, 0.15);
+}

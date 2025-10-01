@@ -4,7 +4,7 @@ channels:
   - defaults
 dependencies:
   - python=3.11
-  - sqlalchemy=1.4.46
+  - sqlalchemy
   - click
   - cryptography
   - daiquiri
@@ -15,12 +15,14 @@ dependencies:
   - libiconv
   - pendulum
   - pillow
-  - psycopg2
+  - psycopg
   - pycryptodome
   - pyjwt
   - pynacl
   - pytest
+  - pytest-asyncio
   - requests
   - sqlite
   - urllib3
   - uvicorn
+  - lxml

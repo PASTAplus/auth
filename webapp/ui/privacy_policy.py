@@ -4,7 +4,7 @@ import starlette.requests
 import starlette.templating
 
 import util.dependency
-import util.pasta_jwt
+import util.edi_token
 import util.redirect
 
 log = daiquiri.getLogger(__name__)
@@ -15,10 +15,10 @@ router = fastapi.APIRouter()
 #
 
 
-@router.post('/policy/accept')
+@router.post('/ui/api/policy/accept')
 async def policy_accept(
     request: starlette.requests.Request,
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     form = await request.form()
@@ -29,5 +29,5 @@ async def policy_accept(
             '/signout', error='Login unsuccessful: Privacy policy not accepted'
         )
 
-    await udb.set_privacy_policy_accepted(token_profile_row)
+    await dbi.set_privacy_policy_accepted(token_profile_row)
     return util.redirect.internal('/ui/profile')

@@ -1,0 +1,30 @@
+@startuml
+skinparam sequenceMessageAlign center
+actor client as "EDI-XYZ"
+participant ezEML
+participant auth
+
+title Create new EML model "xyz" by user "EDI-XYZ"
+
+client -> ezEML: newEML('xyz')\nEDI-XYZ
+ezEML -> auth: create_resource('EDI-XYZ',\n'xyz') EDI-XYZ
+activate auth
+auth -> auth: is_authorized('EDI-XYZ',\n'create_resource',\n'write')
+note right
+    Auth service verifies that
+    "EDI-XYZ" can execute the
+    "create_resource" service.
+end note
+auth -> auth: create_resource('EDI-XYZ', 'xyz')
+auth -> auth: create_rule('EDI-XYZ', 'xyz',\n'changePermission')
+note right
+    Side-effect of the
+    "create_resource" method,
+    making "EDI-XYZ" the owner
+    of this resource.
+end note
+ezEML <-- auth: 200 OK
+deactivate auth
+ezEML -> ezEML: write('xyz')
+client <-- ezEML: done
+@enduml

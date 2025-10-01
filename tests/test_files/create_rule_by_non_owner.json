@@ -1,0 +1,5 @@
+{
+    "method": "createRule",
+    "msg": "Access denied: Insufficient permissions to create rule",
+    "resource_key": "a-new-resource-key"
+}

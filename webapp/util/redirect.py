@@ -3,6 +3,7 @@ import starlette.datastructures
 import starlette.responses
 import starlette.status
 
+import db.models.profile
 import util.login
 import util.pretty
 from config import Config
@@ -35,17 +36,15 @@ def internal(
 
 def idp(
     idp_auth_url: str,
-    idp_name: str,
+    idp_name: db.models.profile.IdpName,
     login_type: str,
     target_url: str,
     **query_param_dict,
 ):
-    """Create a Response that redirects to the IdP with which we will be authenticating, and include
-    a cookie with the client's final target.
-    """
+    """Create a Response that redirects to the IdP with which we will be authenticating."""
     url_obj = starlette.datastructures.URL(idp_auth_url)
     url_obj = url_obj.replace_query_params(
-        redirect_uri=util.login.get_redirect_uri(idp_name),
+        redirect_uri=util.login.get_redirect_uri(idp_name.name.lower()),
         state=util.login.pack_state(login_type, target_url),
         **query_param_dict,
     )
@@ -62,46 +61,56 @@ def idp(
 def target(
     target_url: str,
     token: str,
-    pasta_token: str,
+    edi_token: str,
     # TODO: All the following query parameters should be removed from the redirect
     # URI when the transition to the new authentication system is complete, since
     # they are effectively unsigned claims.
     edi_id: str,
-    full_name: str,
+    common_name: str,
     email: str,
     idp_uid: str,
-    idp_name: str,
+    idp_name: db.models.profile.IdpName,
     sub: str,
+    info_msg: str | None = None,
+    error_msg: str | None = None,
 ):
     """Create Response that redirects to the final target URL, providing the old style and new style
-    tokens, and other information
+    tokens and other information
 
-    This is the final step in the authentication process, and creates a uniform set of query
+    This is the final step in the authentication process and creates a uniform set of query
     parameters and cookies returned to all clients for all authentication flows.
 
     target_url: The URL to which the client originally requested to be redirected.
     """
+    msg_dict = {}
+    if info_msg:
+        msg_dict['info'] = info_msg
+    if error_msg:
+        msg_dict['error'] = error_msg
+
     response = redirect(
         target_url,
         # The old token is passed in 'token'
         token=token,
-        # The new token is passed in 'pasta_token'
-        pasta_token=pasta_token,
+        # The new token is passed in 'edi_token'
+        edi_token=edi_token,
         # TODO: All the following query parameters should be removed from the redirect
         # URI when the transition to the new authentication system is complete, since
         # they are effectively unsigned claims.
         edi_id=edi_id,
-        cname=full_name,
+        full_name=common_name,
         email=email,
         idp_uid=idp_uid,
-        idp_name=idp_name,
+        idp_name=idp_name.name.lower(),
         # For ezEML
+        common_name=common_name,
         sub=sub,
+        **msg_dict,
     )
     # auth-token is the location of the old proprietary token
     response.set_cookie('auth-token', token)
-    # pasta_token is the location of the new JWT token
-    response.set_cookie('pasta_token', pasta_token)
+    # edi-token is the location of the new JWT token
+    response.set_cookie('edi-token', edi_token)
     return response
 
 
@@ -126,7 +135,7 @@ def redirect(url_str: str, **query_param_dict):
     """Create a Response that redirects to the redirect_url with query parameters.
 
     This uses a 307 Temporary Redirect status code, which prevents the client from caching the
-    redirect, and guarantees that the client will not change the request method and body when the
+    redirect and guarantees that the client will not change the request method and body when the
     redirected request is made.
     """
     util.pretty.log_dict(log.debug, f'Redirecting (307) to: {url_str}', query_param_dict)

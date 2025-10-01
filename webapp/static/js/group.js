@@ -1,5 +1,5 @@
 let headerContainerEl = document.getElementsByClassName('header-container')[0];
-const ROOT_PATH = headerContainerEl.dataset.rootPath;
+const BASE_PATH = headerContainerEl.dataset.basePath;
 
 // The search input for new member principals
 const principalSearchEl = document.getElementById('principalSearch');
@@ -69,25 +69,26 @@ principalSearchEl.addEventListener('blur', function (_ev) {
 // before the click event.
 principalListEl.addEventListener('mousedown', function (ev) {
   const divEl = ev.target.closest('.principal-flex');
-  const principalId = parseInt(divEl.dataset.principalId);
+  const profileId = parseInt(divEl.dataset.profileId);
   const groupId = getGroupId();
-  fetchAddRemoveMember(groupId, principalId, true);
+  fetchAddRemoveMember(groupId, profileId, true);
   principalSearchEl.value = '';
 });
 
 // Get value of selected group-select radio button
-function getGroupId() {
+function getGroupId()
+{
   return document.querySelector('input[name="group-select"]:checked').value;
 }
 
-// Remove a principal from the group
+// Remove a profile from the group
 // Global click handler
 document.addEventListener('click', function (ev) {
   const buttonEl = ev.target.closest('.remove-button');
   if (!buttonEl) {return;}
-  const principalId = parseInt(buttonEl.parentElement.dataset.principalId);
+  const profileId = parseInt(buttonEl.parentElement.dataset.profileId);
   const groupId = getGroupId();
-  fetchAddRemoveMember(groupId, principalId, false);
+  fetchAddRemoveMember(groupId, profileId, false);
 });
 
 
@@ -99,18 +100,24 @@ document.addEventListener('click', function (ev) {
 function fetchPrincipalSearch()
 {
   const searchStr = principalSearchEl.value;
-  fetch(`${ROOT_PATH}/group/member/search`, {
+  fetch(`${BASE_PATH}/int/api/group/member/search`, {
     method: 'POST', headers: {
       'Content-Type': 'application/json',
     }, body: JSON.stringify({query: searchStr}),
   })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 401) {
+          window.location = `${BASE_PATH}/ui/signin?info=expired`;
+          return Promise.reject('Unauthorized');
+        }
+        return response.json();
+      })
       .then((resultObj) => {
         if (resultObj.error) {
           errorDialog(resultObj.error);
         }
         else {
-          searchProfileArray = resultObj.principal_list;
+          searchProfileArray = resultObj;
           refreshPrincipals();
         }
       })
@@ -122,21 +129,27 @@ function fetchPrincipalSearch()
 
 function fetchMembers(groupId)
 {
-  fetch(`/group/member/list/${groupId}`, {
+  fetch(`/int/api/group/member/list/${groupId}`, {
     method: 'GET', headers: {
       'Content-Type': 'application/json',
     },
   })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 401) {
+          window.location = `${BASE_PATH}/ui/signin?info=expired`;
+          return Promise.reject('Unauthorized');
+        }
+        return response.json();
+      })
       .then((resultObj) => {
         if (resultObj.error) {
           errorDialog(resultObj.error);
         }
         else {
-          memberProfileArray = resultObj.member_list;
+          memberProfileArray = resultObj;
           refreshMembers();
           setMemberCount(groupId, memberProfileArray.length);
-          principalSearchEl.placeholder='Add Users and Groups';
+          principalSearchEl.placeholder = 'Add Users and Groups';
           principalSearchEl.disabled = false;
         }
       })
@@ -151,13 +164,19 @@ function fetchAddRemoveMember(groupId, memberProfileId, isAdd)
   if (hasMember(memberProfileId) && isAdd) {
     return;
   }
-  fetch(`${ROOT_PATH}/group/member/add-remove`, {
+  fetch(`${BASE_PATH}/int/api/group/member/add-remove`, {
     method: 'POST', headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({group_id: groupId, member_profile_id: memberProfileId, is_add: isAdd}),
   })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 401) {
+          window.location = `${BASE_PATH}/ui/signin?info=expired`;
+          return Promise.reject('Unauthorized');
+        }
+        return response.json();
+      })
       .then((resultObj) => {
         if (resultObj.error) {
           errorDialog(resultObj.error);
@@ -182,7 +201,6 @@ function setMemberCount(groupId, count)
 }
 
 
-
 //
 // Forms
 //
@@ -201,8 +219,8 @@ Array.prototype.filter.call(forms, function (form) {
 });
 
 // Handle new/edit group buttons and update modal before displaying
-let groupModal = document.getElementById('groupModal');
-groupModal.addEventListener('show.bs.modal', function (ev) {
+let editGroupModal = document.getElementById('editGroupModal');
+editGroupModal.addEventListener('show.bs.modal', function (ev) {
   let button = ev.relatedTarget;
 
   let formTarget = button.getAttribute('data-form-target');
@@ -212,12 +230,12 @@ groupModal.addEventListener('show.bs.modal', function (ev) {
   let groupDescription = button.getAttribute('data-group-description');
   let submitText = button.getAttribute('data-submit-text');
 
-  let formEl = groupModal.querySelector('#groupForm');
-  let titleEl = groupModal.querySelector('#groupTitle');
-  let IdEl = groupModal.querySelector('#groupId');
-  let nameEl = groupModal.querySelector('#groupName');
-  let descriptionEl = groupModal.querySelector('#groupDescription');
-  let submitEl = groupModal.querySelector('#groupButton');
+  let formEl = editGroupModal.querySelector('#groupForm');
+  let titleEl = editGroupModal.querySelector('#groupTitle');
+  let IdEl = editGroupModal.querySelector('#groupId');
+  let nameEl = editGroupModal.querySelector('#groupName');
+  let descriptionEl = editGroupModal.querySelector('#groupDescription');
+  let submitEl = editGroupModal.querySelector('#groupButton');
 
   formEl.action = formTarget;
   titleEl.textContent = groupTitle;
@@ -246,8 +264,9 @@ deleteGroupModal.addEventListener('show.bs.modal', function (ev) {
 // Util
 //
 
-function hasMember(profileId) {
-  return memberProfileArray.some((profileObj) => profileObj.principal_id === profileId);
+function hasMember(profileId)
+{
+  return memberProfileArray.some((profileObj) => profileObj.profile_id === profileId);
 }
 
 
@@ -262,7 +281,8 @@ function removeMember(profileId)
 function refreshMembers()
 {
   if (!memberProfileArray.length) {
-    memberListEl.innerHTML = `<div class='grid-msg'>No members have been added to this group yet.</div>`;
+    memberListEl.innerHTML =
+        `<div class='grid-msg'>No members have been added to this group yet.</div>`;
     return;
   }
   const fragment = document.createDocumentFragment();
@@ -296,26 +316,23 @@ function addPrincipalDiv(parentEl, principalObj)
   const p = principalObj;
   const principalEl = document.createElement('div');
   principalEl.classList.add('principal-flex');
-  principalEl.dataset.principalId = p.principal_id;
-  principalEl.dataset.principalType = p.principal_type;
+  principalEl.dataset.profileId = p.profile_id;
   principalEl.innerHTML = `
     <div class='principal-child principal-avatar'>
       <img src='${p.avatar_url}' alt='Avatar' class='avatar avatar-smaller'>
     </div>
     <div class='principal-child principal-info'>
-      <div class='principal-info-child'>${p.title}</div>
-      <div class='principal-info-child'>${p.description || ''}</div>
-      <div class='principal-info-child'>
-        <div class='pasta-id-parent'>
-          <div class='pasta-id-child-text'>
-            ${p.edi_id}
-          </div>
-          <div class='pasta-id-child-icon'>
-            <img class='pasta-id-copy-button' 
-              src='${ROOT_PATH}/static/svg/copy.svg' 
-              alt='Copy User Identifier'
-            >
-          </div>
+      <div class='principal-title'>${p.title || ''}</div>
+      <div class='principal-description'>${p.description || ''}</div>
+      <div class='edi-id-parent'>
+        <div class='edi-id-child-text'>
+          ${p.edi_id}
+        </div>
+        <div class='edi-id-child-icon'>
+          <img class='edi-id-copy-button'
+            src='${BASE_PATH}/static/svg/copy.svg'
+            alt='Copy User Identifier'
+          >
         </div>
       </div>
     </div>
@@ -324,12 +341,13 @@ function addPrincipalDiv(parentEl, principalObj)
 }
 
 
-function addRemoveButtonDiv(parentEl, principalObj) {
+function addRemoveButtonDiv(parentEl, principalObj)
+{
   const removeEl = document.createElement('div');
-  removeEl.dataset.principalId = principalObj.principal_id;
+  removeEl.dataset.profileId = principalObj.profile_id;
   removeEl.innerHTML = `
     <button class='remove-button icon-text-button'>
-      <span><img src='${ROOT_PATH}/static/svg/leave-group.svg' alt='Remove'></span>
+      <span><img src='${BASE_PATH}/static/svg/leave-group.svg' alt='Remove'></span>
       <span>Remove</span>
     </button>
   `;

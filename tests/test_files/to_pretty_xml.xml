@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<result>
+  <method>createProfile</method>
+  <edi_id>EDI-1234567890abcdef1234567890abcdef</edi_id>
+  <msg>A new profile was created</msg>
+</result>

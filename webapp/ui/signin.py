@@ -3,10 +3,11 @@ import fastapi
 import starlette.requests
 import starlette.status
 
+import db.models.profile
 import util.avatar
 import util.dependency
 import util.login
-import util.pasta_jwt
+import util.edi_token
 import util.pasta_ldap
 import util.redirect
 import util.template
@@ -27,23 +28,46 @@ router = fastapi.APIRouter()
 @router.get('/ui/signin')
 async def get_ui_signin(
     request: starlette.requests.Request,
-    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    if token:
+    if token_profile_row:
         return util.redirect.internal('/ui/profile')
     return util.template.templates.TemplateResponse(
         'signin.html',
         {
             # Base
-            'token': None,
-            'profile': None,
-            #
             'request': request,
+            'profile': None,
+            'avatar_url': None,
+            'error_msg': request.query_params.get('error'),
+            'info_msg': request.query_params.get('info'),
+            # Page
             'login_type': 'client',
             'target_url': Config.SERVICE_BASE_URL + '/ui/profile',
             'title': 'Sign in',
-            'text': 'Select your identity provider to sign in.',
-            'error': request.query_params.get('error'),
+        },
+    )
+
+
+@router.get('/ui/signin/merge')
+async def get_ui_signin(
+    request: starlette.requests.Request,
+):
+    # if token:
+    #     return util.redirect.internal('/ui/profile')
+    return util.template.templates.TemplateResponse(
+        'signin-merge.html',
+        {
+            # Base
+            'request': request,
+            'profile': None,
+            'avatar_url': None,
+            'error_msg': request.query_params.get('error'),
+            'info_msg': request.query_params.get('info'),
+            # Page
+            # 'login_type': 'client',
+            # 'target_url': Config.SERVICE_BASE_URL + '/ui/identity',
+            'skeleton_profile': True,
         },
     )
 
@@ -51,57 +75,22 @@ async def get_ui_signin(
 @router.get('/ui/signin/link')
 async def get_ui_signin_link(
     request: starlette.requests.Request,
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
-    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     return util.template.templates.TemplateResponse(
         'signin.html',
         {
             # Base
-            'token': token,
-            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
-            'profile': None,
-            'resource_type_list': await udb.get_resource_types(token_profile_row),
-            # Page
             'request': request,
+            'profile': token_profile_row,
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
+            'error_msg': request.query_params.get('error'),
+            'info_msg': request.query_params.get('info'),
+            # Page
             'login_type': 'link',
             'target_url': Config.SERVICE_BASE_URL + '/ui/identity',
-            'title': 'Link Account',
-            'text':
-            # language=html
-                f"""
-            <p>
-            Sign in to the account you wish to link to this profile.
-            </p>
-            <p>
-            Linking accounts allows you to sign in with multiple identity providers.
-            </p>
-            <p>
-                <a href='{util.url.url('/ui/identity')}' class='icon-text-button'>
-                    <span><img src='{util.url.url('/static/svg/back.svg')}' alt='Back to Accounts'></span>
-                    <span>Back to Accounts</span>
-                </a>
-            </p>
-            """,
-        },
-    )
-
-
-@router.get('/ui/signin/reset')
-async def get_ui_signin_reset(
-    request: starlette.requests.Request,
-    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
-):
-    return util.template.templates.TemplateResponse(
-        'signin-reset-pw.html',
-        {
-            # Base
-            'token': token,
-            'profile': None,
-            # 'avatar_url': util.get_profile_avatar_url(profile_row),
-            #
-            'request': request,
+            'title': 'Link Profile',
         },
     )
 
@@ -111,10 +100,11 @@ async def get_ui_signin_reset(
 #
 
 
-@router.post('/signin/ldap')
+@router.post('/ui/api/signin/ldap')
 async def post_signin_ldap(
     request: starlette.requests.Request,
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """Handle LDAP sign in from the Auth sign in page. This duplicates some of the logic in
     idp/ldap.py, but interacts with the browser instead of a server side client.
@@ -132,15 +122,16 @@ async def post_signin_ldap(
 
     return await util.login.handle_successful_login(
         request=request,
-        udb=udb,
+        dbi=dbi,
+        token_profile_row=token_profile_row,
         login_type=login_type,
         target_url=str(util.url.url('/ui/profile')),
-        full_name=username,
-        idp_name='ldap',
+        idp_name=db.models.profile.IdpName.LDAP,
         idp_uid=ldap_dn,
+        common_name=username,
         email=None,
-        has_avatar=False,
-        is_vetted=True,
+        fetch_avatar_func=None,
+        avatar_ver=None,
     )
 
 
@@ -151,6 +142,6 @@ def get_ldap_dn(idp_uid: str) -> str:
 @router.get('/signout')
 async def signout(request: starlette.requests.Request):
     response = util.redirect.internal('/ui/signin', **request.query_params)
-    response.delete_cookie('pasta_token')
+    response.delete_cookie('edi-token')
     response.delete_cookie('auth-token')
     return response

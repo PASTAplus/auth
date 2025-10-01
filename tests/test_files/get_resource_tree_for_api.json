@@ -1,0 +1,217 @@
+[
+    {
+        "children": [
+            {
+                "children": [
+                    {
+                        "children": [],
+                        "key": "76b15c64f3b94b0b80bc4f20197d30aa",
+                        "principals": [
+                            {
+                                "description": null,
+                                "edi_id": "EDI-38525873761c4dfc9c45d66002b56f7b",
+                                "permission": "write",
+                                "principal_type": "group",
+                                "title": "John's group #0"
+                            },
+                            {
+                                "description": null,
+                                "edi_id": "EDI-451145331e8c4b3e8bc0c0cbeba4c4a0",
+                                "permission": "read",
+                                "principal_type": "group",
+                                "title": "John's group #1"
+                            }
+                        ]
+                    },
+                    {
+                        "children": [],
+                        "key": "b6db54c1bc05466e905eb552c1267dac",
+                        "principals": [
+                            {
+                                "description": null,
+                                "edi_id": "EDI-91a906d3584a473aba1091ebe8999743",
+                                "permission": "write",
+                                "principal_type": "group",
+                                "title": "Jessica's group #1"
+                            },
+                            {
+                                "description": null,
+                                "edi_id": "EDI-451145331e8c4b3e8bc0c0cbeba4c4a0",
+                                "permission": "read",
+                                "principal_type": "group",
+                                "title": "John's group #1"
+                            }
+                        ]
+                    }
+                ],
+                "key": "8d1dba03e6424b6dabf3a4fc00446f3b",
+                "principals": [
+                    {
+                        "description": "john@smith.com",
+                        "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                        "permission": "write",
+                        "principal_type": "profile",
+                        "title": "John Smith"
+                    }
+                ]
+            }
+        ],
+        "key": "ce1d83e7a62c4ad3b673f7d7bae55683",
+        "principals": [
+            {
+                "description": "john@smith.com",
+                "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                "permission": "read",
+                "principal_type": "profile",
+                "title": "John Smith"
+            }
+        ]
+    },
+    {
+        "children": [],
+        "key": "cf052f2c605b4e12a38c79d7c5b75f9f",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-54e3b1d5f5e94c42968250befe246129",
+                "permission": "read",
+                "principal_type": "group",
+                "title": "Barbara's group #0"
+            },
+            {
+                "description": "william@thomas.com",
+                "edi_id": "EDI-82de8b029c7948f092bf592d143b5724",
+                "permission": "changePermission",
+                "principal_type": "profile",
+                "title": "William Thomas"
+            }
+        ]
+    },
+    {
+        "children": [],
+        "key": "2b22d840a07643d897588820343f8ac3",
+        "principals": [
+            {
+                "description": "john@smith.com",
+                "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                "permission": "changePermission",
+                "principal_type": "profile",
+                "title": "John Smith"
+            },
+            {
+                "description": "sarah@martinez.com",
+                "edi_id": "EDI-e3d2004572074df7a3a9f6f3a65e6bae",
+                "permission": "changePermission",
+                "principal_type": "profile",
+                "title": "Sarah Martinez"
+            }
+        ]
+    },
+    {
+        "children": [],
+        "key": "30569a84390a4635965d5e3e46503134",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-59f854e1bdf54eb69d7292fb0383b49f",
+                "permission": "write",
+                "principal_type": "group",
+                "title": "Jessica's group #3"
+            },
+            {
+                "description": null,
+                "edi_id": "EDI-38525873761c4dfc9c45d66002b56f7b",
+                "permission": "changePermission",
+                "principal_type": "group",
+                "title": "John's group #0"
+            }
+        ]
+    },
+    {
+        "children": [],
+        "key": "a5a364b3fff34e708b64791f3c704f07",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-54e3b1d5f5e94c42968250befe246129",
+                "permission": "write",
+                "principal_type": "group",
+                "title": "Barbara's group #0"
+            },
+            {
+                "description": "thomas@rodriguez.com",
+                "edi_id": "EDI-225bb610e6f44caeabae38fe24037458",
+                "permission": "changePermission",
+                "principal_type": "profile",
+                "title": "Thomas Rodriguez"
+            }
+        ]
+    },
+    {
+        "children": [
+            {
+                "children": [],
+                "key": "72b7dfa52c8b4ffa8b72284b0b7a20a1",
+                "principals": [
+                    {
+                        "description": null,
+                        "edi_id": "EDI-54e3b1d5f5e94c42968250befe246129",
+                        "permission": "changePermission",
+                        "principal_type": "group",
+                        "title": "Barbara's group #0"
+                    }
+                ]
+            }
+        ],
+        "key": "0fc2d20bef64465bb1bea02e6e8e0614",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-54e3b1d5f5e94c42968250befe246129",
+                "permission": "changePermission",
+                "principal_type": "group",
+                "title": "Barbara's group #0"
+            },
+            {
+                "description": null,
+                "edi_id": "EDI-9c4065b1cfa54778a785fd98d88da770",
+                "permission": "write",
+                "principal_type": "group",
+                "title": "James's group #1"
+            }
+        ]
+    },
+    {
+        "children": [],
+        "key": "8973484ba82446d1a47952eebece74ea",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-82dec0908f244d42800141d39822cb5a",
+                "permission": "changePermission",
+                "principal_type": "group",
+                "title": "Charles's group #1"
+            }
+        ]
+    },
+    {
+        "children": [],
+        "key": "19d6a697bb0d4436b82df68679b2fc41",
+        "principals": [
+            {
+                "description": null,
+                "edi_id": "EDI-54e3b1d5f5e94c42968250befe246129",
+                "permission": "changePermission",
+                "principal_type": "group",
+                "title": "Barbara's group #0"
+            },
+            {
+                "description": null,
+                "edi_id": "EDI-ab31874e03ed44449463195577090ed1",
+                "permission": "changePermission",
+                "principal_type": "group",
+                "title": "Jane's group #3"
+            }
+        ]
+    }
+]

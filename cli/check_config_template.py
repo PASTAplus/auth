@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-"""Check that the config.py.template file is up to date with the current config.py file.
-"""
+"""Check that the config.py.template file is up to date with the current config.py file."""
 
 import logging
 import pathlib
@@ -38,6 +37,7 @@ def main():
             log.error(f'  {key}')
     else:
         log.info('No extra settings in the template.')
+
 
 def read_conf(path):
     """Read the config file and return a dictionary of the config values."""

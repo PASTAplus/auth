@@ -7,22 +7,18 @@
   <meta name='theme-color' content='#ffffff'>
   <link rel='icon' href='{{ url('/favicon.svg') }}'>
   <link rel='manifest' href='{{ url('/manifest.json') }}'>
-  {# TODO #}
-  {#<link rel='mask-icon' href='mask-icon.svg' color='#000000'>#}
-  {#<link rel='apple-touch-icon' href='apple-touch-icon.png'>#}
 
   <title>
     {% block title %}
-      Environmental Data Initiative (EDI)
-    {% endblock %}
+    {% endblock %} - EDI
   </title>
 
-  {# Preload Bootstrap CSS #}
-  <link rel='preload' href='{{ url('/static/lib/bootstrap/css/bootstrap.css') }}' as='style'>
-  <link href='{{ url('/static/lib/bootstrap/css/bootstrap.css') }}' rel='stylesheet'>
+  {# Bootstrap CSS #}
+  <link href='{{ url('/static/bootstrap/bootstrap/css/bootstrap.min.css') }}' rel='stylesheet'>
+  <link href='{{ url('/static/bootstrap/bootstrap-icons/bootstrap-icons.min.css') }}'
+        rel='stylesheet'>
   {# Extra styles for auth #}
-  <link rel='preload' href='{{ url('/static/css/base.css') }}' as='style'>
-  <link href='{{ url('/static/css/base.css') }}' rel='stylesheet'>
+  <link href='{{ url_buster('/static/css/base.css') }}' rel='stylesheet'>
   {% block head %}
   {% endblock %}
 </head>
@@ -36,7 +32,7 @@
     <a class='navbar-brand' href='{{ url('/') }}'>
       <img src='{{ url('/static/svg/EDI-logo-no-padding.svg') }}'
            alt='Environmental Data Initiative Logo'>
-      <span class='navbar-brand-pad'>Environmental Data Initiative</span>
+      <span class='navbar-brand-pad'>EDI Identity and Access Management</span>
     </a>
 
     {% block navbar_menu %}
@@ -51,45 +47,35 @@
       {# Menu, left #}
 
       <ul class='navbar-nav mr-auto'>
-
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/profile') }}'>Profile</a>
+          <a id='profile' class='nav-link {% if not profile %}disabled{% endif %}'
+             href='{{ url('/ui/profile') }}'
+          >Profile</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}'
-             href='{{ url('/ui/identity') }}'>Accounts</a>
+          <a id='identity' class='nav-link {% if not profile %}disabled{% endif %}'
+             href='{{ url('/ui/identity') }}'
+          >Accounts</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}' href='{{ url('/ui/group') }}'>Groups</a>
+          <a id='group' class='nav-link {% if not profile %}disabled{% endif %}'
+             href='{{ url('/ui/group') }}'
+          >Groups</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not token %}disabled{% endif %}'
-             href='{{ url('/ui/membership') }}'>Memberships</a>
+          <a id='membership' class='nav-link {% if not profile %}disabled{% endif %}'
+             href='{{ url('/ui/membership') }}'
+          >Memberships</a>
         </li>
         <li class='nav-item'>
-          <div class='dropdown'>
-            <a class='nav-link {% if not token %}disabled{% endif %} dropdown-toggle'
-               id='permissionTypeDropdown'
-               href='{{ url('/ui/permission') }}' data-bs-toggle='dropdown' aria-expanded='false'>
-              Permissions
-            </a>
-            <ul class='dropdown-menu' aria-labelledby='permissionTypeDropdown'>
-              <li>
-                <a class='dropdown-item' href='{{ url('/ui/permission') }}'>All</a>
-              </li>
-              <li>
-                <div class='dropdown-divider'></div>
-              </li>
-              {% for resource_type in resource_type_list %}
-                <li>
-                  <a class='dropdown-item capitalize'
-                     href='{{ url('/ui/permission?type=' + resource_type) }}'>
-                    {{ resource_type }}
-                  </a>
-                </li>
-              {% endfor %}
-            </ul>
-          </div>
+          <a id='permission' class='nav-link {% if not profile %}disabled{% endif %}'
+             href='{{ url('/ui/permission/search') }}'
+          >Permissions</a>
+        </li>
+        <li class='nav-item'>
+          <a id='help' class='nav-link'
+             href='{{ url('/ui/help') }}'
+          >Help</a>
         </li>
       </ul>
 
@@ -102,20 +88,27 @@
             Dev
           </button>
           <ul class='dropdown-menu' aria-labelledby='dropdownMenuButton1'>
-            <li><a class='dropdown-item' href='{{ url('/dev/token') }}'>View Token</a></li>
-            <li><a class='dropdown-item' href='{{ url('/dev/profiles') }}'>View Profiles</a></li>
+            <li class='nav-item'>
+              <a class='nav-link {% if not profile %}disabled{% endif %}'
+                 href='{{ url('/ui/perm2') }}'>Perm2</a>
+            </li>
+            <li><a class='dropdown-item' href='{{ url('/ui/api/dev/profiles') }}'>View
+              Profiles</a>
+            </li>
             <li>
               <div class='dropdown-divider'></div>
             </li>
             <li><a class='dropdown-item'
-                   href='{{ url('/dev/signin/google/117107251210852246141') }}'>Google</a></li>
-            <li><a class='dropdown-item'
-                   href='{{ url('/dev/signin/google/10618168603761292863') }}'>Google</a></li>
-            <li><a class='dropdown-item'
-                   href='{{ url('/dev/signin/github/https://github.com/rogerdahl') }}'>GitHub</a>
+                   href='{{ url('/ui/api/dev/signin/google/117107251210852246141') }}'>Google</a>
             </li>
             <li><a class='dropdown-item'
-                   href='{{ url('/dev/signin/microsoft/AAAAAAAAAAAAAAAAAAAAAMb5WmAIiWexIVAeFkG_1m4') }}'>Microsoft</a>
+                   href='{{ url('/ui/api/dev/signin/google/10618168603761292863') }}'>Google</a>
+            </li>
+            <li><a class='dropdown-item'
+                   href='{{ url('/ui/api/dev/signin/github/https://github.com/rogerdahl') }}'>GitHub</a>
+            </li>
+            <li><a class='dropdown-item'
+                   href='{{ url('/ui/api/dev/signin/microsoft/AAAAAAAAAAAAAAAAAAAAAMb5WmAIiWexIVAeFkG_1m4') }}'>Microsoft</a>
             </li>
           </ul>
         </div>
@@ -124,13 +117,7 @@
       {# Menu, right #}
 
       <ul class='navbar-nav mr-auto navbar-right'>
-        {% if not token %}
-          <li class='nav-item'>
-            <a class='nav-link active' href='{{ url('/ui/signin') }}'>Sign in</a>
-          </li>
-        {% endif %}
-
-        {% if token %}
+        {% if profile %}
           <li class='nav-item'>
             <div class='row-center-parent'>
               <div class='row-center-child'>
@@ -139,20 +126,40 @@
                           data-bs-toggle='dropdown' aria-expanded='false'><img
                       src='{{ avatar_url }}' alt='Avatar' class='avatar'></button>
                   <ul class='dropdown-menu' aria-labelledby='avatarMenuButton'>
-                    <li><a class='dropdown-item' href='{{ url('/ui/profile/edit') }}'>Edit
-                      Profile</a></li>
-                    <li><a class='dropdown-item' href='{{ url('/ui/avatar') }}'>Select Avatar</a>
+                    <li>
+                      <a id='profile-edit' class='dropdown-item'
+                         href='{{ url('/ui/profile/edit') }}'>Edit Profile
+                      </a>
+                    </li>
+                    <li>
+                      <a id='avatar' class='dropdown-item'
+                         href='{{ url('/ui/avatar') }}'>Select Avatar
+                      </a>
+                    </li>
+                    <li>
+                      <a id='token' class='dropdown-item'
+                         href='{{ url('/ui/token') }}'>Token
+                      </a>
                     </li>
                   </ul>
                 </div>
               </div>
               <div class='row-center-child'>
-                <a class='nav-link' href='{{ url('/signout') }}'>
-                  <img src='{{ url('/static/svg/sign-out.svg') }}' alt='Sign out' class='icon-link'>
+                <a class='nav-link'
+                   href='{{ url('/signout') }}?info=You have been signed out successfully. If you
+                   signed in from a public or shared computer, also visit your identity provider to
+                   sign out there, then close this tab or browser.'>
+                  <img src='{{ url('/static/svg/sign-out.svg') }}' alt='Sign out'
+                       class='icon-link'>
+                  {#<i class='bi bi-box-arrow-right'></i>#}
                   Sign out
                 </a>
               </div>
             </div>
+          </li>
+        {% else %}
+          <li class='nav-item'>
+            <a id='signin' class='nav-link active' href='{{ url('/ui/signin') }}'>Sign in</a>
           </li>
         {% endif %}
 
@@ -161,13 +168,44 @@
     {% endblock %}
 
   </div>
+  {# container-fluid #}
 </nav>
 
-<main role='main' class='container'>
+<main class='container'>
+  {% block header %}
+    <h1 aria-label>{{ self.title() }}</h1>
+  {% endblock %}
+
+  {% if error_msg %}
+    <div class='indent alert alert-warning alert-row'>
+      <div>
+        <i class='bi bi-exclamation-triangle'></i>
+      </div>
+      <div>
+        {{ error_msg }}
+      </div>
+    </div>
+  {% endif %}
+
+  {% if info_msg %}
+    <div class='indent alert alert-info alert-row'>
+      <div>
+        <i class='bi bi-info-circle'></i>
+      </div>
+      <div>
+        {% if info_msg == 'expired' %}
+          You have been signed out for your security due to inactivity. Please sign in again to
+          continue.
+        {% else %}
+          {{ info_msg }}
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+
   {% block content %}
   {% endblock %}
 </main>
-
 
 {# Modal Privacy Policy accept dialog #}
 
@@ -179,7 +217,7 @@
 >
   <div class='modal-dialog modal-dialog-centered'>
     <div class='modal-content'>
-      <form action='{{ url('/policy/accept') }}' method='post' id='privacyPolicyForm'>
+      <form action='{{ url('/ui/api/policy/accept') }}' method='post' id='privacyPolicyForm'>
         <div class='modal-header'>
           <h5 class='modal-title'>Environmental Data Initiative Privacy Policy</h5>
           <button type='submit' class='btn-close' data-bs-dismiss='modal' aria-label='Close'
@@ -246,12 +284,13 @@
 </div>
 
 {# Bootstrap Bundle with Popper #}
-<script src='{{ url('/static/lib/bootstrap/js/bootstrap.bundle.js') }}'></script>
+<script src='{{ url('/static/bootstrap/bootstrap/js/bootstrap.bundle.js') }}'></script>
 {# JS that runs on all pages #}
-<script src='{{ url('/static/js/base.js') }}'></script>
+<script src='{{ url_buster('/static/js/base.js') }}'></script>
 {% block scripts %}
   {# By importing scripts just before the /body tag, we don't have to wrap scripts in checks for
   fully loaded DOM #}
 {% endblock %}
+
 </body>
 </html>

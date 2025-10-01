@@ -1,156 +1,333 @@
-import datetime
-import functools
 import json
-import logging
 import pathlib
-import warnings
 
 import daiquiri
 import fastapi.testclient
-import pytest
+import pytest_asyncio
 import sqlalchemy
 import sqlalchemy.exc
+import sqlalchemy.ext.asyncio
 import sqlalchemy.orm
 
-import db.iface
-import db.user
-import webapp.main
-import webapp.db.iface
-import webapp.db.base
-import webapp.db
-# from webapp.config import Config
+import db.db_interface
+import db.models.base
+import db.session
+import main
+import tests.edi_id
+import tests.sample
+import tests.utils
+import util.dependency
 
-app = fastapi.FastAPI()
+from config import Config
+
+TEST_SERVER_BASE_URL = 'http://testserver/auth'
 
 HERE_PATH = pathlib.Path(__file__).parent.resolve()
-PROFILE_PATH = HERE_PATH / 'tests/test_files/profile.json'
-IDENTITY_PATH = HERE_PATH / 'tests/test_files/identity.json'
+DB_FIXTURE_JSON_PATH = HERE_PATH / 'tests/test_files/db_fixture.json'
 
-daiquiri.setup(
-    level=logging.DEBUG,
-    outputs=(
-        daiquiri.output.File(HERE_PATH / 'test.log'),
-        'stdout',
-    ),
-)
+log = daiquiri.getLogger(__name__)
 
-
-# @pytest.fixture(scope="session")
-# def anyio_backend():
-#     """Support async tests for FastAPI"""
-#     return "asyncio"
+# Fixtures: scope="session", autouse=True
+#
+# Fixtures with scope="session" and autouse=True run once per test session. They set up resources
+# shared by all the tests. They are not directly referenced by the tests and do not provide any
+# test objects.
 
 
-@pytest.fixture(scope='session')
-def db_engine():
-    """Create a fresh DB in RAM for each test session."""
-    # Use an in-memory SQLite database for tests
-    engine = sqlalchemy.create_engine(
-        'sqlite:///:memory:',
-        echo=False,
-        connect_args={
-            'check_same_thread': False,
-        },
-    )
-    # Create all tables
-    webapp.db.base.Base.metadata.create_all(engine)
-    return engine
-
-
-@pytest.fixture
-def db_session(db_engine):
-    """Start a new DB session"""
-    # The connection is pulled from the pool of existing connections
-    with db_engine.connect() as conn:
-        with conn.begin() as tran:
-            yield sqlalchemy.orm.sessionmaker(bind=conn)()
-            tran.rollback()
-
-
-@pytest.fixture
-def db_session_populated(db_session):
-    #     "id": 4,
-    #     "edi_id": "EDI-e851e1a4b19c4b78992455807fe79534",
-    #     "given_name": "Given1",
-    #     "family_name": "Family1",
-    #     "email": "testuser@github.com",
-    #     "privacy_policy_accepted": 1,
-    #     "privacy_policy_accepted_date": "2024-07-17 22:41:09.699175"
-    profile_list = json.loads(PROFILE_PATH.read_text())
-    #     "id": 4,
-    #     "profile_id": 4,
-    #     "idp_name": "github",
-    #     "uid": "https://github.com/testuser",
-    #     "email": "testuser@github.com",
-    #     "pasta_token": "aHR0cHM6Ly9naXRodWIuY29tL3JvZ2VyZGFobCpodHRwczovL3Bhc3RhLmVkaXJlcG9zaXRvcnkub3JnL2F1dGhlbnRpY2F0aW9uKjE3MjE4MTAwNjUyODcqYXV0aGVudGljYXRlZA==-T57+LlHbgyk1OGn4kJy+O4MSqBMnvbYPUa5g+QlE5Mnhpt8OhRdjOq7YhQ3NRJ4oHfhnrZERRsYQ2NP5BD6oW4LXLHKfUG8mX/h6aOrzuYiyqtvGHnDqZ5pwxtOjTH111HjaI1pPbK6xysHfen8iku4UTETbywMzdSozNiwVm03aeFUEIu+aKaaTjrjZ9GGCKdYt6SLUOdiZV2KBFWdibORZHnWL9jblde2FOlvnjokYhifi2UHqms6NJCHefFGcWfvKnAe4fYctpUcyfNt96i1fgx1WWozoCOXhOpcHCwJvAAmKFrem46EWALtaX0g+vMjFzzxBB61OB8rqGaUUhA==",
-    #     "first_auth": "2024-07-17 22:41:07.246722",
-    #     "last_auth": "2024-07-23 18:34:25.518037"
-    identity_list = json.loads(IDENTITY_PATH.read_text())
-    for profile_dict in profile_list:
-        # webapp.util.pp(profile_dict)
-        accepted_date = profile_dict['privacy_policy_accepted_date']
-        profile_row = db.user.Profile(
-            edi_id=profile_dict['edi_id'],
-            given_name=profile_dict['given_name'],
-            family_name=profile_dict['family_name'],
-            email=profile_dict['email'],
-            privacy_policy_accepted=profile_dict['privacy_policy_accepted'],
-            privacy_policy_accepted_date=(_from_iso(accepted_date)),
-        )
-        db_session.add(profile_row)
-
-    for identity_dict in identity_list:
-        identity_row = db.user.Identity(
-            profile_id=identity_dict['profile_id'],
-            idp_name=identity_dict['idp_name'],
-            uid=identity_dict['uid'],
-            email=identity_dict['email'],
-            pasta_token=identity_dict['pasta_token'],
-            first_auth=(_from_iso(identity_dict['first_auth'])),
-            last_auth=(_from_iso(identity_dict['last_auth'])),
-        )
-        db_session.add(identity_row)
-
-    db_session.commit()
-
-    yield db_session
-
-
-
-
-@pytest.fixture
-def user_db_populated(db_session_populated):
-    return db.iface.UserDb(db_session_populated)
-
-
-def udb_override(session: sqlalchemy.orm.Session):
+@pytest_asyncio.fixture(scope='session', autouse=True)
+async def override_session_dependency(session_scope_populated_dbi):
+    """Override the app's DbInterface dependency with the test-populated DbInterface."""
+    # Note: dependency_overrides only works with functions that are wrapped in fastapi.Depends().
+    main.app.dependency_overrides[util.dependency.dbi] = lambda: session_scope_populated_dbi
     try:
-        yield db.iface.UserDb(session)
-    finally:
-        session.close()
-
-
-@pytest.fixture
-def client(db_session_populated):
-    # noinspection PyUnresolvedReferences
-    webapp.main.app.dependency_overrides[util.dependency.udb] = functools.partial(
-        udb_override, db_session_populated
-    )
-    with fastapi.testclient.TestClient(webapp.main.app) as client:
-        yield client
-
-
-@pytest.fixture(autouse=True)
-def disable_warnings():
-    """Disable: SAWarning: transaction already deassociated from connection"""
-    with warnings.catch_warnings():
-        warnings.filterwarnings('ignore', category=sqlalchemy.exc.SAWarning)
         yield
+    finally:
+        main.app.dependency_overrides.clear()
 
 
-def _from_iso(iso_date_str):
-    return (
-        datetime.datetime.fromisoformat(iso_date_str)
-        if isinstance(iso_date_str, str)
-        else None
+@pytest_asyncio.fixture(scope='session', autouse=True)
+async def track_sample_file_usage():
+    """Track the usage of sample files in tests."""
+    tests.sample.reset()
+    try:
+        yield
+    finally:
+        tests.sample.status()
+
+
+# Fixtures: scope="session", autouse=False (the default)
+#
+# Fixtures with scope="session" and autouse=False are directly referenced by tests, but the object
+# provided is generated only once, at the start of the test session.
+
+
+@pytest_asyncio.fixture(scope='session')
+async def test_engine():
+    """Create an async Postgres DB engine for the test session.
+    Ensure that all tables are created.
+    """
+    async_engine = sqlalchemy.ext.asyncio.create_async_engine(
+        sqlalchemy.engine.URL.create(
+            Config.TEST_DB_DRIVER,
+            host=Config.TEST_DB_HOST,
+            port=Config.TEST_DB_PORT,
+            database=Config.TEST_DB_NAME,
+            username=Config.TEST_DB_USER,
+            password=Config.TEST_DB_PW,
+        ),
+        echo=Config.TEST_LOG_DB_QUERIES,
+        pool_size=Config.TEST_DB_POOL_SIZE,
+        max_overflow=Config.TEST_DB_MAX_OVERFLOW,
+    )
+    try:
+        async with async_engine.begin() as conn:
+            db.session.set_async_engine(async_engine)
+            yield async_engine
+    finally:
+        await async_engine.dispose()
+
+
+@pytest_asyncio.fixture(scope='session')
+async def test_session(test_engine):
+    """Create a fresh async Postgres DB session for the test session.
+    Roll back changes after each test while keeping the session scoped to the session.
+    """
+    AsyncSessionFactory = sqlalchemy.ext.asyncio.async_sessionmaker(
+        bind=test_engine,
+        autocommit=False,
+        autoflush=False,
+    )
+    async with AsyncSessionFactory() as async_test_session:
+        try:
+            yield async_test_session
+        except Exception as e:
+            log.error(f'Error during test session: {e}')
+            raise
+        finally:
+            await async_test_session.close()
+
+
+@pytest_asyncio.fixture(scope='session')
+async def populated_test_session(test_session):
+    """Create a populated async Postgres DB session for the test session.
+    The database is populated with data from the JSON DB fixture file.
+    """
+    # Start a transaction to contain all the fixture data. This is the outer transaction that will
+    # be rolled back after the test session ends. The normal state of the test database is empty of
+    # user data. If the test database contains user data after the tests, there is something wrong
+    # with the transaction management for the tests. See 'db_manager.py' for preparing the test
+    # database.
+    transaction = await test_session.begin()
+
+    try:
+        fixture_dict = json.loads(DB_FIXTURE_JSON_PATH.read_text())
+        table_to_class_dict = {
+            mapper.local_table.name: mapper.class_
+            for mapper in db.models.base.Base.registry.mappers
+        }
+        # We populate the tables in order of their foreign key dependencies.
+        table_tup = (
+            'profile',
+            'group',
+            'group_member',
+            'principal',
+            'resource',
+            'rule',
+        )
+        # Populate the tables with data from the fixture file.
+        for table_name in table_tup:
+            rows = fixture_dict.get(table_name, [])
+            assert (
+                table_name in db.models.base.Base.metadata.tables
+            ), f'Table not found: {table_name}'
+            # log.debug(f'Importing {table_name}...')
+            cls = table_to_class_dict[table_name]
+            for row in rows:
+                # db_name = test_session.get_bind().url.database
+                # log.debug(f'Importing row: db={db_name} table={table_name}: {row}')
+                new_row = cls(**row)
+                try:
+                    test_session.add(new_row)
+                except sqlalchemy.exc.IntegrityError:
+                    pass
+        # Write the rows added to the session, to the database, so they become visible to the
+        # 'select max()' below.
+        await test_session.flush()
+        # Set the serial sequences for each table to the maximum ID in the table.
+        for table_name in table_tup:
+            result = await test_session.execute(
+                sqlalchemy.text(f'select max(id) from "{table_name}"')
+            )
+            max_id = result.scalar()
+            log.debug(f'Serial sequence for {table_name}: {max_id}')
+            await test_session.execute(
+                sqlalchemy.text(
+                    'select setval(pg_get_serial_sequence(:table_name, :id_column), :max_id)'
+                ),
+                {'table_name': table_name, 'id_column': 'id', 'max_id': max_id},
+            )
+        # Ensure that the session is flushed so that this is visible to the rest of the tests.
+        await test_session.flush()
+        yield test_session
+    finally:
+        await transaction.rollback()
+        await test_session.close()
+
+
+@pytest_asyncio.fixture(scope='session')
+async def dbi(test_session):
+    """Create a DbInterface instance for the test session."""
+    yield db.db_interface.DbInterface(test_session)
+
+
+@pytest_asyncio.fixture(scope='session')
+async def session_scope_populated_dbi(populated_test_session):
+    """Create a populated DbInterface instance for the test session.
+    Don't use this fixture directly; use populated_dbi instead, which wraps it in a savepoint.
+    """
+    yield db.db_interface.DbInterface(populated_test_session)
+
+
+#
+# Fixtures: scope="function", autouse=False (the default)
+#
+
+
+@pytest_asyncio.fixture(scope='function')
+async def populated_dbi(session_scope_populated_dbi, populated_test_session):
+    """Create a populated DbInterface instance for each test function.
+    The instance is rolled back to a savepoint after each test, so that the database is reset to its
+    initial state for the next test. The view of the test database is as seen from within the
+    transaction.
+    """
+    transaction = await populated_test_session.begin_nested()
+    try:
+        yield session_scope_populated_dbi
+    finally:
+        await transaction.rollback()
+
+
+#
+# profile_row, token, and client fixtures for various profiles
+#
+
+
+# DB profile rows
+
+
+@pytest_asyncio.fixture(scope='function')
+async def service_profile_row(populated_dbi):
+    """System profile: Service profile row"""
+    yield await populated_dbi.get_profile(Config.SERVICE_EDI_ID)
+
+
+@pytest_asyncio.fixture(scope='function')
+async def public_profile_row(populated_dbi):
+    """System profile:Public Access profile row"""
+    yield await populated_dbi.get_profile(tests.edi_id.PUBLIC_ACCESS)
+
+
+@pytest_asyncio.fixture(scope='function')
+async def authenticated_profile_row(populated_dbi):
+    """System profile: Authenticated Access profile row"""
+    yield await populated_dbi.get_profile(tests.edi_id.AUTHENTICATED_ACCESS)
+
+
+@pytest_asyncio.fixture(scope='function')
+async def john_profile_row(populated_dbi):
+    """User profile: john@smith.com profile row"""
+    yield await populated_dbi.get_profile(tests.edi_id.JOHN)
+
+
+@pytest_asyncio.fixture(scope='function')
+async def jane_profile_row(populated_dbi):
+    """User profile: jane@brown.com profile row"""
+    yield await populated_dbi.get_profile(tests.edi_id.JANE)
+
+
+# Valid tokens
+
+
+@pytest_asyncio.fixture(scope='function')
+async def service_token(populated_dbi, service_profile_row):
+    """System profile: Service token"""
+    yield await tests.utils.make_edi_token(populated_dbi, service_profile_row)
+
+
+@pytest_asyncio.fixture(scope='function')
+async def public_token(populated_dbi, public_profile_row):
+    """System profile: Public Access token"""
+    yield await tests.utils.make_edi_token(populated_dbi, public_profile_row)
+
+
+@pytest_asyncio.fixture(scope='function')
+async def authenticated_token(populated_dbi, authenticated_profile_row):
+    """System profile: Authenticated Access token"""
+    yield await tests.utils.make_edi_token(populated_dbi, authenticated_profile_row)
+
+
+@pytest_asyncio.fixture(scope='function')
+async def john_token(populated_dbi, john_profile_row):
+    """User profile: john@smith.com token"""
+    yield await tests.utils.make_edi_token(populated_dbi, john_profile_row)
+
+
+@pytest_asyncio.fixture(scope='function')
+async def jane_token(populated_dbi, jane_profile_row):
+    """User profile: jane@brown.com token"""
+    yield await tests.utils.make_edi_token(populated_dbi, jane_profile_row)
+
+
+# Anon client
+
+
+@pytest_asyncio.fixture(scope='function')
+async def anon_client(populated_dbi):
+    """Client that connects without providing a token"""
+    yield fastapi.testclient.TestClient(main.app, base_url=TEST_SERVER_BASE_URL)
+
+
+# Authenticated clients
+#
+# These clients are signed in to the indicated user profiles. They will pass a valid token when
+# calling API endpoints.
+#
+# These fixtures are function scoped, and so are created and destroyed for each test function. Since
+# the TestClient holds state, this ensures that each test starts with a fresh client and avoids
+# leaking client state between tests.
+
+
+@pytest_asyncio.fixture(scope='function')
+async def service_client(service_token):
+    """System profile: Service client"""
+    yield _create_test_client(service_token)
+
+
+@pytest_asyncio.fixture(scope='function')
+async def public_client(public_token):
+    """System profile: Public Access client"""
+    yield _create_test_client(public_token)
+
+
+@pytest_asyncio.fixture(scope='function')
+async def authenticated_client(authenticated_token):
+    """System profile: Authenticated Access client"""
+    yield _create_test_client(authenticated_token)
+
+
+@pytest_asyncio.fixture(scope='function')
+async def john_client(john_token):
+    """User profile: john@smith.com client"""
+    yield _create_test_client(john_token)
+
+
+@pytest_asyncio.fixture(scope='function')
+async def jane_client(jane_token):
+    """User profile: jane@brown.com client"""
+    yield _create_test_client(jane_token)
+
+
+def _create_test_client(token):
+    return fastapi.testclient.TestClient(
+        main.app, cookies={'edi-token': token}, base_url=TEST_SERVER_BASE_URL
     )

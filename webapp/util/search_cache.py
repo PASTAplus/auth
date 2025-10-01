@@ -4,12 +4,14 @@ We dynamically update search results as the user types in the search box. In ord
 search and avoid hitting the database each time the user presses a key, we cache the profiles and
 groups in memory.
 """
+
+import sqlalchemy.exc
 import re
 
 import daiquiri
 
-import db.iface
 import util.avatar
+import util.dependency
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -21,47 +23,56 @@ cache = {
 }
 
 
-async def init_cache():
-    udb = db.iface.get_udb()
-    cache['sync_ts'] = await udb.get_sync_ts()
-    await init_profiles(udb)
-    await init_groups(udb)
+async def init_cache(dbi):
+    try:
+        cache['sync_ts'] = await dbi.get_sync_ts()
+    except sqlalchemy.exc.NoResultFound:
+        cache['sync_ts'] = None
+    await init_profiles(dbi)
+    await init_groups(dbi)
     # pprint.pp(cache)
 
 
-async def init_profiles(udb):
+async def init_profiles(dbi):
     profile_list = cache['profile_list']
     profile_list.clear()
-    async for (profile_row, principal_row) in udb.get_all_profiles_generator():
-        if profile_row.edi_id in Config.SUPERUSER_LIST:
+    async for profile_row, principal_row in dbi.get_all_profiles_generator():
+        if not Config.ENABLE_DEV_MENU and profile_row.edi_id in Config.SUPERUSER_LIST:
             continue
         key_tup = (
-            profile_row.full_name,
-            profile_row.family_name,
+            profile_row.common_name,
+            # Support search starting at second word in common name (family name in Western
+            # cultures)
+            (
+                profile_row.common_name.split(' ', 1)[1]
+                if ' ' in (profile_row.common_name or '')
+                else None
+            ),
             profile_row.email,
             profile_row.edi_id,
-            # Enable searching for the EDI ID without the 'EDI-' prefix
+            # Enable searching for the EDI-ID without the 'EDI-' prefix
             re.sub(r'^EDI-', '', profile_row.edi_id),
         )
         profile_list.append(
             (
-                tuple(k.lower() for k in key_tup if k is not None),
+                tuple(s.lower() for s in key_tup if s is not None),
                 {
+                    'profile_id': profile_row.id,
                     'principal_id': principal_row.id,
                     'principal_type': 'profile',
                     'edi_id': profile_row.edi_id,
-                    'title': profile_row.full_name,
+                    'title': profile_row.common_name,
                     'description': profile_row.email,
-                    'avatar_url': profile_row.avatar_url,
+                    'avatar_url': await util.avatar.get_profile_avatar_url(dbi, profile_row),
                 },
             )
         )
 
 
-async def init_groups(udb):
+async def init_groups(dbi):
     group_list = cache['group_list']
     group_list.clear()
-    async for group_row in udb.get_all_groups_generator():
+    async for group_row, principal_row in dbi.get_all_groups_generator():
         key_tup = (
             group_row.name,
             group_row.description,
@@ -71,34 +82,35 @@ async def init_groups(udb):
         )
         group_list.append(
             (
-                tuple(k.lower() for k in key_tup if k is not None),
+                tuple(s.lower() for s in key_tup if s is not None),
                 {
-                    'principal_id': group_row.id,
+                    'principal_id': principal_row.id,
                     'principal_type': 'group',
                     'edi_id': group_row.edi_id,
                     'title': group_row.name,
                     'description': (group_row.description or ''),
-                    'avatar_url': str(util.avatar.get_group_avatar_url()),
+                    'avatar_url': util.avatar.get_group_avatar_url(),
                 },
             )
         )
 
 
-async def search(query_str, include_groups):
+async def search(dbi, query_str, include_groups):
     """Search for profiles and groups based on the query string. A match is found if any of the
     search keys start with the query string.
 
     Matches are returned with profiles first, then groups. Within the profiles and groups, the order
     is determined by the order_by() statements in the profile and group generators.
     """
-    sync_ts = await db.iface.get_udb().get_sync_ts()
+    sync_ts = await dbi.get_sync_ts()
     if sync_ts != cache.get('sync_ts'):
-        await init_cache()
+        await init_cache(dbi)
 
     match_list = []
 
     # The keys are stored in lower case.
     lower_str = query_str.lower()
+
     for key_tup, principal_dict in cache['profile_list']:
         if len(match_list) >= Config.SEARCH_LIMIT:
             break

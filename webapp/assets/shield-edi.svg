@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Based on: -->
+
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+
+<!-- COLLECTION: Chunk 16px Thick Interface Icons -->
+
+<!-- LICENSE: PD License -->
+
+<!-- AUTHOR: Noah Jacobus -->
+
+<svg
+    width="800px"
+    height="800px"
+    viewBox="0 0 16 16"
+    fill="none"
+    version="1.1"
+    id="svg6"
+    sodipodi:docname="shield-edi.svg"
+    inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+    xmlns="http://www.w3.org/2000/svg"
+>
+  <defs
+     id="defs10" />
+  <sodipodi:namedview
+     id="namedview8"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:pageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     inkscape:zoom="0.905625"
+     inkscape:cx="522.29124"
+     inkscape:cy="623.87854"
+     inkscape:window-width="3840"
+     inkscape:window-height="2100"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg6" />
+  <!--<rect width="16" height="16" fill="red"/>-->
+  <path
+     d="m 4.7782931,12.694496 3.2552455,2.325195 3.2552364,-2.325195 c 1.875068,-1.339321 2.987854,-3.5016874 2.987854,-5.8059319 V 3.4253791 L 8.0335386,0.74976884 1.7904481,3.4253791 v 3.463185 c 0,2.3042445 1.112813,4.4666109 2.987845,5.8059319 z"
+     stroke="#a0a0a0"
+     id="path2"
+     style="stroke-width:0.89187" />
+  <text
+     x="8.0335388"
+     y="6.9928589"
+     text-anchor="middle"
+     dominant-baseline="middle"
+     font-family="Arial, sans-serif"
+     font-size="6.24309px"
+     font-weight="bold"
+     fill="#a0a0a0"
+     id="text4"
+     style="stroke-width:0.89187">EDI</text>
+</svg>

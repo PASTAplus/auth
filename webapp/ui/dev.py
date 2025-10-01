@@ -9,9 +9,10 @@ import starlette.responses
 import starlette.status
 import starlette.templating
 
+import db.models.profile
 import util.avatar
 import util.dependency
-import util.pasta_jwt
+import util.edi_token
 import util.redirect
 import util.template
 from config import Config
@@ -32,73 +33,38 @@ def assert_dev_enabled(func):
     return wrapper
 
 
-@router.get('/dev/token')
-@assert_dev_enabled
-async def get_dev_token(
-    request: starlette.requests.Request,
-    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
-    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
-):
-    if token is None:
-        return util.template.templates.TemplateResponse(
-            'token.html',
-            {
-                # Base
-                'token': token,
-                'avatar_url': util.avatar.get_anon_avatar_url(),
-                'profile': None,
-                'resource_type_list': await udb.get_resource_types(token_profile_row),
-                # Page
-                'request': request,
-                'token_pp': 'NO TOKEN',
-            },
-        )
-    return util.template.templates.TemplateResponse(
-        'token.html',
-        {
-            # Base
-            'token': token,
-            'avatar_url': util.avatar.get_profile_avatar_url(token_profile_row),
-            'profile': token_profile_row,
-            'resource_type_list': await udb.get_resource_types(token_profile_row),
-            # Page
-            'request': request,
-            'token_pp': token.claims_pp,
-        },
-    )
-
-
-@router.get('/dev/profiles')
+@router.get('/ui/api/dev/profiles')
 @assert_dev_enabled
 async def get_dev_profiles(
     request: starlette.requests.Request,
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
-    token: util.dependency.PastaJwt | None = fastapi.Depends(util.dependency.token),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    profile_list = await udb.get_all_profiles()
+    profile_list = await dbi.get_all_profiles()
     return util.template.templates.TemplateResponse(
         'index.html',
         {
             # Base
-            'token': token,
-            'profile': None,
-            # Page
             'request': request,
+            'profile': token_profile_row,
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
+            'error_msg': request.query_params.get('error'),
+            'info_msg': request.query_params.get('info'),
+            # Page
             'profile_list': profile_list,
         },
     )
 
 
-@router.get('/dev/signin/{idp_name}/{idp_uid}')
+@router.get('/ui/api/dev/signin/{idp_name}/{idp_uid}')
 @assert_dev_enabled
 async def get_dev_signin(
-    idp_name: str,
+    idp_name: db.models.profile.IdpName,
     idp_uid: str,
-    udb: util.dependency.UserDb = fastapi.Depends(util.dependency.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
 ):
     response = util.redirect.internal('/ui/profile')
-    identity_row = await udb.get_identity(idp_name, idp_uid)
-    pasta_token = await util.pasta_jwt.make_jwt(udb, identity_row, is_vetted=True)
-    response.set_cookie(key='pasta_token', value=pasta_token)
+    identity_row = await dbi.get_profile(idp_name, idp_uid)
+    edi_token = await util.edi_token.create(dbi, identity_row)
+    response.set_cookie('edi-token', edi_token)
     return response

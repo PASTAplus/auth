@@ -1,11 +1,16 @@
 {% extends 'base.html' %}
-{% set active_page = 'dev' %}
+{% set highlight_menu = 'dev' %}
 
 {% block title %}
   Dev
 {% endblock %}
 
 {% block content %}
+  <div class='header-container'
+       data-highlight-menu='dev'
+  >
+  </div>
+
   <h1 aria-label>Dev</h1>
 
   <p>

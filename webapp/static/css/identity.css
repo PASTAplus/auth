@@ -4,21 +4,47 @@
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(4, max-content);
+    grid-template-columns: repeat(3, max-content);
     align-items: center;
     justify-items: left;
-}
-
-.grid-child {
-    white-space: nowrap;
-    padding: 1rem 1rem 1rem 1rem;
+    gap: 1rem;
 }
 
 .grid-row {
     display: contents;
 }
 
+.grid-child {
+    /* white-space: nowrap; */
+    padding: 0 0 1rem 0;
+
+}
+
+.grid-child-span-all {
+    grid-column: 1 / -1;
+}
+
 .grid-logo {
     height: 1rem;
-    /* margin-right: 1rem; */
+}
+
+
+/*   */
+
+.profile-flex {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-flex-name {
+    font-weight: bold;
+}
+
+.profile-flex-child {
+    max-width: 13rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    align-self: center;
 }

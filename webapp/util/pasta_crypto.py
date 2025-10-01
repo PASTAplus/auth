@@ -17,8 +17,8 @@ def import_key(f: str) -> Crypto.PublicKey.RSA.RsaKey:
 
 def verify_auth_token(public_key: Crypto.PublicKey.RSA.RsaKey, auth_token: str):
     """
-    Verifies the PASTA+ authentication token, which is a two part string
-    separate with a hyphen '-', and each part being base64 encoded:
+    Verifies the PASTA+ authentication token, which is a two part string separate with a hyphen '-',
+    where each part is base64 encoded:
 
         base64(token)-base64(md5_signature_of_base64_token)
 
