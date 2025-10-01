@@ -7,9 +7,6 @@
   <meta name='theme-color' content='#ffffff'>
   <link rel='icon' href='{{ url('/favicon.svg') }}'>
   <link rel='manifest' href='{{ url('/manifest.json') }}'>
-  {# TODO #}
-  {#<link rel='mask-icon' href='mask-icon.svg' color='#000000'>#}
-  {#<link rel='apple-touch-icon' href='apple-touch-icon.png'>#}
 
   <title>
     {% block title %}
@@ -50,41 +47,34 @@
       {# Menu, left #}
 
       <ul class='navbar-nav mr-auto'>
-
-
         <li class='nav-item'>
-          <a class='nav-link {% if not profile %}disabled{% endif %}'
+          <a id='profile' class='nav-link {% if not profile %}disabled{% endif %}'
              href='{{ url('/ui/profile') }}'
-             data-pages='profile'
           >Profile</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not profile %}disabled{% endif %}'
+          <a id='identity' class='nav-link {% if not profile %}disabled{% endif %}'
              href='{{ url('/ui/identity') }}'
-             data-pages='identity'
           >Accounts</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not profile %}disabled{% endif %}' href='{{ url('/ui/group') }}'
-             data-pages='group'
+          <a id='group' class='nav-link {% if not profile %}disabled{% endif %}'
+             href='{{ url('/ui/group') }}'
           >Groups</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not profile %}disabled{% endif %}'
+          <a id='membership' class='nav-link {% if not profile %}disabled{% endif %}'
              href='{{ url('/ui/membership') }}'
-             data-pages='membership'
           >Memberships</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link {% if not profile %}disabled{% endif %}'
+          <a id='permission' class='nav-link {% if not profile %}disabled{% endif %}'
              href='{{ url('/ui/permission/search') }}'
-             data-pages='permission, search'
           >Permissions</a>
         </li>
         <li class='nav-item'>
-          <a class='nav-link'
+          <a id='help' class='nav-link'
              href='{{ url('/ui/help') }}'
-             data-pages='help'
           >Help</a>
         </li>
       </ul>
@@ -102,7 +92,8 @@
               <a class='nav-link {% if not profile %}disabled{% endif %}'
                  href='{{ url('/ui/perm2') }}'>Perm2</a>
             </li>
-            <li><a class='dropdown-item' href='{{ url('/ui/api/dev/profiles') }}'>View Profiles</a>
+            <li><a class='dropdown-item' href='{{ url('/ui/api/dev/profiles') }}'>View
+              Profiles</a>
             </li>
             <li>
               <div class='dropdown-divider'></div>
@@ -135,19 +126,31 @@
                           data-bs-toggle='dropdown' aria-expanded='false'><img
                       src='{{ avatar_url }}' alt='Avatar' class='avatar'></button>
                   <ul class='dropdown-menu' aria-labelledby='avatarMenuButton'>
-                    <li><a class='dropdown-item' href='{{ url('/ui/profile/edit') }}'>Edit
-                      Profile</a></li>
-                    <li><a class='dropdown-item' href='{{ url('/ui/avatar') }}'>Select Avatar</a>
+                    <li>
+                      <a id='profile-edit' class='dropdown-item'
+                         href='{{ url('/ui/profile/edit') }}'>Edit Profile
+                      </a>
                     </li>
-                    <li><a class='dropdown-item' href='{{ url('/ui/token') }}'>Token</a>
+                    <li>
+                      <a id='avatar' class='dropdown-item'
+                         href='{{ url('/ui/avatar') }}'>Select Avatar
+                      </a>
+                    </li>
+                    <li>
+                      <a id='token' class='dropdown-item'
+                         href='{{ url('/ui/token') }}'>Token
+                      </a>
                     </li>
                   </ul>
                 </div>
               </div>
               <div class='row-center-child'>
                 <a class='nav-link'
-                   href='{{ url('/signout') }}?success=You have been signed out successfully.'>
-                  <img src='{{ url('/static/svg/sign-out.svg') }}' alt='Sign out' class='icon-link'>
+                   href='{{ url('/signout') }}?info=You have been signed out successfully. If you
+                   signed in from a public or shared computer, also visit your identity provider to
+                   sign out there, then close this tab or browser.'>
+                  <img src='{{ url('/static/svg/sign-out.svg') }}' alt='Sign out'
+                       class='icon-link'>
                   {#<i class='bi bi-box-arrow-right'></i>#}
                   Sign out
                 </a>
@@ -156,7 +159,7 @@
           </li>
         {% else %}
           <li class='nav-item'>
-            <a class='nav-link active' href='{{ url('/ui/signin') }}'>Sign in</a>
+            <a id='signin' class='nav-link active' href='{{ url('/ui/signin') }}'>Sign in</a>
           </li>
         {% endif %}
 
@@ -165,10 +168,13 @@
     {% endblock %}
 
   </div>
+  {# container-fluid #}
 </nav>
 
-<main role='main' class='container'>
-  <h1 aria-label>{{ self.title() }}</h1>
+<main class='container'>
+  {% block header %}
+    <h1 aria-label>{{ self.title() }}</h1>
+  {% endblock %}
 
   {% if error_msg %}
     <div class='indent alert alert-warning alert-row'>
@@ -181,13 +187,18 @@
     </div>
   {% endif %}
 
-  {% if success_msg %}
+  {% if info_msg %}
     <div class='indent alert alert-info alert-row'>
       <div>
         <i class='bi bi-info-circle'></i>
       </div>
       <div>
-        {{ success_msg }}
+        {% if info_msg == 'expired' %}
+          You have been signed out for your security due to inactivity. Please sign in again to
+          continue.
+        {% else %}
+          {{ info_msg }}
+        {% endif %}
       </div>
     </div>
   {% endif %}
@@ -280,5 +291,6 @@
   {# By importing scripts just before the /body tag, we don't have to wrap scripts in checks for
   fully loaded DOM #}
 {% endblock %}
+
 </body>
 </html>

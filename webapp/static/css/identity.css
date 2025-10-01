@@ -4,7 +4,7 @@
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(6, max-content);
+    grid-template-columns: repeat(3, max-content);
     align-items: center;
     justify-items: left;
     gap: 1rem;
@@ -17,6 +17,7 @@
 .grid-child {
     /* white-space: nowrap; */
     padding: 0 0 1rem 0;
+
 }
 
 .grid-child-span-all {
@@ -25,4 +26,25 @@
 
 .grid-logo {
     height: 1rem;
+}
+
+
+/*   */
+
+.profile-flex {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-flex-name {
+    font-weight: bold;
+}
+
+.profile-flex-child {
+    max-width: 13rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    align-self: center;
 }

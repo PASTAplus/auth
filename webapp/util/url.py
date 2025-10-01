@@ -75,7 +75,8 @@ def is_true(v: str | None) -> bool:
         )
 
 
-def collapse_whitespace(s):
+def msg(s):
+    """Clean up a message string for use as a query parameter and display in the UI."""
     return re.sub(r'\s+', ' ', s).strip()
 
 

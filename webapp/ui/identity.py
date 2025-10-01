@@ -65,7 +65,7 @@ async def get_ui_identity(
             'profile': token_profile_row,
             'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
             'error_msg': request.query_params.get('error'),
-            'success_msg': request.query_params.get('success'),
+            'info_msg': request.query_params.get('info'),
             # Page
             'profile_list': profile_list,
         },
@@ -86,4 +86,4 @@ async def post_profile_unlink(
     form_data = await request.form()
     profile_id = int(form_data.get('unlink-profile-id'))
     await dbi.unlink_profile(token_profile_row, profile_id)
-    return util.redirect.internal('/ui/identity', success='Profile unlinked successfully.')
+    return util.redirect.internal('/ui/identity', info='Profile unlinked successfully.')

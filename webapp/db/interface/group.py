@@ -26,7 +26,7 @@ class GroupInterface:
     async def create_group(self, token_profile_row, name, description, edi_id=None):
         """Create a new group which will be owned by token_profile_row.
 
-        This also creates a resource to track permissions on the group, and sets CHANGE permission
+        This also creates a resource to track permissions on the group and sets CHANGE permission
         for the group owner on the group resource.
         """
         edi_id = edi_id or util.edi_id.get_random_edi_id()

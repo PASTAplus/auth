@@ -5,6 +5,7 @@ import starlette.responses
 import starlette.status
 import starlette.templating
 
+import util.url
 import util.avatar
 import util.dependency
 import util.edi_token
@@ -57,7 +58,7 @@ async def get_ui_group(
             'profile': token_profile_row,
             'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
             'error_msg': request.query_params.get('error'),
-            'success_msg': request.query_params.get('success'),
+            'info_msg': request.query_params.get('info'),
             # Page
             'group_list': group_list,
         },
@@ -82,7 +83,7 @@ async def get_ui_group_member(
             'profile': token_profile_row,
             'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
             'error_msg': request.query_params.get('error'),
-            'success_msg': request.query_params.get('success'),
+            'info_msg': request.query_params.get('info'),
             # Page
             'group_row': group_row,
         },
@@ -133,12 +134,15 @@ async def post_group_delete(
     return util.redirect.internal('/ui/group')
 
 
-@router.get('/ui/api/group/member/list/{group_id}')
+@router.get('/int/api/group/member/list/{group_id}')
 async def get_group_member_list(
+    # request: starlette.requests.Request,
     group_id: int,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
+    if token_profile_row is None:
+        return starlette.responses.Response(status_code=starlette.status.HTTP_401_UNAUTHORIZED)
     group_row = await dbi.get_owned_group(token_profile_row, group_id)
     member_list = await dbi.get_group_member_list(token_profile_row, group_row.id)
     member_list.sort(
@@ -148,23 +152,20 @@ async def get_group_member_list(
         or ('\uffff' + x.profile.edi_id)
     )
     return starlette.responses.JSONResponse(
-        {
-            'status': 'ok',
-            'member_list': [
-                {
-                    'profile_id': p.id,
-                    'edi_id': p.edi_id,
-                    'title': p.common_name,
-                    'description': p.email,
-                    'avatar_url': await util.avatar.get_profile_avatar_url(dbi, p),
-                }
-                for p in [m.profile for m in member_list]
-            ],
-        }
+        [
+            {
+                'profile_id': p.id,
+                'edi_id': p.edi_id,
+                'title': p.common_name,
+                'description': p.email,
+                'avatar_url': await util.avatar.get_profile_avatar_url(dbi, p),
+            }
+            for p in [m.profile for m in member_list]
+        ],
     )
 
 
-@router.post('/ui/api/group/member/search')
+@router.post('/int/api/group/member/search')
 async def post_group_member_search(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
@@ -172,31 +173,25 @@ async def post_group_member_search(
 ):
     # Prevent this from being called by anyone not logged in
     if token_profile_row is None:
-        return starlette.responses.JSONResponse(
-            {'status': 'error', 'message': 'Not logged in'},
-            status_code=starlette.status.HTTP_401_UNAUTHORIZED,
-        )
+        return starlette.responses.Response(status_code=starlette.status.HTTP_401_UNAUTHORIZED)
     query_dict = await request.json()
     query_str = query_dict.get('query')
     principal_list = await util.search_cache.search(dbi, query_str, include_groups=False)
-    return starlette.responses.JSONResponse(
-        {
-            'status': 'ok',
-            'principal_list': principal_list,
-        }
-    )
+    return starlette.responses.JSONResponse(principal_list)
 
 
-@router.post('/ui/api/group/member/add-remove')
+@router.post('/int/api/group/member/add-remove')
 async def post_group_member_add_remove(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
+    if token_profile_row is None:
+        return starlette.responses.Response(status_code=starlette.status.HTTP_401_UNAUTHORIZED)
     request_dict = await request.json()
     is_add = request_dict['is_add']
     group_row = await dbi.get_owned_group(token_profile_row, int(request_dict['group_id']))
     f = dbi.add_group_member if is_add else dbi.delete_group_member
     # noinspection PyArgumentList
     await f(token_profile_row, group_row.id, int(request_dict['member_profile_id']))
-    return starlette.responses.JSONResponse({'status': 'ok'})
+    return starlette.responses.JSONResponse({})

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% set active_page = 'profile' %}
+{% set highlight_menu = 'membership' %}
 
 {% block title %}
   Group Memberships
@@ -13,14 +13,25 @@
   <script src='{{ url_buster('/static/js/membership.js') }}'></script>
 {% endblock %}
 
+{% block header %}
+  <h1 aria-label>Group Memberships
+    <a href='{{ url('/ui/help#memberships') }}' target='_blank'>
+      <i class='bi bi-question-circle help-button'></i>
+    </a>
+  </h1>
+{% endblock %}
+
 {% block content %}
+  <div class='header-container'
+       data-highlight-menu='membership'
+  >
+  </div>
+
   <div class='indent'>
     <p>
-      Group memberships grant you access to the group's resources. Leaving a group will revoke this access. To join a
-      group, contact the group owner. If you are the owner, you can join your own group from the Groups page.
-    </p>
-    <p>
-      {% if group_membership_list %}
+      {% if group_membership_list|length == 1  %}
+        You are a member of the following group:
+      {% elif group_membership_list|length > 1  %}
         You are a member of the following groups:
       {% else %}
         You are not a member of any groups.

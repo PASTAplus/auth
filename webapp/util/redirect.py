@@ -71,20 +71,20 @@ def target(
     idp_uid: str,
     idp_name: db.models.profile.IdpName,
     sub: str,
-    success_msg: str | None = None,
+    info_msg: str | None = None,
     error_msg: str | None = None,
 ):
     """Create Response that redirects to the final target URL, providing the old style and new style
-    tokens, and other information
+    tokens and other information
 
-    This is the final step in the authentication process, and creates a uniform set of query
+    This is the final step in the authentication process and creates a uniform set of query
     parameters and cookies returned to all clients for all authentication flows.
 
     target_url: The URL to which the client originally requested to be redirected.
     """
     msg_dict = {}
-    if success_msg:
-        msg_dict['success'] = success_msg
+    if info_msg:
+        msg_dict['info'] = info_msg
     if error_msg:
         msg_dict['error'] = error_msg
 
@@ -135,7 +135,7 @@ def redirect(url_str: str, **query_param_dict):
     """Create a Response that redirects to the redirect_url with query parameters.
 
     This uses a 307 Temporary Redirect status code, which prevents the client from caching the
-    redirect, and guarantees that the client will not change the request method and body when the
+    redirect and guarantees that the client will not change the request method and body when the
     redirected request is made.
     """
     util.pretty.log_dict(log.debug, f'Redirecting (307) to: {url_str}', query_param_dict)

@@ -2,7 +2,7 @@
 - EDI Tokens are JSON Web Token (JWTs). A JWT consists of a header, a JSON payload, and a signature.
 These are Base64URL encoded and combined into a single string with the parts separated by dots.
 - The header specifies the algorithm used to sign the token, and other metadata.
-- The payload contains the claims, which are statements about a user profile, and metadata about the
+- The payload contains the claims, which are statements about a user profile and metadata about the
 token itself.
 - The signature ensures that the token was created by EDI and has not been modified.
 """
@@ -28,7 +28,7 @@ PUBLIC_KEY_STR = Config.JWT_PUBLIC_KEY_PATH.read_text()
 class EdiTokenClaims:
     """Hold the claims of an EDI JWT.
     - We use this instead of the plain dict that represents the JSON in a decoded JWT in order to
-    formalize the claims. This also enables convenient access via attributes, and helps the IDE with
+    formalize the claims. This also enables convenient access via attributes and helps the IDE with
     autocomplete, syntax checking, etc.
     """
 
@@ -42,7 +42,7 @@ class EdiTokenClaims:
     cn: str | None = None
     email: str | None = None
     principals: set[str] = dataclasses.field(default_factory=set)
-    links: list[tuple[str, int]] = dataclasses.field(default_factory=list)
+    links: list[dict] = dataclasses.field(default_factory=list)
     isEmailEnabled: bool = False
     isEmailVerified: bool = False
     idpName: str | None = None
@@ -73,7 +73,17 @@ async def create_claims(dbi, profile_row) -> EdiTokenClaims:
         cn=profile_row.common_name,
         email=profile_row.email,
         principals=principals_set,
-        links=[(r.edi_id, int(r.link_date.timestamp())) for r in links_list],
+        links=[
+            {
+                'ediId': r.edi_id,
+                'linkedAt': int(r.link_date.timestamp()),
+                'commonName': r.common_name,
+                'email': r.email,
+                'idpName': r.idp_name.name.lower(),
+                'idpUid': r.idp_uid,
+            }
+            for r in links_list
+        ],
         isEmailEnabled=profile_row.email_notifications,
         isEmailVerified=False,
         idpName=profile_row.idp_name.name.lower(),
@@ -160,13 +170,19 @@ async def format_claims_for_display(dbi, claims: EdiTokenClaims) -> dict[str, ob
         date_str = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S UTC')
         claims_dict[k] = f'{ts} ({date_str})'
 
+    for link_dict in claims_dict['links']:
+        link_dict['ediId'] = await _add_title(dbi, link_dict['ediId'])
+        ts = link_dict['linkedAt']
+        date_str = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S UTC')
+        link_dict['linkedAt'] = f'{ts} ({date_str})'
+
     return claims_dict
 
 
 async def _add_title(dbi, edi_id) -> str:
     try:
         profile_row = await dbi.get_profile(edi_id)
-        return f'{edi_id} ({profile_row.common_name or "unspecified"})'
+        return f'{edi_id} ({profile_row.common_name or "unspecified"}, {profile_row.email or "no email"})'
     except sqlalchemy.exc.NoResultFound:
         try:
             group_row = await dbi.get_group(edi_id)

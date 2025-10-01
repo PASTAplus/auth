@@ -1,12 +1,12 @@
 """Build a tree from a flat list of resources.
 
 - Each resource can be standalone or a member of a tree.
-- A standalone resource has parent_key=None, and no other resources have it as their parent_key
-- A root resource has parent_key=None, and other resources may have it as their parent_key
+- A standalone resource has parent_key=None and no other resources have it as their parent_key
+- A root resource has parent_key=None and other resources may have it as their parent_key
 - Our current approach to assembling resources into a list of trees uses several steps:
     - Two recursive DB functions are used for finding the resource IDs of all the resources that are
     in the same tree as the given resource
-        - This step ignores ACRs, and all IDs are returned. That's because we need to visit all the
+        - This step ignores ACRs and all IDs are returned. That's because we need to visit all the
         nodes in the tree in order to find descendants
     - A plain list of all the discovered resource IDs are bundled together in no specific order
     - A flat DB function selects and returns a join of (resource, group, principal, profile, group)

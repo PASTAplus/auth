@@ -37,7 +37,7 @@ async def get_post_ui_profile(
             'profile': token_profile_row,
             'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
             'error_msg': request.query_params.get('error'),
-            'success_msg': request.query_params.get('success'),
+            'info_msg': request.query_params.get('info'),
             # Page
         },
     )
@@ -57,7 +57,7 @@ async def get_ui_profile_edit(
             'profile': token_profile_row,
             'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
             'error_msg': request.query_params.get('error'),
-            'success_msg': request.query_params.get('success'),
+            'info_msg': request.query_params.get('info'),
             # Page
         },
     )
@@ -82,7 +82,7 @@ async def post_profile_edit_update(
         email=form_data.get('email'),
         email_notifications='email-notifications' in form_data,
     )
-    return util.redirect.internal('/ui/profile/edit', success='Profile updated successfully.')
+    return util.redirect.internal('/ui/profile/edit', info='Profile updated successfully.')
 
 
 @router.post('/ui/api/profile/edit/delete')
@@ -91,4 +91,4 @@ async def post_profile_edit_delete(
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     await dbi.delete_profile(token_profile_row)
-    return util.redirect.internal('/signout', success='Profile deleted successfully.')
+    return util.redirect.internal('/signout', info='Profile deleted successfully.')

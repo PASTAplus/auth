@@ -6,7 +6,7 @@ const BASE_PATH = headerContainerEl.dataset.basePath;
 const copyTokenButton = document.getElementById('copyTokenButton');
 
 copyTokenButton.addEventListener('click', function () {
-  fetch(`${BASE_PATH}/ui/api/token/download`)
+  fetch(`${BASE_PATH}/int/api/token/download`)
       .then((response) => response.text())
       .then((token) => {
         navigator.clipboard.writeText(token);

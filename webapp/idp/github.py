@@ -147,13 +147,12 @@ async def get_callback_github(
 async def get_revoke_github(
     request: starlette.requests.Request,
 ):
-    """Receive the initial revoke request from an EDI service, delete the user's
-    token, and redirect back to client.
+    """Receive the initial revoke request from an EDI service, delete the user's token, and redirect
+    back to client.
     """
     target_url = request.query_params.get('target')
     idp_token = request.query_params.get('idp_token')
     log.debug(f'revoke_github() target_url="{target_url}" idp_token="{idp_token}"')
-
     try:
         pass
         # revoke_grant(target_url, idp_token)
@@ -161,7 +160,6 @@ async def get_revoke_github(
     except requests.RequestException:
         log.error('Revoke unsuccessful', exc_info=True)
         return util.redirect.client_error(target_url, 'Revoke unsuccessful')
-
     return util.redirect.redirect(target_url)
 
 
@@ -176,7 +174,6 @@ def revoke_app_token(_target_url, idp_token):
         },
         data=json.dumps({'access_token': idp_token}),
     )
-
     if revoke_response.status_code != starlette.status.HTTP_204_NO_CONTENT:
         raise requests.RequestException(revoke_response.text)
 

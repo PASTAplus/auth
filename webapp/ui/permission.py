@@ -48,7 +48,7 @@ async def get_ui_permission_search(
             'profile': token_profile_row,
             'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
             'error_msg': request.query_params.get('error'),
-            'success_msg': request.query_params.get('success'),
+            'info_msg': request.query_params.get('info'),
             # Page
             'package_scope_list': await dbi.get_search_package_scopes(),
             'resource_type_list': await dbi.get_search_resource_types(),
@@ -95,7 +95,7 @@ async def get_ui_permission(
             'profile': token_profile_row,
             'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
             'error_msg': request.query_params.get('error'),
-            'success_msg': request.query_params.get('success'),
+            'info_msg': request.query_params.get('info'),
             # Page
             'public_edi_id': Config.PUBLIC_EDI_ID,
             'authenticated_edi_id': Config.AUTHENTICATED_EDI_ID,
@@ -123,7 +123,7 @@ async def post_ui_permission_search(
     return util.redirect.internal(f'/ui/permission/{new_search_session.uuid}')
 
 
-@router.get('/ui/api/permission/slice')
+@router.get('/int/api/permission/slice')
 async def get_ui_api_permission_slice(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
@@ -131,6 +131,8 @@ async def get_ui_api_permission_slice(
     """Called when the permission search results panel is scrolled or first opened.
     Returns a slice of root resources for the current search session.
     """
+    if request.state.token_profile_row is None:
+        return starlette.responses.Response(status_code=starlette.status.HTTP_401_UNAUTHORIZED)
     query_dict = request.query_params
     search_uuid = query_dict.get('uuid')
     start_idx = int(query_dict['start'])
@@ -147,15 +149,18 @@ async def get_ui_api_permission_slice(
     return starlette.responses.JSONResponse(root_list)
 
 
-@router.get('/ui/api/permission/tree/{root_id}')
+@router.get('/int/api/permission/tree/{root_id}')
 async def get_ui_api_permission_tree(
     root_id: int,
+    request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """Called when user clicks the expand button or checkbox in a root element.
     - This method takes a single root ID and returns a single tree with that root.
     """
+    if request.state.token_profile_row is None:
+        return starlette.responses.Response(status_code=starlette.status.HTTP_401_UNAUTHORIZED)
     resource_id_set = await dbi.get_resource_descendants_id_set([root_id])
     resource_generator = dbi.get_resource_filter_gen(
         token_profile_row, resource_id_set, db.models.permission.PermissionLevel.CHANGE
@@ -166,32 +171,24 @@ async def get_ui_api_permission_tree(
         tree_dict = None
     else:
         tree_dict = db.resource_tree.get_resource_tree_for_ui(row_list)[0]
-    return starlette.responses.JSONResponse(
-        {
-            'status': 'ok',
-            'tree': tree_dict,
-        }
-    )
+    return starlette.responses.JSONResponse(tree_dict)
 
 
-@router.post('/ui/api/permission/aggregate/get')
+@router.post('/int/api/permission/aggregate/get')
 async def post_permission_aggregate_get(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """Called when the user changes a resource check box in the resource tree."""
+    if request.state.token_profile_row is None:
+        return starlette.responses.Response(status_code=starlette.status.HTTP_401_UNAUTHORIZED)
     resource_list = await request.json()
     resource_generator = dbi.get_resource_filter_gen(
         token_profile_row, resource_list, db.models.permission.PermissionLevel.CHANGE
     )
     permission_list = await get_aggregate_permission_list(dbi, resource_generator)
-    return starlette.responses.JSONResponse(
-        {
-            'status': 'ok',
-            'permissionArray': permission_list,
-        }
-    )
+    return starlette.responses.JSONResponse(permission_list)
 
 
 async def get_aggregate_permission_list(dbi, resource_generator):
@@ -257,7 +254,7 @@ async def get_aggregate_permission_list(dbi, resource_generator):
     return sorted(principal_dict.values(), key=db.resource_tree._get_principal_sort_key)
 
 
-@router.post('/ui/api/permission/principal/search')
+@router.post('/int/api/permission/principal/search')
 async def post_permission_principal_search(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
@@ -267,47 +264,33 @@ async def post_permission_principal_search(
     ),
 ):
     """Called when user types in the principal search box."""
+    if request.state.token_profile_row is None:
+        return starlette.responses.Response(status_code=starlette.status.HTTP_401_UNAUTHORIZED)
     query_dict = await request.json()
     query_str = query_dict.get('query')
     principal_list = await util.search_cache.search(dbi, query_str, include_groups=True)
-    return starlette.responses.JSONResponse(
-        {
-            'status': 'ok',
-            'principals': principal_list,
-        }
-    )
+    return starlette.responses.JSONResponse(principal_list)
 
 
-@router.post('/ui/api/permission/update')
+@router.post('/int/api/permission/update')
 async def post_permission_update(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """Called when the user changes the permission level dropdown for a profile."""
+    if request.state.token_profile_row is None:
+        return starlette.responses.Response(status_code=starlette.status.HTTP_401_UNAUTHORIZED)
     # TODO: There is a race condition where changes can be lost if the user changes multiple times
     # quickly for the same profile. This probably happens because the change is asynchronously sent
     # to the server, and the list is then async updated while the old list still exists and is still
     # enabled in the UI. After fixing, the solution can be checked by adding a sleep on the server
     # side, or by setting a very low bandwidth limit in the browser dev tools.
     update_dict = await request.json()
-    try:
-        start_ts = time.time()
-        await dbi.set_permissions(
-            token_profile_row,
-            update_dict['resources'],
-            update_dict['principalId'],
-            update_dict['permissionLevel'],
-        )
-        log.info('set_permissions(): %.3f sec', time.time() - start_ts)
-
-    except ValueError as e:
-        return starlette.responses.JSONResponse(
-            {'status': 'error', 'message': str(e)},
-            status_code=starlette.status.HTTP_400_BAD_REQUEST,
-        )
-    return starlette.responses.JSONResponse(
-        {
-            'status': 'ok',
-        }
+    await dbi.set_permissions(
+        token_profile_row,
+        update_dict['resources'],
+        update_dict['principalId'],
+        update_dict['permissionLevel'],
     )
+    return starlette.responses.Response()

@@ -30,7 +30,7 @@ log = daiquiri.getLogger(__name__)
 # Fixtures: scope="session", autouse=True
 #
 # Fixtures with scope="session" and autouse=True run once per test session. They set up resources
-# shared by all the tests. They are not directly referenced by the tests, and do not provide any
+# shared by all the tests. They are not directly referenced by the tests and do not provide any
 # test objects.
 
 
@@ -293,7 +293,7 @@ async def anon_client(populated_dbi):
 # calling API endpoints.
 #
 # These fixtures are function scoped, and so are created and destroyed for each test function. Since
-# the TestClient holds state, this ensures that each test starts with a fresh client, and avoids
+# the TestClient holds state, this ensures that each test starts with a fresh client and avoids
 # leaking client state between tests.
 
 

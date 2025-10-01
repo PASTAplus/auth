@@ -12,3 +12,13 @@ h2 {
 li {
     margin-bottom: 0.5rem;
 }
+
+.flash-highlight {
+    background-color: rgba(0, 0, 0, 0.15);
+    transition: background-color .3s ease-in-out;
+}
+
+.icon-text-button {
+    /*font-size: smaller;*/
+    margin-top: 1rem;
+}

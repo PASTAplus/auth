@@ -45,7 +45,7 @@ async def test_add_group_member_already_in_group(populated_dbi, service_client, 
     )
     assert response.status_code == 200
     tests.utils.dump_response(response)
-    # Even though a regular call to an API endpoint will be in a separate request/response cycle,
+    # Even though a regular call to an API endpoint will be in a separate request/response cycle
     # and commited as a separate transaction, the TestClient only simulates this, and does not
     # actually commit the transaction, so we need to flush the changes to the database.
     await populated_dbi.flush()

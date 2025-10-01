@@ -231,11 +231,11 @@ async def update_v1_rule(
             principal=principal,
         )
 
-    # Check:
+    # TODO: Check:
     # - Child permission can only be set as high for a principal as its parent
     #      - manual, enforced, and with useful message
 
-    # Check:
+    # TODO: Check:
     # The permission level is not being downgraded from changePermission if there are no other
     # changePermission rules for the resource
 

@@ -49,7 +49,7 @@ async def get_dev_profiles(
             'profile': token_profile_row,
             'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
             'error_msg': request.query_params.get('error'),
-            'success_msg': request.query_params.get('success'),
+            'info_msg': request.query_params.get('info'),
             # Page
             'profile_list': profile_list,
         },
@@ -66,5 +66,5 @@ async def get_dev_signin(
     response = util.redirect.internal('/ui/profile')
     identity_row = await dbi.get_profile(idp_name, idp_uid)
     edi_token = await util.edi_token.create(dbi, identity_row)
-    response.set_cookie(key='edi-token', value=edi_token)
+    response.set_cookie('edi-token', edi_token)
     return response

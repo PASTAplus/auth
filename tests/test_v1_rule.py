@@ -37,7 +37,7 @@ async def test_create_rule_by_non_owner(
     """createResource()
     Call by non-owner (no changePermission ACR on resource) -> 403 Forbidden
     """
-    # John creates a resource, and becomes the owner
+    # John creates a resource and becomes the owner
     await tests.utils.add_vetted(populated_dbi, service_profile_row, john_profile_row)
     await populated_dbi.flush()
     response = john_client.post(
@@ -70,7 +70,7 @@ async def test_create_rule_by_owner(
     """createRule()
     Successful call by owner -> A new rule is created on the resource.
     """
-    # John creates a resource, and receives implicit CHANGE
+    # John creates a resource and receives implicit CHANGE
     await tests.utils.add_vetted(populated_dbi, service_profile_row, john_profile_row)
     response = john_client.post(
         '/v1/resource',
@@ -119,7 +119,7 @@ async def test_public_access(
     """createRule()
     Adding the Public Access principal to a resource -> Everyone can read the resource.
     """
-    # The Service principal creates a resource, and receives implicit CHANGE
+    # The Service principal creates a resource and receives implicit CHANGE
 
     # Add Service to the Vetted system group.
     await tests.utils.add_vetted(populated_dbi, service_profile_row, service_profile_row)
@@ -240,7 +240,7 @@ async def test_public_access(
 #     """readResource()
 #     Call by non-owner (no changePermission ACR on resource) -> 403 Forbidden
 #     """
-#     # John creates a resource, and becomes the owner
+#     # John creates a resource and becomes the owner
 #     john_client.post(
 #         '/v1/resource',
 #         json={

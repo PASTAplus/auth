@@ -33,7 +33,7 @@ async def get_ui_membership(
             'profile': token_profile_row,
             'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
             'error_msg': request.query_params.get('error'),
-            'success_msg': request.query_params.get('success'),
+            'info_msg': request.query_params.get('info'),
             # Page
             'group_membership_list': await dbi.get_group_membership_list(token_profile_row),
             'group_avatar': util.avatar.get_group_avatar_url(),

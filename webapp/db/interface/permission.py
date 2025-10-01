@@ -17,16 +17,16 @@ The resources of interest will always be a cross-section of:
     - a set of rules which tie the resources and principals together,
       where only rules having higher or equal permission level to that requested, are considered
 
-    The queries are lengthy in source code, because, well, SQLAlchemy. But we're essentially
-    working just with variations around this basic query:
+    The queries are lengthy in source code, because, well, SQLAlchemy. But we're essentially working
+    just with variations around this basic query:
 
         select * from resource
         join rule on rule.resource_id = resource.id
         where rule.level >= requested_level
         and rule.principal in (subquery to select all equivalent principals)
 
-    To this, we add filters, and if we need more information about the principals, we join
-    on profile and/or group tables.
+    To this, we add filters and if we need more information about the principals, we join on profile
+    and/or group tables.
 
     We expect the list of equivalent principals to be short. Usually just the public subject, the
     authorized subject, and maybe a couple of group memberships. Still, the DB should be able to
@@ -136,7 +136,7 @@ class PermissionInterface:
         - To update the label and/or type, the profile must have WRITE on the resource being
         updated.
         - To change the parent resource, the profile must have WRITE on both the resource being
-        updated, and the parent resource. No information is updated in the parent, but we consider
+        updated and the parent resource. No information is updated in the parent, but we consider
         adding a child to be a change to the parent.
         - To add or remove ACRs on the resource, the profile must have CHANGE permission on the
         resource. (Not handled by this method. See the Rules API).
@@ -291,7 +291,7 @@ class PermissionInterface:
         resource_id_set = set(resource_ids)
         parent_id_set = set()
 
-        # Recursively find all parent IDs of the resources in resource_ids, and bump them up to the
+        # Recursively find all parent IDs of the resources in resource_ids and bump them up to the
         # permission_level if required. We never reduce the permission level of a parent, but we
         # need to make sure that the principal has the permissions required in order to be able to
         # walk down the tree to their resources.
@@ -510,7 +510,7 @@ class PermissionInterface:
         - Yields rows of (Resource, Rule, Principal, Profile/Group)
         - Filters a list of resource IDs to only those for which the token has the required
         permission level or higher.
-        - This method handles untrusted user input, and should be applied to all resource IDs
+        - This method handles untrusted user input and should be applied to all resource IDs
         originating from the APIs and the UI.
         - Any non-existing resource IDs are silently ignored.
         """
@@ -612,7 +612,7 @@ class PermissionInterface:
             profiles)
 
         For the special cases of finding equivalent principals for the Public Access profile, we
-        don't include the Authenticated Access profile, and vice versa.
+        don't include the Authenticated Access profile and vice versa.
         """
         public_profile_id = await util.profile_cache.get_public_access_profile_id(self)
         authenticated_profile_id = await util.profile_cache.get_authenticated_access_profile_id(

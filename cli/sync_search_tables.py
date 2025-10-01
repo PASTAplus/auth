@@ -12,15 +12,15 @@ This command is useful in the following cases:
 - If some error occurs that causes the search tables to drop out of sync with the resource table,
 this command can be called to reset the search tables and repopulate them.
 
-- If a resource is deleted, and the resource is the last resource of a given package scope or
+- If a resource is deleted and the resource is the last resource of a given package scope or
 resource type, the scope and type will remain in the search tables until this function is called.
 The superfluous scopes and types won't break anything, but if they're selected in a search, they
 won't return any results. The basic issue is that a simple implementation counting occurrences of a
 specific label pattern (for package) in the resource table, when there are millions of rows, would
 be too slow to do each time a resource is deleted. There are ways to implement this, but they add
 complexity we don't need right now. Possible solutions to look into would be: (1) run this script as
-a daily cron job, (2) maintaining a separate table with instance counts, (3) Use Postgres functional
-indexes, (4) add columns to the resource table with calculated values, and have indexes on those.
+a daily cron job, (2) maintaining a separate table with instance counts, (3) use Postgres functional
+indexes, (4) add columns to the resource table with calculated values and indexes on those.
 """
 
 import asyncio

@@ -63,7 +63,7 @@ async def test_get_principal_by_edi_id(populated_dbi):
 async def test_get_equivalent_principal_edi_id_set_1(populated_dbi, john_profile_row):
     """Get the set of EDI-IDs that are equivalent to John's EDI-ID."""
     john_edi_id_set = await populated_dbi.get_equivalent_principal_edi_id_set(john_profile_row)
-    # John is a member of 6 groups, and gets the default public and anonymous equivalents. Including
+    # John is a member of 6 groups and gets the default public and anonymous equivalents. Including
     # himself, this should be 9 EDI-IDs.
     assert len(john_edi_id_set) == 9
     tests.sample.assert_match(john_edi_id_set, 'get_equivalent_principal_edi_id_set_1.json')

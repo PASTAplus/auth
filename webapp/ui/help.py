@@ -35,6 +35,6 @@ async def get_ui_help(
             if token_profile_row
             else None,
             'error_msg': request.query_params.get('error'),
-            'success_msg': request.query_params.get('success'),
+            'info_msg': request.query_params.get('info'),
         },
     )

@@ -35,15 +35,15 @@ class ProfileInterface:
         avatar_ver: str | None = None,
     ) -> Profile:
         """Create or update to a full profile.
-        - A full profile is a profile that has been logged into at least once, and so has a known
-        identity provider, and is filled in with user information, with defaults provided by the
+        - A full profile is a profile that has been logged into at least once and so has a known
+        identity provider and is filled in with user information, with defaults provided by the
         identity provider.
         - If a skeleton profile already exists for the given idp_uid, it is upgraded to a full
         profile.
         - Skeleton profiles are created in a separate function.
         """
         assert idp_name != IdpName.SKELETON
-        success_msg = "Signed in successfully."
+        info_msg = ""
         try:
             profile_row = await self.get_profile_by_idp(idp_name, idp_uid)
             # We have a full profile.
@@ -55,26 +55,25 @@ class ProfileInterface:
             try:
                 profile_row = await self.get_profile_by_idp(IdpName.SKELETON, idp_uid)
                 # We have a skeleton profile. We will upgrade this to a full profile below
-                success_msg = """Signed in successfully. The profile to which you signed in was
-                initially created automatically as a placeholder. As a result, we have now filled
-                in the profile with the information provided by your identity provider.
+                info_msg = """The profile you signed in with was initially created automatically as
+                a placeholder. We've now filled in the profile with the information provided by your
+                identity provider.
                 """
             except sqlalchemy.exc.NoResultFound:
                 pass
         # See README.md: Strategy for dealing with Google emails historically used as identifiers.
-        # If an identity does not exist under the IdP UID, and we're logging in through Google, we
+        # If an identity does not exist under the IdP UID and we're logging in through Google, we
         # check if there is a skeleton profile with the IdP email as the IdP UID.
         if profile_row is None:
             if idp_name == IdpName.GOOGLE and email:
                 try:
                     profile_row = await self.get_profile_by_idp(IdpName.SKELETON, email)
                     # We have a legacy case where the IdP UID is an email address. Fix up the record
-                    # idp_uid now, and upgrade to full profile below.
+                    # idp_uid now and upgrade to full profile below.
                     profile_row.idp_uid = idp_uid
-                    success_msg = """Signed in successfully. The profile to which you signed in was
-                    initially created automatically as a placeholder, using a legacy Google
-                    account. As a result, we have now filled in the profile with the information
-                    provided by your identity provider.
+                    info_msg = """The profile you signed in with was initially created automatically
+                    as a placeholder, using a legacy Google account. We've now filled in the profile
+                    with the information provided by your identity provider.
                     """
                 except sqlalchemy.exc.NoResultFound:
                     pass
@@ -87,7 +86,10 @@ class ProfileInterface:
                 common_name=common_name,
                 email=email,
             )
-            success_msg = "A new profile has been created for you."
+            info_msg = """This is the first time you have signed in with this account and we have
+            created a new profile for you.
+            """
+
         # We now have a profile, either previously existing or newly created.
         # If this is a previously existing skeleton profile, upgrade it to full.
         if profile_row.idp_name == IdpName.SKELETON:
@@ -109,16 +111,16 @@ class ProfileInterface:
                 profile_row.avatar_ver = avatar_ver
             else:
                 profile_row.avatar_ver = None
-        # Update the profile's last_auth time, and first_auth time if not already set.
+        # Update the profile's last_auth time and first_auth time if not already set.
         profile_row.first_auth = profile_row.first_auth or datetime.datetime.now()
         profile_row.last_auth = datetime.datetime.now()
-        return profile_row, success_msg
+        return profile_row, info_msg
 
     async def create_skeleton_profile(self, idp_uid: str) -> Profile:
-        """Create a 'skeleton' EDI profile that can be used in permissions, and which can be logged
+        """Create a 'skeleton' EDI profile that can be used in permissions and which can be logged
         into by the IdP UID.
-        - A skeleton profile is a profile that has been created via the API, and which does not have
-        a known identity provider, and no user information.
+        - A skeleton profile is a profile that has been created via the API and which does not have
+        a known identity provider and no user information.
         - This method is idempotent, meaning that if a profile already exists for the provided
         `idp_uid`, it will return the existing profile identifier instead of creating a new one. The
         existing profile may be a skeleton or a full profile.
@@ -132,12 +134,12 @@ class ProfileInterface:
         except sqlalchemy.exc.NoResultFound:
             pass
         except sqlalchemy.exc.MultipleResultsFound:
-            # We enforce uniqueness of (idp_name, idp_uid), and in practice, the idp_uid is unique
+            # We enforce uniqueness of (idp_name, idp_uid) and, in practice, the idp_uid is unique
             # by itself because the IdPs use different formats on their UIDs, so this should never
             # happen.
             assert False, 'Unreachable'
         # See README.md: Strategy for dealing with Google emails historically used as identifiers.
-        # The idp_uid may be an email address. If someone has signed in via Google, and their email
+        # The idp_uid may be an email address. If someone has signed in via Google and their email
         # address matches the idp_uid for the skeleton profile we are preparing to create, use that
         # identity.
         try:
@@ -257,8 +259,8 @@ class ProfileInterface:
     ):
         """Create a new profile.
         - If the edi_id is provided, it is used as the profile's EDI-ID.
-        - If the edi_id is not provided, and the idp_uid is provided, the idp_uid is used to
-        generate the EDI-ID.
+        - If the edi_id is not provided and the idp_uid is provided, the idp_uid is used to generate
+        the EDI-ID.
         - If neither is provided, a new random EDI-ID is generated (used for creating profiles in
         testing).
         """
@@ -367,7 +369,14 @@ class ProfileInterface:
         """Get profiles linked to the given profile ordered by link_date."""
         result = await self.execute(
             (
-                sqlalchemy.select(Profile.edi_id, ProfileLink.link_date)
+                sqlalchemy.select(
+                    Profile.edi_id,
+                    Profile.common_name,
+                    Profile.email,
+                    Profile.idp_name,
+                    Profile.idp_uid,
+                    ProfileLink.link_date,
+                )
                 .join(ProfileLink, ProfileLink.linked_profile_id == Profile.id)
                 .where(ProfileLink.profile_id == token_profile_row.id)
                 .order_by(ProfileLink.link_date)

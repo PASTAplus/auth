@@ -24,19 +24,20 @@ router = fastapi.APIRouter()
 #
 
 
+
 @router.get('/login/pasta')
 async def get_login_pasta(
     request: starlette.requests.Request,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
 ):
-    """Accept LDAP credentials, validate them against an external LDAP service, and return a
-    response with cookie containing the old style token.
+    """Accept LDAP credentials, validate them against an external LDAP service and return a response
+    with cookie containing the old style token.
 
     NOTES:
 
     - This endpoint is not called by a browser. It is called from the server side of the web app
     (Portal and ezEML), so any information added to the response here will not make it to the
-    client, and will not be acted on by the web app.
+    client and will not be acted on by the web app.
 
     - The server side checks for 200 response code and then pulls the token from the Set-Cookie
     header with key 'auth-token'. For the Portal, the token is then added to the Java Session.
@@ -64,7 +65,7 @@ async def get_login_pasta(
 
     log.debug(f'login_pasta() - login successful: {ldap_dn}')
 
-    profile_row, success_msg = await dbi.create_or_update_profile(
+    profile_row, info_msg = await dbi.create_or_update_profile(
         idp_name=db.models.profile.IdpName.LDAP,
         idp_uid=ldap_dn,
         common_name=dn_uid,
@@ -72,7 +73,7 @@ async def get_login_pasta(
     )
     await dbi.flush()
 
-    log.debug(f'Login message: {success_msg}')
+    log.debug(f'Login message: {info_msg}')
 
     # As described in the docstr, this response goes to the server side web app, so we create a
     # limited response that contains only the items checked for by the server.
