@@ -84,7 +84,12 @@ class Profile(db.models.base.Base):
     edi_id = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True)
     # The user's common (full) name. This is typically given name and family name when using Western
     # naming conventions, but any string is accepted. Should only be NULL if idp_name is SKELETON.
+    # This field is editable by the user.
     common_name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    # Static common name. This is the common name provided by the IdP at the time when the profile
+    # was first created. It does not change if later edited at the IdP, and is not editable in this
+    # profile.
+    idp_common_name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     # The email address that the user has chosen as their contact email. Initially set to the email
     # address provided by the IdP.
     email = sqlalchemy.Column(sqlalchemy.String, nullable=True)

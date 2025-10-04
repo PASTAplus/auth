@@ -68,6 +68,7 @@ def target(
     edi_id: str,
     common_name: str,
     email: str,
+    idp_common_name: str,
     idp_uid: str,
     idp_name: db.models.profile.IdpName,
     sub: str,
@@ -103,7 +104,7 @@ def target(
         idp_uid=idp_uid,
         idp_name=idp_name.name.lower(),
         # For ezEML
-        common_name=common_name,
+        common_name=idp_common_name,
         sub=sub,
         **msg_dict,
     )
