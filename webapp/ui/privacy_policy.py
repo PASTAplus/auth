@@ -30,4 +30,6 @@ async def policy_accept(
         )
 
     await dbi.set_privacy_policy_accepted(token_profile_row)
-    return util.redirect.internal('/ui/profile')
+    return util.redirect.internal(
+        '/ui/profile', info=form.get('info-msg'), error=form.get('error-msg')
+    )

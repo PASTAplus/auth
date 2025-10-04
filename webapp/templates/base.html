@@ -226,7 +226,8 @@
           </button>
         </div>
         <div class='modal-body'>
-          {#<input type='hidden' name='profile-id' value='{% if profile is not none %}{{ profile.id }}{% endif %}'>#}
+          <input type='hidden' name='info-msg' value='{{ info_msg | default('', true) }}'>
+          <input type='hidden' name='error-msg' value='{{ error_msg | default('', true) }}'>
           <div class='form-group'>
             <p>
               By clicking the 'Accept' button, you acknowledge and agree to our

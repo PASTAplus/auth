@@ -45,6 +45,7 @@ class EdiTokenClaims:
     links: list[dict] = dataclasses.field(default_factory=list)
     isEmailEnabled: bool = False
     isEmailVerified: bool = False
+    idpCommonName: str | None = None
     idpName: str | None = None
     idpUid: str | None = None
     iss: str = Config.JWT_ISSUER
@@ -79,13 +80,17 @@ async def create_claims(dbi, profile_row) -> EdiTokenClaims:
                 'linkedAt': int(r.link_date.timestamp()),
                 'commonName': r.common_name,
                 'email': r.email,
+                'idpCommonName': r.idp_common_name,
                 'idpName': r.idp_name.name.lower(),
-                'idpUid': r.idp_uid,
+                'idpUid': (
+                    r.email if r.idp_name == db.models.profile.IdpName.GOOGLE else r.idp_uid
+                ),
             }
             for r in links_list
         ],
         isEmailEnabled=profile_row.email_notifications,
         isEmailVerified=False,
+        idpCommonName=profile_row.idp_common_name,
         idpName=profile_row.idp_name.name.lower(),
         idpUid=(
             profile_row.email
@@ -166,15 +171,11 @@ async def format_claims_for_display(dbi, claims: EdiTokenClaims) -> dict[str, ob
     claims_dict['sub'] = await _add_title(dbi, claims_dict["sub"])
 
     for k in ['iat', 'nbf', 'exp']:
-        ts = claims_dict[k]
-        date_str = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S UTC')
-        claims_dict[k] = f'{ts} ({date_str})'
+        claims_dict[k] = _add_date(claims_dict[k])
 
     for link_dict in claims_dict['links']:
         link_dict['ediId'] = await _add_title(dbi, link_dict['ediId'])
-        ts = link_dict['linkedAt']
-        date_str = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S UTC')
-        link_dict['linkedAt'] = f'{ts} ({date_str})'
+        link_dict['linkedAt'] = _add_date(link_dict['linkedAt'])
 
     return claims_dict
 
@@ -189,3 +190,8 @@ async def _add_title(dbi, edi_id) -> str:
             return f'{edi_id} ({group_row.name or "unspecified"})'
         except sqlalchemy.exc.NoResultFound:
             return f'{edi_id} (not found)'
+
+
+def _add_date(ts: int) -> str:
+    date_str = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S UTC')
+    return f'{ts} ({date_str})'

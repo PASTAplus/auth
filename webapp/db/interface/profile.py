@@ -276,6 +276,7 @@ class ProfileInterface:
             idp_uid=idp_uid,
             edi_id=edi_id,
             common_name=common_name,
+            idp_common_name=common_name,
             email=email,
             avatar_ver=avatar_ver,
         )
@@ -372,6 +373,7 @@ class ProfileInterface:
                 sqlalchemy.select(
                     Profile.edi_id,
                     Profile.common_name,
+                    Profile.idp_common_name,
                     Profile.email,
                     Profile.idp_name,
                     Profile.idp_uid,

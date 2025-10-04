@@ -67,17 +67,12 @@ class Config(object):
 
     # URLs
     SERVICE_BASE_URL = 'https://localhost:5443/auth'
-    # The path under which the auth service is available. Must match settings in the reverse proxy.
-    ROOT_PATH = '/auth'
     # For testing ORCID, the entire app must be running from 127.0.0.1. This is because ORCID does
     # not allow localhost as a redirect URI and because the base URL must match the redirect URI in
     # order for the target cookie to be assigned to the correct domain.
     # SERVICE_BASE_URL = 'https://127.0.0.1:5443'
-
-    API_HOST_URL = 'https://localhost'
-    API_PORT = 5443
-    API_BASE_URL = f'{API_HOST_URL}:{API_PORT}/api'
-
+    # The path under which the auth service is available. Must match settings in the reverse proxy.
+    ROOT_PATH = '/auth'
     AVATARS_URL = '/avatars'
 
     # PASTA authentication token

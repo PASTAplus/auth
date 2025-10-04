@@ -28,14 +28,7 @@ async def handle_successful_login(
     """
     if login_type == 'client':
         return await handle_client_login(
-            dbi,
-            target_url,
-            idp_name,
-            idp_uid,
-            common_name,
-            email,
-            fetch_avatar_func,
-            avatar_ver,
+            dbi, target_url, idp_name, idp_uid, common_name, email, fetch_avatar_func, avatar_ver
         )
     elif login_type == 'link':
         return await handle_link_identity(
@@ -85,6 +78,7 @@ async def handle_client_login(
         edi_id=profile_row.edi_id,
         common_name=profile_row.common_name,
         email=profile_row.email,
+        idp_common_name=profile_row.idp_common_name,
         idp_uid=profile_row.idp_uid,
         idp_name=profile_row.idp_name,
         sub=profile_row.idp_uid,
@@ -93,7 +87,14 @@ async def handle_client_login(
 
 
 async def handle_link_identity(
-    dbi, token_profile_row, idp_name, idp_uid, common_name, email, fetch_avatar_func, avatar_ver
+    dbi,
+    token_profile_row,
+    idp_name,
+    idp_uid,
+    common_name,
+    email,
+    fetch_avatar_func,
+    avatar_ver,
 ):
     """We are currently signed in and are linking a new or existing identity to the profile to
     which we are signed in.

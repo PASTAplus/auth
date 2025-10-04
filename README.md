@@ -127,35 +127,37 @@ To prevent spoofing, the `redirect_uri` must exactly match a registered value at
 
 `https://<HOST><:PORT>/auth/callback/<IDP_NAME>`
  
-Since we currently have public production and test instances of Auth, and also run Auth locally under port 5443 for development, these are the `redirect_uri`s that we need to be preconfigured at each IdP.
+Since we currently have public production, staging and development instances of Auth, and also run Auth locally under port 5443 for development, these are the `redirect_uri`s that we need to be preconfigured at each IdP.
 
 ### GitHub
 
 - https://auth.edirepository.org/auth/callback/github
+- https://auth-s.edirepository.org/auth/callback/github
 - https://auth-d.edirepository.org/auth/callback/github
 - https://localhost:5443/auth/callback/github
 
 ### Google
 
 - https://auth.edirepository.org/auth/callback/google
+- https://auth-s.edirepository.org/auth/callback/google
 - https://auth-d.edirepository.org/auth/callback/google
 - https://localhost:5443/auth/callback/google
 
 ### Microsoft
 
 - https://auth.edirepository.org/auth/callback/microsoft
+- https://auth-s.edirepository.org/auth/callback/microsoft
 - https://auth-d.edirepository.org/auth/callback/microsoft
 - https://localhost:5443/auth/callback/microsoft
 
 ### ORCID
 
 - https://auth.edirepository.org/auth/callback/orcid
+- https://auth-s.edirepository.org/auth/callback/orcid
 - https://auth-d.edirepository.org/auth/callback/orcid
 - https://127.0.0.1:5443/auth/callback/orcid
 
-Note: ORCID does not support `localhost` in the `redirect_uri`, so we use `127.0.1.1`. However, this conflicts with
-requirement for `localhost` by other IdPs, so can only be used for testing ORCID in development. To test ORCID in
-development, also set `127.0.0.1` in Config.SERVICE_BASE_URL.
+Note: ORCID does not support `localhost` in the `redirect_uri`, so we use `127.0.1.1`. However, this conflicts with requirement for `localhost` by other IdPs, so can only be used for testing ORCID in development. To test ORCID in development, also set `127.0.0.1` in Config.SERVICE_BASE_URL.
 ```
 
 ## Conda
