@@ -95,7 +95,7 @@ async def init_groups(dbi):
         )
 
 
-async def search(dbi, query_str, include_groups):
+async def search(dbi, query_str, include_profiles=True, include_groups=True):
     """Search for profiles and groups based on the query string. A match is found if any of the
     search keys start with the query string.
 
@@ -111,18 +111,18 @@ async def search(dbi, query_str, include_groups):
     # The keys are stored in lower case.
     lower_str = query_str.lower()
 
-    for key_tup, principal_dict in cache['profile_list']:
-        if len(match_list) >= Config.SEARCH_LIMIT:
-            break
-        if any(k.startswith(lower_str) for k in key_tup):
-            match_list.append(principal_dict)
-
-    if include_groups:
-        for key_tup, principal_dict in cache['group_list']:
+    def _append_if_match(principal_list):
+        for key_tup, principal_dict in principal_list:
             if len(match_list) >= Config.SEARCH_LIMIT:
                 break
             if any(k.startswith(lower_str) for k in key_tup):
                 match_list.append(principal_dict)
+
+    if include_profiles:
+        _append_if_match(cache['profile_list'])
+
+    if include_groups:
+        _append_if_match(cache['group_list'])
 
     # log.debug(f'match_list:')
     # for m in match_list:

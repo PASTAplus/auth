@@ -17,8 +17,8 @@ import api.v1.ping
 import api.v1.profile
 import api.v1.resource
 import api.v1.rule
+import api.v1.search
 import api.v1.token
-import db.models.profile
 import idp.github
 import idp.google
 import idp.ldap
@@ -229,6 +229,7 @@ app.include_router(api.v1.ping.router)
 app.include_router(api.v1.profile.router)
 app.include_router(api.v1.resource.router)
 app.include_router(api.v1.rule.router)
+app.include_router(api.v1.search.router)
 app.include_router(api.v1.token.router)
 app.include_router(idp.github.router)
 app.include_router(idp.google.router)

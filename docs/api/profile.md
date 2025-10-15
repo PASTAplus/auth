@@ -7,7 +7,8 @@
 - [Rules](rule.md) - Manage access control rules (ACRs) for the resources
 - [EML](eml.md) - Manage EML documents and associated ACRs
 - [Groups](group.md) - Manage groups and group members
-
+- [Search](search.md) - Search for profiles and groups
+- [Search](search.md) - Search for profiles and groups
 
 This document describes the API for managing user profiles.
 
@@ -163,8 +164,7 @@ Example request using cURL and JSON:
 ```shell
 
 curl -X PUT https://auth.edirepository.org/auth/v1/profile/EDI-1234567890abcdef1234567890abcdef \
-
-
+```
 
 ---
 

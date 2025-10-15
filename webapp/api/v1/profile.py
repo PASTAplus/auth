@@ -13,6 +13,7 @@ import util.dependency
 import util.edi_token
 import util.exc
 import util.url
+import util.search_cache
 
 router = fastapi.APIRouter(prefix='/v1')
 

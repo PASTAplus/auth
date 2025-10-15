@@ -1,0 +1,13 @@
+{
+    "groups": [],
+    "method": "searchPrincipals",
+    "msg": "Profiles and/or groups searched successfully",
+    "profiles": [
+        {
+            "avatar_url": "/auth/static/svg/edi-anon-avatar.svg",
+            "common_name": "Jane Brown",
+            "edi_id": "EDI-2a0458b1f4ba49bbba2a20885b06fb60",
+            "email": "jane@brown.com"
+        }
+    ]
+}

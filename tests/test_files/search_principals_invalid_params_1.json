@@ -1,0 +1,4 @@
+{
+    "method": "searchPrincipals",
+    "msg": "Bad request: Invalid URL: Must include profiles and/or groups"
+}

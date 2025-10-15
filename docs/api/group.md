@@ -7,6 +7,7 @@
 - [Rules](rule.md) - Create and manage the ACRs for resources
 - [EML](eml.md) - Manage EML documents and associated ACRs
 - [Groups](group.md) - Manage groups and group members
+- [Search](search.md) - Search for profiles and groups
 
 This document describes the API for managing groups and group members.
 

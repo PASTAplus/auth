@@ -70,7 +70,7 @@ def is_true(v: str | None) -> bool:
         return False
     else:
         raise ValueError(
-            f'Invalid boolean value: {v}. '
+            f'Invalid boolean value: "{v}". '
             f'Expected one of: true, false, yes, no, 1, 0 (case insensitive).'
         )
 

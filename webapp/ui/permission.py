@@ -268,7 +268,7 @@ async def post_permission_principal_search(
         return starlette.responses.Response(status_code=starlette.status.HTTP_401_UNAUTHORIZED)
     query_dict = await request.json()
     query_str = query_dict.get('query')
-    principal_list = await util.search_cache.search(dbi, query_str, include_groups=True)
+    principal_list = await util.search_cache.search(dbi, query_str)
     return starlette.responses.JSONResponse(principal_list)
 
 
