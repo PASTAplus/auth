@@ -76,6 +76,10 @@ h3 {
     font-size: 1.2rem;
 }
 
+h4 {
+    font-size: 1.0rem;
+}
+
 table td, table th {
     white-space: nowrap;
     padding-left: 1rem;

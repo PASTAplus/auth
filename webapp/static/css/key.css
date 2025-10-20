@@ -1,0 +1,50 @@
+/*
+    Key table
+ */
+
+/* Add this to your CSS */
+.wrap-col {
+    white-space: normal !important;
+    word-break: break-word;
+}
+
+/*
+    Key grid
+*/
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(4, max-content);
+    align-items: center;
+    gap: 1rem;
+}
+
+.grid-row {
+    display: contents;
+}
+
+.grid-child {
+    /* white-space: nowrap; */
+    padding: 0 0 1rem 0;
+
+}
+
+.grid-child-span-all {
+    grid-column: 1 / -1;
+}
+
+/*
+    Valid to-from grid
+ */
+
+.dialog-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    row-gap: .2rem;
+    width: 100%;
+}
+
+#keyDurationDisplay {
+}
+

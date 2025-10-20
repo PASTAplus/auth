@@ -58,7 +58,7 @@
                 <div class=''>
                   <div class='row-center-parent'>
                     {# Edit group name and description #}
-                    <button class='icon-button'
+                    <button type='button' class='icon-text-button'
                             data-bs-toggle='modal'
                             data-bs-target='#editGroupModal'
                             data-form-target='{{ url('/ui/api/group/edit') }}'
@@ -68,15 +68,13 @@
                             data-group-description='{{ group.description or '' }}'
                             data-submit-text='Save'
                     >
-                      <img src='{{ url('/static/svg/edit-pencil.svg') }}' alt='Edit'>
+                      <i class='bi bi-pencil'></i>
                     </button>
                     {# Name #}
                     <div class='grid-child-title'>{{ group.name }}</div>
                   </div>
-
                   {# Description #}
                   <div class='grid-child-description'>{{ group.description or '' }}</div>
-
                   {# Row: Member count, EDI-ID button, Remove button #}
                   <div class='row-center-parent button-row'>
                     {# Member count #}

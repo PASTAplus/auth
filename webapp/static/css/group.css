@@ -289,3 +289,8 @@ Member dropdown
     padding-top: .5rem;
     gap: 1rem;
 }
+
+.icon-text-button {
+    margin: 0 .8rem 0 0;
+    padding: .2rem .6rem .2rem .6rem;
+}

@@ -249,6 +249,11 @@ class PermissionInterface:
         resource_row = result.scalar_one()
         resource_row.label = label
 
+    async def delete_resource(self, resource_row):
+        """Remove a resource by its row."""
+        await self.session.delete(resource_row)
+
+
     async def delete_resource_by_key(self, key):
         """Remove a resource by its key."""
         result = await self.execute(sqlalchemy.delete(Resource).where(Resource.key == key))

@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% set highlight_menu = 'identity' %}
 
 {% block title %}
   Accounts
@@ -30,97 +29,104 @@
 
   <div class='indent'>
 
-  <div class='grid'>
+    <div class='grid'>
 
-    {% for iter_profile in profile_list %}
-      <div class='grid-row'>
-
+      {% for iter_profile in profile_list %}
         {% if loop.index == 1 %}
-          <div class='grid-child grid-child-span-all'>
-            The profile which you are currently signed in to (your primary profile):
-          </div>
-        {% endif %}
-
-        {% if loop.index == 2 %}
-          <div class='grid-child grid-child-span-all'>
-            The following profile(s) are linked to your primary profile:
-          </div>
-        {% endif %}
-
-        {# Profile #}
-        <div class='grid-child profile-flex'>
-          <div>
-            <img src='{{ iter_profile.avatar_url }}' alt='Avatar' class='avatar avatar-smaller'>
-          </div>
-          {# Common name #}
-          <div class='profile-flex-name'>
-            {{ iter_profile.common_name or '' }}
-          </div>
-          {# email #}
-          <div class=''>
-            {{ iter_profile.email or '' }}
-          </div>
-          {# Copy ID #}
-          <div class='edi-id-parent'>
-            <div class='edi-id-child-text'>
-              {{ iter_profile.edi_id }}
+          <div class='grid-row'>
+            <div class='grid-child grid-child-span-all'>
+              The profile which you are currently signed in to (your primary profile):
             </div>
-            <div class='edi-id-child-icon'>
-              <img src='{{ url('/static/svg/copy.svg') }}'
-                   alt='Copy EDI Identifier'
-                   class='edi-id-copy-button'
+          </div>
+        {% elif loop.index == 2 %}
+          <div class='grid-row'>
+            <div class='grid-child grid-child-span-all'>
+              The following profile(s) are linked to your primary profile:
+            </div>
+          </div>
+        {% endif %}
+
+        <div class='grid-row'>
+          <div class='grid-child grid-indent'></div>
+          {# Profile #}
+          <div class='grid-child profile-flex'>
+            <div>
+              <img src='{{ iter_profile.avatar_url }}' alt='Avatar' class='avatar avatar-smaller'>
+            </div>
+            {# Common name #}
+            <div class='profile-flex-name'>
+              {{ iter_profile.common_name or '' }}
+            </div>
+            {# email #}
+            <div class=''>
+              {{ iter_profile.email or '' }}
+            </div>
+            {# Copy ID #}
+            <div class='edi-id-parent'>
+              <div class='edi-id-child-text'>
+                {{ iter_profile.edi_id }}
+              </div>
+              <div class='edi-id-child-icon'>
+                <img src='{{ url('/static/svg/copy.svg') }}'
+                     alt='Copy EDI Identifier'
+                     class='edi-id-copy-button'
+                >
+              </div>
+            </div>
+          </div>
+
+          {# IdP logo #}
+          <div class='grid-child'>
+            <div class='idp-logo'>
+              {% if iter_profile.idp_name == IdpName.GOOGLE %}
+                <img class='idp-logo-google' src='{{ url('/static/svg/idp/google-text.svg') }}'
+                     alt='Google'>
+              {% elif iter_profile.idp_name == IdpName.MICROSOFT %}
+                <img class='idp-logo-microsoft' src='{{ url('/static/svg/idp/microsoft.svg') }}'
+                     alt='Microsoft'>
+              {% elif iter_profile.idp_name == IdpName.GITHUB %}
+                <img class='idp-logo-github-symbol'
+                     src='{{ url('/static/svg/idp/github-symbol.svg') }}' alt='GitHub'>
+                <img class='idp-logo-github-text'
+                     src='{{ url('/static/svg/idp/github-text.svg') }}' alt='GitHub'>
+              {% elif iter_profile.idp_name == IdpName.ORCID %}
+                <img class='idp-logo-orcid' src='{{ url('/static/svg/idp/orcid.svg') }}'
+                     alt='ORCID'>
+              {% elif iter_profile.idp_name == IdpName.LDAP %}
+                <img class='idp-logo-edi-ldap' src='{{ url('/static/svg/idp/edi-logo.svg') }}'
+                     alt='EDI LDAP'>
+              {% else %}
+                {{ iter_profile.idp_name }}
+              {% endif %}
+            </div>
+          </div>
+
+          {# Unlink button #}
+          <div class='grid-child'>
+            {% if loop.index >= 2 %}
+              <button class='icon-text-button' data-bs-toggle='modal'
+                      data-bs-target='#unlinkProfileModal'
+                      data-profile-id='{{ iter_profile.profile_id }}'
               >
-            </div>
-          </div>
-        </div>
-        {# IdP logo #}
-        <div class='grid-child'>
-          <div class='idp-logo'>
-            {% if iter_profile.idp_name == IdpName.GOOGLE %}
-              <img class='idp-logo-google' src='{{ url('/static/svg/idp/google-text.svg') }}'
-                   alt='Google'>
-            {% elif iter_profile.idp_name == IdpName.MICROSOFT %}
-              <img class='idp-logo-microsoft' src='{{ url('/static/svg/idp/microsoft.svg') }}'
-                   alt='Microsoft'>
-            {% elif iter_profile.idp_name == IdpName.GITHUB %}
-              <img class='idp-logo-github-symbol'
-                   src='{{ url('/static/svg/idp/github-symbol.svg') }}' alt='GitHub'>
-              <img class='idp-logo-github-text'
-                   src='{{ url('/static/svg/idp/github-text.svg') }}' alt='GitHub'>
-            {% elif iter_profile.idp_name == IdpName.ORCID %}
-              <img class='idp-logo-orcid' src='{{ url('/static/svg/idp/orcid.svg') }}'
-                   alt='ORCID'>
-            {% elif iter_profile.idp_name == IdpName.LDAP %}
-              <img class='idp-logo-edi-ldap' src='{{ url('/static/svg/idp/edi-logo.svg') }}'
-                   alt='EDI LDAP'>
+                <span><img src='{{ url('/static/svg/unlink.svg') }}' alt='Unlink'></span>
+                <span>Unlink</span>
+              </button>
             {% else %}
-              {{ iter_profile.idp_name }}
+              <div></div>
             {% endif %}
           </div>
         </div>
-        {# Unlink button #}
-        <div class='grid-child'>
-          {% if loop.index >= 2 %}
-            <button class='icon-text-button' data-bs-toggle='modal'
-                    data-bs-target='#unlinkProfileModal'
-                    data-profile-id='{{ iter_profile.profile_id }}'
-            >
-              <span><img src='{{ url('/static/svg/unlink.svg') }}' alt='Unlink'></span>
-              <span>Unlink</span>
-            </button>
-          {% else %}
-            <div></div>
-          {% endif %}
-        </div>
 
         {% if profile_list|length == 1 %}
-          <div class='grid-child grid-child-span-all'>
-            You have no linked profiles.
+          <div class='grid-row'>
+            <div class='grid-child grid-child-span-all'>
+              You have no linked profiles.
+            </div>
           </div>
         {% endif %}
-      </div>
 
-    {% endfor %}
+      {% endfor %}
+    </div>
 
   </div>
 

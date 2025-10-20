@@ -9,7 +9,7 @@ import util.url
 import util.avatar
 import util.dependency
 import util.edi_token
-import util.redirect
+import util.url
 import util.search_cache
 import util.template
 
@@ -105,7 +105,7 @@ async def post_group_new(
     name = form_data.get('name')
     description = form_data.get('description')
     await dbi.create_group(token_profile_row, name, description)
-    return util.redirect.internal('/ui/group')
+    return util.url.internal('/ui/group')
 
 
 @router.post('/ui/api/group/edit')
@@ -119,7 +119,7 @@ async def post_group_edit(
     name = form_data.get('name')
     description = form_data.get('description')
     await dbi.update_group(token_profile_row, group_id, name, description)
-    return util.redirect.internal('/ui/group')
+    return util.url.internal('/ui/group')
 
 
 @router.post('/ui/api/group/delete')
@@ -131,7 +131,7 @@ async def post_group_delete(
     form_data = await request.form()
     group_id = int(form_data.get('group-id'))
     await dbi.delete_group(token_profile_row, group_id)
-    return util.redirect.internal('/ui/group')
+    return util.url.internal('/ui/group')
 
 
 @router.get('/int/api/group/member/list/{group_id}')

@@ -195,7 +195,7 @@ let forms = document.getElementsByClassName('needs-validation');
 Array.prototype.filter.call(forms, function (form) {
   form.addEventListener('submit', function (ev) {
     if (form.checkValidity() === false) {
-      ev.prevDefault();
+      ev.preventDefault();
       ev.stopPropagation();
     }
     form.classList.add('was-validated');

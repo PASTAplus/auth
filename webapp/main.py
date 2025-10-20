@@ -30,6 +30,7 @@ import ui.group
 import ui.help
 import ui.identity
 import ui.index
+import ui.key
 import ui.membership
 import ui.permission
 import ui.privacy_policy
@@ -39,7 +40,7 @@ import ui.token
 import util.avatar
 import util.dependency
 import util.edi_token
-import util.redirect
+import util.url
 import util.search_cache
 import util.url
 from config import Config
@@ -155,11 +156,12 @@ class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
         if re.match(fr'{util.url.url("/ui")}(?!/(?:signin(?!/link)|help|api/))', request.url.path):
             if request.state.claims is None:
                 # log.debug('Redirecting to /ui/signin: UI page requested without valid token')
-                return util.redirect.internal('/signout', info='expired')
+                return util.url.internal('/signout', info='expired')
 
         return await call_next(request)
 
 
+# noinspection PyTypeChecker
 app.add_middleware(RedirectToSigninMiddleware)
 
 
@@ -173,7 +175,7 @@ class TokenProfileMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
 
     async def dispatch(self, request: starlette.requests.Request, call_next):
         claims_obj = None  # type: util.edi_token.EdiTokenClaims | None
-
+        # If we're signed in, there will be a token cookie
         token_str = request.cookies.get('edi-token')
         if token_str is not None:
             # Note: It's important to not run this code for the unit tests, as it creates a separate
@@ -186,6 +188,7 @@ class TokenProfileMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
         request.state.claims = claims_obj
         response = await call_next(request)
 
+        # Refresh the token if it's older than the refresh delta
         if (
             # token is still valid
             claims_obj is not None
@@ -196,13 +199,45 @@ class TokenProfileMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
         ):
             async with util.dependency.get_dbi() as dbi:
                 profile_row = await dbi.get_profile(claims_obj.edi_id)
-                new_token = await util.edi_token.create(dbi, profile_row)
-            response.set_cookie('edi-token', new_token)
+                if profile_row is not None:
+                    new_token = await util.edi_token.create(dbi, profile_row)
+                    response.set_cookie('edi-token', new_token)
 
         return response
 
 
+# noinspection PyTypeChecker
 app.add_middleware(TokenProfileMiddleware)
+
+
+class ApiKeyMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
+    """Middleware to sign in via API key.
+    - If already signed in, the user is immediately signed out, then signed in via the API key.
+    """
+
+    async def dispatch(self, request: starlette.requests.Request, call_next):
+        key_str = request.query_params.get('key')
+        if key_str is not None:
+            async with util.dependency.get_dbi() as dbi:
+                profile_row = await dbi.get_profile_by_key_id(key_str)
+                if profile_row is not None:
+                    new_token = await util.edi_token.create(dbi, profile_row)
+                    response = util.url.internal(
+                        '/ui/profile',
+                        info="""Welcome to the EDI Identity and Access Manager! You have been 
+                        successfully signed in via API key.
+                        """,
+                    )
+                    response.set_cookie('edi-token', new_token)
+                else:
+                    response = util.url.internal('/ui/signin', error="Invalid API key.")
+                return response
+
+        return await call_next(request)
+
+
+# noinspection PyTypeChecker
+app.add_middleware(ApiKeyMiddleware)
 
 
 class RootPathMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
@@ -214,11 +249,12 @@ class RootPathMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
 
     async def dispatch(self, request: starlette.requests.Request, call_next):
         if not request.url.path.startswith(Config.ROOT_PATH):
-            return util.redirect.internal(request.url.path)
+            return util.url.internal(request.url.path)
         request.scope['root_path'] = Config.ROOT_PATH
         return await call_next(request)
 
 
+# noinspection PyTypeChecker
 app.add_middleware(RootPathMiddleware)
 
 
@@ -242,6 +278,7 @@ app.include_router(ui.group.router)
 app.include_router(ui.help.router)
 app.include_router(ui.identity.router)
 app.include_router(ui.index.router)
+app.include_router(ui.key.router)
 app.include_router(ui.membership.router)
 app.include_router(ui.permission.router)
 app.include_router(ui.privacy_policy.router)

@@ -10,7 +10,7 @@ import starlette.templating
 import util.avatar
 import util.dependency
 import util.edi_token
-import util.redirect
+import util.url
 import util.template
 
 log = daiquiri.getLogger(__name__)
@@ -45,7 +45,7 @@ async def get_ui_token(
             # Page
             'token_pp': await util.edi_token.claims_pformat(dbi, claims_obj),
             'filename': f'token-{token.edi_id}.jwt',
-            'lifetime': token.exp - token.iat // 3600,
+            'lifetime': (token.exp - token.iat) // 3600,
         },
     )
 

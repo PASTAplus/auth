@@ -3,6 +3,7 @@ import sqlalchemy
 import sqlalchemy.ext.asyncio
 
 import db.interface.group
+import db.interface.key
 import db.interface.permission
 import db.interface.profile
 import db.interface.search
@@ -16,6 +17,7 @@ log = daiquiri.getLogger(__name__)
 # noinspection PyTypeChecker,PyUnresolvedReferences
 class DbInterface(
     db.interface.group.GroupInterface,
+    db.interface.key.KeyInterface,
     db.interface.permission.PermissionInterface,
     db.interface.profile.ProfileInterface,
     db.interface.search.SearchInterface,
@@ -24,6 +26,7 @@ class DbInterface(
     def __init__(self, session: sqlalchemy.ext.asyncio.AsyncSession):
         self._session = session
         db.interface.group.GroupInterface.__init__(self, session)
+        db.interface.key.KeyInterface.__init__(self, session)
         db.interface.permission.PermissionInterface.__init__(self, session)
         db.interface.profile.ProfileInterface.__init__(self, session)
         db.interface.search.SearchInterface.__init__(self, session)

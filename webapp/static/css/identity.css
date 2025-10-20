@@ -4,9 +4,8 @@
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(3, max-content);
+    grid-template-columns: repeat(4, max-content);
     align-items: center;
-    justify-items: left;
     gap: 1rem;
 }
 
@@ -28,8 +27,11 @@
     height: 1rem;
 }
 
+.grid-indent {
+    width: 2rem;
+}
 
-/*   */
+/* Profile  */
 
 .profile-flex {
     display: flex;
@@ -48,3 +50,7 @@
     text-overflow: ellipsis;
     align-self: center;
 }
+
+
+
+

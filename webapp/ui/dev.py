@@ -13,7 +13,7 @@ import db.models.profile
 import util.avatar
 import util.dependency
 import util.edi_token
-import util.redirect
+import util.url
 import util.template
 from config import Config
 
@@ -63,7 +63,7 @@ async def get_dev_signin(
     idp_uid: str,
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
 ):
-    response = util.redirect.internal('/ui/profile')
+    response = util.url.internal('/ui/profile')
     identity_row = await dbi.get_profile(idp_name, idp_uid)
     edi_token = await util.edi_token.create(dbi, identity_row)
     response.set_cookie('edi-token', edi_token)

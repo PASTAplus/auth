@@ -7,7 +7,7 @@ import db.models.profile
 import util.dependency
 import util.login
 import util.pretty
-import util.redirect
+import util.url
 import util.url
 from config import Config
 
@@ -30,7 +30,7 @@ async def get_login_orcid(
     target_url = request.query_params.get('target')
     log.debug(f'login_orcid() target_url="{target_url}"')
 
-    return util.redirect.idp(
+    return util.url.idp(
         Config.ORCID_AUTH_ENDPOINT,
         db.models.profile.IdpName.ORCID,
         login_type,
@@ -53,7 +53,7 @@ async def get_callback_orcid(
 
     code_str = request.query_params.get('code')
     if code_str is None:
-        return util.redirect.client_error(target_url, 'Login cancelled')
+        return util.url.client_error(target_url, 'Login cancelled')
 
     try:
         token_response = requests.post(
@@ -71,17 +71,17 @@ async def get_callback_orcid(
         )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.redirect.client_error(target_url, 'Login unsuccessful')
+        return util.url.client_error(target_url, 'Login unsuccessful')
 
     try:
         token_dict = token_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {token_response.text}', exc_info=True)
-        return util.redirect.client_error(target_url, 'Login unsuccessful')
+        return util.url.client_error(target_url, 'Login unsuccessful')
 
     if is_error(token_dict):
         log.error(f'Login unsuccessful: {get_error(token_dict)}', exc_info=True)
-        return util.redirect.client_error(target_url, 'Login unsuccessful')
+        return util.url.client_error(target_url, 'Login unsuccessful')
 
     log.debug('-' * 80)
     log.debug('login_orcid_callback() - login successful')
@@ -124,7 +124,7 @@ async def get_revoke_orcid(
             'idp_token': idp_token,
         },
     )
-    return util.redirect.redirect(target_url)
+    return util.url.redirect(target_url)
 
 
 #

@@ -6,7 +6,7 @@ import db.models.profile
 import util.avatar
 import util.edi_token
 import util.old_token
-import util.redirect
+import util.url
 from config import Config
 
 
@@ -71,7 +71,7 @@ async def handle_client_login(
         ),
     )
     edi_token = await util.edi_token.create(dbi, profile_row)
-    return util.redirect.target(
+    return util.url.target(
         target_url,
         token=old_token_,
         edi_token=edi_token,
@@ -117,43 +117,34 @@ async def handle_link_identity(
         )
         await dbi.flush()
         await dbi.create_profile_link(token_profile_row, profile_row.id)
-        return util.redirect.internal(
+        return util.url.internal(
             '/ui/identity',
-            info=util.url.msg(
-                """
-                The account you signed in with wasn’t yet linked to a profile. We’ve created a new
-                profile for it and linked it to your primary profile. You can now sign in to your
-                primary profile using either account. If this wasn’t your intention, you can unlink
-                the account, then sign in to it to edit or remove it.
-                """
-            ),
+            info="""The account you signed in with wasn’t yet linked to a profile. We’ve created a
+            new profile for it and linked it to your primary profile. You can now sign in to your
+            primary profile using either account. If this wasn’t your intention, you can unlink the
+            account, then sign in to it to edit or remove it.
+            """,
         )
 
     # Currently signed in profile: If we found the profile to which we are already signed in, this
     # is a user error.
     if profile_row.id == token_profile_row.id:
-        return util.redirect.internal(
+        return util.url.internal(
             '/ui/identity',
-            error=util.url.msg(
-                """
-                The profile you are attempting to link is the profile you're currently signed in
-                with (your primary profile).
-                """
-            ),
+            error="""The profile you are attempting to link is the profile you're currently signed
+            in with (your primary profile).
+            """,
         )
 
     # Linked profile, already linked to this profile: If the profile we found is already linked to
     # the currently signed in profile, this is a user error.
     linked_profile_list = await dbi.get_linked_profile_list(token_profile_row.id)
     if profile_row.id in (row.id for row in linked_profile_list):
-        return util.redirect.internal(
+        return util.url.internal(
             '/ui/identity',
-            error=util.url.msg(
-                """
-                The profile you are attempting to link was already linked to the profile you're
-                currently signed in to (your primary profile).
-                """
-            ),
+            error="""The profile you are attempting to link was already linked to the profile you're
+            currently signed in to (your primary profile).
+            """,
         )
 
     indirect_linked_profile_id_list = list(
@@ -165,7 +156,7 @@ async def handle_link_identity(
         # and is not linked to any other profile, we can simply link it to the currently signed in
         # profile.
         await dbi.create_profile_link(token_profile_row, profile_row.id)
-        return util.redirect.internal('/ui/identity', info='Profile linked successfully.')
+        return util.url.internal('/ui/identity', info='Profile linked successfully.')
 
     # Linked profile, linked to another profile: If the profile we found is a linked profile, we
     # re-link the primary profile to which it is linked, along its linked profiles, to the currently
@@ -185,16 +176,13 @@ async def handle_link_identity(
     await dbi.create_profile_link(token_profile_row, profile_row.id)
     for indirect_linked_profile_id in indirect_linked_profile_id_list:
         await dbi.create_profile_link(token_profile_row, indirect_linked_profile_id)
-    return util.redirect.internal(
+    return util.url.internal(
         '/ui/identity',
-        info=util.url.msg(
-            """
-            The profile you linked was already associated with another profile. We’ve now linked it
-            and any profiles already linked to it to your primary profile. If this wasn’t your
-            intention, you can unlink the profile(s) and sign in to them, then restore the links you
-            want to keep.
-            """
-        ),
+        info="""The profile you linked was already associated with another profile. We’ve now linked
+        it and any profiles already linked to it to your primary profile. If this wasn’t your
+        intention, you can unlink the profile(s) and sign in to them, then restore the links you
+        want to keep.
+        """,
     )
 
 

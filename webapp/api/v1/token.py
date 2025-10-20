@@ -94,6 +94,43 @@ async def post_refresh(
     )
 
 
+@router.post('/token/key')
+async def post_token_key(
+    request: starlette.requests.Request,
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+):
+    """Create a token for an API key."""
+    api_method = 'getTokenForKey'
+    # Check that the request body is valid JSON
+    try:
+        request_dict = await api.utils.request_body_to_dict(request)
+    except ValueError as e:
+        return api.utils.get_response_400_bad_request(
+            request, api_method, f'Invalid JSON in request body: {e}'
+        )
+    # Check that the request contains the required fields
+    try:
+        key_id = request_dict['key-id']
+    except KeyError as e:
+        return api.utils.get_response_400_bad_request(
+            request, api_method, f'Missing field in JSON in request body: {e}'
+        )
+    # Validate the key and get the associated profile
+    profile_row = await dbi.get_profile_by_key_id(key_id)
+    if not profile_row:
+        return api.utils.get_response_401_unauthorized(request, api_method, 'Invalid API key')
+    # Create the EDI token
+    edi_token = await util.edi_token.create(dbi, profile_row)
+    return api.utils.get_response_200_ok(
+        request,
+        api_method,
+        'Token created successfully',
+        **{
+            'edi-token': edi_token,
+        },
+    )
+
+
 @router.post('/token/{edi_id}')
 async def post_token(
     edi_id: str,

@@ -6,7 +6,7 @@ import starlette.templating
 import util.avatar
 import util.dependency
 import util.edi_token
-import util.redirect
+import util.url
 import util.template
 
 log = daiquiri.getLogger(__name__)
@@ -55,4 +55,4 @@ async def post_membership_leave(
     form_data = await request.form()
     group_id = int(form_data.get('group-id'))
     await dbi.leave_group_membership(token_profile_row, group_id)
-    return util.redirect.internal('/ui/membership')
+    return util.url.internal('/ui/membership')

@@ -7,8 +7,6 @@ import sqlalchemy.orm
 import sqlalchemy.pool
 
 import db.models.base
-import db.models.base
-import util.avatar
 
 log = daiquiri.getLogger(__name__)
 
@@ -152,6 +150,13 @@ class Profile(db.models.base.Base):
     # Resource searches performed by this profile in order to apply permissions.
     search_sessions = sqlalchemy.orm.relationship(
         'SearchSession',
+        back_populates='profile',
+        cascade_backrefs=False,
+        cascade='all, delete-orphan',
+        passive_deletes=True,
+    )
+    keys = sqlalchemy.orm.relationship(
+        'Key',
         back_populates='profile',
         cascade_backrefs=False,
         cascade='all, delete-orphan',
