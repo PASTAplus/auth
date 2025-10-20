@@ -46,18 +46,18 @@ class GroupInterface:
         # as the resource key. Since it's impossible to predict what the EDI-ID will be for a new
         # group, it's not possible to create resources that would interfere with groups created
         # later.
-        resource_row = await self.create_resource(None, edi_id, name, 'group')
+        new_resource_row = await self.create_resource(None, edi_id, name, 'group')
         # Create a permission for the group owner on the group resource.
         principal_row = await self.get_principal_by_subject(
             token_profile_row.id, SubjectType.PROFILE
         )
         await self.create_or_update_rule(
-            resource_row,
+            new_resource_row,
             principal_row,
             PermissionLevel.CHANGE,
         )
         await self.flush()
-        return new_group_row, resource_row
+        return new_group_row, new_resource_row
 
     async def get_vetted_group(self):
         """Get the Vetted system group."""
@@ -69,6 +69,13 @@ class GroupInterface:
     async def get_group(self, edi_id):
         """Get a group by its EDI-ID."""
         result = await self.execute(sqlalchemy.select(Group).where(Group.edi_id == edi_id))
+        return result.scalar_one()
+
+    async def get_group_resource(self, group_row):
+        """Get the resource associated with a group."""
+        result = await self.execute(
+            sqlalchemy.select(Resource).where(Resource.key == group_row.edi_id)
+        )
         return result.scalar_one()
 
     async def get_owned_group(self, token_profile_row, group_id):
@@ -159,7 +166,7 @@ class GroupInterface:
         await self.session.delete(principal_row)
         # Deleting the resource holding permissions for the group also deletes rules for the
         # resource by cascade.
-        await self._remove_resource_by_key(group_row.edi_id)
+        await self.delete_resource_by_key(group_row.edi_id)
 
     async def add_group_member(self, token_profile_row, group_id, member_profile_id):
         """Add a member to a group.
@@ -195,9 +202,9 @@ class GroupInterface:
         """Check if a profile is in the Vetted system group or is a superuser."""
         if util.profile_cache.is_superuser(token_profile_row):
             return True
-        return await self.is_in_group(token_profile_row, await self.get_vetted_group())
+        return await self.is_group_member(token_profile_row, await self.get_vetted_group())
 
-    async def is_in_group(self, profile_row, group_row):
+    async def is_group_member(self, profile_row, group_row):
         """Check if a profile is a member of a group."""
         result = await self.execute(
             sqlalchemy.select(
