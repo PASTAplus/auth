@@ -47,9 +47,20 @@ async def get_ui_token(
             'created': k.created.strftime(DATE_FORMAT),
             'updated': k.updated.strftime(DATE_FORMAT),
             'duration': format_exact_duration(k.valid_from, k.valid_to),
+            'last_used': k.updated.strftime(DATE_FORMAT) if k.last_used else None,
+            'use_count': k.use_count,
             'active': k.valid_from <= now_dt <= k.valid_to,
         }
         for k in await dbi.get_keys(token_profile_row)
+    ]
+    group_list = [
+        {
+            'id': g.id,
+            'edi_id': g.edi_id,
+            'name': g.name,
+            'description': g.description,
+        }
+        for g in await dbi.get_all_owned_groups(token_profile_row)
     ]
     return util.template.templates.TemplateResponse(
         'key.html',
@@ -62,8 +73,9 @@ async def get_ui_token(
             'info_msg': request.query_params.get('info'),
             # Page
             'key_list': key_list,
+            'group_list': group_list,
             'now': now_dt.strftime(DATE_FORMAT),
-            'one_year': (now_dt + datetime.timedelta(days=365)).strftime(
+            'now_plus_one_year': (now_dt + datetime.timedelta(days=365)).strftime(
                 DATE_FORMAT
             ),
         },

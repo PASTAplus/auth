@@ -30,89 +30,97 @@
   </div>
 
   <div class='indent'>
-    <table class='table table-striped'>
-      <thead>
-      <tr>
-        <th>Key</th>
-        <th>Description</th>
-        <th>Updated</th>
-        <th>Valid From</th>
-        <th>Valid To</th>
-        <th>Duration</th>
-        <th>Active</th>
-        <th></th>
-      </tr>
-      </thead>
-      <tbody>
-      {% for key in key_list %}
-        <tr>
-          <td>
-            <div class='d-flex flex-row align-items-center gap-2'>
-              {# Edit Key button #}
-              <button type='button' class='icon-text-button'
-                      data-bs-toggle='modal'
-                      data-bs-target='#editKeyModal'
-                      data-form-target='{{ url('/ui/api/key/update') }}'
-                      data-title='Update API key'
-                      data-key-id='{{ key.key_id }}'
-                      data-key-description='{{ key.description or '' }}'
-                      data-key-valid-from='{{ key.valid_from }}'
-                      data-key-valid-to='{{ key.valid_to }}'
-                      data-submit-text='Update'
-              >
-                <i class='bi bi-pencil'></i>
-              </button>
-              {# Copy Key ID #}
-              <div class='edi-id-parent'>
-                <div class='edi-id-child-text'>
-                  {{ key.key_id }}
-                </div>
-                <div class='edi-id-child-icon'>
-                  <img src='{{ url('/static/svg/copy.svg') }}'
-                       alt='Copy key'
-                       class='edi-id-copy-button'
+    {% if not key_list %}
+      <p>
+        You have not created any API keys yet.
+      </p>
+    {% else %}
+      <div class='main-grid'>
+        {% for key in key_list %}
+          <div class='key-grid'>
+            <div class='key-header'>
+              {#<div class='grid-header'>#}
+              <div class='d-flex flex-row align-items-center justify-content-between gap-2'>
+                <div class='grid-title mr-auto p-2'>Key</div>
+                {# Copy Key ID #}
+                {#<div class='flex-space-between'>#}
+                  <div class='edi-id-parent'>
+                    <div class='edi-id-child-text'>
+                      {{ key.key_id }}
+                    </div>
+                    <div class='edi-id-child-icon'>
+                      <img src='{{ url('/static/svg/copy.svg') }}'
+                           alt='Copy key'
+                           class='edi-id-copy-button'
+                      >
+                    </div>
+                  </div>
+                  {# Edit Key button #}
+                  <button type='button' class='icon-text-button'
+                          data-bs-toggle='modal'
+                          data-bs-target='#editKeyModal'
+                          data-form-target='{{ url('/ui/api/key/update') }}'
+                          data-title='Update API key'
+                          data-key-id='{{ key.key_id }}'
+                          data-key-description='{{ key.description or '' }}'
+                          data-key-valid-from='{{ key.valid_from }}'
+                          data-key-valid-to='{{ key.valid_to }}'
+                          data-submit-text='Update'
                   >
-                </div>
-              </div>
+                    <i class='bi bi-pencil'></i>
+                  </button>
+
+                  <button class='icon-text-button'
+                          data-bs-toggle='modal'
+                          data-bs-target='#deleteKeyModal'
+                          data-key-id='{{ key.key_id }}'
+                          data-key-description='{{ key.description or '' }}'
+                  >
+                    <i class='bi bi-lock'></i>
+                    <span>Revoke</span>
+                  </button>
+                {#</div>#}
+              </div> {# d-flex flex-row #}
+            </div> {# key-header #}
+
+            <div class='grid-title'>Description</div>
+            <div class='grid-wrap'>{{ key.description or '' }}</div>
+
+            <div class='grid-title'>Valid From</div>
+            <div>{{ key.valid_from }}</div>
+
+            <div class='grid-title'>Valid To</div>
+            <div>{{ key.valid_to }}</div>
+
+            <div class='grid-title'>Updated</div>
+            <div>{{ key.updated }}</div>
+
+            <div class='grid-title'>Duration</div>
+            <div>{{ key.duration }}</div>
+
+            <div class='grid-title'>Last Used</div>
+            <div>{{ key.last_used or 'Never' }}</div>
+
+            <div class='grid-title'>Use Count</div>
+            <div>{{ key.use_count }}</div>
+
+            <div class='grid-title'>Access type</div>
+            <div>{{ key.access_type }}</div>
+
+
+            <div class='grid-title'>Active</div>
+            <div class='d-flex flex-row align-items-center justify-content-between gap-2'>
+              {% if key.active %}
+                <i class='bi bi-check-circle text-success' title='Active'></i>
+              {% else %}
+                <i class='bi bi-x-circle text-danger' title='Expired'></i>
+              {% endif %}
             </div>
-          </td>
-          <td class='wrap-col'>
-            {{ key.description or '' }}
-          </td>
-          <td>
-            {{ key.updated }}
-          </td>
-          <td>
-            {{ key.valid_from }}
-          </td>
-          <td>
-            {{ key.valid_to }}
-          </td>
-          <td>
-            {{ key.duration }}
-          </td>
-          <td>
-            {% if key.active %}
-            <i class='bi bi-check-circle text-success' title='Active'></i>
-            {% else %}
-            <i class='bi bi-x-circle text-danger' title='Expired'></i>
-            {% endif %}
-          </td>
-          <td>
-            <button class='icon-text-button'
-                    data-bs-toggle='modal'
-                    data-bs-target='#deleteKeyModal'
-                    data-key-id='{{ key.key_id }}'
-                    data-key-description='{{ key.description or '' }}'
-            >
-              <i class='bi bi-lock'></i>
-              <span>Revoke</span>
-            </button>
-          </td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
+            {# d-flex flex-row #}
+          </div> {# key-grid #}
+        {% endfor %}
+      </div> {# main-grid #}
+    {% endif %}
 
     {# New Key button #}
     <button type='button' class='btn btn-primary' id='newKeyButton'
@@ -123,7 +131,7 @@
             data-key-id=''
             data-key-description=''
             data-key-valid-from='{{ now }}'
-            data-key-valid-to='{{ one_year }}'
+            data-key-valid-to='{{ now_plus_one_year }}'
             data-submit-text='Add'
     >
       New Key
@@ -144,12 +152,10 @@
           <form method='post' id='keyForm' class='needs-validation' novalidate>
             <input type='hidden' id='keyId' name='key-id'>
             <div class='form-group'>
-              Add a description to help you identify the key later.
-            </div>
-            <div class='form-group'>
               <label for='keyDescription'>Description</label>
               <div class='grid-child-span-all'>
-                <input type='text' class='form-control' id='keyDescription' name='key-description'
+                <input type='text' class='form-control' id='keyDescription'
+                       name='key-description'
                        required
                        pattern='.{3,}'>
                 <div class='invalid-feedback'>
@@ -157,9 +163,25 @@
                 </div>
               </div>
             </div>
+
             <div class='form-group'>
-              Set the time period for which the key is valid.
+              <label for='keyAccessType'>Access</label>
+              <select id='keyAccessType' class='form-select' required>
+                <option value=''>Select access type</option>
+                <option value='full'>
+                  Full profile read/write access
+                </option>
+                {% for group in group_list %}
+                  <option value=group.id>
+                    Group: {{ group.name + ': ' + group.description }}
+                  </option>
+                {% endfor %}
+              </select>
+              <div class='invalid-feedback'>
+                Please provide an access type for the key.
+              </div>
             </div>
+
             <div class='form-group'>
               <div class='dialog-grid'>
                 <label for='keyValidFrom'>Valid from</label>
@@ -178,15 +200,19 @@
                     Invalid date.
                   </div>
                 </div>
-                <label for='keyDurationDisplay'>Duration</label>
-                <div></div>
-                <div class='grid-child-span-all'>
-                  <input type='text' class='form-control' id='keyDurationDisplay'
-                         name='key-valid-display'
-                         disabled>
-                </div>
               </div>
             </div>
+
+            <div class='form-group'>
+              <label for='keyDurationDisplay'>Duration</label>
+              <div></div>
+              <div class='grid-child-span-all'>
+                <input type='text' class='form-control' id='keyDurationDisplay'
+                       name='key-valid-display'
+                       disabled>
+              </div>
+            </div>
+
             <div class='modal-footer'>
               <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Cancel
               </button>

@@ -328,8 +328,6 @@ table td, table th {
     cursor: pointer;
     border-radius: .3rem;
     padding: 0 .5rem 0 .5rem;
-    /* height: 1.5rem; */
-    /* width: 1.2rem; */
 }
 
 .edi-id-child-icon img {
