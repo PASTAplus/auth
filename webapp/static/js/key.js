@@ -6,10 +6,13 @@ const fromInputEl = document.getElementById('keyValidFrom');
 const toInputEl = document.getElementById('keyValidTo');
 const durationEl = document.getElementById('keyDuration');
 
+const editKeyModalEl = document.getElementById('editKeyModal');
+const deleteKeyModalEl = document.getElementById('deleteKeyModal');
+
 // Fetch all the forms we want to apply custom Bootstrap validation styles to
 let forms = document.getElementsByClassName('needs-validation');
 // Loop over them and prevent submission
-Array.prototype.filter.call(forms, function (form) {
+Array.prototype.filter.call(forms, form => {
   form.addEventListener('submit', ev => {
     let isValidDateRange = true;
     const fromDate = new Date(fromInputEl.value);
@@ -30,45 +33,59 @@ Array.prototype.filter.call(forms, function (form) {
 });
 
 // Key new/edit modal
-let editKeyModalEl = document.getElementById('editKeyModal');
 editKeyModalEl.addEventListener('show.bs.modal', ev => {
   let button = ev.relatedTarget;
-  document.getElementById('keyForm').action = button.dataset.formTarget;
+  document.getElementById('editKeyForm').action = button.dataset.formTarget;
   document.getElementById('keyTitle').textContent = button.dataset.title;
-  document.getElementById('keySubmitButton').textContent = button.dataset.submitText;
   document.getElementById('keyName').value = button.dataset.keyName;
   document.getElementById('keyGroupId').value = button.dataset.keyGroupId;
+  document.getElementById('keySubmitButton').textContent = button.dataset.submitText;
+
   fromInputEl.value = button.dataset.keyValidFrom;
   toInputEl.value = button.dataset.keyValidTo;
 
-  document.getElementById('keyCreated').textContent = button.dataset.keyCreated;
-  document.getElementById('keyUpdated').textContent = button.dataset.keyUpdated;
-  document.getElementById('keyLastUsed').textContent = button.dataset.keyLastUsed;
-  document.getElementById('keyUseCount').textContent = button.dataset.keyUseCount;
+  if (button.dataset.isNew === 'false') {
+    document.getElementById('keyInfoGroup').style.display = 'block';
+    document.getElementById('deleteButton').style.display = 'block';
+
+    document.getElementById('keyId').value = button.dataset.keyId;
+    document.getElementById('keyCreated').textContent = button.dataset.keyCreated;
+    document.getElementById('keyUpdated').textContent = button.dataset.keyUpdated;
+    document.getElementById('keyLastUsed').textContent = button.dataset.keyLastUsed;
+    document.getElementById('keyUseCount').textContent = button.dataset.keyUseCount;
+  }
+  else {
+    document.getElementById('keyInfoGroup').style.display = 'none';
+    document.getElementById('deleteButton').style.display = 'none';
+  }
+
   updateDurationDisplay();
 });
 
 // Clear the form if the modal is canceled/closed
 editKeyModalEl.addEventListener('hidden.bs.modal', () => {
   // Reset the form
-  document.getElementById('keyForm').reset();
+  document.getElementById('editKeyForm').reset();
   // Clear validation styles
-  const formInputs = document.getElementById('keyForm').querySelectorAll('input');
+  const formInputs = document.getElementById('editKeyForm').querySelectorAll('input');
   formInputs.forEach(input => {
     input.classList.remove('is-invalid');
     input.classList.remove('is-valid');
   });
   // Reset the duration display
-  durationEl.textContent = '--';
+  durationEl.value = '--';
 });
 
+
 // Key delete modal
-let deleteKeyModalEl = document.getElementById('deleteKeyModal');
-deleteKeyModalEl.addEventListener('show.bs.modal', function (ev) {
-  let button = ev.relatedTarget;
-  document.getElementById('deleteKey').value = button.dataset.keyToken;
-  document.getElementById('deleteKeyName').textContent = button.dataset.keyName;
+document.getElementById('deleteButton').addEventListener('click', ev => {
+  ev.preventDefault();
+  bootstrap.Modal.getInstance(editKeyModalEl).hide();
+  document.getElementById('deleteKeyId').value = parseInt(document.getElementById('keyId').value);
+  document.getElementById('deleteKeyName').textContent = document.getElementById('keyName').value;
+  (new bootstrap.Modal(deleteKeyModalEl)).show();
 });
+
 
 // newSecretMsgModal
 if (NEW_SECRET !== '') {
@@ -89,10 +106,10 @@ function updateDurationDisplay()
   const fromDate = new Date(fromInputEl.value);
   const toDate = new Date(toInputEl.value);
   if (!isNaN(fromDate.getTime()) && !isNaN(toDate.getTime()) && fromDate < toDate) {
-    durationEl.textContent = formatDuration(fromDate, toDate);
+    durationEl.value = formatDuration(fromDate, toDate);
   }
   else {
-    durationEl.textContent = '--';
+    durationEl.value = '--';
   }
 }
 

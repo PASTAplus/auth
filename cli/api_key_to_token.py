@@ -11,7 +11,7 @@ import sys
 import requests
 import urllib3
 
-DEFAULT_KEY_TO_TOKEN_ENDPOINT = 'https://localhost:5443/auth/v1/token/key'
+DEFAULT_KEY_TO_TOKEN_ENDPOINT = 'https://localhost:5443/auth/v1/key'
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 

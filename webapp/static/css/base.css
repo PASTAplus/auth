@@ -253,10 +253,11 @@ table td, table th {
 .icon-button {
     cursor: pointer;
     border: none;
-    background: transparent;
+    /* background: transparent; */
     border-radius: .3rem;
-    padding: 0.2rem;
-    margin: 0 .5rem 0 0;
+    /* padding: 0.2rem; */
+    /* margin: 0 .5rem 0 0; */
+    /* height: 2rem; */
 }
 
 .icon-button img {
@@ -277,17 +278,23 @@ table td, table th {
 
 .icon-text-button {
     display: inline-flex;
-    align-items: center;
+    /* align-items: center; */
     gap: 0.5rem;
     border: none;
-    /* border: 1px solid gray; */
     background: transparent;
     border-radius: .3rem;
     padding: 0.2rem 1rem 0.2rem 1rem;
-    /*margin: 0 1rem 0 0;*/
+    /* margin: 0 1rem 0 0; */
     box-shadow: 1px 1px 1.5px rgba(0, 0, 0, 0.5);
+    white-space: nowrap;
+    /* Hide link styling */
     text-decoration: none;
-    color: inherit;
+    color: unset;
+}
+
+.icon-text-button .bi {
+    font-size: 110%;
+    color: rgba(0, 0, 0, 0.75);
 }
 
 .icon-text-button:hover {

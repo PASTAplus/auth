@@ -624,11 +624,13 @@ class PermissionInterface:
             self
         )
 
+        subject_type = await self.get_subject_type(token_profile_row.edi_id)
+
         return sqlalchemy.select(Principal.id).where(
             sqlalchemy.or_(
                 # The primary profile
                 sqlalchemy.and_(
-                    Principal.subject_type == SubjectType.PROFILE,
+                    Principal.subject_type == subject_type,
                     Principal.subject_id == token_profile_row.id,
                 ),
                 # Public Access
@@ -787,6 +789,14 @@ class PermissionInterface:
             )
         )
         return result.scalar_one()
+
+    async def get_subject_type(self, edi_id):
+        """Get the subject type for a given EDI-ID.
+        Returns SubjectType.PROFILE or SubjectType.GROUP.
+        """
+        principal_row = await self.get_principal_by_edi_id(edi_id)
+        return principal_row.subject_type
+
 
     async def delete_principal_by_id(self, principal_id):
         """Delete a principal by its ID."""

@@ -14,12 +14,14 @@ import starlette.status
 
 import api.v1.eml
 import api.v1.group
+import api.v1.key
 import api.v1.ping
 import api.v1.profile
 import api.v1.resource
 import api.v1.rule
 import api.v1.search
 import api.v1.token
+import db.models.permission
 import idp.github
 import idp.google
 import idp.ldap
@@ -199,9 +201,11 @@ class TokenProfileMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
         ):
             async with util.dependency.get_dbi() as dbi:
                 try:
-                    profile_row = await dbi.get_profile(claims_obj.edi_id)
-                    new_token = await util.edi_token.create(dbi, profile_row)
-                    response.set_cookie('edi-token', new_token)
+                    subject_type = await self.get_subject_type(claims_obj.edi_id)
+                    if subject_type == db.models.permission.SubjectType.PROFILE:
+                        profile_row = await dbi.get_profile(claims_obj.edi_id)
+                        new_token = await util.edi_token.create(dbi, profile_row)
+                        response.set_cookie('edi-token', new_token)
                 except sqlalchemy.exc.NoResultFound:
                     pass
 
@@ -221,19 +225,26 @@ class ApiKeyMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
         key_str = request.query_params.get('key')
         if key_str is not None:
             async with util.dependency.get_dbi() as dbi:
-                profile_row = await dbi.get_profile_by_valid_uid(key_str)
-                if profile_row is not None:
-                    new_token = await util.edi_token.create(dbi, profile_row)
+                try:
+                    key_row = await dbi.get_valid_key(key_str)
+                except sqlalchemy.exc.NoResultFound:
+                    return util.url.internal('/ui/signin', error='Invalid API key')
+                if key_row.group is not None:
+                    return util.url.internal(
+                        '/ui/signin',
+                        error='Invalid API key: Cannot sign in as group. Use a key with a profile principal',
+                    )
+                else:
                     response = util.url.internal(
                         '/ui/profile',
                         info="""Welcome to the EDI Identity and Access Manager! You have been 
                         successfully signed in via API key.
                         """,
                     )
-                    response.set_cookie('edi-token', new_token)
-                else:
-                    response = util.url.internal('/ui/signin', error="Invalid API key.")
-                return response
+                    response.set_cookie(
+                        'edi-token', await util.edi_token.create(dbi, key_row.profile)
+                    )
+                    return response
 
         return await call_next(request)
 
@@ -263,6 +274,7 @@ app.add_middleware(RootPathMiddleware)
 # Include all routers
 app.include_router(api.v1.eml.router)
 app.include_router(api.v1.group.router)
+app.include_router(api.v1.key.router)
 app.include_router(api.v1.ping.router)
 app.include_router(api.v1.profile.router)
 app.include_router(api.v1.resource.router)

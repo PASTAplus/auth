@@ -110,14 +110,6 @@ async def create_claims_by_group(group_row) -> EdiTokenClaims:
     return EdiTokenClaims(
         sub=group_row.edi_id,
         cn=group_row.name,
-        # email=None,
-        # principals=set(),
-        # links=[],
-        # isEmailEnabled=False,
-        # isEmailVerified=False,
-        # idpCommonName=None,
-        # idpName=None,
-        # idpUid=None,
     )
 
 

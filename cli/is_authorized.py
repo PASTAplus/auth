@@ -30,6 +30,11 @@ def main():
         help='Resource key to check access for',
     )
     parser.add_argument(
+        '--permission',
+        default='read',
+        choices=['read', 'write', 'changePermission'],
+    )
+    parser.add_argument(
         '--endpoint',
         default=DEFAULT_IS_AUTHORIZED_ENDPOINT,
         help='The endpoint to use (default: %(default)s)',
@@ -47,16 +52,17 @@ def main():
         datefmt='%Y-%m-%d %H:%M:%S',
     )
 
-    print(f'is_authorized(): {is_authorized(args.token, args.resource_key, args.endpoint)}')
+    is_authorized = get_is_authorized(args.token, args.resource_key, args.permission, args.endpoint)
+    print(f'is_authorized(): {"yes" if is_authorized else "no"}')
 
     return 0
 
 
-def is_authorized(token_str, resource_key, endpoint):
+def get_is_authorized(token_str, resource_key, permission_str, endpoint):
     response = requests.get(
         endpoint,
         params={
-            'permission': 'read',
+            'permission': permission_str,
             'resource_key': resource_key,
         },
         cookies={
@@ -70,14 +76,14 @@ def is_authorized(token_str, resource_key, endpoint):
     except ValueError:
         log.error(f'Error: HTTP {response.status_code}: Response is not valid JSON')
         log.error(pprint.pformat(response.text))
-        return None
+        return False
 
     if response.status_code != 200:
         log.error(f'Error: HTTP {response.status_code}')
         log.error(pprint.pformat(response_dict))
-        return None
+        return False
 
-    return 'yes'
+    return True
 
 
 if __name__ == '__main__':

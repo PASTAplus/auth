@@ -9,7 +9,7 @@ h2 {
 }
 
 .flash-highlight {
-    background-color: rgba(0, 0, 0, 0.10);
+    background-color: rgba(0, 0, 0, 0.15);
     transition: background-color .3s ease-in-out;
 }
 

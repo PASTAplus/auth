@@ -101,7 +101,7 @@ async def post_api_key_update(
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     form_data = await request.form()
-    key_id = form_data.get('key-id')
+    key_id = int(form_data.get('key-id'))
     name_str = form_data.get('key-name')
     group_id = await _get_and_check_group_id(token_profile_row, dbi, form_data)
     from_dt = util.date.from_datepicker(form_data.get('key-valid-from'))
@@ -131,5 +131,5 @@ async def post_api_key_delete(
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     form_data = await request.form()
-    await dbi.delete_key(token_profile_row, form_data.get('key-token'))
+    await dbi.delete_key(token_profile_row, int(form_data.get('key-id')))
     return util.url.internal('/ui/key', info='API key deleted successfully.')

@@ -36,49 +36,48 @@
 
         <h4>Group Details</h4>
 
-        <div class='indent'>
-          <p>
-            {% if not group_list %}
-              You have not created any groups yet.
-            {% endif %}
-          </p>
+        <p>
+          {% if not group_list %}
+            You have not created any groups yet.
+          {% endif %}
+        </p>
 
-          <div class='group-grid'>
-            {% for group in group_list %}
+        <div class='group-grid'>
+          {% for group in group_list %}
 
-              <div>
-                <input type="radio"
-                       name="group-select"
-                       value='{{ group.id }}'
-                >
-              </div>
+            <div>
+              <input type="radio"
+                     name="group-select"
+                     value='{{ group.id }}'
+              >
+            </div>
 
-              <div class='group-details'>
+            <div class='group-details'>
 
-                <div class=''>
-                  <div class='row-center-parent'>
-                    {# Edit group name and description #}
-                    <button type='button' class='icon-text-button'
-                            data-bs-toggle='modal'
-                            data-bs-target='#editGroupModal'
-                            data-form-target='{{ url('/ui/api/group/edit') }}'
-                            data-title='Edit group'
-                            data-group-id='{{ group.id }}'
-                            data-group-name='{{ group.name }}'
-                            data-group-description='{{ group.description or '' }}'
-                            data-submit-text='Save'
-                    >
-                      <i class='bi bi-pencil'></i>
-                    </button>
-                    {# Name #}
-                    <div class='grid-child-title'>{{ group.name }}</div>
-                  </div>
-                  {# Description #}
-                  <div class='grid-child-description'>{{ group.description or '' }}</div>
-                  {# Row: Member count, EDI-ID button, Remove button #}
-                  <div class='row-center-parent button-row'>
-                    {# Member count #}
-                    <div>
+              <div class=''>
+                <div class='row-center-parent'>
+                  {# Edit group name and description #}
+                  <button type='button' class='icon-text-button'
+                          data-bs-toggle='modal'
+                          data-bs-target='#editGroupModal'
+                          data-form-target='{{ url('/ui/api/group/edit') }}'
+                          data-title='Edit group'
+                          data-group-id='{{ group.id }}'
+                          data-group-name='{{ group.name }}'
+                          data-group-description='{{ group.description or '' }}'
+                          data-submit-text='Save'
+                  >
+                    <i class='bi bi-pencil'></i>
+                  </button>
+                  {# Name #}
+                  <div class='grid-child-title'>{{ group.name }}</div>
+                </div>
+                {# Description #}
+                <div class='grid-child-description'>{{ group.description or '' }}</div>
+                {# Row: Member count, EDI-ID button, Remove button #}
+                <div class='row-center-parent button-row'>
+                  {# Member count #}
+                  <div class='text-nowrap'>
                         <span class='member-count'>{{ group.member_count }}
                           {% if group.member_count == 1 %}
                             member
@@ -86,46 +85,47 @@
                             members
                           {% endif %}
                         </span>
+                  </div>
+                  {# Copy ID #}
+                  <div class='copy-text-parent'>
+                    <div class='copy-text-text'>
+                      {{ group.edi_id }}
                     </div>
-                    {# Copy ID #}
-                    <div class='copy-text-parent'>
-                      <div class='copy-text-text'>
-                        {{ group.edi_id }}
-                      </div>
-                      <div class='copy-text-icon'>
-                        <i class="bi bi-copy"></i>
-                      </div>
+                    <div class='copy-text-icon'>
+                      <i class="bi bi-copy"></i>
                     </div>
-                    {# Remove button #}
-                    <div class='row-center-child'>
-                      <button class='icon-text-button' data-bs-toggle='modal'
-                              data-bs-target='#deleteGroupModal'
-                              data-group-id='{{ group.id }}'
-                              data-group-name='{{ group.name }}'
-                      >
-                        <span><img src='{{ url('/static/svg/trash.svg') }}' alt='Unlink'></span>
-                        <span>Remove</span>
-                      </button>
-                    </div>
+                  </div>
+                  {# Remove button #}
+                  <div class='row-center-child'>
+                    <button class='icon-text-button'
+                            data-bs-toggle='modal'
+                            data-bs-target='#deleteGroupModal'
+                            data-group-id='{{ group.id }}'
+                            data-group-name='{{ group.name }}'
+                    >
+                      {#<img src='{{ url('/static/svg/trash.svg') }}' alt='Unlink'>#}
+                      <i class='bi bi-trash'></i>
+                      <span>Remove</span>
+                    </button>
                   </div>
                 </div>
               </div>
+            </div>
 
-            {% endfor %}
-          </div>
-          <button type='button' class='btn btn-primary' id='newGroupButton'
-                  data-bs-toggle='modal'
-                  data-bs-target='#editGroupModal'
-                  data-form-target='{{ url('/ui/api/group/new') }}'
-                  data-title='Create a new group'
-                  data-group-id=''
-                  data-group-name=''
-                  data-group-description=''
-                  data-submit-text='Add'
-          >
-            New Group
-          </button>
+          {% endfor %}
         </div>
+        <button type='button' class='btn btn-primary' id='newGroupButton'
+                data-bs-toggle='modal'
+                data-bs-target='#editGroupModal'
+                data-form-target='{{ url('/ui/api/group/new') }}'
+                data-title='Create a new group'
+                data-group-id=''
+                data-group-name=''
+                data-group-description=''
+                data-submit-text='Add'
+        >
+          New Group
+        </button>
       </div>
 
       <div class='split-section split-right'>

@@ -20,11 +20,11 @@ class KeyInterface:
     def session(self):
         return self._session
 
-    async def _increment_key_use_count(self, secret_str):
+    async def _increment_key_use_count(self, key_id):
         """Atomically increment use_count and set last_used."""
         await self.session.execute(
             sqlalchemy.update(Key)
-            .where(Key.secret_hash == self._hash_secret(secret_str))
+            .where(Key.id == key_id)
             .values(use_count=Key.use_count + 1, last_used=sqlalchemy.func.now())
         )
 
@@ -62,8 +62,8 @@ class KeyInterface:
         """Get a valid key by its secret.
         - Raises sqlalchemy.exc.NoResultFound if the key is not found or not valid (expired or not
         yet active).
+        - If found and valid, increment the use count and update the last use date for the key.
         """
-
         result = await self.session.execute(
             sqlalchemy.select(Key)
             .options(
@@ -76,19 +76,13 @@ class KeyInterface:
                 sqlalchemy.func.now() <= Key.valid_to,
             )
         )
-        return result.scalar_one()
-
-    async def get_profile_by_valid_uid(self, secret_str):
-        """Get the profile associated with a valid key UID.
-        - If the key UID is not found or not valid (expired or not yet active), return None.
-        - If found and valid, increment the use count and update the last use date for the key.
-        """
         try:
-            key_row = dbi.get_valid_key(secret_str)
+            key_row = result.scalar_one()
         except sqlalchemy.exc.NoResultFound:
-            return None
-        await self._increment_key_use_count(secret_str)
-        return key_row.profile
+            log.debug('Valid key not found for provided secret')
+            raise
+        await self._increment_key_use_count(key_row.id)
+        return key_row
 
     async def get_key(self, secret_str):
         """Get a key by its secret.
@@ -101,7 +95,7 @@ class KeyInterface:
         )
         return result.scalar_one()
 
-    async def get_owned_key(self, token_profile_row, secret_str):
+    async def get_owned_key(self, token_profile_row, key_id):
         """Get a key owned by the given token profile.
         - If the key is not found,or is not owned by the token profile, raise
         sqlalchemy.exc.NoResultFound.
@@ -109,7 +103,7 @@ class KeyInterface:
         result = await self.session.execute(
             sqlalchemy.select(Key).where(
                 Key.profile_id == token_profile_row.id,
-                Key.secret_hash == self._hash_secret(secret_str),
+                Key.id == key_id,
             )
         )
         return result.scalar_one()
@@ -123,15 +117,15 @@ class KeyInterface:
         return result.scalars().all()
 
     async def update_key(
-        self, token_profile_row, secret_str, group_id, name_str, valid_from_dt, valid_to_dt
+        self, token_profile_row, key_id, group_id, name_str, valid_from_dt, valid_to_dt
     ):
-        key_row = await self.get_owned_key(token_profile_row, secret_str)
+        key_row = await self.get_owned_key(token_profile_row, key_id)
         key_row.group_id = group_id
         key_row.name = name_str
         key_row.valid_from = valid_from_dt
         key_row.valid_to = valid_to_dt
         self.session.add(key_row)
 
-    async def delete_key(self, token_profile_row, secret_str):
-        key_row = await self.get_owned_key(token_profile_row, secret_str)
+    async def delete_key(self, token_profile_row, key_id):
+        key_row = await self.get_owned_key(token_profile_row, key_id)
         await self.session.delete(key_row)

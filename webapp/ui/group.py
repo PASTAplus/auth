@@ -31,10 +31,10 @@ async def get_ui_group(
 ):
     group_list = []
 
-    owned_groups = await dbi.get_all_owned_groups(token_profile_row)
+    owned_group_list = await dbi.get_all_owned_groups(token_profile_row)
 
     # for group_row in token_profile_row.groups:
-    for group_row in owned_groups:
+    for group_row in owned_group_list:
         group_list.append(
             {
                 'id': group_row.id,
