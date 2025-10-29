@@ -62,15 +62,12 @@
               {{ iter_profile.email or '' }}
             </div>
             {# Copy ID #}
-            <div class='edi-id-parent'>
-              <div class='edi-id-child-text'>
+            <div class='copy-text-parent'>
+              <div class='copy-text-text'>
                 {{ iter_profile.edi_id }}
               </div>
-              <div class='edi-id-child-icon'>
-                <img src='{{ url('/static/svg/copy.svg') }}'
-                     alt='Copy EDI Identifier'
-                     class='edi-id-copy-button'
-                >
+              <div class='copy-text-icon'>
+                <i class="bi bi-copy"></i>
               </div>
             </div>
           </div>

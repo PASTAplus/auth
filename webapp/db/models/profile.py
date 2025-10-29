@@ -69,7 +69,7 @@ class Profile(db.models.base.Base):
     # the 'sub' (subject) claim and for ORCID, it's the 'orcid' claim on URL form. The value is
     # unique within the IdP's namespace. It is only guaranteed to be unique within our system when
     # combined with the idp_name.
-    idp_uid = sqlalchemy.Column(sqlalchemy.String, nullable=True, index=True)
+    idp_uid = sqlalchemy.Column(sqlalchemy.String(256), nullable=True, index=True)
     # The date and time of the first successful authentication. Should only be NULL if idp_name is
     # SKELETON.
     first_auth = sqlalchemy.Column(sqlalchemy.DateTime, nullable=True)
@@ -79,22 +79,22 @@ class Profile(db.models.base.Base):
     # The EDI-ID for the user. This is the primary key for the user in our system. We don't use it
     # as a primary key in the DB, however, since it's a string and string indexes are less efficient
     # than integer indexes.
-    edi_id = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True)
+    edi_id = sqlalchemy.Column(sqlalchemy.String(44), nullable=False, unique=True)
     # The user's common (full) name. This is typically given name and family name when using Western
     # naming conventions, but any string is accepted. Should only be NULL if idp_name is SKELETON.
     # This field is editable by the user.
-    common_name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    common_name = sqlalchemy.Column(sqlalchemy.String(64), nullable=True)
     # Static common name. This is the common name provided by the IdP at the time when the profile
     # was first created. It does not change if later edited at the IdP, and is not editable in this
     # profile.
-    idp_common_name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    idp_common_name = sqlalchemy.Column(sqlalchemy.String(64), nullable=True)
     # The email address that the user has chosen as their contact email. Initially set to the email
     # address provided by the IdP.
-    email = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    email = sqlalchemy.Column(sqlalchemy.String(128), nullable=True)
     # Avatar version (ETag / entity tag, or other key). Used both to determine if the avatar has
     # changed at the source and as a cache buster version appended to avatar URLs. If NULL, this
     # profile has no avatar.
-    avatar_ver = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    avatar_ver = sqlalchemy.Column(sqlalchemy.String(128), nullable=True)
     # Alternate avatar profile. If set, this profile's avatar is taken from the alternate profile
     # instead of from this profile's avatar fields. This is set if the user has chosen to use the
     # avatar from one of their linked profiles. This should only be set on primary profiles, not on

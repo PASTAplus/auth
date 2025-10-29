@@ -9,53 +9,6 @@
     margin-bottom: 1rem;
 }
 
-/*
-    Key grid
- */
-
-.key-grid {
-    display: grid;
-    grid-template-columns: min-content 1fr;
-    overflow: hidden;
-    column-gap: 1rem;
-    /* padding: 1rem; */
-    border: 1px solid #ccc;
-    border-radius: .3rem;
-    /* margin: 1rem; */
-    /* padding: 1rem; */
-}
-
-.key-header {
-    grid-column: span 2;
-    background-color: rgba(0, 0, 0, .15);
-    padding: 0.5rem;
-}
-
-.grid-title {
-    font-weight: bold;
-    white-space: nowrap;
-    padding-left: 1rem;
-}
-
-.grid-header {
-    background-color: rgba(0, 0, 0, .15)
-}
-
-.grid-wrap {
-    overflow-x: auto;
-    white-space: break-spaces;
-    word-wrap: break-word;
-}
-
-/*
-    Flex where first items is aligned to the left, and second to the right
-*/
-
-.flex-space-between {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
 
 /*
     Valid to-from grid
@@ -69,9 +22,23 @@
     width: 100%;
 }
 
-#keyDurationDisplay {
+.value-grid {
+    display: inline-grid;
+    grid-template-columns: 1fr 1fr;
+    /* gap: 1rem; */
+}
+
+#keyDuration {
 }
 
 .highlight {
     font-weight: bold;
+}
+
+/*
+    Copy new secret
+*/
+
+.copy-text-parent {
+    max-width: unset;
 }

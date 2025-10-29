@@ -60,8 +60,14 @@ class EdiTokenClaims:
 
 
 async def create(dbi, profile_row) -> str:
-    """Create an EDI JSON Web Token (JWT)."""
+    """Create an EDI JSON Web Token (JWT) for a profile."""
     claims_obj = await create_claims(dbi, profile_row)
+    return _create(claims_obj)
+
+
+async def create_by_group(group_row) -> str:
+    """Create an EDI JSON Web Token (JWT) for a group."""
+    claims_obj = await create_claims_by_group(group_row)
     return _create(claims_obj)
 
 
@@ -69,7 +75,7 @@ async def create_claims(dbi, profile_row) -> EdiTokenClaims:
     principals_set: set = await dbi.get_equivalent_principal_edi_id_set(profile_row)
     links_list = await dbi.get_link_history_list(profile_row)
     principals_set.discard(profile_row.edi_id)
-    claims_obj = EdiTokenClaims(
+    return EdiTokenClaims(
         sub=profile_row.edi_id,
         cn=profile_row.common_name,
         email=profile_row.email,
@@ -98,7 +104,21 @@ async def create_claims(dbi, profile_row) -> EdiTokenClaims:
             else profile_row.idp_uid
         ),
     )
-    return claims_obj
+
+
+async def create_claims_by_group(group_row) -> EdiTokenClaims:
+    return EdiTokenClaims(
+        sub=group_row.edi_id,
+        cn=group_row.name,
+        # email=None,
+        # principals=set(),
+        # links=[],
+        # isEmailEnabled=False,
+        # isEmailVerified=False,
+        # idpCommonName=None,
+        # idpName=None,
+        # idpUid=None,
+    )
 
 
 def create_by_claims(**claims_dict):
@@ -130,16 +150,19 @@ async def decode(dbi, token_str: str) -> EdiTokenClaims | None:
     if claims_dict.get('hd') != Config.JWT_HOSTED_DOMAIN:
         log.error(f'Invalid hosted domain in token: {claims_dict.get("hd")}')
         return None
-    # Check if the profile still exists in the database. Tokens can only be created for profiles
-    # that exist in the database, but it's possible that the profile was deleted after the token was
-    # created, in which case the token is invalid even if otherwise valid. Note: If a unit test
-    # fails here, it may be because a bug in session management causes the tests to see a different
-    # session than the rest of the app.
+    # Check if the profile or group still exists in the database. Tokens can only be created for
+    # profiles or groups that exist in the database, but it's possible that the profile or group was
+    # deleted after the token was created, in which case the token is invalid even if otherwise
+    # valid. Note: If a unit test fails here, it may be because a bug in session management causes
+    # the tests to see a different session than the rest of the app.
     try:
         await dbi.get_profile(claims_dict.get('sub'))
     except sqlalchemy.exc.NoResultFound:
-        log.error(f'Profile not found for EDI-ID: {claims_dict.get("sub")}')
-        return None
+        try:
+            await dbi.get_group(claims_dict.get('sub'))
+        except sqlalchemy.exc.NoResultFound:
+            log.error(f'Profile or group not found for EDI-ID: {claims_dict.get("sub")}')
+            return None
     # Convert principals to set for dataclass
     claims_dict['principals'] = set(claims_dict.get('principals', []))
     return EdiTokenClaims(**claims_dict)

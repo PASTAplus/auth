@@ -14,24 +14,25 @@ navEl.setAttribute('aria-current', 'page');
 // Handle EDI-ID copy buttons
 // This is a global event listener in order to handle dynamically created elements.
 document.addEventListener('click', function (ev) {
-  if (ev.target.matches('.edi-id-copy-button')) {
-    const idEl = ev.target.closest('.edi-id-parent');
-    const textEl = idEl.querySelector('.edi-id-child-text');
-    const pastaIdStr = textEl.textContent.trim();
-    navigator.clipboard.writeText(pastaIdStr).catch(function (error) {
-      errorDialog(error);
-    });
-    // Create a floating div that says "Copied"
-    const copiedDiv = document.createElement('div');
-    copiedDiv.textContent = 'Copied';
-    copiedDiv.className = 'edi-id-copied-box';
-    const parentContainer = ev.target.parentElement;
-    parentContainer.appendChild(copiedDiv);
-    // Remove the floating div after 2 seconds
-    setTimeout(() => {
-      copiedDiv.remove();
-    }, 2000);
+  const idEl = ev.target.closest('.copy-text-parent');
+  if (!idEl) {
+    return;
   }
+  const textEl = idEl.querySelector('.copy-text-text');
+  const pastaIdStr = textEl.textContent.trim();
+  navigator.clipboard.writeText(pastaIdStr).catch(function (error) {
+    errorDialog(error);
+  });
+  // Create a floating div that says "Copied"
+  const copiedDiv = document.createElement('div');
+  copiedDiv.textContent = 'Copied';
+  copiedDiv.className = 'copy-text-copied-box';
+  const parentContainer = ev.target.parentElement;
+  parentContainer.appendChild(copiedDiv);
+  // Remove the floating div after 2 seconds
+  setTimeout(() => {
+    copiedDiv.remove();
+  }, 2000);
 });
 
 // Keep track of the height of the navbar, for use in CSS that limits the height of the main content

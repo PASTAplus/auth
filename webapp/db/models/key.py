@@ -19,18 +19,24 @@ class Key(db.models.base.Base):
         nullable=False,
         index=True,
     )
-    # The group that this key provides access to. When not set, the key provides read-write access
-    # to the user's own profile.
+    # The group that this key provides access to. When null, the key provides read-write access
+    # to the user profile of the key owner, as referenced by profile_id.
     group_id = sqlalchemy.Column(
         sqlalchemy.Integer,
         sqlalchemy.ForeignKey('group.id', ondelete='CASCADE'),
         nullable=True,
         index=True,
     )
-    # The key ID. This is the unique external reference for the key.
-    key_id = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True, index=True)
-    # The description of the key as provided by the user. Can be edited.
-    description = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    # SHA-256 hash of the key secret.
+    secret_hash = sqlalchemy.Column(
+        sqlalchemy.LargeBinary(32), nullable=False, unique=True, index=True
+    )
+    # A short preview of the key secret to help users identify the key.
+    secret_preview = sqlalchemy.Column(
+        sqlalchemy.String(5), nullable=False, unique=False, index=False
+    )
+    # The name of the key as provided by the user. Can be edited.
+    name = sqlalchemy.Column(sqlalchemy.String(64), nullable=False)
     # The number of times the key has been used for generating a token.
     use_count = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, default=0)
     # Date-times

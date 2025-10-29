@@ -135,7 +135,7 @@ Groups (left side)
     padding: .5rem 1rem .5rem 1rem;
 }
 .group-details:hover {
-    background-color: rgba(0, 0, 0, 0.15);
+    background-color: rgba(0, 0, 0, 0.10);
 }
 
 #newGroupButton {
@@ -256,7 +256,7 @@ Member dropdown
 }
 
 #principalList .principal-flex:hover {
-    background-color: rgba(0, 0, 0, 0.15);
+    background-color: rgba(0, 0, 0, 0.10);
     transition: background-color .3s ease-in-out;
     cursor: pointer;
 }

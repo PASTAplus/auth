@@ -6,6 +6,7 @@ import time
 import daiquiri.formatter
 import fastapi
 import fastapi.staticfiles
+import sqlalchemy.exc
 import starlette.middleware.base
 import starlette.requests
 import starlette.responses
@@ -40,7 +41,6 @@ import ui.token
 import util.avatar
 import util.dependency
 import util.edi_token
-import util.url
 import util.search_cache
 import util.url
 from config import Config
@@ -198,10 +198,12 @@ class TokenProfileMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
             and not re.match(str(util.url.url('/ui/signout')), request.url.path)
         ):
             async with util.dependency.get_dbi() as dbi:
-                profile_row = await dbi.get_profile(claims_obj.edi_id)
-                if profile_row is not None:
+                try:
+                    profile_row = await dbi.get_profile(claims_obj.edi_id)
                     new_token = await util.edi_token.create(dbi, profile_row)
                     response.set_cookie('edi-token', new_token)
+                except sqlalchemy.exc.NoResultFound:
+                    pass
 
         return response
 
@@ -219,7 +221,7 @@ class ApiKeyMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
         key_str = request.query_params.get('key')
         if key_str is not None:
             async with util.dependency.get_dbi() as dbi:
-                profile_row = await dbi.get_profile_by_key_id(key_str)
+                profile_row = await dbi.get_profile_by_valid_uid(key_str)
                 if profile_row is not None:
                     new_token = await util.edi_token.create(dbi, profile_row)
                     response = util.url.internal(

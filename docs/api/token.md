@@ -19,4 +19,5 @@ expired, as long as the EDI token has not.
 - This method is optimized for high traffic. It works directly with the tokens and does not
 query the database, LDAP, or the OAuth2 IdPs.
 
-## 
+## getTokenByKey
+

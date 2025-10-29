@@ -13,7 +13,7 @@ class Sync(db.models.base.Base):
 
     __tablename__ = 'sync'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    name = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True, index=True)
+    name = sqlalchemy.Column(sqlalchemy.String(64), nullable=False, unique=True, index=True)
     updated = sqlalchemy.Column(
         sqlalchemy.DateTime,
         nullable=False,

@@ -13,7 +13,7 @@ class Group(db.models.base.Base):
     __tablename__ = 'group'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     # The group EDI-ID. This is the unique reference for the group in PASTA.
-    edi_id = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True, index=True)
+    edi_id = sqlalchemy.Column(sqlalchemy.String(44), nullable=False, unique=True, index=True)
     # The profile of the user who create the group.
     profile_id = sqlalchemy.Column(
         sqlalchemy.Integer,
@@ -22,9 +22,9 @@ class Group(db.models.base.Base):
         index=True,
     )
     # The name of the group as provided by the user. Can be edited.
-    name = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
+    name = sqlalchemy.Column(sqlalchemy.String(64), nullable=False, index=True)
     # The description of the group as provided by the user. Can be edited.
-    description = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    description = sqlalchemy.Column(sqlalchemy.String(128), nullable=True)
     # The date and time the group was created.
     created = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now)
     # The date and time the group was last updated.

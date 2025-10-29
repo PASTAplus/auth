@@ -88,15 +88,12 @@
                         </span>
                     </div>
                     {# Copy ID #}
-                    <div class='edi-id-parent'>
-                      <div class='edi-id-child-text'>
+                    <div class='copy-text-parent'>
+                      <div class='copy-text-text'>
                         {{ group.edi_id }}
                       </div>
-                      <div class='edi-id-child-icon'>
-                        <img src='{{ url('/static/svg/copy.svg') }}'
-                             alt='Copy Group Identifier'
-                             class='edi-id-copy-button'
-                        >
+                      <div class='copy-text-icon'>
+                        <i class="bi bi-copy"></i>
                       </div>
                     </div>
                     {# Remove button #}
@@ -140,7 +137,7 @@
         <div>
           <input type='text' class='form-control' id='principalSearch' autocomplete="off"
                  spellcheck="false" placeholder='Select a group in the left panel to update members'
-                 disabled
+                 maxlength='64' disabled
           >
           <div id='principalList' tabindex='0' class='form-control'></div>
         </div>
@@ -169,15 +166,17 @@
                 The name and description will help you identify the group later.
               </p>
               <label for='groupName'>Name</label>
-              <input type='text' class='form-control' id='groupName' name='name' required
-                     pattern='.{3,}'>
+              <input type='text' class='form-control' id='groupName' name='name'
+                     pattern='.{3,}' maxlength='64' required>
               <div class='invalid-feedback'>
-                Name must be at least 3 characters long.
+                Please provide a name for the group.
               </div>
             </div>
             <div class='form-group'>
               <label for='groupDescription'>Description (optional)</label>
-              <input type='text' class='form-control' id='groupDescription' name='description'>
+              <input type='text' class='form-control' id='groupDescription' name='description'
+                     maxlength='128'
+              >
             </div>
             <div class='modal-footer'>
               <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Cancel

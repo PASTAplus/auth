@@ -854,15 +854,13 @@ function addPrincipalDiv(parentEl, principalObj)
     <div class='principal-child principal-info'>
       <div class='principal-title'>${c.title || ''}</div>
       <div class='principal-description'>${c.description || ''}</div>
-      <div class='edi-id-parent'>
-        <div class='edi-id-child-text'>
-          ${c.edi_id}
-        </div>
-        <div class='edi-id-child-icon'>
-          <img class='edi-id-copy-button'
-            src='${BASE_PATH}/static/svg/copy.svg'
-            alt='Copy User Identifier'
-          >
+        <div class='copy-text-parent'>
+          <div class='copy-text-text'>
+              ${c.edi_id}
+          </div>
+          <div class='copy-text-icon'>
+            <i class="bi bi-copy"></i>
+          </div>
         </div>
       </div>
     </div>

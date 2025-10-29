@@ -11,13 +11,13 @@ log = daiquiri.getLogger(__name__)
 class PackageScope(db.models.base.Base):
     __tablename__ = 'search_package_scope'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    scope = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=False, unique=True)
+    scope = sqlalchemy.Column(sqlalchemy.String(64), nullable=False, index=False, unique=True)
 
 
 class ResourceType(db.models.base.Base):
     __tablename__ = 'search_resource_type'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    type = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=False, unique=True)
+    type = sqlalchemy.Column(sqlalchemy.String(64), nullable=False, index=False, unique=True)
 
 
 class RootResource(db.models.base.Base):
@@ -33,10 +33,10 @@ class RootResource(db.models.base.Base):
         unique=True,
     )
     # Denormalized fields to speed up searches.
-    label = sqlalchemy.Column(sqlalchemy.String, nullable=True, index=True)
-    type = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
+    label = sqlalchemy.Column(sqlalchemy.String(64), nullable=True, index=True)
+    type = sqlalchemy.Column(sqlalchemy.String(64), nullable=False, index=True)
     # scope.identifier.revision are populated only for type='package' resources.
-    package_scope = sqlalchemy.Column(sqlalchemy.String, nullable=True, index=True)
+    package_scope = sqlalchemy.Column(sqlalchemy.String(64), nullable=True, index=True)
     package_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=True, index=True)
     package_rev = sqlalchemy.Column(sqlalchemy.Integer, nullable=True, index=True)
     resource = sqlalchemy.orm.relationship(
@@ -62,7 +62,7 @@ class SearchSession(db.models.base.Base):
         index=True,
     )
     # Unique identifier for the search session, used to track searches across requests.
-    uuid = sqlalchemy.Column(sqlalchemy.String, unique=True, nullable=False)
+    uuid = sqlalchemy.Column(sqlalchemy.String(32), unique=True, nullable=False)
     # The date and time the search session was first created and last accessed. These values are
     # used to determine if a search session is still active or has expired.
     created = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False, default=sqlalchemy.func.now())
@@ -106,8 +106,8 @@ class SearchResult(db.models.base.Base):
     # The resource ID of the search result. This is only used when the user expands the root node.
     resource_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
     # Denormalized fields to avoid large join when scrolling through search results.
-    resource_label = sqlalchemy.Column(sqlalchemy.String, nullable=True, index=False)
-    resource_type = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=False)
+    resource_label = sqlalchemy.Column(sqlalchemy.String(64), nullable=True, index=False)
+    resource_type = sqlalchemy.Column(sqlalchemy.String(64), nullable=False, index=False)
     # ORM relationship
     search_session = sqlalchemy.orm.relationship(
         'SearchSession',

@@ -24,8 +24,9 @@
 
 {% block content %}
 
-  <div class='header-container'
+  <div id='headerContainer' class='header-container'
        data-highlight-menu='key'
+       data-new-secret='{{ new_secret }}'
   >
   </div>
 
@@ -35,101 +36,95 @@
         You have not created any API keys yet.
       </p>
     {% else %}
-      <div class='main-grid'>
+      <table class='table table-striped'>
+        <thead>
+        <tr>
+          <th>Key</th>
+          <th>Principal</th>
+          <th>Valid From</th>
+          <th>Valid To</th>
+        </tr>
+        </thead>
+        <tbody>
         {% for key in key_list %}
-          <div class='key-grid'>
-            <div class='key-header'>
-              {#<div class='grid-header'>#}
-              <div class='d-flex flex-row align-items-center justify-content-between gap-2'>
-                <div class='grid-title mr-auto p-2'>Key</div>
-                {# Copy Key ID #}
-                {#<div class='flex-space-between'>#}
-                  <div class='edi-id-parent'>
-                    <div class='edi-id-child-text'>
-                      {{ key.key_id }}
-                    </div>
-                    <div class='edi-id-child-icon'>
-                      <img src='{{ url('/static/svg/copy.svg') }}'
-                           alt='Copy key'
-                           class='edi-id-copy-button'
-                      >
-                    </div>
-                  </div>
-                  {# Edit Key button #}
-                  <button type='button' class='icon-text-button'
-                          data-bs-toggle='modal'
-                          data-bs-target='#editKeyModal'
-                          data-form-target='{{ url('/ui/api/key/update') }}'
-                          data-title='Update API key'
-                          data-key-id='{{ key.key_id }}'
-                          data-key-description='{{ key.description or '' }}'
-                          data-key-valid-from='{{ key.valid_from }}'
-                          data-key-valid-to='{{ key.valid_to }}'
-                          data-submit-text='Update'
-                  >
-                    <i class='bi bi-pencil'></i>
-                  </button>
+          <tr>
+            <td>
+              <div class='d-flex flex-row gap-2'>
+                {# Edit Key button #}
+                <button type='button' class='icon-text-button'
+                        data-bs-toggle='modal'
+                        data-bs-target='#editKeyModal'
+                        data-form-target='{{ url('/ui/api/key/update') }}'
+                        data-title='Update API key'
+                        data-submit-text='Update'
 
-                  <button class='icon-text-button'
-                          data-bs-toggle='modal'
-                          data-bs-target='#deleteKeyModal'
-                          data-key-id='{{ key.key_id }}'
-                          data-key-description='{{ key.description or '' }}'
-                  >
-                    <i class='bi bi-lock'></i>
-                    <span>Revoke</span>
-                  </button>
-                {#</div>#}
-              </div> {# d-flex flex-row #}
-            </div> {# key-header #}
+                        data-key-id='{{ key.id }}'
+                        data-key-name='{{ key.name or '' }}'
+                        data-key-group-id='{{ key.group_id or 'profile' }}'
+                        data-key-secret-preview='{{ key.secret_preview }}'
+                        data-key-valid-from='{{ key.valid_from }}'
+                        data-key-valid-to='{{ key.valid_to }}'
 
-            <div class='grid-title'>Description</div>
-            <div class='grid-wrap'>{{ key.description or '' }}</div>
+                        data-key-created='{{ key.created }}'
+                        data-key-updated='{{ key.updated }}'
+                        data-key-last-used='{{ key.last_used or 'Never' }}'
+                        data-key-use-count='{{ key.use_count }}'
+                >
+                  <i class='bi bi-pencil'></i>
+                </button>
+                {{ key.name }}
+                {% if key.active %}
+                  <i class='bi bi-check-circle text-success' title='Active'></i>
+                {% else %}
+                  <i class='bi bi-x-circle text-danger' title='Expired'></i>
+                {% endif %}
+              </div>
+            </td>
 
-            <div class='grid-title'>Valid From</div>
-            <div>{{ key.valid_from }}</div>
-
-            <div class='grid-title'>Valid To</div>
-            <div>{{ key.valid_to }}</div>
-
-            <div class='grid-title'>Updated</div>
-            <div>{{ key.updated }}</div>
-
-            <div class='grid-title'>Duration</div>
-            <div>{{ key.duration }}</div>
-
-            <div class='grid-title'>Last Used</div>
-            <div>{{ key.last_used or 'Never' }}</div>
-
-            <div class='grid-title'>Use Count</div>
-            <div>{{ key.use_count }}</div>
-
-            <div class='grid-title'>Access type</div>
-            <div>{{ key.access_type }}</div>
-
-
-            <div class='grid-title'>Active</div>
-            <div class='d-flex flex-row align-items-center justify-content-between gap-2'>
-              {% if key.active %}
-                <i class='bi bi-check-circle text-success' title='Active'></i>
+            <td>
+              {% if not key.group_id %}
+                Profile: Full read/write access to user profile
               {% else %}
-                <i class='bi bi-x-circle text-danger' title='Expired'></i>
+                {% for group in group_list %}
+                  {% if group.id == key.group_id %}
+                    Group: {{ group.name }}
+                  {% endif %}
+                {% endfor %}
               {% endif %}
-            </div>
-            {# d-flex flex-row #}
-          </div> {# key-grid #}
+            </td>
+
+            <td>
+              {{ key.valid_from }}
+            </td>
+            <td>
+              {{ key.valid_to }}
+            </td>
+            {#<td>#}
+            {#  <button class='icon-text-button'#}
+            {#          data-bs-toggle='modal'#}
+            {#          data-bs-target='#deleteKeyModal'#}
+            {#          data-key-id='{{ key.id }}'#}
+            {#          data-key-name='{{ key.name or '' }}'#}
+            {#  >#}
+            {#    <i class='bi bi-lock'></i>#}
+            {#    <span>Revoke</span>#}
+            {#  </button>#}
+            {#</td>#}
+          </tr>
         {% endfor %}
-      </div> {# main-grid #}
+        </tbody>
+      </table>
     {% endif %}
 
     {# New Key button #}
-    <button type='button' class='btn btn-primary' id='newKeyButton'
+    <button type='button' class='btn btn-primary' id='newSecretButton'
             data-bs-toggle='modal'
             data-bs-target='#editKeyModal'
             data-form-target='{{ url('/ui/api/key/new') }}'
             data-title='Create a new API key'
-            data-key-id=''
-            data-key-description=''
+            data-key-secret=''
+            data-key-group-id=''
+            data-key-name=''
             data-key-valid-from='{{ now }}'
             data-key-valid-to='{{ now_plus_one_year }}'
             data-submit-text='Add'
@@ -150,30 +145,45 @@
         </div>
         <div class='modal-body'>
           <form method='post' id='keyForm' class='needs-validation' novalidate>
-            <input type='hidden' id='keyId' name='key-id'>
+            <input type='hidden' id='keySecret' name='key-secret'>
+
             <div class='form-group'>
-              <label for='keyDescription'>Description</label>
+              <div class='value-grid'>
+                <div class='fw-bold'>Created</div>
+                <div id='keyCreated'></div>
+                <div class='fw-bold'>Updated</div>
+                <div id='keyUpdated'></div>
+                <div class='fw-bold'>Last Used</div>
+                <div id='keyLastUsed'></div>
+                <div class='fw-bold'>Use Count</div>
+                <div id='keyUseCount'></div>
+                <div class='fw-bold'>Duration</div>
+                <div id='keyDuration'></div>
+              </div>
+            </div>
+            <hr>
+
+            <div class='form-group'>
+              <label for='keyName'>Name</label>
               <div class='grid-child-span-all'>
-                <input type='text' class='form-control' id='keyDescription'
-                       name='key-description'
-                       required
-                       pattern='.{3,}'>
+                <input type='text' class='form-control' id='keyName'
+                       name='key-name' pattern='.{3,}' maxlength='64' required>
                 <div class='invalid-feedback'>
-                  Please provide a description for the key.
+                  Please provide a name for the key.
                 </div>
               </div>
             </div>
 
             <div class='form-group'>
-              <label for='keyAccessType'>Access</label>
-              <select id='keyAccessType' class='form-select' required>
+              <label for='keyGroupId'>Principal</label>
+              <select id='keyGroupId' class='form-select' name='key-group-id' required>
                 <option value=''>Select access type</option>
-                <option value='full'>
-                  Full profile read/write access
+                <option value='profile'>
+                  Profile: Full read/write access to user profile
                 </option>
                 {% for group in group_list %}
-                  <option value=group.id>
-                    Group: {{ group.name + ': ' + group.description }}
+                  <option value='{{ group.id }}'>
+                    Group: {{ group.name }}
                   </option>
                 {% endfor %}
               </select>
@@ -200,16 +210,6 @@
                     Invalid date.
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <div class='form-group'>
-              <label for='keyDurationDisplay'>Duration</label>
-              <div></div>
-              <div class='grid-child-span-all'>
-                <input type='text' class='form-control' id='keyDurationDisplay'
-                       name='key-valid-display'
-                       disabled>
               </div>
             </div>
 
@@ -240,8 +240,6 @@
               <p>
                 <span>Are you sure you want to remove key </span>
                 '<span id='deleteKeyDescription' class='highlight'></span>'?
-                <span>
-                </span>
               </p>
               <p>
                 <strong>Note:</strong>
@@ -252,6 +250,51 @@
               <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Cancel
               </button>
               <button type='submit' class='btn btn-danger'>Remove</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# New key notice modal #}
+  <div class='modal fade' id='newSecretMsgModal' tabindex='-1' data-bs-backdrop='static'>
+    <div class='modal-dialog modal-dialog-centered'>
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <h5 class='modal-title'>Save your new key</h5>
+          <button type='button' class='btn-close' data-bs-dismiss='modal'
+                  aria-label='Close'></button>
+        </div>
+        <div class='modal-body'>
+          <form id='newSecretMsgForm' action='{{ url('/ui/key') }}' method='get'>
+            <input type='hidden' id='newSecretMsgToken' name='key-token'>
+            <div class='form-group'>
+              <p>
+                API key created successfully.
+              </p>
+              <p>
+                Save your new key now in a secure location, such as a password manager. Treat it
+                like any other credentials.
+              </p>
+              <p>
+                The key will not be shown again, and cannot be retrieved later. If you lose the
+                key, revoke it and create a new one.
+              </p>
+              <div class='d-flex gap-2'>
+                <strong>Key:</strong>
+                <div class='copy-text-parent'>
+                  <div class='copy-text-text'>
+                    {{ new_secret }}
+                  </div>
+                  <div class='copy-text-icon'>
+                    <i class="bi bi-copy"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class='modal-footer'>
+              <button type='submit' class='btn btn-primary'>I have saved my key</button>
             </div>
           </form>
         </div>

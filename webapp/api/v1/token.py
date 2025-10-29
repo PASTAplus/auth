@@ -100,7 +100,7 @@ async def post_token_key(
     dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
 ):
     """Create a token for an API key."""
-    api_method = 'getTokenForKey'
+    api_method = 'getTokenByKey'
     # Check that the request body is valid JSON
     try:
         request_dict = await api.utils.request_body_to_dict(request)
@@ -110,17 +110,24 @@ async def post_token_key(
         )
     # Check that the request contains the required fields
     try:
-        key_id = request_dict['key-id']
+        keyToken = request_dict['key']
     except KeyError as e:
         return api.utils.get_response_400_bad_request(
             request, api_method, f'Missing field in JSON in request body: {e}'
         )
-    # Validate the key and get the associated profile
-    profile_row = await dbi.get_profile_by_key_id(key_id)
-    if not profile_row:
+    # Validate the key and get the associated group or profile
+    try:
+        key_row = await dbi.get_valid_key(key_token)
+    except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_401_unauthorized(request, api_method, 'Invalid API key')
+    if key_row.group is not None:
+        edi_token = await util.edi_token.create_by_group(key_row.group)
+    else:
+        edi_token = await util.edi_token.create(dbi, key_row.profile)
+    # profile_row = await dbi.get_profile_by_uid(key_token)
+    # if not profile_row:
+    #     return api.utils.get_response_401_unauthorized(request, api_method, 'Invalid API key')
     # Create the EDI token
-    edi_token = await util.edi_token.create(dbi, profile_row)
     return api.utils.get_response_200_ok(
         request,
         api_method,

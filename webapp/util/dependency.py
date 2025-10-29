@@ -90,5 +90,9 @@ async def token_profile_row(
             yield await dbi_.get_profile(token_.edi_id)
             return
         except sqlalchemy.exc.NoResultFound:
-            pass
+            try:
+                yield await dbi_.get_group(token_.edi_id)
+                return
+            except sqlalchemy.exc.NoResultFound:
+                pass
     yield None

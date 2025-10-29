@@ -24,9 +24,13 @@ async def main():
 
     async with util.dependency.get_dbi() as dbi:
         token_obj = await util.edi_token.decode(dbi, args.token)
+        if token_obj is None:
+            log.error('Failed to decode EDI token')
+            return 1
 
-        print(token_obj.claims_pformat)
+        print(await util.edi_token.claims_pformat(dbi, token_obj))
 
+    return 0
 
 if __name__ == '__main__':
     sys.exit(asyncio.run(main()))

@@ -325,7 +325,7 @@ Principal search
 }
 
 #principalList .principal-flex:hover {
-    background-color: rgba(0, 0, 0, 0.15);
+    background-color: rgba(0, 0, 0, 0.10);
     transition: background-color .3s ease-in-out;
     cursor: pointer;
 }

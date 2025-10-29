@@ -1,6 +1,10 @@
+let headerContainerEl = document.getElementById('headerContainer');
+// Constants passed from the server
+const NEW_SECRET = headerContainerEl.dataset.newSecret;
+
 const fromInputEl = document.getElementById('keyValidFrom');
 const toInputEl = document.getElementById('keyValidTo');
-const durationEl = document.getElementById('keyDurationDisplay');
+const durationEl = document.getElementById('keyDuration');
 
 // Fetch all the forms we want to apply custom Bootstrap validation styles to
 let forms = document.getElementsByClassName('needs-validation');
@@ -25,29 +29,27 @@ Array.prototype.filter.call(forms, function (form) {
   }, false);
 });
 
-
-let editKeyModal = document.getElementById('editKeyModal');
-editKeyModal.addEventListener('show.bs.modal', function (ev) {
+// Key new/edit modal
+let editKeyModalEl = document.getElementById('editKeyModal');
+editKeyModalEl.addEventListener('show.bs.modal', ev => {
   let button = ev.relatedTarget;
   document.getElementById('keyForm').action = button.dataset.formTarget;
   document.getElementById('keyTitle').textContent = button.dataset.title;
   document.getElementById('keySubmitButton').textContent = button.dataset.submitText;
-  document.getElementById('keyId').value = button.dataset.keyId;
-  document.getElementById('keyDescription').value = button.dataset.keyDescription;
+  document.getElementById('keyName').value = button.dataset.keyName;
+  document.getElementById('keyGroupId').value = button.dataset.keyGroupId;
   fromInputEl.value = button.dataset.keyValidFrom;
   toInputEl.value = button.dataset.keyValidTo;
+
+  document.getElementById('keyCreated').textContent = button.dataset.keyCreated;
+  document.getElementById('keyUpdated').textContent = button.dataset.keyUpdated;
+  document.getElementById('keyLastUsed').textContent = button.dataset.keyLastUsed;
+  document.getElementById('keyUseCount').textContent = button.dataset.keyUseCount;
   updateDurationDisplay();
 });
 
-let deleteKeyModal = document.getElementById('deleteKeyModal');
-deleteKeyModal.addEventListener('show.bs.modal', function (ev) {
-  let button = ev.relatedTarget;
-  document.getElementById('deleteKeyId').value = button.dataset.keyId;
-  document.getElementById('deleteKeyDescription').textContent = button.dataset.keyDescription;
-});
-
-// Clear the form if the modal is cancelled/closed
-document.getElementById('editKeyModal').addEventListener('hidden.bs.modal', () => {
+// Clear the form if the modal is canceled/closed
+editKeyModalEl.addEventListener('hidden.bs.modal', () => {
   // Reset the form
   document.getElementById('keyForm').reset();
   // Clear validation styles
@@ -57,8 +59,23 @@ document.getElementById('editKeyModal').addEventListener('hidden.bs.modal', () =
     input.classList.remove('is-valid');
   });
   // Reset the duration display
-  document.getElementById('keyDurationDisplay').value = '--';
+  durationEl.textContent = '--';
 });
+
+// Key delete modal
+let deleteKeyModalEl = document.getElementById('deleteKeyModal');
+deleteKeyModalEl.addEventListener('show.bs.modal', function (ev) {
+  let button = ev.relatedTarget;
+  document.getElementById('deleteKey').value = button.dataset.keyToken;
+  document.getElementById('deleteKeyName').textContent = button.dataset.keyName;
+});
+
+// newSecretMsgModal
+if (NEW_SECRET !== '') {
+  let newSecretMsgModalEl = document.getElementById('newSecretMsgModal');
+  newSecretMsgModal = new bootstrap.Modal(newSecretMsgModalEl);
+  newSecretMsgModal.show();
+}
 
 //
 // Events
@@ -72,17 +89,17 @@ function updateDurationDisplay()
   const fromDate = new Date(fromInputEl.value);
   const toDate = new Date(toInputEl.value);
   if (!isNaN(fromDate.getTime()) && !isNaN(toDate.getTime()) && fromDate < toDate) {
-    durationEl.value = formatExactDuration(fromDate, toDate);
+    durationEl.textContent = formatDuration(fromDate, toDate);
   }
   else {
-    durationEl.value = '--';
+    durationEl.textContent = '--';
   }
 }
 
 // Format the exact time between dates as a string
-function formatExactDuration(startDate, endDate)
+function formatDuration(startDate, endDate)
 {
-  const {years, months, days} = getExactTimeBetween(startDate, endDate);
+  const {years, months, days} = getDuration(startDate, endDate);
   const parts = [];
   if (years > 0) {
     parts.push(`${years} year${years !== 1 ? 's' : ''}`);
@@ -97,7 +114,7 @@ function formatExactDuration(startDate, endDate)
 }
 
 // Calculate exact years, months, and days between two real dates
-function getExactTimeBetween(startDate, endDate)
+function getDuration(startDate, endDate)
 {
   let start = new Date(startDate);
   let end = new Date(endDate);
@@ -123,5 +140,4 @@ function getExactTimeBetween(startDate, endDate)
   }
   return {years, months, days};
 }
-
 
