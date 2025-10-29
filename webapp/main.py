@@ -201,7 +201,7 @@ class TokenProfileMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
         ):
             async with util.dependency.get_dbi() as dbi:
                 try:
-                    subject_type = await self.get_subject_type(claims_obj.edi_id)
+                    subject_type = await dbi.get_subject_type(claims_obj.edi_id)
                     if subject_type == db.models.permission.SubjectType.PROFILE:
                         profile_row = await dbi.get_profile(claims_obj.edi_id)
                         new_token = await util.edi_token.create(dbi, profile_row)
