@@ -53,6 +53,7 @@ async def main():
     )
     subparsers = parser.add_subparsers(dest='command', help='Actions')
     subparsers.add_parser('create', help='Create database tables and objects')
+    subparsers.add_parser('create-missing', help='Create missing tables only')
     subparsers.add_parser('drop', help='Drop database tables and objects')
     subparsers.add_parser('clear', help='Clear user data from tables but keep schema unmodified')
     subparsers.add_parser('clear-resources', help='Clear only resources and rules')
@@ -72,6 +73,7 @@ async def main():
 
     action_str = {
         'create': 'Create all tables and other objects',
+        'create-missing': 'Create missing tables only',
         'drop': 'Drop all tables and other objects',
         'clear': 'Clear all user data from tables but keep schema unmodified',
         'update': 'Update all functions and triggers but keep tables and other objects unchanged',
@@ -123,12 +125,14 @@ async def main():
         async with session.begin():
             dbi = db.db_interface.DbInterface(session)
             if args.command == 'create':
-                await create_db(dbi)
+                await create(dbi)
+            if args.command == 'create-missing':
+                await create_missing(dbi)
             elif args.command == 'drop':
-                await drop_db(dbi)
+                await drop(dbi)
                 # await drop_tables_by_metadata(dbi)
             elif args.command == 'clear':
-                await clear_db(dbi)
+                await clear(dbi)
             elif args.command == 'clear-resources':
                 await clear_resources(dbi)
             elif args.command == 'update':
@@ -147,12 +151,15 @@ async def main():
 #
 
 
-async def create_db(dbi):
+async def create(dbi):
     await create_tables(dbi)
     await create_system_profiles(dbi)
     await create_system_groups(dbi)
     await update_functions_and_triggers(dbi)
 
+
+async def create_missing(dbi):
+    await create_tables(dbi)
 
 async def update_functions_and_triggers(dbi):
     await create_function_get_resource_descendants(dbi)
@@ -519,7 +526,7 @@ async def create_profile_link_trigger(dbi):
 #
 
 
-async def drop_db(dbi):
+async def drop(dbi):
     await drop_tables_with_cascade(dbi)
     await drop_objects(dbi)
 
@@ -571,7 +578,7 @@ async def drop_objects(dbi):
 #
 
 
-async def clear_db(dbi):
+async def clear(dbi):
     """Clear all user data from the tables, but keep the schema unmodified.
     System profiles and groups are not cleared.
     """

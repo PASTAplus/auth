@@ -76,7 +76,6 @@
                   {{ key.secret_preview }}…
                 </div>
                 {{ key.name }}
-
                 {# The dates are strings in yyyy-mm-dd format, which can be compared lexically #}
                 <div class='status-icon'>
                   {% if now < key.valid_from %}

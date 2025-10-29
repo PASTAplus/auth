@@ -75,7 +75,7 @@ def get_is_authorized(token_str, resource_key, permission_str, endpoint):
         response_dict = response.json()
     except ValueError:
         log.error(f'Error: HTTP {response.status_code}: Response is not valid JSON')
-        log.error(pprint.pformat(response.text))
+        log.error(response.text)
         return False
 
     if response.status_code != 200:

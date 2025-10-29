@@ -132,4 +132,4 @@ async def post_api_key_delete(
 ):
     form_data = await request.form()
     await dbi.delete_key(token_profile_row, int(form_data.get('key-id')))
-    return util.url.internal('/ui/key', info='API key deleted successfully.')
+    return util.url.internal('/ui/key', info='API key revoked successfully.')
