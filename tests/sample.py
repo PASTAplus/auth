@@ -31,10 +31,12 @@ log = logging.getLogger(__name__)
 active_test_files = set()
 
 
-def assert_match(received_obj: str | dict | set | list, filename: str):
+def assert_match(received_obj: str | dict | set | list, filename: str, clobber=False):
     """Assert that the received object matches the expected JSON in the given sample file.
     We encode objects to normalized JSON before comparing.
     """
+    if clobber:
+        _clobber_edi_ids(received_obj)
     norm_json_str = _to_normalized_json(received_obj)
     expected_json_str = _read_file(filename)
     if norm_json_str != expected_json_str:
@@ -98,3 +100,17 @@ def _meld(left_str, filename):
         subprocess.run(('meld', tmp_file.name, (TEST_FILES_PATH / filename).as_posix()))
         tmp_file.seek(0)
         return tmp_file.read() == (TEST_FILES_PATH / filename).read_bytes()
+
+def _clobber_edi_ids(o):
+    """Recursively clobber EDI IDs in the given dict or list, replacing them with a fixed string.
+    This is useful for comparing JSON objects that contain EDI IDs that may vary between test runs.
+    """
+    if isinstance(o, str):
+        return re.sub(r'^EDI-[a-f0-9]{40}$', '[CLOBBERED-EDI-ID]', o)
+    elif isinstance(o, dict):
+        for k, v in list(o.items()):
+            o[k] = _clobber_edi_ids(v)
+    elif isinstance(o, list):
+        for i, item in enumerate(list(o)):
+            o[i] = _clobber_edi_ids(item)
+    return o

@@ -50,7 +50,7 @@
     border-radius: .3rem;
 }
 .dropdown-item:hover {
-    background-color: rgba(0, 0, 0, 0.15);
+    background-color: rgba(0, 0, 0, 0.10);
 }
 
 /**/
@@ -74,6 +74,10 @@ h2 {
 
 h3 {
     font-size: 1.2rem;
+}
+
+h4 {
+    font-size: 1.0rem;
 }
 
 table td, table th {
@@ -249,10 +253,11 @@ table td, table th {
 .icon-button {
     cursor: pointer;
     border: none;
-    background: transparent;
+    /* background: transparent; */
     border-radius: .3rem;
-    padding: 0.2rem;
-    margin: 0 .5rem 0 0;
+    /* padding: 0.2rem; */
+    /* margin: 0 .5rem 0 0; */
+    /* height: 2rem; */
 }
 
 .icon-button img {
@@ -261,7 +266,7 @@ table td, table th {
 
 .icon-button:hover {
     transition: background-color .3s ease-in-out;
-    background-color: rgba(0, 0, 0, 0.15);
+    background-color: rgba(0, 0, 0, 0.10);
 }
 
 .icon-button:active {
@@ -273,22 +278,28 @@ table td, table th {
 
 .icon-text-button {
     display: inline-flex;
-    align-items: center;
+    /* align-items: center; */
     gap: 0.5rem;
     border: none;
-    /* border: 1px solid gray; */
     background: transparent;
     border-radius: .3rem;
     padding: 0.2rem 1rem 0.2rem 1rem;
-    /*margin: 0 1rem 0 0;*/
+    /* margin: 0 1rem 0 0; */
     box-shadow: 1px 1px 1.5px rgba(0, 0, 0, 0.5);
+    white-space: nowrap;
+    /* Hide link styling */
     text-decoration: none;
-    color: inherit;
+    color: unset;
+}
+
+.icon-text-button .bi {
+    font-size: 110%;
+    color: rgba(0, 0, 0, 0.75);
 }
 
 .icon-text-button:hover {
     /* box-shadow: 0 0 .2rem rgba(0, 0, 0, 0.5); */
-    background-color: rgba(0, 0, 0, 0.15);
+    background-color: rgba(0, 0, 0, 0.10);
     /* Setting the transition on hover prevents button animation from triggering and causing flashing when the page is loaded */
     transition: background-color .3s ease-in-out;
 }
@@ -306,43 +317,38 @@ table td, table th {
     height: 1.2rem;
 }
 
-/* Pasta ID with copy button */
+/* Text with copy button */
 
-.edi-id-parent {
+.copy-text-parent {
     display: flex;
     align-items: center;
     max-width: 8rem;
 }
 
-.edi-id-child-text {
+.copy-text-text {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.edi-id-child-icon {
+.copy-text-icon {
     cursor: pointer;
+    /* font-size: 2rem; */
     border-radius: .3rem;
     padding: 0 .5rem 0 .5rem;
-    /* height: 1.5rem; */
-    /* width: 1.2rem; */
 }
 
-.edi-id-child-icon img {
-    height: 1.05rem;
-}
-
-.edi-id-child-icon:hover {
+.copy-text-icon:hover {
     transition: background-color .3s ease-in-out;
-    background-color: rgba(0, 0, 0, 0.15);
+    background-color: rgba(0, 0, 0, 0.10);
 }
 
-.edi-id-child-icon:active {
+.copy-text-icon:active {
     transform: scale(0.95);
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
 }
 
-.edi-id-copied-box {
+.copy-text-copied-box {
     position: absolute;
     /* Move 'Copied' box to the right of the copy button */
     transform: translateX(30%) translateY(-100%);
@@ -399,5 +405,5 @@ table td, table th {
 
 .help-button:hover {
     transition: transform 0.3s ease-in-out, background-color 0.3s ease-in-out;
-    background-color: rgba(0, 0, 0, 0.15);
+    background-color: rgba(0, 0, 0, 0.10);
 }

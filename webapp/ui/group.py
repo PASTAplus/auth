@@ -9,7 +9,7 @@ import util.url
 import util.avatar
 import util.dependency
 import util.edi_token
-import util.redirect
+import util.url
 import util.search_cache
 import util.template
 
@@ -31,10 +31,10 @@ async def get_ui_group(
 ):
     group_list = []
 
-    owned_groups = await dbi.get_all_owned_groups(token_profile_row)
+    owned_group_list = await dbi.get_all_owned_groups(token_profile_row)
 
     # for group_row in token_profile_row.groups:
-    for group_row in owned_groups:
+    for group_row in owned_group_list:
         group_list.append(
             {
                 'id': group_row.id,
@@ -105,7 +105,7 @@ async def post_group_new(
     name = form_data.get('name')
     description = form_data.get('description')
     await dbi.create_group(token_profile_row, name, description)
-    return util.redirect.internal('/ui/group')
+    return util.url.internal('/ui/group')
 
 
 @router.post('/ui/api/group/edit')
@@ -119,7 +119,7 @@ async def post_group_edit(
     name = form_data.get('name')
     description = form_data.get('description')
     await dbi.update_group(token_profile_row, group_id, name, description)
-    return util.redirect.internal('/ui/group')
+    return util.url.internal('/ui/group')
 
 
 @router.post('/ui/api/group/delete')
@@ -131,7 +131,7 @@ async def post_group_delete(
     form_data = await request.form()
     group_id = int(form_data.get('group-id'))
     await dbi.delete_group(token_profile_row, group_id)
-    return util.redirect.internal('/ui/group')
+    return util.url.internal('/ui/group')
 
 
 @router.get('/int/api/group/member/list/{group_id}')

@@ -15,7 +15,7 @@ import util.dependency
 import util.exc
 import util.edi_token
 import util.pretty
-import util.redirect
+import util.url
 import util.search_cache
 import util.template
 from config import Config
@@ -75,7 +75,7 @@ async def get_ui_permission(
         # exist anymore.
         # - The user might have a valid search session UUID, but the session could belong to another
         # user (e.g., if they bookmarked the search page, then logged in to a different profile).
-        return util.redirect.internal(f'/ui/permission/search')
+        return util.url.internal(f'/ui/permission/search')
 
     root_count = await dbi.get_search_result_count(search_uuid)
     search_session_row = await dbi.get_search_session(search_uuid)
@@ -120,7 +120,7 @@ async def post_ui_permission_search(
     """Permission Search API"""
     form_data = await request.form()
     new_search_session = await dbi.create_search_session(token_profile_row, dict(form_data))
-    return util.redirect.internal(f'/ui/permission/{new_search_session.uuid}')
+    return util.url.internal(f'/ui/permission/{new_search_session.uuid}')
 
 
 @router.get('/int/api/permission/slice')
@@ -268,7 +268,7 @@ async def post_permission_principal_search(
         return starlette.responses.Response(status_code=starlette.status.HTTP_401_UNAUTHORIZED)
     query_dict = await request.json()
     query_str = query_dict.get('query')
-    principal_list = await util.search_cache.search(dbi, query_str, include_groups=True)
+    principal_list = await util.search_cache.search(dbi, query_str)
     return starlette.responses.JSONResponse(principal_list)
 
 

@@ -6,7 +6,7 @@ import starlette.templating
 import util.avatar
 import util.dependency
 import util.edi_token
-import util.redirect
+import util.url
 import util.template
 
 log = daiquiri.getLogger(__name__)

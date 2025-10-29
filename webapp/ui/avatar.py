@@ -10,7 +10,7 @@ import db.models.profile
 import util.avatar
 import util.dependency
 import util.edi_token
-import util.redirect
+import util.url
 import util.template
 
 log = daiquiri.getLogger(__name__)
@@ -84,7 +84,7 @@ async def post_avatar_update(
     await dbi.update_profile(
         token_profile_row, avatar_profile_id=profile_id, anonymous_avatar=anonymous_avatar
     )
-    return util.redirect.internal('/ui/profile', info='Avatar updated successfully.')
+    return util.url.internal('/ui/profile', info='Avatar updated successfully.')
 
 
 @router.get('/ui/api/avatar/gen/{initials}')

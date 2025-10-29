@@ -9,7 +9,7 @@ import util.dependency
 import util.login
 import util.edi_token
 import util.pasta_ldap
-import util.redirect
+import util.url
 import util.template
 import util.url
 from config import Config
@@ -31,7 +31,7 @@ async def get_ui_signin(
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     if token_profile_row:
-        return util.redirect.internal('/ui/profile')
+        return util.url.internal('/ui/profile')
     return util.template.templates.TemplateResponse(
         'signin.html',
         {
@@ -54,7 +54,7 @@ async def get_ui_signin(
     request: starlette.requests.Request,
 ):
     # if token:
-    #     return util.redirect.internal('/ui/profile')
+    #     return util.url.internal('/ui/profile')
     return util.template.templates.TemplateResponse(
         'signin-merge.html',
         {
@@ -116,7 +116,7 @@ async def post_signin_ldap(
     ldap_dn = get_ldap_dn(username)
 
     if not util.pasta_ldap.bind(ldap_dn, password):
-        return util.redirect.internal('/ui/signin', error='Sign in failed. Please try again.')
+        return util.url.internal('/ui/signin', error='Sign in failed. Please try again.')
 
     log.debug(f'signin_ldap() - signin successful: {ldap_dn}')
 
@@ -141,7 +141,7 @@ def get_ldap_dn(idp_uid: str) -> str:
 
 @router.get('/signout')
 async def signout(request: starlette.requests.Request):
-    response = util.redirect.internal('/ui/signin', **request.query_params)
+    response = util.url.internal('/ui/signin', **request.query_params)
     response.delete_cookie('edi-token')
     response.delete_cookie('auth-token')
     return response

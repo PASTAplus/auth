@@ -28,5 +28,5 @@ def is_well_formed_edi_id(edi_id):
     """Check if a string is a valid EDI-ID.
     - EDI-IDs are case-sensitive.
     """
-    return re.fullmatch(r'EDI-[a-f0-9]{40}', edi_id) is not None
+    return re.fullmatch(r'EDI-[0-9a-f]{40}', edi_id) is not None
 

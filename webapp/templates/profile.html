@@ -48,16 +48,14 @@
         <h1 aria-label>Contact</h1>
         <div class='indent'>
           <div class='contact-parent'>
-
             <div class='contact-child label'>EDI-ID:</div>
             <div class='contact-child'>
-              <div class='edi-id-parent'>
-                <div class='edi-id-child-text'>
+              <div class='copy-text-parent'>
+                <div class='copy-text-text'>
                   {{ profile.edi_id }}
                 </div>
-                <div class='edi-id-child-icon'>
-                  <img src='{{ url('/static/svg/copy.svg') }}' alt='Copy User Profile Identifier'
-                       class='edi-id-copy-button'>
+                <div class='copy-text-icon'>
+                  <i class="bi bi-copy"></i>
                 </div>
               </div>
             </div>

@@ -13,7 +13,7 @@ class Group(db.models.base.Base):
     __tablename__ = 'group'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     # The group EDI-ID. This is the unique reference for the group in PASTA.
-    edi_id = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True, index=True)
+    edi_id = sqlalchemy.Column(sqlalchemy.String(44), nullable=False, unique=True, index=True)
     # The profile of the user who create the group.
     profile_id = sqlalchemy.Column(
         sqlalchemy.Integer,
@@ -22,9 +22,9 @@ class Group(db.models.base.Base):
         index=True,
     )
     # The name of the group as provided by the user. Can be edited.
-    name = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
+    name = sqlalchemy.Column(sqlalchemy.String(64), nullable=False, index=True)
     # The description of the group as provided by the user. Can be edited.
-    description = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    description = sqlalchemy.Column(sqlalchemy.String(128), nullable=True)
     # The date and time the group was created.
     created = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False, default=datetime.datetime.now)
     # The date and time the group was last updated.
@@ -37,7 +37,6 @@ class Group(db.models.base.Base):
     # The date and time the group was deleted. If this is not null, the group is
     # considered deleted.
     deleted = sqlalchemy.Column(sqlalchemy.DateTime, nullable=True)
-
     members = sqlalchemy.orm.relationship(
         'GroupMember',
         back_populates='group',
@@ -45,28 +44,19 @@ class Group(db.models.base.Base):
         cascade='all, delete-orphan',
         passive_deletes=True,
     )
-
     profile = sqlalchemy.orm.relationship(
         'db.models.profile.Profile',
         back_populates='groups',
         cascade_backrefs=False,
         passive_deletes=True,
     )
-
-    # rules = sqlalchemy.orm.relationship('Rule', back_populates='resource')
-
-    # @sqlalchemy.ext.hybrid.hybrid_property
-    # def member_count(self):
-    #     return len(self.members)
-    #
-    # # noinspection PyMethodParameters
-    # @member_count.expression
-    # def member_count(cls):
-    #     return (
-    #         sqlalchemy.select(sqlalchemy.func.count(GroupMember.id))
-    #         .where(GroupMember.group_id == cls.id)
-    #         .label('member_count')
-    #     )
+    keys = sqlalchemy.orm.relationship(
+        'db.models.key.Key',
+        back_populates='group',
+        cascade_backrefs=False,
+        cascade='all, delete-orphan',
+        passive_deletes=True,
+    )
 
 
 class GroupMember(db.models.base.Base):

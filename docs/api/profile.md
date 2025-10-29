@@ -4,10 +4,11 @@
 - [Parameters](parameters.md) - API Parameter Details
 - [Profiles](profile.md) - Manage user profiles
 - [Resources](resource.md) - Manage resources
-- [Rules](rule.md) - Manage access control rules (ACRs) for the resources
+- [Rules](rule.md) - Manage the ACRs for resources
 - [EML](eml.md) - Manage EML documents and associated ACRs
 - [Groups](group.md) - Manage groups and group members
-
+- [Search](search.md) - Search for profiles and groups
+- [Token and API key](token.md) - Manage tokens and API keys
 
 This document describes the API for managing user profiles.
 
@@ -163,8 +164,7 @@ Example request using cURL and JSON:
 ```shell
 
 curl -X PUT https://auth.edirepository.org/auth/v1/profile/EDI-1234567890abcdef1234567890abcdef \
-
-
+```
 
 ---
 

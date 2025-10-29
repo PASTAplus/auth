@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 import logging
 import pathlib
 
@@ -124,6 +125,9 @@ class Config(object):
     ]
 
     TOKEN_KEY = ''
+
+    KEY_TOKEN_HMAC_ALGORITHM = hashlib.sha256
+    KEY_TOKEN_HMAC_ITERATIONS = 100_000
 
     #
     # UI

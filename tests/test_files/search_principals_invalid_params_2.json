@@ -1,0 +1,4 @@
+{
+    "method": "searchPrincipals",
+    "msg": "Bad request: Invalid URL: Invalid boolean value: \"INVALID\". Expected one of: true, false, yes, no, 1, 0 (case insensitive)."
+}

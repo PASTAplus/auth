@@ -5,7 +5,7 @@ import starlette.templating
 
 import util.dependency
 import util.edi_token
-import util.redirect
+import util.url
 
 log = daiquiri.getLogger(__name__)
 router = fastapi.APIRouter()
@@ -25,11 +25,11 @@ async def policy_accept(
     is_accepted = form.get('action') == 'accept'
 
     if not is_accepted:
-        return util.redirect.internal(
+        return util.url.internal(
             '/signout', error='Login unsuccessful: Privacy policy not accepted'
         )
 
     await dbi.set_privacy_policy_accepted(token_profile_row)
-    return util.redirect.internal(
+    return util.url.internal(
         '/ui/profile', info=form.get('info-msg'), error=form.get('error-msg')
     )

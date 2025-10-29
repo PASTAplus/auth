@@ -7,7 +7,7 @@ import util.avatar
 import util.dependency
 import util.edi_token
 import util.pretty
-import util.redirect
+import util.url
 import util.template
 
 log = daiquiri.getLogger(__name__)
@@ -82,7 +82,7 @@ async def post_profile_edit_update(
         email=form_data.get('email'),
         email_notifications='email-notifications' in form_data,
     )
-    return util.redirect.internal('/ui/profile/edit', info='Profile updated successfully.')
+    return util.url.internal('/ui/profile/edit', info='Profile updated successfully.')
 
 
 @router.post('/ui/api/profile/edit/delete')
@@ -91,4 +91,4 @@ async def post_profile_edit_delete(
     token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     await dbi.delete_profile(token_profile_row)
-    return util.redirect.internal('/signout', info='Profile deleted successfully.')
+    return util.url.internal('/signout', info='Profile deleted successfully.')

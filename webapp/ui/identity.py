@@ -7,7 +7,7 @@ import db.models.profile
 import util.avatar
 import util.dependency
 import util.edi_token
-import util.redirect
+import util.url
 import util.template
 import util.url
 
@@ -86,4 +86,4 @@ async def post_profile_unlink(
     form_data = await request.form()
     profile_id = int(form_data.get('unlink-profile-id'))
     await dbi.unlink_profile(token_profile_row, profile_id)
-    return util.redirect.internal('/ui/identity', info='Profile unlinked successfully.')
+    return util.url.internal('/ui/identity', info='Profile unlinked successfully.')

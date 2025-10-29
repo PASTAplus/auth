@@ -2,11 +2,13 @@
 
 - [Index](index.md) - API Documentation
 - [Parameters](parameters.md) - API Parameter Details
-- [Profiles](profile.md) - Create and manage user profiles
-- [Resources](resource.md) - Create and manage resources
-- [Rules](rule.md) - Create and manage the ACRs for resources
+- [Profiles](profile.md) - Manage user profiles
+- [Resources](resource.md) - Manage resources
+- [Rules](rule.md) - Manage the ACRs for resources
 - [EML](eml.md) - Manage EML documents and associated ACRs
 - [Groups](group.md) - Manage groups and group members
+- [Search](search.md) - Search for profiles and groups
+- [Token and API key](token.md) - Manage tokens and API keys
 
 This document describes the API for managing groups and group members.
 
@@ -20,8 +22,8 @@ POST: /auth/v1/group
 
 createGroup(
     edi_token
-    group_title: The title of the group
-    group_description: The description of the group
+    title: The title of the group
+    description: The description of the group
 )
 
 Returns:
@@ -38,7 +40,7 @@ Permissions:
 
 ## Read Group
 
-Read the title, description and member list of a group.
+Retrieve the title, description and member list of a group.
 
 ```
 GET: /auth/v1/group/<group_edi_id>
@@ -54,9 +56,6 @@ Returns:
     403 Forbidden
     404 Not Found - The group does not exist
 
-Body:
-    List of group member profile EDI-IDs if 200 OK, error message otherwise
-
 Permissions:
     The caller must have 'read' permission on the group.
 ```
@@ -70,8 +69,8 @@ PUT: /auth/v1/group/<group_edi_id>
 
 updateGroup(
     edi_token
-    group_title: The title of the group (optional)
-    group_description: The description of the group (optional)
+    title: The title of the group (optional)
+    description: The description of the group (optional)
 )
 
 Returns:
@@ -88,17 +87,9 @@ Permissions:
   The caller must have 'write' permission on the group.
 ```
 
-### 2d. Delete Group <a id="2d-delete-group"></a> [^](#top)
-Goal: To delete an EDI group.
+## Delete Group
 
-Use case:
-
-1. A client sends a group EDI-ID to the *authorization service*.
-2. The *authorization service* verifies that the requesting principal is  
-   authorized to execute the method.
-3. The *authorization service* deletes the group, along with all associated
-   access control rules.
-4. The *authorization service* returns a 200 OK to the client.
+Delete an EDI group.
 
 ```
 DELETE: /auth/v1/group/<group_edi_id>

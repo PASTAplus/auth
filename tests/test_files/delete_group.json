@@ -1,0 +1,5 @@
+{
+    "group": "[CLOBBERED-EDI-ID]",
+    "method": "deleteGroup",
+    "msg": "Group deleted successfully"
+}

@@ -50,14 +50,14 @@ class Resource(db.models.base.Base):
     # The unique identifier for the resource.
     # E.g., for packages and entities objects, The PASTA URL of the resource
     # http://localhost:8088/package/metadata/eml/edi/39/3
-    key = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True, unique=True)
+    key = sqlalchemy.Column(sqlalchemy.String(256), nullable=False, index=True, unique=True)
     # A human-readable name to display for the resource
     # TODO: I think we (should) require a label to be set for all resources. Maybe we are already?
-    label = sqlalchemy.Column(sqlalchemy.String, nullable=True, index=True)
+    label = sqlalchemy.Column(sqlalchemy.String(64), nullable=True, index=True)
     # A string that describes the type of the resource.
     # This string is used for grouping resources of the same type.
     # E.g., for package entities: 'data', 'metadata'
-    type = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True)
+    type = sqlalchemy.Column(sqlalchemy.String(64), nullable=False, index=True)
 
     rules = sqlalchemy.orm.relationship(
         'Rule',

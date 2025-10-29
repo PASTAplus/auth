@@ -8,11 +8,6 @@ h2 {
     margin-bottom: 1rem;
 }
 
-/* Add spacing between bullet points in help content */
-li {
-    margin-bottom: 0.5rem;
-}
-
 .flash-highlight {
     background-color: rgba(0, 0, 0, 0.15);
     transition: background-color .3s ease-in-out;

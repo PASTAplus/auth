@@ -1,0 +1,311 @@
+{% extends 'base.html' %}
+~
+{% block title %}
+  API Keys
+{% endblock %}
+
+{% block head %}
+  <link rel='stylesheet' href='{{ url_buster('/static/css/key.css') }}'>
+  {#<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css'>#}
+{% endblock %}
+
+{% block scripts %}
+  <script src='{{ url_buster('/static/js/key.js') }}'></script>
+  {#<script src='https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js'></script>#}
+{% endblock %}
+
+{% block header %}
+  <h1 aria-label>API Keys
+    <a href='{{ url('/ui/help#keys') }}' target='_blank'>
+      <i class='bi bi-question-circle help-button'></i>
+    </a>
+  </h1>
+{% endblock %}
+
+{% block content %}
+
+  <div id='headerContainer' class='header-container'
+       data-highlight-menu='key'
+       data-new-secret='{{ new_secret }}'
+  >
+  </div>
+
+  <div class='indent'>
+    {% if not key_list %}
+      <p>
+        You have not created any API keys yet.
+      </p>
+    {% else %}
+      <table class='table table-striped'>
+        <thead>
+        <tr>
+          <th>Key</th>
+          <th>Principal</th>
+          <th>Valid From</th>
+          <th>Valid To</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for key in key_list %}
+          <tr>
+            <td>
+              <div class='d-flex flex-row gap-2 wrap-col'>
+                {# Edit Key button #}
+                <button type='button' class='icon-button'
+                        data-bs-toggle='modal'
+                        data-bs-target='#editKeyModal'
+                        data-form-target='{{ url('/ui/api/key/update') }}'
+                        data-title='Update API key "{{ key.secret_preview }}…"'
+                        data-submit-text='Update'
+                        data-is-new='false'
+
+                        data-key-id='{{ key.id }}'
+                        data-key-name='{{ key.name or '' }}'
+                        data-key-group-id='{{ key.group_id or 'profile' }}'
+                        data-key-valid-from='{{ key.valid_from }}'
+                        data-key-valid-to='{{ key.valid_to }}'
+
+                        data-key-created='{{ key.created }}'
+                        data-key-updated='{{ key.updated }}'
+                        data-key-last-used='{{ key.last_used or 'Never' }}'
+                        data-key-use-count='{{ key.use_count }}'
+                >
+                  <i class='bi bi-pencil'></i>
+                </button>
+                <div class='preview'>
+                  {{ key.secret_preview }}…
+                </div>
+                {{ key.name }}
+                {# The dates are strings in yyyy-mm-dd format, which can be compared lexically #}
+                <div class='status-icon'>
+                  {% if now < key.valid_from %}
+                    <i class='bi bi-clock text-warning' title='This key is not yet active'></i>
+                  {% elif now > key.valid_to %}
+                    <i class='bi bi-x-circle text-danger' title='This key has expired'></i>
+                  {% else %}
+                    <i class='bi bi-check-circle text-success' title='This key is active'></i>
+                  {% endif %}
+                </div>
+              </div>
+            </td>
+
+            <td class='wrap-col'>
+              {% if not key.group_id %}
+                Profile: Full read/write access to user profile
+              {% else %}
+                {% for group in group_list %}
+                  {% if group.id == key.group_id %}
+                    Group: {{ group.name }}
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+            </td>
+
+            <td>
+              {{ key.valid_from }}
+            </td>
+            <td>
+              {{ key.valid_to }}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+
+    {# New Key button #}
+    <button type='button' class='btn btn-primary' id='newSecretButton'
+            data-bs-toggle='modal'
+            data-bs-target='#editKeyModal'
+            data-form-target='{{ url('/ui/api/key/new') }}'
+            data-title='Create a new API key'
+            data-submit-text='Add'
+            data-is-new='true'
+
+            data-key-name=''
+            data-key-valid-from='{{ now }}'
+            data-key-valid-to='{{ now_plus_one_year }}'
+    >
+      New Key
+    </button>
+
+  </div>
+
+  {# New/edit key modal #}
+  <div class='modal fade' id='editKeyModal' tabindex='-1' data-bs-backdrop='static'>
+    <div class='modal-dialog modal-dialog-centered'>
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <h5 class='modal-title' id='keyTitle'></h5>
+          <button type='button' class='btn-close' data-bs-dismiss='modal'
+                  aria-label='Close'></button>
+        </div>
+        <div class='modal-body'>
+          <form method='post' id='editKeyForm' class='needs-validation' novalidate>
+            <input type='hidden' id='keyId' name='key-id'>
+            <div class='form-group key-info-group' id='keyInfoGroup'>
+              <div class='value-grid'>
+                <div class='fw-bold'>Created</div>
+                <div id='keyCreated'></div>
+                <div class='fw-bold'>Updated</div>
+                <div id='keyUpdated'></div>
+                <div class='fw-bold'>Last Used</div>
+                <div id='keyLastUsed'></div>
+                <div class='fw-bold'>Use Count</div>
+                <div id='keyUseCount'></div>
+              </div>
+              <hr>
+            </div>
+            <div class='form-group'>
+              <label for='keyName'>Name</label>
+              <div class='grid-child-span-all'>
+                <input type='text' class='form-control' id='keyName'
+                       name='key-name' pattern='.{3,}' maxlength='64' required>
+                <div class='invalid-feedback'>
+                  Please provide a name for the key.
+                </div>
+              </div>
+            </div>
+            <div class='form-group'>
+              <label for='keyGroupId'>Principal</label>
+              <select id='keyGroupId' class='form-select' name='key-group-id' required>
+                <option value='profile'>
+                  Profile: Full read/write access to user profile
+                </option>
+                {% for group in group_list %}
+                  <option value='{{ group.id }}'>
+                    Group: {{ group.name }}
+                  </option>
+                {% endfor %}
+              </select>
+              <div class='invalid-feedback'>
+                Please provide an access type for the key.
+              </div>
+            </div>
+
+            <div class='form-group'>
+              <div class='dialog-grid'>
+                <label for='keyValidFrom'>Valid from</label>
+                <label for='keyValidTo'>Valid to</label>
+                <div>
+                  <input type='date' class='form-control' id='keyValidFrom' name='key-valid-from'
+                         required>
+                  <div id='fromDateFeedback' class='invalid-feedback'>
+                    Invalid date.
+                  </div>
+                </div>
+                <div>
+                  <input type='date' class='form-control' id='keyValidTo' name='key-valid-to'
+                         required>
+                  <div class='invalid-feedback'>
+                    Invalid date.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class='form-group'>
+              <label for='keyDuration'>Duration</label>
+              <input type='text' class='form-control' id='keyDuration' name='key-duration'
+                     disabled>
+            </div>
+
+            <div class="modal-footer d-flex justify-content-between">
+              <div>
+                <button id='deleteButton' type="button" class='btn btn-danger'>
+                  <i class='bi bi-lock'></i>
+                  Revoke
+                </button>
+              </div>
+
+              <div>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel
+                </button>
+                <button type="submit" class="btn btn-primary ms-2" id="keySubmitButton"></button>
+              </div>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Delete key modal #}
+  <div class='modal fade' id='deleteKeyModal' tabindex='-1' data-bs-backdrop='static'>
+    <div class='modal-dialog modal-dialog-centered'>
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <h5 class='modal-title'>Revoke Key</h5>
+          <button type='button' class='btn-close' data-bs-dismiss='modal'
+                  aria-label='Close'></button>
+        </div>
+        <div class='modal-body'>
+          <form action='{{ url('/ui/api/key/delete') }}' method='post' id='deleteKeyForm'>
+            <input type='hidden' id='deleteKeyId' name='key-id'>
+            <div class='form-group'>
+              <p>
+                <span>Are you sure you want to revoke key </span>
+                '<span id='deleteKeyName' class='highlight'></span>'?
+              </p>
+              <p>
+                <strong>Note:</strong>
+                Any access granted by this API key will be revoked.
+              </p>
+            </div>
+            <div class='modal-footer'>
+              <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Cancel
+              </button>
+              <button type='submit' class='btn btn-danger'>Revoke</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# New key notice modal #}
+  <div class='modal fade' id='newSecretMsgModal' tabindex='-1' data-bs-backdrop='static'>
+    <div class='modal-dialog modal-dialog-centered'>
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <h5 class='modal-title'>Save your new key</h5>
+          <button type='button' class='btn-close' data-bs-dismiss='modal'
+                  aria-label='Close'></button>
+        </div>
+        <div class='modal-body'>
+          <form id='newSecretMsgForm' action='{{ url('/ui/key') }}' method='get'>
+            <div class='form-group'>
+              <p>
+                API key created successfully!
+              </p>
+              <p>
+                Copy your new key from here and save it in a secure location, such as a password
+                manager. Treat it like any other credentials.
+              </p>
+              <p>
+                The key will not be shown again, and cannot be retrieved later. If you lose the
+                key, revoke it and create a new one.
+              </p>
+              <div class='d-flex gap-2'>
+                <strong>Key:</strong>
+                <div class='copy-text-parent'>
+                  <div class='copy-text-text'>
+                    {{ new_secret }}
+                  </div>
+                  <div class='copy-text-icon'>
+                    <i class="bi bi-copy"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class='modal-footer'>
+              <button type='submit' class='btn btn-primary'>I have saved my key</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

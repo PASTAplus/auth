@@ -326,7 +326,7 @@ async def delete_v1_resource(
             request, api_method, f'Resource does not exist', resource_key=resource_key
         )
     # Delete the resource
-    await dbi.delete_resource(resource_key)
+    await dbi.delete_resource(resource_row)
     return api.utils.get_response_200_ok(
         request, api_method, 'Resource deleted successfully', resource_key=resource_key
     )

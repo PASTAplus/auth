@@ -75,7 +75,7 @@ split-container can use flex: 1 to take up the remaining space.
     /* margin-right: 1rem; */
     /* background-color: #444400; */
     /* Boxes */
-    border: 2px solid #d0d0d0;
+    border: 1px solid #ccc;
     border-radius: 5px;
     margin-left: 1rem;
     margin-bottom: 1rem;
@@ -91,7 +91,7 @@ split-container can use flex: 1 to take up the remaining space.
     /* margin-left: .8rem;*/
     /* background-color: #004444; */
     /* Boxes */
-    border: 2px solid #d0d0d0;
+    border: 1px solid #ccc;
     border-radius: 5px;
     /* The right margin is to make space for the box-shadow */
     margin: 1rem 4px 1rem 1rem;
@@ -135,7 +135,7 @@ Groups (left side)
     padding: .5rem 1rem .5rem 1rem;
 }
 .group-details:hover {
-    background-color: rgba(0, 0, 0, 0.15);
+    background-color: rgba(0, 0, 0, 0.10);
 }
 
 #newGroupButton {
@@ -216,7 +216,7 @@ Member dropdown
 
 .level-dropdown {
     padding: 0.2rem;
-    border: 1px solid #cccccc;
+    border: 1px solid #ccc;
     border-radius: 4px;
     background-color: #f9f9f9;
     transition: border-color 0.3s, box-shadow 0.3s;
@@ -256,7 +256,7 @@ Member dropdown
 }
 
 #principalList .principal-flex:hover {
-    background-color: rgba(0, 0, 0, 0.15);
+    background-color: rgba(0, 0, 0, 0.10);
     transition: background-color .3s ease-in-out;
     cursor: pointer;
 }
@@ -288,4 +288,9 @@ Member dropdown
 .button-row {
     padding-top: .5rem;
     gap: 1rem;
+}
+
+.icon-text-button {
+    margin: 0 .8rem 0 0;
+    padding: .2rem .6rem .2rem .6rem;
 }

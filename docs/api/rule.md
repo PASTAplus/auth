@@ -2,11 +2,13 @@
 
 - [Index](index.md) - API Documentation
 - [Parameters](parameters.md) - API Parameter Details
-- [Profiles](profile.md) - Create and manage user profiles
-- [Resources](resource.md) - Create and manage resources
-- [Rules](rule.md) - Create and manage the ACRs for resources
+- [Profiles](profile.md) - Manage user profiles
+- [Resources](resource.md) - Manage resources
+- [Rules](rule.md) - Manage the ACRs for resources
 - [EML](eml.md) - Manage EML documents and associated ACRs
 - [Groups](group.md) - Manage groups and group members
+- [Search](search.md) - Search for profiles and groups
+- [Token and API key](token.md) - Manage tokens and API keys
 
 This document describes the API for managing access control rules.
 

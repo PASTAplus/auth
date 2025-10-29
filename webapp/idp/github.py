@@ -13,7 +13,7 @@ import util.avatar
 import util.dependency
 import util.login
 import util.pretty
-import util.redirect
+import util.url
 import util.url
 from config import Config
 
@@ -36,7 +36,7 @@ async def get_login_github(
     target_url = request.query_params.get('target')
     log.debug(f'login_github() login_type="{login_type}" target_url="{target_url}"')
 
-    return util.redirect.idp(
+    return util.url.idp(
         Config.GITHUB_AUTH_ENDPOINT,
         db.models.profile.IdpName.GITHUB,
         login_type,
@@ -61,11 +61,11 @@ async def get_callback_github(
 
     if is_error(request):
         log.error(get_error_message(request))
-        return util.redirect.client_error(target_url, 'Login failed')
+        return util.url.client_error(target_url, 'Login failed')
 
     code_str = request.query_params.get('code')
     if code_str is None:
-        return util.redirect.client_error(target_url, 'Login cancelled')
+        return util.url.client_error(target_url, 'Login cancelled')
 
     try:
         token_response = requests.post(
@@ -87,17 +87,17 @@ async def get_callback_github(
         )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.redirect.client_error(target_url, 'Login unsuccessful')
+        return util.url.client_error(target_url, 'Login unsuccessful')
 
     try:
         token_dict = token_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {token_response.text}', exc_info=True)
-        return util.redirect.client_error(target_url, 'Login unsuccessful')
+        return util.url.client_error(target_url, 'Login unsuccessful')
 
     if 'error' in token_dict:
         log.error(f'Login unsuccessful: {token_dict["error"]}', exc_info=True)
-        return util.redirect.client_error(target_url, 'Login unsuccessful')
+        return util.url.client_error(target_url, 'Login unsuccessful')
 
     try:
         userinfo_response = requests.get(
@@ -108,13 +108,13 @@ async def get_callback_github(
         )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.redirect.client_error(target_url, 'Login unsuccessful')
+        return util.url.client_error(target_url, 'Login unsuccessful')
 
     try:
         user_dict = userinfo_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {userinfo_response.text}', exc_info=True)
-        return util.redirect.client_error(target_url, 'Login unsuccessful')
+        return util.url.client_error(target_url, 'Login unsuccessful')
 
     idp_uid = user_dict['html_url']
     log.debug('-' * 80)
@@ -159,8 +159,8 @@ async def get_revoke_github(
         # revoke_app_token(target_url, idp_token)
     except requests.RequestException:
         log.error('Revoke unsuccessful', exc_info=True)
-        return util.redirect.client_error(target_url, 'Revoke unsuccessful')
-    return util.redirect.redirect(target_url)
+        return util.url.client_error(target_url, 'Revoke unsuccessful')
+    return util.url.redirect(target_url)
 
 
 def revoke_app_token(_target_url, idp_token):

@@ -65,7 +65,7 @@ The container wraps everything on the page except for the navbar.
     flex: 0 0 auto;
     padding: 1rem;
     background-color: #f9f9f9;
-    border-bottom: 1px solid #ddd;
+    border: 1px solid #ccc;
     margin-bottom: 1rem;
 }
 
@@ -111,7 +111,7 @@ Resource Tree (left side)
     height: 35px; /* match JS collapsedTreeHeight */
     padding: 5px;
     box-sizing: border-box;
-    border-bottom: 1px solid #ddd;
+    border: 1px solid #ccc;
     background: #fff;
     white-space: nowrap; /* Prevent wrapping */
     overflow-x: hidden; /* Prevent horizontal scrolling */
@@ -129,7 +129,7 @@ Resource Tree (left side)
     text-transform: capitalize;
     font-size: smaller;
     padding: .2rem;
-    border: 1px solid #d0d0d0;
+    border: 1px solid #ccc;
     border-radius: 10px;
     background-color: #f9f9f9;
     margin: 0 1rem 0 1rem;
@@ -282,7 +282,7 @@ Rule dropdown
 
 .level-dropdown {
     padding: 0.2rem;
-    border: 1px solid #cccccc;
+    border: 1px solid #ccc;
     border-radius: 4px;
     background-color: #f9f9f9;
     transition: border-color 0.3s, box-shadow 0.3s;
@@ -325,7 +325,7 @@ Principal search
 }
 
 #principalList .principal-flex:hover {
-    background-color: rgba(0, 0, 0, 0.15);
+    background-color: rgba(0, 0, 0, 0.10);
     transition: background-color .3s ease-in-out;
     cursor: pointer;
 }

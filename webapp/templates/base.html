@@ -141,6 +141,11 @@
                          href='{{ url('/ui/token') }}'>Token
                       </a>
                     </li>
+                    <li>
+                      <a id='key' class='dropdown-item'
+                         href='{{ url('/ui/key') }}'>API Keys
+                      </a>
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -194,8 +199,7 @@
       </div>
       <div>
         {% if info_msg == 'expired' %}
-          You have been signed out for your security due to inactivity. Please sign in again to
-          continue.
+          You have been securely signed out due to inactivity. Please sign in again to continue.
         {% else %}
           {{ info_msg }}
         {% endif %}
