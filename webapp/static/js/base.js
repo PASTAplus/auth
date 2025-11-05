@@ -127,47 +127,94 @@ document.addEventListener('click', async ev => {
   helpBodyEl.appendChild(newDivEl);
 
   helpModal.show();
-  // showModalNextToElement(helpModalEl, anchorEl);
+  // showModalNextToElement2(helpModalEl, anchorEl);
 });
 
-// function showModalNextToElement(modalEl, targetEl) {
-//   const rect = targetEl.getBoundingClientRect();
-//
-//   modalEl.style.position = 'absolute';
-//   modalEl.style.top = `${rect.bottom + window.scrollY}px`;
-//   modalEl.style.left = `${rect.left + window.scrollX}px`;
-//   modalEl.style.display = 'block';
-//   modalEl.classList.add('show');
-// }
-
-function showModalNextToElement(modalEl, targetEl)
+function showModalNextToElement1(modalEl, targetEl)
 {
   const rect = targetEl.getBoundingClientRect();
+  modalEl.style.position = 'absolute';
+  // modalEl.style.top = `${rect.bottom + window.scrollY}px`;
+  // modalEl.style.left = `${rect.left + window.scrollX}px`;
+  modalEl.style.top = `0px`;
+  modalEl.style.left = `0px`;
+  modalEl.style.display = 'block';
+  modalEl.classList.add('show');
+  // helpModal.show();
+}
 
-  // Temporarily show modal to measure its size
+function showModalNextToElement2(modalEl, targetEl)
+{
+  const dialog = modalEl.querySelector('.modal-dialog') || modalEl;
+
+  // Ensure modal is a direct child of body for absolute positioning
+  if (modalEl.parentElement !== document.body) {
+    document.body.appendChild(modalEl);
+  }
+  // Save original inline styles so we can restore on hide
+  modalEl._origStyle = {
+    position: modalEl.style.position || '',
+    top: modalEl.style.top || '',
+    left: modalEl.style.left || '',
+    display: modalEl.style.display || '',
+    visibility: modalEl.style.visibility || '',
+    transform: modalEl.style.transform || '',
+    zIndex: modalEl.style.zIndex || '',
+    margin: modalEl.style.margin || ''
+  };
+  // Prepare for measurement: remove centering, make visible but hidden for measurement
+  modalEl.style.position = 'absolute';
+  modalEl.style.margin = '0';
+  modalEl.style.transform = 'none';
   modalEl.style.visibility = 'hidden';
   modalEl.style.display = 'block';
   modalEl.classList.add('show');
-  const modalRect = modalEl.getBoundingClientRect();
-
-  // Default position: below and left-aligned with target
-  let top = rect.bottom + window.scrollY;
-  let left = rect.left + window.scrollX;
-
-  // If modal overflows right, shift left
-  if (left + modalRect.width > window.innerWidth) {
-    left = window.innerWidth - modalRect.width - 10;
+  modalEl.style.zIndex = 1055;
+  // Force reflow to ensure measurements are correct
+  dialog.offsetWidth;
+  // Measure
+  const targetRect = targetEl.getBoundingClientRect();
+  const modalRect = dialog.getBoundingClientRect();
+  // Default position: below left of target
+  let top = targetRect.bottom + window.scrollY;
+  let left = targetRect.left + window.scrollX;
+  // Adjust to keep inside viewport
+  if (left + modalRect.width > window.scrollX + window.innerWidth) {
+    left = window.scrollX + window.innerWidth - modalRect.width - 10;
   }
-  // If modal overflows bottom, show above target
   if (top + modalRect.height > window.scrollY + window.innerHeight) {
-    top = rect.top + window.scrollY - modalRect.height;
+    top = targetRect.top + window.scrollY - modalRect.height;
   }
-  // Prevent negative positions
   top = Math.max(top, 10);
   left = Math.max(left, 10);
-
-  // Set final position and show
+  // Apply and reveal
   modalEl.style.top = `${top}px`;
   modalEl.style.left = `${left}px`;
   modalEl.style.visibility = 'visible';
+  // Backdrop (avoid duplicates)
+  if (!document.body.querySelector('.modal-backdrop.custom-show')) {
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop fade show custom-show';
+    backdrop.style.zIndex = 1050;
+    backdrop.addEventListener('click', hide);
+    document.body.appendChild(backdrop);
+  }
+  // Cleanup/hide
+  function hide()
+  {
+    modalEl.classList.remove('show');
+    modalEl.style.display = 'none';
+    Object.assign(modalEl.style, modalEl._origStyle || {});
+    const bd = document.body.querySelector('.modal-backdrop.custom-show');
+    if (bd) {
+      bd.remove();
+    }
+    const closeEls = modalEl.querySelectorAll('[data-bs-dismiss="modal"], .btn-close');
+    closeEls.forEach(el => el.removeEventListener('click', hide));
+  }
+  // Wire dismiss buttons
+  const closeEls = modalEl.querySelectorAll('[data-bs-dismiss="modal"], .btn-close');
+  closeEls.forEach(el => el.addEventListener('click', hide));
+
+  return hide;
 }

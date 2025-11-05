@@ -32,7 +32,7 @@
     <a class='navbar-brand' href='{{ url('/') }}'>
       <img src='{{ url('/static/svg/EDI-logo-no-padding.svg') }}'
            alt='Environmental Data Initiative Logo'>
-      <span class='navbar-brand-pad'>EDI Identity and Access Management</span>
+      <span class='navbar-brand-pad'>EDI Identity and Access Manager</span>
     </a>
 
     {% block navbar_menu %}
@@ -138,7 +138,7 @@
                     </li>
                     <li>
                       <a id='token' class='dropdown-item'
-                         href='{{ url('/ui/token') }}'>Token
+                         href='{{ url('/ui/token') }}'>Authentication Token
                       </a>
                     </li>
                     <li>
@@ -290,7 +290,7 @@
 
 {# Modal help dialog #}
 <div class="modal fade" id="helpModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog ">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="helpModalTitle">Help</h5>

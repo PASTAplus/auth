@@ -29,30 +29,35 @@
 
   <div class='indent narrow'>
 
-    <h2>Overview</h2>
-
-    The EDI Identity and Access Management (EDI IAM) Service allows you to control access to your
-    resources in the EDI repository.
+    <div id='overview'>
+      <h2>Overview</h2>
+      The EDI Identity and Access Manager allows you to control access to your resources in the EDI
+      repository.
+    </div>
 
     <div id='profiles'>
       <h2>User Profiles</h2>
       <ul>
         <li>
-          You can view your user profile on the <a href='{{ url('/ui/profile') }}'>Profile</a> page.
+          Your user profile represents you in the EDI repository. It contains your display
+          information (name, avatar), and the permissions that govern access to resources.
         </li>
         <li>
-          Edit your profile on the <a href='{{ url('/ui/profile/edit') }}'>Edit Profile</a> page.
+          You can view your user profile on the <a href='{{ url('/ui/profile') }}'>Profile</a> page,
+          edit your profile on the <a href='{{ url('/ui/profile/edit') }}'>Edit Profile</a> page,
+          and select which avatar to use on the <a href='{{ url('/ui/avatar') }}'>Select Avatar</a>
+          page.
         </li>
         <li>
-          If you have linked multiple profiles, can select which avatar to use on the
-          <a href='{{ url('/ui/avatar') }}'>Avatars</a> page.
+          Each profile is associated with a single identity provider account (e.g., Google, ORCID).
         </li>
         <li>
-          A user profile represents a unique identity in the EDI IAM Service.
+          You can create multiple profiles by signing in with different identity provider accounts.
+          The accounts may be from the same or different identity providers.
         </li>
         <li>
-          You can have multiple profiles if you sign in with different identity provider accounts
-          (e.g., Google, ORCID).
+          You can link multiple profiles together to gain combined access to all their resources,
+          while signing in to just one of them.
         </li>
       </ul>
     </div>
@@ -62,11 +67,15 @@
       <ul>
         <li>
           The <a href='{{ url('/ui/identity') }}'>Accounts</a> page shows a list of your profiles
-          and
-          their associated identity provider accounts.
+          and their associated identity provider accounts.
         </li>
         <li>
           Each account (e.g., Google, ORCID) you use to sign in creates a separate user profile.
+        </li>
+        <li>
+          You can link different profiles together to inform EDI that the profiles represent the
+          same user. See the <a href='{{ url('/ui/help#linking') }}'>Link Profile</a> help for
+          details.
         </li>
       </ul>
     </div>
@@ -83,9 +92,8 @@
         </li>
         <li>
           The profile you are currently signed in to (shown at the top right) is your primary
-          profile.
-          The profile you sign in to during the linking procedure, becomes a linked profile. After
-          linking, signing in to either will sign you in to your primary profile.
+          profile. The profile you sign in to during the linking procedure, becomes a linked
+          profile. After linking, signing in to either will sign you in to your primary profile.
         </li>
         <li>
           Your primary profile keeps all its resources and gains access to those of linked profiles.
@@ -129,7 +137,7 @@
       <h2>Groups</h2>
       <ul>
         <li>
-          You manage groups on the <a href='{{ url('/ui/groups') }}'>Groups</a> page.
+          You manage groups on the <a href='{{ url('/ui/group') }}'>Groups</a> page.
         </li>
         <li>
           Groups allow you to organize access to your data objects efficiently. Instead of granting
@@ -147,83 +155,216 @@
       <h2>Group Memberships</h2>
       <ul>
         <li>
-          The <a href='{{ url('/ui/membership') }}'>Group Memberships</a> page shows all groups you
-          belong to.
+          The <a href='{{ url('/ui/membership') }}'>Group Memberships</a> page shows all groups in
+          which you are a member.
         </li>
         <li>
           Each group has one or more owners who can manage group membership and settings.
         </li>
         <li>
           To join a group, contact the group owner. If you are the owner, you can join your own
-          group
-          from the <a href='{{ url('/ui/groups') }}'>Groups</a> page.
+          group from the <a href='{{ url('/ui/group') }}'>Groups</a> page.
         </li>
         <li>
           Group memberships grant you access to the group's resources. Leaving a group will revoke
           this access.
         </li>
         <li>
-          You can leave groups you no longer wish to be part of.
+          You can leave groups of which you no longer wish to be a member.
         </li>
       </ul>
     </div>
 
-    <div id='permissions'>
-      <h2>Permissions</h2>
-      <div id='resource-search'>
-        <h3>Resource Search</h3>
-        <ul>
-          <li>
-            Search for resources to which you want to apply permissions. You can search for packages
-            or
-            other types of resources, such as groups.
-          </li>
-        </ul>
-      </div>
-      <div id='search-packages'>
-        <h4>Search Packages</h4>
-        <ul>
-          <li>
-            Search packages by scope, identifiers and revisions. For identifiers and revisions, you
-            can
-            use:
-            <ul>
-              <li>
-                A single number (123).
-              </li>
-              <li>
-                A bounded range (100-200).
-              </li>
-              <li>
-                A range without an upper or lower bound (100- or -100).
-              </li>
-              <li>
-                Leave empty to search all.
-              </li>
-            </ul>
-          </li>
-        </ul>
-      </div>
-    </div>
-
-    <div id='search-resources'>
-      <h4>Search resources by type and name</h4>
+    <div id='resource-search'>
+      <h3>Resource Search</h3>
       <ul>
         <li>
-          Search resources, such as groups, by type, label and wildcards. A wildcard is either an
-          asterisk (*) or a question mark (?). An asterisk matches zero or more characters, while a
-          question mark matches exactly one character. For label, you can use:
+          Use the <a href='{{ url('/ui/permission/search') }}'>Resource Search</a> page to find
+          resources in order to grant or revoke permissions.
+        </li>
+        <li>
+          The purpose of the Resource Search page is to reduce the list of resources to scroll
+          through when setting permissions in the Permissions page. If it's hard to find the
+          resource you want to set permissions for, use the filters in the Resource Search page to
+          narrow down the list.
+        </li>
+        <li>
+          You can search for resources that you have access to change permissions on via the
+          <span class='perm'>changePermission</span> access level.
+        </li>
+        <li>
+          By default, only the resource creator has <span class='perm'>changePermission</span> on a
+          resource, but anyone with <span class='perm'>changePermission</span> access can grant it
+          to other profiles or groups.
+        </li>
+        <li>
+          Resources for which you have no access, or have only <span class='perm'>read</span> or
+          <span class='perm'>write</span> access, are not available in the search.
+        </li>
+      </ul>
+    </div>
+
+    <div id='search-packages'>
+      <h4>Search Packages</h4>
+      <ul>
+        <li>
+          Search packages by scope, identifiers and revisions. For identifiers and revisions, you
+          can use:
           <ul>
             <li>
-              A full label (Tom's Example Group).
+              A single number <span class='cmd'>(123)</span>.
             </li>
             <li>
-              A partial label with one or more wildcards (*Example Group*).
+              A bounded range <span class='cmd'>(100-200)</span>.
+            </li>
+            <li>
+              A range without an upper or lower bound <span class='cmd'>(100- or -100)</span>.
             </li>
             <li>
               Leave empty to search all.
             </li>
           </ul>
+        </li>
+      </ul>
+    </div>
+
+    <div id='search-resources'>
+      <h4>Search resources</h4>
+      <ul>
+        <li>
+          Search resources, such as groups, by type, label and wildcards.
+        </li>
+        <li>
+          A wildcard is either an asterisk (*) or a question mark (?). An asterisk matches zero or
+          more characters, while a question mark matches exactly one character. For label, you can
+          use:
+          <ul>
+            <li>
+              A full label <span class='cmd'>(Tom's Example Group)</span>.
+            </li>
+            <li>
+              A partial label with one or more wildcards <span class='cmd'>(*Example Group*)</span>.
+            </li>
+            <li>
+              Leave empty to search all.
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <div id='permissions'>
+      <h3>Permissions</h3>
+      <ul>
+        <li>
+          The <a href='{{ url('/ui/permission') }}'>Permissions</a> page allows you to manage access
+          to your resources.
+        </li>
+        <li>
+          Permissions determine which user profiles and groups can access a resource, and at what
+          level.
+        </li>
+        <li>
+          You can grant permissions to individual user profiles and to groups.
+        </li>
+        <li>
+          Supported access levels:
+          <ul>
+            <li>
+              <span class='perm'>read</span>: allows reading the resource.
+            </li>
+            <li>
+              <span class='perm'>write</span>: allows modifying the resource.
+            </li>
+            <li>
+              <span class='perm'>changePermission</span>: allows managing permissions for the
+              resource. Anyone with this access level can grant or revoke <span
+              class='perm'>read</span>, <span class='perm'>write</span>, and <span
+              class='perm'>changePermission</span> access to other profiles and groups.
+            </li>
+            <li>
+
+            </li>
+          </ul>
+        </li>
+        <li>
+          Access levels are cumulative, so <span class='perm'>write</span> includes <span
+            class='perm'>read</span>, and <span class='perm '>changePermission</span> includes both
+          <span class='perm'>read</span> and <span class='perm'>write</span> access.
+        </li>
+        <li>
+          Group access levels:
+          <ul>
+            <li>
+              <span class='perm'>read</span>: allows reading the group details (e.g., name and
+              description), and the group members.
+            </li>
+            <li>
+              <span class='perm'>write</span>: allows changing the group details, and add and remove
+              group members.
+            </li>
+            <li>
+              <span class='perm'>changePermission</span>: allows managing permissions for the group.
+            </li>
+          </ul>
+        </li>
+        <li>
+          To set permissions for a resource:
+          <ul>
+            <li>
+              In the Resource Search page, search for resources for which you have <span
+                class='perm'>changePermission</span> access.
+            </li>
+            <li>
+              In the Select Resources panel in the Permissions page, select one or more resources.
+            </li>
+            <li>
+              A combined list of the current permissions for the selected resources is shown in the
+              Set Permissions panel. This list contains an aggregated view of the permissions for
+              all selected resources. E.g., if one resource has <span class='perm'>read</span>
+              access for a profile, and another resource has <span class='perm'>write</span> access
+              for the same profile, the aggregated access level shown will be <span
+              class='perm'>write</span>.
+            </li>
+          </ul>
+        </li>
+        <li>
+          A resource always retains at least one user profile or group with <span
+            class='perm'>changePermission</span> access. If you attempt to revoke the last
+          remaining <span class='perm'>changePermission</span> access on a resource, the
+          operation will be denied.
+        </li>
+        <li>
+          Note: It's possible to lock yourself out of managing permissions for a resource by
+          reducing your own permissions on the resource to an access level lower than <span
+          class='perm'>changePermission</span>. E.g., if your only <span
+          class='perm'>changePermission</span> access to a resource is via a group in which you are
+          a member, reducing the group's access level to <span class='perm'>read</span> or <span
+          class='perm'>write</span> will remove your access to change permissions on the resource.
+          This will cause the resource to immediately drop off the Permissions page, and you will be
+          unable to restore your <span class='perm'>changePermission</span> access.
+        </li>
+      </ul>
+    </div>
+
+    <div id='avatars'>
+      <h2>Avatars</h2>
+      <ul>
+        <li>
+          You can select your avatar on the <a href='{{ url('/ui/avatar') }}'>Avatars</a> page.
+        </li>
+        <li>
+          Avatars are used to visually represent you in the EDI repository.
+        </li>
+        <li>
+          You can add avatars by linking profiles from the Accounts page.
+        </li>
+        <li>
+          If you update your avatar in an identity provider account, it will be reflected in your
+          profile.
+        </li>
+        <li>
+          Currently, avatars are only supported for Google, Microsoft and GitHub accounts.
         </li>
       </ul>
     </div>
@@ -250,7 +391,7 @@
         <li>
           In order to authenticate your requests to the EDI repository API and programmatically
           access your resources, copy or download the token and pass it in a <span
-          class='highlight'>Cookie: edi-token=...</span> header of your requests.
+            class='highlight'>Cookie: edi-token=...</span> header of your requests.
         </li>
         <li>
           You may refresh your token programmatically any time before it expires, by passing it to

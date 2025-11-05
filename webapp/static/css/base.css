@@ -407,3 +407,15 @@ table td, table th {
     transition: transform 0.3s ease-in-out, background-color 0.3s ease-in-out;
     background-color: rgba(0, 0, 0, 0.10);
 }
+
+/* Help modal */
+
+.perm {
+    font-style: italic;
+    font-weight: bold;
+}
+
+.cmd {
+    background-color: rgba(0, 0, 0, 0.10);
+}
+
