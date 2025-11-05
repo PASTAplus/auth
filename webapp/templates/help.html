@@ -34,241 +34,258 @@
     The EDI Identity and Access Management (EDI IAM) Service allows you to control access to your
     resources in the EDI repository.
 
-    <h2 id='profiles'>User Profiles</h2>
+    <div id='profiles'>
+      <h2>User Profiles</h2>
+      <ul>
+        <li>
+          You can view your user profile on the <a href='{{ url('/ui/profile') }}'>Profile</a> page.
+        </li>
+        <li>
+          Edit your profile on the <a href='{{ url('/ui/profile/edit') }}'>Edit Profile</a> page.
+        </li>
+        <li>
+          If you have linked multiple profiles, can select which avatar to use on the
+          <a href='{{ url('/ui/avatar') }}'>Avatars</a> page.
+        </li>
+        <li>
+          A user profile represents a unique identity in the EDI IAM Service.
+        </li>
+        <li>
+          You can have multiple profiles if you sign in with different identity provider accounts
+          (e.g., Google, ORCID).
+        </li>
+      </ul>
+    </div>
 
-    <ul>
-      <li>
-        You can view your user profile on the <a href='{{ url('/ui/profile') }}'>Profile</a> page.
-      </li>
-      <li>
-        Edit your profile on the <a href='{{ url('/ui/profile/edit') }}'>Edit Profile</a> page.
-      </li>
-      <li>
-        If you have linked multiple profiles, can select which avatar to use on the
-        <a href='{{ url('/ui/avatar') }}'>Avatars</a> page.
-      </li>
-      <li>
-        A user profile represents a unique identity in the EDI IAM Service.
-      </li>
-      <li>
-        You can have multiple profiles if you sign in with different identity provider accounts
-        (e.g., Google, ORCID).
-      </li>
-    </ul>
+    <div id='accounts'>
+      <h2>Accounts</h2>
+      <ul>
+        <li>
+          The <a href='{{ url('/ui/identity') }}'>Accounts</a> page shows a list of your profiles
+          and
+          their associated identity provider accounts.
+        </li>
+        <li>
+          Each account (e.g., Google, ORCID) you use to sign in creates a separate user profile.
+        </li>
+      </ul>
+    </div>
 
-    <h2 id='accounts'>Accounts</h2>
+    <div id='linking'>
+      <h2>Linking Profiles</h2>
+      <ul>
+        <li>
+          You can link profiles from the <a href='{{ url('/ui/identity') }}'>Accounts</a> page.
+        </li>
+        <li>
+          Linking your profiles enables you to gain combined access to all resources across those
+          profiles, while signing in to just one of them.
+        </li>
+        <li>
+          The profile you are currently signed in to (shown at the top right) is your primary
+          profile.
+          The profile you sign in to during the linking procedure, becomes a linked profile. After
+          linking, signing in to either will sign you in to your primary profile.
+        </li>
+        <li>
+          Your primary profile keeps all its resources and gains access to those of linked profiles.
+          Linked profiles also keep their resources.
+        </li>
+        <li>
+          If you link an account already linked to other profiles, all those profiles become linked
+          to
+          your primary profile.
+        </li>
+        <li>
+          If the account you link does not have a profile, one is created and linked automatically.
+        </li>
+      </ul>
+    </div>
 
-    <ul>
-      <li>
-        The <a href='{{ url('/ui/identity') }}'>Accounts</a> page shows a list of your profiles and
-        their associated identity provider accounts.
-      </li>
-      <li>
-        Each account (e.g., Google, ORCID) you use to sign in creates a separate user profile.
-      </li>
-    </ul>
+    <div id='unlinking'>
+      <h2>Unlinking Profiles</h2>
+      <ul>
+        <li>
+          You can unlink profiles from the <a href='{{ url('/ui/identity') }}'>Accounts</a> page.
+        </li>
+        <li>
+          Unlinking a profile causes it to become a primary profile, which you can sign in to
+          separately again.
+        </li>
+        <li>
+          Your primary profile keeps all its resources and loses access to those of the unlinked
+          profile.
+        </li>
+        <li>
+          The unlinked profile also keeps its resources.
+        </li>
+        <li>
+          No profiles or resources are removed.
+        </li>
+      </ul>
+    </div>
 
-    <h2 id='linking'>Linking Profiles</h2>
+    <div id='groups'>
+      <h2>Groups</h2>
+      <ul>
+        <li>
+          You manage groups on the <a href='{{ url('/ui/groups') }}'>Groups</a> page.
+        </li>
+        <li>
+          Groups allow you to organize access to your data objects efficiently. Instead of granting
+          access to individuals one by one, you can add them to a group and manage access
+          collectively.
+        </li>
+        <li>
+          Adding a member to a group grants them immediate access to all resources the group has
+          access to, while removing them revokes that access.
+        </li>
+      </ul>
+    </div>
 
-    <ul>
-      <li>
-        You can link profiles from the <a href='{{ url('/ui/identity') }}'>Accounts</a> page.
-      </li>
-      <li>
-        Linking your profiles enables you to gain combined access to all resources across those
-        profiles, while signing in to just one of them.
-      </li>
-      <li>
-        The profile you are currently signed in to (shown at the top right) is your primary profile.
-        The profile you sign in to during the linking procedure, becomes a linked profile. After
-        linking, signing in to either will sign you in to your primary profile.
-      </li>
-      <li>
-        Your primary profile keeps all its resources and gains access to those of linked profiles.
-        Linked profiles also keep their resources.
-      </li>
-      <li>
-        If you link an account already linked to other profiles, all those profiles become linked to
-        your primary profile.
-      </li>
-      <li>
-        If the account you link does not have a profile, one is created and linked automatically.
-      </li>
-    </ul>
+    <div id='memberships'>
+      <h2>Group Memberships</h2>
+      <ul>
+        <li>
+          The <a href='{{ url('/ui/membership') }}'>Group Memberships</a> page shows all groups you
+          belong to.
+        </li>
+        <li>
+          Each group has one or more owners who can manage group membership and settings.
+        </li>
+        <li>
+          To join a group, contact the group owner. If you are the owner, you can join your own
+          group
+          from the <a href='{{ url('/ui/groups') }}'>Groups</a> page.
+        </li>
+        <li>
+          Group memberships grant you access to the group's resources. Leaving a group will revoke
+          this access.
+        </li>
+        <li>
+          You can leave groups you no longer wish to be part of.
+        </li>
+      </ul>
+    </div>
 
-    <h2 id='unlinking'>Unlinking Profiles</h2>
-
-    <ul>
-      <li>
-        You can unlink profiles from the <a href='{{ url('/ui/identity') }}'>Accounts</a> page.
-      </li>
-      <li>
-        Unlinking a profile causes it to become a primary profile, which you can sign in to
-        separately again.
-      </li>
-      <li>
-        Your primary profile keeps all its resources and loses access to those of the unlinked
-        profile.
-      </li>
-      <li>
-        The unlinked profile also keeps its resources.
-      </li>
-      <li>
-        No profiles or resources are removed.
-      </li>
-    </ul>
-
-    <h2 id='groups'>Groups</h2>
-
-    <ul>
-      <li>
-        You manage groups on the <a href='{{ url('/ui/groups') }}'>Groups</a> page.
-      </li>
-      <li>
-        Groups allow you to organize access to your data objects efficiently. Instead of granting
-        access to individuals one by one, you can add them to a group and manage access
-        collectively.
-      </li>
-      <li>
-        Adding a member to a group grants them immediate access to all resources the group has
-        access to, while removing them revokes that access.
-      </li>
-    </ul>
-
-    <h2 id='memberships'>Group Memberships</h2>
-
-    <ul>
-      <li>
-        The <a href='{{ url('/ui/membership') }}'>Group Memberships</a> page shows all groups you
-        belong to.
-      </li>
-      <li>
-        Each group has one or more owners who can manage group membership and settings.
-      </li>
-      <li>
-        To join a group, contact the group owner. If you are the owner, you can join your own group
-        from the <a href='{{ url('/ui/groups') }}'>Groups</a> page.
-      </li>
-      <li>
-        Group memberships grant you access to the group's resources. Leaving a group will revoke
-        this access.
-      </li>
-      <li>
-        You can leave groups you no longer wish to be part of.
-      </li>
-    </ul>
-
-    <h2 id='permissions'>Permissions</h2>
-
-    <h3 id='resource-search'>Resource Search</h3>
-
-    <ul>
-      <li>
-        Search for resources to which you want to apply permissions. You can search for packages or
-        other types of resources, such as groups.
-      </li>
-    </ul>
-
-    <h4 id='search-packages'>Search Packages</h4>
-
-    <ul>
-      <li>
-        Search packages by scope, identifiers and revisions. For identifiers and revisions, you can
-        use:
+    <div id='permissions'>
+      <h2>Permissions</h2>
+      <div id='resource-search'>
+        <h3>Resource Search</h3>
         <ul>
           <li>
-            A single number (123).
-          </li>
-          <li>
-            A bounded range (100-200).
-          </li>
-          <li>
-            A range without an upper or lower bound (100- or -100).
-          </li>
-          <li>
-            Leave empty to search all.
+            Search for resources to which you want to apply permissions. You can search for packages
+            or
+            other types of resources, such as groups.
           </li>
         </ul>
-      </li>
-    </ul>
-
-    <h4 id='search-resources'>Search resources by type and name</h4>
-
-    <ul>
-      <li>
-        Search resources, such as groups, by type, label and wildcards. A wildcard is either an
-        asterisk (*) or a question mark (?). An asterisk matches zero or more characters, while a
-        question mark matches exactly one character. For label, you can use:
+      </div>
+      <div id='search-packages'>
+        <h4>Search Packages</h4>
         <ul>
           <li>
-            A full label (Tom's Example Group).
-          </li>
-          <li>
-            A partial label with one or more wildcards (*Example Group*).
-          </li>
-          <li>
-            Leave empty to search all.
+            Search packages by scope, identifiers and revisions. For identifiers and revisions, you
+            can
+            use:
+            <ul>
+              <li>
+                A single number (123).
+              </li>
+              <li>
+                A bounded range (100-200).
+              </li>
+              <li>
+                A range without an upper or lower bound (100- or -100).
+              </li>
+              <li>
+                Leave empty to search all.
+              </li>
+            </ul>
           </li>
         </ul>
-      </li>
-    </ul>
+      </div>
+    </div>
 
-    <h2 id='tokens'>EDI Authentication Token</h2>
+    <div id='search-resources'>
+      <h4>Search resources by type and name</h4>
+      <ul>
+        <li>
+          Search resources, such as groups, by type, label and wildcards. A wildcard is either an
+          asterisk (*) or a question mark (?). An asterisk matches zero or more characters, while a
+          question mark matches exactly one character. For label, you can use:
+          <ul>
+            <li>
+              A full label (Tom's Example Group).
+            </li>
+            <li>
+              A partial label with one or more wildcards (*Example Group*).
+            </li>
+            <li>
+              Leave empty to search all.
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
 
-    <ul>
-      <li>
-        Tokens are managed on the <a href='{{ url('/ui/token') }}'>Token</a> page.
-      </li>
-      <li>
-        The EDI Authentication Token is your personal access token for the EDI repository. It's a
-        JSON Web Token (JWT), containing user profile information and permissions.
-      </li>
-      <li>
-        When you sign in to an EDI service, your browser receives the token as a cookie.
-      </li>
-    </ul>
+    <div id='tokens'>
+      <h2>EDI Authentication Token</h2>
+      <ul>
+        <li>
+          Tokens are managed on the <a href='{{ url('/ui/token') }}'>Token</a> page.
+        </li>
+        <li>
+          The EDI Authentication Token is your personal access token for the EDI repository. It's a
+          JSON Web Token (JWT), containing user profile information and permissions.
+        </li>
+        <li>
+          When you sign in to an EDI service, your browser receives the token as a cookie.
+        </li>
+      </ul>
+    </div>
 
-    <h2 id='api-access'>API access</h2>
+    <div id='api-access'>
+      <h2>API access</h2>
+      <ul>
+        <li>
+          In order to authenticate your requests to the EDI repository API and programmatically
+          access your resources, copy or download the token and pass it in a <span
+          class='highlight'>Cookie: edi-token=...</span> header of your requests.
+        </li>
+        <li>
+          You may refresh your token programmatically any time before it expires, by passing it to
+          the refreshToken() API method. After your token expires, however, it cannot be refreshed,
+          and you will need to sign in again to obtain a new token.
+        </li>
+      </ul>
+    </div>
 
-    <ul>
-      <li>
-        In order to authenticate your requests to the EDI repository API and programmatically access
-        your resources, copy or download the token and pass it in a
-        <span class='highlight'>Cookie: edi-token=...</span>
-        header of your requests.
-      </li>
-      <li>
-        You may refresh your token programmatically any time before it expires, by passing it to the
-        refreshToken() API method. After your token expires, however, it cannot be refreshed, and
-        you will need to sign in again to obtain a new token.
-      </li>
-    </ul>
-
-    <h2 id='keys'>API Keys</h2>
-
-    <ul>
-      <li>
-        API keys are created and managed on the <a href='{{ url('/ui/key') }}'>API Keys</a> page.
-      </li>
-      <li>
-        API keys allow temporary programmatic access to resources without sharing login credentials.
-      </li>
-      <li>
-        An API key can authenticate either a user profile or a user group, as selected in the
-        Principal field.
-      </li>
-      <li>
-        Each API key has an expiration date and can also be revoked by the user at any time.
-      </li>
-      <li>
-        Users can generate multiple API keys for different purposes.
-      </li>
-      <li>
-        A valid API key enables the IAM service to generate an EDI authentication token,
-        equivalent to signing in directly.
-      </li>
-    </ul>
-
+    <div id='keys'>
+      <h2>API Keys</h2>
+      <ul>
+        <li>
+          API keys are created and managed on the <a href='{{ url('/ui/key') }}'>API Keys</a> page.
+        </li>
+        <li>
+          API keys allow temporary programmatic access to resources without sharing login
+          credentials.
+        </li>
+        <li>
+          An API key can authenticate either a user profile or a user group, as selected in the
+          Principal field.
+        </li>
+        <li>
+          Each API key has an expiration date and can also be revoked by the user at any time.
+        </li>
+        <li>
+          Users can generate multiple API keys for different purposes.
+        </li>
+        <li>
+          Use the API key to generate an EDI authentication token, then use the token to access
+          resources.
+        </li>
+      </ul>
+    </div>
   </div>
 
 {% endblock %}

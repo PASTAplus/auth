@@ -288,6 +288,19 @@
   </div>
 </div>
 
+{# Modal help dialog #}
+<div class="modal fade" id="helpModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog ">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="helpModalTitle">Help</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="helpModalBody"></div>
+    </div>
+  </div>
+</div>
+
 {# Bootstrap Bundle with Popper #}
 <script src='{{ url('/static/bootstrap/bootstrap/js/bootstrap.bundle.js') }}'></script>
 {# JS that runs on all pages #}
