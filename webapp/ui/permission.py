@@ -81,9 +81,9 @@ async def get_ui_permission(
     search_session_row = await dbi.get_search_session(search_uuid)
     search_type = search_session_row.search_params.get('search-type')
     if search_type == 'package-search':
-        search_result_msg = f'Found {root_count} packages'
+        search_result_msg = f'Found {root_count} package{"s" if root_count != 1 else ""}'
     elif search_type == 'general-search':
-        search_result_msg = f'Found {root_count} resources'
+        search_result_msg = f'Found {root_count} resource{"s" if root_count != 1 else ""}'
     else:
         raise ValueError(f"Unknown search-type: {search_type}")
 

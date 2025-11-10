@@ -33,7 +33,7 @@ class RootResource(db.models.base.Base):
         unique=True,
     )
     # Denormalized fields to speed up searches.
-    label = sqlalchemy.Column(sqlalchemy.String(64), nullable=True, index=True)
+    label = sqlalchemy.Column(sqlalchemy.String(1024), nullable=True, index=True)
     type = sqlalchemy.Column(sqlalchemy.String(64), nullable=False, index=True)
     # scope.identifier.revision are populated only for type='package' resources.
     package_scope = sqlalchemy.Column(sqlalchemy.String(64), nullable=True, index=True)
@@ -106,7 +106,7 @@ class SearchResult(db.models.base.Base):
     # The resource ID of the search result. This is only used when the user expands the root node.
     resource_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
     # Denormalized fields to avoid large join when scrolling through search results.
-    resource_label = sqlalchemy.Column(sqlalchemy.String(64), nullable=True, index=False)
+    resource_label = sqlalchemy.Column(sqlalchemy.String(1024), nullable=True, index=False)
     resource_type = sqlalchemy.Column(sqlalchemy.String(64), nullable=False, index=False)
     # ORM relationship
     search_session = sqlalchemy.orm.relationship(

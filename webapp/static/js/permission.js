@@ -379,7 +379,7 @@ function fetchBlock(blockIdx, version)
   }).toString();
   // Use  to get the final URL
   // Start a new fetch and return a promise we'll wait on later
-  const promise = fetch(url.toString())
+  const promise = fetch(url.toString(), {cache: 'no-store'})
       .then(res => res.json())
       .then(trees => {
         loadedBlocks.set(blockIdx, trees);
@@ -400,7 +400,7 @@ function fetchTree(rootId)
 {
   log('fetchTree()', {rootId});
   const url = new URL(`${BASE_PATH}/int/api/permission/tree/${rootId}`, window.location.origin);
-  return fetch(url.toString())
+  return fetch(url.toString(), {cache: 'no-store'})
       .then(res => res.json())
       .then(tree => {
         // log('Fetched tree for root_id:', rootId, tree);
@@ -644,6 +644,7 @@ function fetchSelectedResourcePermissions()
     method: 'POST', headers: {
       'Content-Type': 'application/json',
     }, body: JSON.stringify(resources),
+    cache: 'no-store',
   })
       .then((response) => {
         if (response.status === 401) {
@@ -675,6 +676,7 @@ function fetchSetPermission(resources, principalId, permissionLevel)
     }, body: JSON.stringify({
       resources: resources, principalId: principalId, permissionLevel: permissionLevel,
     }),
+    cache: 'no-store',
   })
       .then((response) => {
         if (response.status === 401) {
@@ -702,6 +704,7 @@ function fetchPrincipalSearch()
     method: 'POST', headers: {
       'Content-Type': 'application/json',
     }, body: JSON.stringify({query: searchStr}),
+    cache: 'no-store',
   })
       .then((response) => {
         if (response.status === 401) {
@@ -859,7 +862,7 @@ function addPrincipalDiv(parentEl, principalObj)
               ${c.edi_id}
           </div>
           <div class='copy-text-icon'>
-            <i class="bi bi-copy"></i>
+            <i class='bi bi-copy'></i>
           </div>
         </div>
       </div>
@@ -1050,17 +1053,17 @@ function getTreeState(treeRootEl)
 function setTreeState(treeRootEl, state)
 {
   // requestAnimationFrame(() => {
-    log('setTreeState()', {treeRootEl});
-    const detailsEls = treeRootEl.querySelectorAll('.tree-details');
-    detailsEls.forEach(detailsEl => {
-      const checkboxEl = detailsEl.querySelector('.tree-checkbox');
-      const resourceId = parseInt(checkboxEl.dataset.resourceId);
-      if (state.has(resourceId)) {
-        const nodeState = state.get(resourceId);
-        detailsEl.open = nodeState.open;
-        checkboxEl.checked = nodeState.checked;
-      }
-    });
+  log('setTreeState()', {treeRootEl});
+  const detailsEls = treeRootEl.querySelectorAll('.tree-details');
+  detailsEls.forEach(detailsEl => {
+    const checkboxEl = detailsEl.querySelector('.tree-checkbox');
+    const resourceId = parseInt(checkboxEl.dataset.resourceId);
+    if (state.has(resourceId)) {
+      const nodeState = state.get(resourceId);
+      detailsEl.open = nodeState.open;
+      checkboxEl.checked = nodeState.checked;
+    }
+  });
   // });
 }
 
