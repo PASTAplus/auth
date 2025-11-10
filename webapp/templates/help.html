@@ -190,16 +190,16 @@
         </li>
         <li>
           You can search for resources that you have access to change permissions on via the
-          <span class='perm'>changePermission</span> access level.
+          <span class='perm'>Owner</span> access level.
         </li>
         <li>
-          By default, only the resource creator has <span class='perm'>changePermission</span> on a
-          resource, but anyone with <span class='perm'>changePermission</span> access can grant it
+          By default, only the resource creator has <span class='perm'>Owner</span> on a
+          resource, but anyone with <span class='perm'>Owner</span> access can grant it
           to other profiles or groups.
         </li>
         <li>
-          Resources for which you have no access, or have only <span class='perm'>read</span> or
-          <span class='perm'>write</span> access, are not available in the search.
+          Resources for which you have no access, or have only <span class='perm'>Reader</span> or
+          <span class='perm'>Editor</span> access, are not available in the search.
         </li>
       </ul>
     </div>
@@ -268,81 +268,141 @@
           You can grant permissions to individual user profiles and to groups.
         </li>
         <li>
+          To set permissions for a resource:
+          <ul>
+            <li>
+              In the Resource Search page, search for resources for which you have <span
+                class='perm'>Owner</span> access.
+            </li>
+            <li>
+              In the Select Resources panel in the Permissions page, select one or more resources.
+              Expand the tree nodes to select resources at a more granular level.
+            </li>
+            <li>
+              To add access for a new profile or group:
+              <ul>
+                <li>Use the 'Add Users and Groups' field to search for the desired profile or group.
+                </li>
+                <li>
+                  You can search for profiles by their EDI-ID, name, or email address. For groups,
+                  you can search by EDI-ID, group name, or group description. The search starts
+                  after you type a few characters, and is applied to the start of each field.
+                  EDI-IDs can be specified both with and without the 'EDI-' prefix.
+                </li>
+                <li>
+                  Only a limited number of results are shown, so you may need to refine your search
+                  if the desired profile or group does not appear in the list.
+                </li>
+                <li>
+                  By default, the selected profile or group, receives <span
+                    class='perm'>Reader</span>
+                  access, which you may then update to a higher access level if desired.
+                </li>
+              </ul>
+            </li>
+
+            <li>
+              To modify access levels:
+              <ul>
+                <li>
+                  Select the desired access level from the dropdown menu next to the profile or
+                  group.
+                </li>
+                <li>
+                  If a profile og group has different access levels on the selected resources, only
+                  the highest access level is shown. When you modify the access level, the new
+                  access level is applied to all selected resources. E.g., if a profile has
+                  <span class='perm'>Reader</span> access on one resource, and
+                  <span class='perm'>Editor</span> access on another resource, the access level will
+                  show as
+                  <span class='perm'>Editor</span> for the profile. If you change the access level
+                  to
+                  <span class='perm'>Reader</span>, both resources will be updated to have
+                  <span class='perm'>Reader</span> access for the profile.
+                  If instead you wish to change the access level to <span class='perm'>Editor</span>
+                  on both resources, since the profile is already showing with <span class='perm'>Editor</span>
+                  access, you will need either select the lower level resource separately, or you
+                  can first set the permissions on both resources to
+                  <span class='perm'>Reader</span>,
+                  and then back to <span class='perm'>Editor</span>.
+                </li>
+              </ul>
+            </li>
+
+            <li>
+              To remove access:
+              <ul>
+                <li>
+                  Select <span class='perm'>None</span> in the dropdown menu next to the profile or
+                  group.
+                </li>
+                <li>
+                  All the selected resources will be updated to reflect the new access level.
+                </li>
+              </ul>
+            </li>
+
+          </ul>
+        </li>
+        <li>
           Supported access levels:
           <ul>
             <li>
-              <span class='perm'>read</span>: allows reading the resource.
+              <span class='perm'>None</span>: Access is denied.
             </li>
             <li>
-              <span class='perm'>write</span>: allows modifying the resource.
+              <span class='perm'>Reader</span>: Allows reading the resource.
             </li>
             <li>
-              <span class='perm'>changePermission</span>: allows managing permissions for the
+              <span class='perm'>Editor</span>: Allows modifying the resource.
+            </li>
+            <li>
+              <span class='perm'>Owner</span>: Allows managing permissions for the
               resource. Anyone with this access level can grant or revoke <span
-              class='perm'>read</span>, <span class='perm'>write</span>, and <span
-              class='perm'>changePermission</span> access to other profiles and groups.
-            </li>
-            <li>
-
+                class='perm'>Reader</span>, <span class='perm'>Editor</span>, and <span
+                class='perm'>Owner</span> access to other profiles and groups.
             </li>
           </ul>
         </li>
         <li>
-          Access levels are cumulative, so <span class='perm'>write</span> includes <span
-            class='perm'>read</span>, and <span class='perm '>changePermission</span> includes both
-          <span class='perm'>read</span> and <span class='perm'>write</span> access.
+          Access levels are cumulative, so <span class='perm'>Editor</span> includes
+          <span class='perm'>Reader</span>, and <span class='perm '>Owner</span> includes both
+          <span class='perm'>Reader</span> and <span class='perm'>Editor</span> access.
         </li>
         <li>
           Group access levels:
           <ul>
             <li>
-              <span class='perm'>read</span>: allows reading the group details (e.g., name and
+              <span class='perm'>Reader</span>: allows reading the group details (e.g., name and
               description), and the group members.
             </li>
             <li>
-              <span class='perm'>write</span>: allows changing the group details, and add and remove
-              group members.
+              <span class='perm'>Editor</span>: allows changing the group details, and add and
+              remove group members.
             </li>
             <li>
-              <span class='perm'>changePermission</span>: allows managing permissions for the group.
+              <span class='perm'>Owner</span>: allows managing permissions for the group.
             </li>
           </ul>
         </li>
         <li>
-          To set permissions for a resource:
-          <ul>
-            <li>
-              In the Resource Search page, search for resources for which you have <span
-                class='perm'>changePermission</span> access.
-            </li>
-            <li>
-              In the Select Resources panel in the Permissions page, select one or more resources.
-            </li>
-            <li>
-              A combined list of the current permissions for the selected resources is shown in the
-              Set Permissions panel. This list contains an aggregated view of the permissions for
-              all selected resources. E.g., if one resource has <span class='perm'>read</span>
-              access for a profile, and another resource has <span class='perm'>write</span> access
-              for the same profile, the aggregated access level shown will be <span
-              class='perm'>write</span>.
-            </li>
-          </ul>
-        </li>
-        <li>
-          A resource always retains at least one user profile or group with <span
-            class='perm'>changePermission</span> access. If you attempt to revoke the last
-          remaining <span class='perm'>changePermission</span> access on a resource, the
+          A resource always retains at least one user profile or group with
+          <span class='perm'>Owner</span> access. If you attempt to revoke the last
+          remaining <span class='perm'>Owner</span> access on a resource, the
           operation will be denied.
         </li>
         <li>
-          Note: It's possible to lock yourself out of managing permissions for a resource by
-          reducing your own permissions on the resource to an access level lower than <span
-          class='perm'>changePermission</span>. E.g., if your only <span
-          class='perm'>changePermission</span> access to a resource is via a group in which you are
-          a member, reducing the group's access level to <span class='perm'>read</span> or <span
-          class='perm'>write</span> will remove your access to change permissions on the resource.
-          This will cause the resource to immediately drop off the Permissions page, and you will be
-          unable to restore your <span class='perm'>changePermission</span> access.
+          Note: You may lock yourself out of managing permissions for a resource by reducing your
+          own permissions on the resource to an access level lower than
+          <span class='perm'>Owner</span>.
+          E.g., if your only
+          <span class='perm'>Owner</span>
+          access to a resource is via a group in which you are a member, reducing the group's access
+          level will remove your access to change permissions on the resource. This will cause the
+          resource to immediately drop off the Permissions page, and you will need to contact
+          someone with
+          <span class='perm'>Owner</span>
+          access if you wish to restore your access in the future.
         </li>
       </ul>
     </div>
