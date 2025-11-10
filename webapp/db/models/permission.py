@@ -53,7 +53,7 @@ class Resource(db.models.base.Base):
     key = sqlalchemy.Column(sqlalchemy.String(256), nullable=False, index=True, unique=True)
     # A human-readable name to display for the resource
     # TODO: I think we (should) require a label to be set for all resources. Maybe we are already?
-    label = sqlalchemy.Column(sqlalchemy.String(64), nullable=True, index=True)
+    label = sqlalchemy.Column(sqlalchemy.String(1024), nullable=True, index=True)
     # A string that describes the type of the resource.
     # This string is used for grouping resources of the same type.
     # E.g., for package entities: 'data', 'metadata'

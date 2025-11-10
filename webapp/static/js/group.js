@@ -104,6 +104,7 @@ function fetchPrincipalSearch()
     method: 'POST', headers: {
       'Content-Type': 'application/json',
     }, body: JSON.stringify({query: searchStr}),
+    cache: 'no-store'
   })
       .then((response) => {
         if (response.status === 401) {
@@ -128,6 +129,7 @@ function fetchMembers(groupId)
     method: 'GET', headers: {
       'Content-Type': 'application/json',
     },
+    cache: 'no-store'
   })
       .then((response) => {
         if (response.status === 401) {
@@ -159,6 +161,7 @@ function fetchAddRemoveMember(groupId, memberProfileId, isAdd)
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({group_id: groupId, member_profile_id: memberProfileId, is_add: isAdd}),
+    cache: 'no-store'
   })
       .then((response) => {
         if (response.status === 401) {
@@ -313,7 +316,7 @@ function addPrincipalDiv(parentEl, principalObj)
           ${p.edi_id}
         </div>
         <div class='copy-text-icon'>
-          <i class="bi bi-copy"></i>
+          <i class='bi bi-copy'></i>
         </div>
       </div>
     </div>
