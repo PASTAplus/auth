@@ -21,6 +21,7 @@ import requests
 import urllib3
 
 DEFAULT_ADD_EML_ENDPOINT = 'https://localhost:5443/auth/v1/eml'
+DEFAULT_KEY_TO_TOKEN_ENDPOINT = 'https://localhost:5443/auth/v1/key'
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -31,11 +32,6 @@ def main():
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    parser.add_argument(
-        'token_path',
-        type=pathlib.Path,
-        help='Path to file containing EDI token',
     )
     parser.add_argument(
         'eml_path',
@@ -57,6 +53,15 @@ def main():
         action='store_true',
         help='Enable debug logging',
     )
+    auth_parser = parser.add_mutually_exclusive_group(required=True)
+    auth_parser.add_argument(
+        '--token-path',
+        dest='token_path',
+        type=pathlib.Path,
+        help='Path to file containing EDI token',
+    )
+    auth_parser.add_argument('--key', dest='key', help='API key')
+
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -65,7 +70,17 @@ def main():
         datefmt='%Y-%m-%d %H:%M:%S',
     )
 
-    token_str = args.token_path.read_text()
+    if args.token_path:
+        token_str = args.token_path.read_text()
+    else:
+        response = requests.post(
+            DEFAULT_KEY_TO_TOKEN_ENDPOINT, json={'key': args.key}, verify=False
+        )
+        if response.status_code != 200:
+            log.error(f'Failed to get token - HTTP {response.status_code}')
+            log.error(pprint.pformat(response.json()))
+            return 1
+        token_str = response.json().get('edi-token')
 
     if args.eml_path.is_file():
         return add_eml(token_str, args, args.eml_path)
