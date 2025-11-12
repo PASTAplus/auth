@@ -40,7 +40,7 @@ Permissions:
 Example request using cURL and JSON:
 
 ```shell
-curl -X POST https://auth.edirepository.org/auth/v1/key \
+curl -X POST https://auth.edirepository.org/auth/v1/token/refresh \
 -d '{
   "pasta-token": "uid=EDI,o=EDI,dc=edirepository...",
   "edi-token": "eyJhbGciOiJFUzI1NiIsInR5cCI6I...",
