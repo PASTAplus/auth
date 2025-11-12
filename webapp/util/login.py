@@ -59,7 +59,6 @@ async def handle_client_login(
         info_msg = """You signed in to a linked profile and have been redirected to your primary
             profile.
         """
-
     except sqlalchemy.exc.NoResultFound:
         pass
 

@@ -51,6 +51,11 @@ async def main():
         action='store_true',
         help='Use the test database configuration instead of the production one',
     )
+    parser.add_argument(
+        '--yes',
+        action='store_true',
+        help='Automatically answer yes to confirmation prompts',
+    )
     subparsers = parser.add_subparsers(dest='command', help='Actions')
     subparsers.add_parser('create', help='Create database tables and objects')
     subparsers.add_parser('create-missing', help='Create missing tables only')
@@ -79,12 +84,14 @@ async def main():
         'update': 'Update all functions and triggers but keep tables and other objects unchanged',
         'clear-resources': 'Clear only resources and rules',
     }.get(args.command)
-    answer_str = input(
-        f'{action_str} in the {"TEST" if args.test else "PRODUCTION"} database? (y/n): '
-    )
-    if answer_str.lower() != 'y':
-        log.info('Cancelled')
-        return 1
+    question_str = f'{action_str} in the {"TEST" if args.test else "PRODUCTION"} database? (y/n): '
+    if args.yes:
+        print(question_str + 'y')
+    else:
+        answer_str = input(question_str)
+        if answer_str.lower() != 'y':
+            log.info('Cancelled')
+            return 1
 
     # Select DB configuration based on the --test flag
     db_config = {
@@ -126,7 +133,7 @@ async def main():
             dbi = db.db_interface.DbInterface(session)
             if args.command == 'create':
                 await create(dbi)
-            if args.command == 'create-missing':
+            elif args.command == 'create-missing':
                 await create_missing(dbi)
             elif args.command == 'drop':
                 await drop(dbi)
@@ -160,6 +167,7 @@ async def create(dbi):
 
 async def create_missing(dbi):
     await create_tables(dbi)
+
 
 async def update_functions_and_triggers(dbi):
     await create_function_get_resource_descendants(dbi)
