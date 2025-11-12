@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<eml:eml packageId="icarus.3.1" system="https://pasta.edirepository.org"
+<eml:eml packageId="pkg.2.3" system="https://pasta.edirepository.org"
          xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0"
          xmlns:stmml="http://www.xml-cml.org/schema/stmml-1.2"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -14,10 +14,6 @@
     </allow>
     <allow>
       <principal>public</principal>
-      <permission>read</permission>
-    </allow>
-    <allow>
-      <principal>EDI-ff8622e9e9e269cb04174948b1dc70eaa8fd37cf</principal>
       <permission>read</permission>
     </allow>
   </access>

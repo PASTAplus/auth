@@ -18,25 +18,27 @@ Auth provides a REST API for managing user profiles, identities, and access cont
 
 ## Strategy for dealing with Google emails historically used as identifiers
 
-TODO: Review and update this section
-
 This procedure describes how we'll handle the IdP UID (stored in Profile.idp_uid) in a way that lets us migrate away from using Google emails as identifiers, while still allowing users to log in with their Google accounts, and moving to using Google's OAuth2 UID as the unique identifier for users.
 
+- Below, the "API UID" refers to the unique user identifier string provided by the client when creating a skeleton profile through the API.
+
 - When a new profile is created through the API:
-  - Always use whatever unique user identifier string provided by the client, as the IdP UID
-  - If the unique string already exists in the Profile.idp_uid field:
-    - The existing profile is returned
+  - If the API UID already exists in the Profile.idp_uid field:
+    - The existing profile may be a skeleton or a full profile 
+    - Return the existing profile
   - If not:
-    - If the unique string is in the Profile.email field:
-      - The user profile already exists for someone who logs in through Google
-      - The existing profile is returned
+    - If API UID the unique string is in the Profile.email field:
+      - We only used emails as identifiers for Google IdP users, so this is a Google IdP profile
+      - Return the existing profile
     - If not:
-      - Create the new profile record with the IdP UID and enter it into the Profile.idp_uid field; create new profile and return profile identifier
+      - Create a new profile with the API UID in the Profile.idp_uid field
+      - Return the new profile
 
 - When someone logs in with an IdP other than Google:
-  - Follow regular logic, which is to create an identity and profile if one doesn't exist, and then log in the user.
+  - Create a profile if one doesn't exist, and then log in the user
+
 - When someone logs in with Google as their IdP:
-  - If an identity exists under the Google IdP UID in the Profile.idp_uid field:
+  - If a profile exists with the Google IdP UID in the Profile.idp_uid field:
     - Log the user in as normal.
   - If not:
     - If the Google IdP email matches a Profile.idp_uid:
