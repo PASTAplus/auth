@@ -46,7 +46,7 @@ def main():
         datefmt='%Y-%m-%d %H:%M:%S',
     )
 
-    edi_token = key_to_token(args.api_key, args)
+    edi_token = key_to_token(args.api_key, args.endpoint)
     if edi_token is None:
         return 1
 
@@ -59,9 +59,9 @@ def main():
     return 0
 
 
-def key_to_token(api_key, args):
+def key_to_token(api_key, endpoint):
     response = requests.post(
-        args.endpoint,
+        endpoint,
         json={
             'key': api_key,
         },

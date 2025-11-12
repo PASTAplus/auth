@@ -8,7 +8,7 @@
 - [EML](eml.md) - Manage EML documents and associated ACRs
 - [Groups](group.md) - Manage groups and group members
 - [Search](search.md) - Search for profiles and groups
-- [Token and API key](token.md) - Manage tokens and API keys
+- [Tokens and API keys](token.md) - Manage tokens and API keys
 
 ## Search Profiles and Groups
 
@@ -19,33 +19,33 @@ Search for EDI profiles and groups based on a provided search string.
 - Matches always start at the beginning of each field
 - Only a limited number of results are returned. If the expected match is not found, try refining the search string.
 - For profiles, the search string is matched against:
-    - The full common name (CN)
-    - The second part of the common name (family name in Western cultures)
-    - Email address
-    - Profile EDI-ID ('EDI-' prefix is optional)
+  - The full common name (CN)
+  - The second part of the common name (family name in Western cultures)
+  - Email address
+  - Profile EDI-ID ('EDI-' prefix is optional)
 - For groups, the search string is matched against:
-    - Group name
-    - Group description
-    - Group EDI-ID ('EDI-' prefix is optional)
+  - Group name
+  - Group description
+  - Group EDI-ID ('EDI-' prefix is optional)
 
 ```
 GET: /auth/v1/profile?s=<search_string>&profiles=<true|false>&groups=<true|false>
 
 searchPrincipals(
-    edi_token 
-    s (search string, min length: 3)
-    profiles (optional, default: true)
-    groups (optional, default: true)
+  edi_token 
+  s (search string, min length: 3)
+  profiles (optional, default: true)
+  groups (optional, default: true)
 )
 
 Returns:
-    200 OK
-    401 Unauthorized
-    403 Forbidden
-    404 Not Found
+  200 OK
+  401 Unauthorized
+  403 Forbidden
+  404 Not Found
 
 Permissions:
-    Caller must be authenticated
+  Caller must be authenticated
 ```
 
 Example JSON `200 OK` response:
@@ -71,4 +71,3 @@ Example JSON `200 OK` response:
   ]
 }
 ```
-

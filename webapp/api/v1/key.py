@@ -1,18 +1,21 @@
 """Token API v1: Manage EDI tokens
 Docs:./docs/api/token.md
 """
-
 import fastapi
 import sqlalchemy.exc
 import starlette.requests
 import starlette.status
 
 import api.utils
+import db.models.profile
 import util.dependency
 import util.edi_token
 import util.exc
+import util.old_token
+from config import Config
 
 router = fastapi.APIRouter(prefix='/v1')
+
 
 @router.post('/key')
 async def post_token_key(
@@ -43,13 +46,29 @@ async def post_token_key(
     # Create the EDI token
     if key_row.group is not None:
         edi_token = await util.edi_token.create_by_group(key_row.group)
+        old_token = util.old_token.make_old_token(uid='public')
     else:
         edi_token = await util.edi_token.create(dbi, key_row.profile)
+        # Create the PASTA token
+        old_token = util.old_token.make_old_token(
+            uid=(
+                key_row.profile.email
+                if key_row.profile.idp_name == db.models.profile.IdpName.GOOGLE
+                else key_row.profile.idp_uid
+            ),
+            groups=(
+                Config.VETTED
+                if key_row.profile.idp_name == db.models.profile.IdpName.LDAP
+                else Config.AUTHENTICATED
+            ),
+        )
+
     return api.utils.get_response_200_ok(
         request,
         api_method,
         'Token created successfully',
         **{
+            'pasta-token': old_token,
             'edi-token': edi_token,
         },
     )

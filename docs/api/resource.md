@@ -8,7 +8,7 @@
 - [EML](eml.md) - Manage EML documents and associated ACRs
 - [Groups](group.md) - Manage groups and group members
 - [Search](search.md) - Search for profiles and groups
-- [Token and API key](token.md) - Manage tokens and API keys
+- [Tokens and API keys](token.md) - Manage tokens and API keys
 
 This document describes the API for managing resources for access control.
 
@@ -108,9 +108,9 @@ Check if the requesting client has access to a resource at the specified permiss
 GET: /auth/v1/authorized?resource_key=<resource_key>&permission=<permission>
 
 isAuthorized(
-    edi_token: The token of the requesting client
-    resource_key: The unique resource key of the resource
-    permission: The permission level to check (`read`, `write`, or `changePermission`)
+  edi_token: The token of the requesting client
+  resource_key: The unique resource key of the resource
+  permission: The permission level to check (`read`, `write`, or `changePermission`)
 )
 
 Returns:
@@ -128,8 +128,8 @@ Return the resource associated with a resource key.
 GET: /auth/v1/resource/<resource_key>
 
 readResource(
-    edi_token: The token of the requesting client
-    resource_key: The unique resource key of the resource
+  edi_token: The token of the requesting client
+  resource_key: The unique resource key of the resource
 )
 
 Returns:        
@@ -150,8 +150,8 @@ Return the full tree to which the resource belongs. The tree includes the resour
 GET : /auth/v1/resource-tree/<resource_key>
 
 readResourceTree(
-    edi_token: The token of the requesting client
-    resource_key: The unique resource key of the resource
+  edi_token: The token of the requesting client
+  resource_key: The unique resource key of the resource
 )
 
 Returns:        
@@ -172,11 +172,11 @@ Update the attributes of a resource.
 PUT: /auth/v1/resource/<resource_key>
 
 updateResource(
-    edi_token: the token of the requesting client
-    resource_key: The unique resource key of the resource
-    resource_label (optional): The human readable name of the resource
-    resource_type (optional): The type of resource
-    parent_resource_key (optional): The resource key of the parent
+  edi_token: the token of the requesting client
+  resource_key: The unique resource key of the resource
+  resource_label (optional): The human readable name of the resource
+  resource_type (optional): The type of resource
+  parent_resource_key (optional): The resource key of the parent
 )
 
 Return:
@@ -200,8 +200,8 @@ Delete a resource.
 DELETE: /auth/v1/resource/<resource_key>
 
 deleteResource(
-    edi_token: The token of the requesting client
-    resource_key: The unique resource key of the resource
+  edi_token: The token of the requesting client
+  resource_key: The unique resource key of the resource
 )
 
 Returns:

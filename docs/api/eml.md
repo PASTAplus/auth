@@ -8,7 +8,7 @@
 - [EML](eml.md) - Manage EML documents and associated ACRs
 - [Groups](group.md) - Manage groups and group members
 - [Search](search.md) - Search for profiles and groups
-- [Token and API key](token.md) - Manage tokens and API keys
+- [Tokens and API keys](token.md) - Manage tokens and API keys
 
 This document describes the API for managing permissions via EML documents.
 
@@ -22,17 +22,17 @@ The key_prefix sets the prefix for the resource keys for the package root resour
 POST: /auth/v1/eml
 
 addEML(
-    edi_token
-    eml: Valid EML XML document
-    key_prefix: Prefix for the package root and Metadata resource keys ()
+  edi_token
+  eml: Valid EML XML document
+  key_prefix: Prefix for the package root and Metadata resource keys ()
 )
 
 Returns:
-    200 OK
-    400 Bad Request - EML is invalid or if related resources already exist
-    401 Unauthorized
-    403 Forbidden
+  200 OK
+  400 Bad Request - EML is invalid or if related resources already exist
+  401 Unauthorized
+  403 Forbidden
 
 Permissions:
-    Caller must be in the Vetted system group
+  Caller must be in the Vetted system group
 ```

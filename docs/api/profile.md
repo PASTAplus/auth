@@ -8,7 +8,7 @@
 - [EML](eml.md) - Manage EML documents and associated ACRs
 - [Groups](group.md) - Manage groups and group members
 - [Search](search.md) - Search for profiles and groups
-- [Token and API key](token.md) - Manage tokens and API keys
+- [Tokens and API keys](token.md) - Manage tokens and API keys
 
 This document describes the API for managing user profiles.
 
@@ -34,7 +34,7 @@ Returns:
   403 Forbidden
   
 Permissions:
-    authenticated: changePermission
+  authenticated: changePermission
 ```
 
 ### Status codes
@@ -84,10 +84,10 @@ readProfile(
 )
 
 Returns:
-    200 OK
-    401 Unauthorized
-    403 Forbidden
-    404 Not Found
+  200 OK
+  401 Unauthorized
+  403 Forbidden
+  404 Not Found
 
 Permissions:
   authenticated: changePermission
@@ -143,10 +143,10 @@ Only profiles owned by the requesting user can be updated. The `common_name` and
 PUT: /auth/v1/profile/<edi_id>
 
 updateProfile(
-    edi_token: the token of the requesting client
-    edi_id: the EDI profile identifier
-    common_name (optional): The user's new common name
-    email (optional): The user's new preferred email address
+  edi_token: the token of the requesting client
+  edi_id: the EDI profile identifier
+  common_name (optional): The user's new common name
+  email (optional): The user's new preferred email address
 )
 
 Returns:
@@ -156,7 +156,7 @@ Returns:
   404 If EDI profile identifier not found
 
 Permissions:
-    authenticated: changePermission
+  authenticated: changePermission
 ```
 
 Example request using cURL and JSON:
@@ -176,16 +176,15 @@ Delete a user profile associated with an EDI profile identifier.
 DELETE: /auth/v1/profile/<edi_id>
 
 deleteProfile(edi_token, edi_id)
-    edi_token: the token of the requesting client
-    edi_id: the EDI profile identifier
-    return:
-        200 OK if successful
-        401 Unauthorized if the client does not provide a valid authentication token
-        403 Forbidden if client is not authorized to execute method or access resource
-        404 If EDI profile identifier not found
-    body:
-        Empty if 200 OK, error message otherwise
-    permissions:
-        authenticated: changePermission
+  edi_token: the token of the requesting client
+  edi_id: the EDI profile identifier
+  return:
+    200 OK if successful
+    401 Unauthorized if the client does not provide a valid authentication token
+    403 Forbidden if client is not authorized to execute method or access resource
+    404 If EDI profile identifier not found
+  body:
+    Empty if 200 OK, error message otherwise
+  permissions:
+    authenticated: changePermission
 ```
-
