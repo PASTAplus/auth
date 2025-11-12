@@ -43,13 +43,17 @@ async def post_token_key(
         key_row = await dbi.get_valid_key(secret_str)
     except sqlalchemy.exc.NoResultFound:
         return api.utils.get_response_401_unauthorized(request, api_method, 'Invalid API key')
-    # Create the EDI token
+    # Create the tokens
     if key_row.group is not None:
+        # Create a group EDI token
         edi_token = await util.edi_token.create_by_group(key_row.group)
+        # We don't have a way to represent group-based keys in the PASTA token, so we create a
+        # generic public PASTA token.
         old_token = util.old_token.make_old_token(uid='public')
     else:
+        # Create a profile EDI token
         edi_token = await util.edi_token.create(dbi, key_row.profile)
-        # Create the PASTA token
+        # Create a PASTA token
         old_token = util.old_token.make_old_token(
             uid=(
                 key_row.profile.email
