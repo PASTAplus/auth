@@ -46,20 +46,20 @@ The following status codes may be returned by the API methods. If a status code 
   - The API call completed successfully
   - The response body will contain JSON or XML with the result of the operation
 - `400 Bad Request`
-    - The request was invalid and could not be processed
-    - The reason will be included in the response body `msg` field
-    - Possible reasons include:
-        - The body was not well-formed JSON
-        - The body JSON had incorrect structure or was missing a required field
-        - An unsupported MIME type was specified in the Accept header
+  - The request was invalid and could not be processed
+  - The reason will be included in the response body `msg` field
+  - Possible reasons include:
+    - The body was not well-formed JSON
+    - The body JSON had incorrect structure or was missing a required field
+    - An unsupported MIME type was specified in the Accept header
 - `401 Unauthorized`
-    - The user could not be authenticated
-    - The user did not provide an authentication token, or the token was expired or otherwise invalid
+  - The user could not be authenticated
+  - The user did not provide an authentication token, or the token was expired or otherwise invalid
 - `403 Forbidden`
-    - The user is authenticated but does not have the necessary permissions to perform the requested action
+  - The user is authenticated but does not have the necessary permissions to perform the requested action
 - `5xx Internal Server Error`
-    - An unexpected error occurred on the server
-    - The response body may not be well-formed JSON or XML in this case
+  - An unexpected error occurred on the server
+  - The response body may not be well-formed JSON or XML in this case
 
 # Examples
 
@@ -86,9 +86,9 @@ Or as XML:
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <result>
-    <method>createProfile</method>
-    <edi_id>EDI-1234567890abcdef1234567890abcdef</edi_id>
-    <msg>A new profile was created.</msg>
+  <method>createProfile</method>
+  <edi_id>EDI-1234567890abcdef1234567890abcdef</edi_id>
+  <msg>A new profile was created.</msg>
 </result>
 ```
 

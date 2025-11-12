@@ -22,10 +22,10 @@ The token profile must be an owner (have a `changePermission` ACR) on the resour
 POST: /auth/v1/rule
 
 createRule(
-    edi_token: the token of the requesting client
-    resource_key: the unique resource key of the resource
-    principal: the principal of the ACR
-    permission: the permission level of the ACR
+  edi_token: the token of the requesting client
+  resource_key: the unique resource key of the resource
+  principal: the principal of the ACR
+  permission: the permission level of the ACR
 )
 
 Returns:
@@ -88,9 +88,9 @@ Note: If this method does not find a matching rule, the principal may still have
 GET: /auth/v1/rule/<resource_key>/<principal_edi_id>
 
 readRule(
-    edi_token
-    resource_key: The unique resource key of the resource
-    principal_edi_id: The EDI-ID of the principal granted access through this rule
+  edi_token
+  resource_key: The unique resource key of the resource
+  principal_edi_id: The EDI-ID of the principal granted access through this rule
 )
 
 Returns:
@@ -113,10 +113,10 @@ PUT: /auth/v1/rule/<principal_edi_id>/<resource_key>
 
 : The principal granted access by this ACR
 updateRule(
-    edi_token
-    resource_key: the unique resource key of the resource
-    principal_edi_id: The EDI-ID of the principal granted access through this rule
-    permission: The permission of the ACR (may be `None` if DELETE)
+  edi_token
+  resource_key: the unique resource key of the resource
+  principal_edi_id: The EDI-ID of the principal granted access through this rule
+  permission: The permission of the ACR (may be `None` if DELETE)
 )
     
 Returns;
@@ -141,18 +141,18 @@ Delete the access control rule (ACR) for a principal on a resource.
 DELETE: /auth/v1/resource/<resource_key>/<principal_edi_id>
 
 deleteResource(
-    edi_token: the token of the requesting client
-    resource_key: the unique resource key of the resource
-    principal_edi_id: the principal of the ACR
+  edi_token: the token of the requesting client
+  resource_key: the unique resource key of the resource
+  principal_edi_id: the principal of the ACR
 )
 
 Returns:
-    200 OK
-    400 Bad Request if resource is invalid
-    401 Unauthorized
-    403 Forbidden
-    404 Not Found
+  200 OK
+  400 Bad Request if resource is invalid
+  401 Unauthorized
+  403 Forbidden
+  404 Not Found
 
 Permissions:
-    authenticated: changePermission
+  authenticated: changePermission
 ```

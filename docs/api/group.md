@@ -21,21 +21,21 @@ Create a new group of EDI user profiles.
 POST: /auth/v1/group
 
 createGroup(
-    edi_token
-    title: The title of the group
-    description: The description of the group
+  edi_token
+  title: The title of the group
+  description: The description of the group
 )
 
 Returns:
-    200 OK
-    401 Unauthorized
-    403 Forbidden
+  200 OK
+  401 Unauthorized
+  403 Forbidden
 
 Body:
-    Group's EDI-ID if 200 OK, error message otherwise
+  Group's EDI-ID if 200 OK, error message otherwise
 
 Permissions:
-    Caller must be in the Vetted system group
+  Caller must be in the Vetted system group
 ```
 
 ## Read Group
@@ -46,18 +46,18 @@ Retrieve the title, description and member list of a group.
 GET: /auth/v1/group/<group_edi_id>
 
 readGroup(
-    edi_token
-    group_edi_id: the group EDI-ID
+  edi_token
+  group_edi_id: the group EDI-ID
 )
 
 Returns:
-    200 OK
-    401 Unauthorized
-    403 Forbidden
-    404 Not Found - The group does not exist
+  200 OK
+  401 Unauthorized
+  403 Forbidden
+  404 Not Found - The group does not exist
 
 Permissions:
-    The caller must have 'read' permission on the group.
+  The caller must have 'read' permission on the group.
 ```
 
 ## Update Group Details
@@ -68,23 +68,23 @@ Modify the title and/or description of a group.
 PUT: /auth/v1/group/<group_edi_id>
 
 updateGroup(
-    edi_token
-    title: The title of the group (optional)
-    description: The description of the group (optional)
+  edi_token
+  title: The title of the group (optional)
+  description: The description of the group (optional)
 )
 
 Returns:
-    200 OK if successful
-    401 Unauthorized if the client does not provide a valid authentication token
-    403 Forbidden if client is not authorized to execute method or access resource
-    404 If the group does not exist
+  200 OK if successful
+  401 Unauthorized if the client does not provide a valid authentication token
+  403 Forbidden if client is not authorized to execute method or access resource
+  404 If the group does not exist
 
-    
-    body:
-        Empty if 200 OK, error message otherwise
+  
+  body:
+      Empty if 200 OK, error message otherwise
 
 Permissions:
-  The caller must have 'write' permission on the group.
+   The caller must have 'write' permission on the group.
 ```
 
 ## Delete Group
@@ -95,15 +95,15 @@ Delete an EDI group.
 DELETE: /auth/v1/group/<group_edi_id>
 
 deleteGroup(edi_token, group_name)
-    edi_token: the token of the requesting client
-    group_edi_id: the group EDI-ID
-    return:
-        200 OK if successful
-        401 Unauthorized if the client does not provide a valid authentication token
-        403 Forbidden if client is not authorized to execute method or access resource
-        404 If the group does not exist
-    body:
-        Empty if 200 OK, error message otherwise
+  edi_token: the token of the requesting client
+  group_edi_id: the group EDI-ID
+  return:
+      200 OK if successful
+      401 Unauthorized if the client does not provide a valid authentication token
+      403 Forbidden if client is not authorized to execute method or access resource
+      404 If the group does not exist
+  body:
+      Empty if 200 OK, error message otherwise
 
 Permissions:
   The caller must have 'write' permission on the group.
@@ -126,8 +126,7 @@ Returns:
   200 OK
   401 Unauthorized
   403 Forbidden
-  404 Not Found - If the group or the user profile does not exist. The response body will contain a
-    message indicating which EDI-ID was not found.
+  404 Not Found - If the group or the user profile does not exist. The response body will contain a message indicating which EDI-ID was not found.
 
 Permissions:
   The caller must have 'write' permission on the group.
@@ -152,16 +151,16 @@ Remove an EDI user profile from a group.
 DELETE: /auth/v1/group/<group_edi_id>/<profile_edi_id>
 
 removeGroupMember(edi_token, group_edi_id, profile_edi_id)
-    edi_token: the token of the requesting client
-    group_edi_id: the group EDI-ID
-    profile_edi_id: the profile EDI-ID to remove from the group
-    return:
-        200 OK if successful
-        401 Unauthorized if the client does not provide a valid authentication token
-        403 Forbidden if client is not authorized to execute method or access resource
-        404 If the group does not exist or if the user does not exist
-    body:
-        Empty if 200 OK, error message otherwise
+  edi_token: the token of the requesting client
+  group_edi_id: the group EDI-ID
+  profile_edi_id: the profile EDI-ID to remove from the group
+  return:
+    200 OK if successful
+    401 Unauthorized if the client does not provide a valid authentication token
+    403 Forbidden if client is not authorized to execute method or access resource
+    404 If the group does not exist or if the user does not exist
+  body:
+    Empty if 200 OK, error message otherwise
 
 Permissions:
   The caller must have 'write' permission on the group.

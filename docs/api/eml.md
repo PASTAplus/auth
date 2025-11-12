@@ -22,17 +22,17 @@ The key_prefix sets the prefix for the resource keys for the package root resour
 POST: /auth/v1/eml
 
 addEML(
-    edi_token
-    eml: Valid EML XML document
-    key_prefix: Prefix for the package root and Metadata resource keys ()
+  edi_token
+  eml: Valid EML XML document
+  key_prefix: Prefix for the package root and Metadata resource keys ()
 )
 
 Returns:
-    200 OK
-    400 Bad Request - EML is invalid or if related resources already exist
-    401 Unauthorized
-    403 Forbidden
+  200 OK
+  400 Bad Request - EML is invalid or if related resources already exist
+  401 Unauthorized
+  403 Forbidden
 
 Permissions:
-    Caller must be in the Vetted system group
+  Caller must be in the Vetted system group
 ```
