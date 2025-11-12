@@ -8,7 +8,7 @@
 - [EML](eml.md) - Manage EML documents and associated ACRs
 - [Groups](group.md) - Manage groups and group members
 - [Search](search.md) - Search for profiles and groups
-- [Token and API key](token.md) - Manage tokens and API keys
+- [Tokens and API keys](token.md) - Manage tokens and API keys
 
 ## refreshToken
 

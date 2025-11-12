@@ -13,15 +13,15 @@ Auth provides a REST API for managing user profiles, identities, and access cont
 data packages and other resources in the EDI Data Repository. The API is designed to be used by
 client applications to create and manage user profiles, and manage access to resources.
 
-- [Index](            ./docs/api/index.md) - API Documentation
-- [Parameters](       ./docs/api/parameters.md) - API Parameter Details
-- [Profiles](         ./docs/api/profile.md) - Manage user profiles
-- [Resources](        ./docs/api/resource.md) - Manage resources
-- [Rules](            ./docs/api/rule.md) - Manage the ACRs for resources
-- [EML](              ./docs/api/eml.md) - Manage EML documents and associated ACRs
-- [Groups](           ./docs/api/group.md) - Manage groups and group members
-- [Search](           ./docs/api/search.md) - Search for profiles and groups
-- [Token and API key](./docs/api/token.md) - Manage tokens and API keys
+- [Index](              ./docs/api/index.md) - API Documentation
+- [Parameters](         ./docs/api/parameters.md) - API Parameter Details
+- [Profiles](           ./docs/api/profile.md) - Manage user profiles
+- [Resources](          ./docs/api/resource.md) - Manage resources
+- [Rules](              ./docs/api/rule.md) - Manage the ACRs for resources
+- [EML](                ./docs/api/eml.md) - Manage EML documents and associated ACRs
+- [Groups](             ./docs/api/group.md) - Manage groups and group members
+- [Search](             ./docs/api/search.md) - Search for profiles and groups
+- [Tokens and API keys](./docs/api/token.md) - Manage tokens and API keys
 
 ## Strategy for dealing with Google emails historically used as identifiers
 
