@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 ~
 {% block title %}
-  API Keys
+  API Access Keys
 {% endblock %}
 
 {% block head %}
@@ -15,7 +15,7 @@
 {% endblock %}
 
 {% block header %}
-  <h1 aria-label>API Keys
+  <h1 aria-label>API Access Keys
     <a href='{{ url('/ui/help#keys') }}' target='_blank'>
       <i class='bi bi-question-circle help-button'></i>
     </a>
@@ -214,7 +214,7 @@
               <div>
                 <button id='deleteButton' type="button" class='btn btn-danger'>
                   <i class='bi bi-lock'></i>
-                  Revoke
+                  Delete
                 </button>
               </div>
 
@@ -236,7 +236,7 @@
     <div class='modal-dialog modal-dialog-centered'>
       <div class='modal-content'>
         <div class='modal-header'>
-          <h5 class='modal-title'>Revoke Key</h5>
+          <h5 class='modal-title'>Delete Key</h5>
           <button type='button' class='btn-close' data-bs-dismiss='modal'
                   aria-label='Close'></button>
         </div>
@@ -245,18 +245,19 @@
             <input type='hidden' id='deleteKeyId' name='key-id'>
             <div class='form-group'>
               <p>
-                <span>Are you sure you want to revoke key </span>
+                <span>Are you sure you want to delete key </span>
                 '<span id='deleteKeyName' class='highlight'></span>'?
               </p>
               <p>
-                <strong>Note:</strong>
-                Any access granted by this API key will be revoked.
+                If you might need this key in the future, you can revoke it instead by setting its
+                'Valid To' date to a past date.
               </p>
+              <p><strong>This action cannot be undone.</strong></p>
             </div>
             <div class='modal-footer'>
               <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Cancel
               </button>
-              <button type='submit' class='btn btn-danger'>Revoke</button>
+              <button type='submit' class='btn btn-danger'>Delete</button>
             </div>
           </form>
         </div>
@@ -285,7 +286,7 @@
               </p>
               <p>
                 The key will not be shown again, and cannot be retrieved later. If you lose the
-                key, revoke it and create a new one.
+                key, delete it and create a new one.
               </p>
               <div class='d-flex gap-2'>
                 <strong>Key:</strong>

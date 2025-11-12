@@ -437,46 +437,52 @@
         </li>
         <li>
           The EDI Authentication Token is your personal access token for the EDI repository. It's a
-          JSON Web Token (JWT), containing user profile information and permissions.
+          JSON Web Token (JWT), containing user profile information and permissions. When you sign
+          in to an EDI service, your browser receives the token as a cookie.
         </li>
         <li>
-          When you sign in to an EDI service, your browser receives the token as a cookie.
+          For rare cases, it may be useful to have a copy of your token outside your browser, in
+          which case you can copy or download it from the Token page.
         </li>
-      </ul>
-    </div>
-
-    <div id='api-access'>
-      <h2>API access</h2>
-      <ul>
         <li>
-          In order to authenticate your requests to the EDI repository API and programmatically
-          access your resources, copy or download the token and pass it in a <span
-            class='highlight'>Cookie: edi-token=...</span> header of your requests.
+          The token can be used directly for API access, but since it's short-lived, we
+          recommend using <a href='{{ url('/ui/key') }}'>API access keys</a> instead.
         </li>
         <li>
           You may refresh your token programmatically any time before it expires, by passing it to
-          the refreshToken() API method. After your token expires, however, it cannot be refreshed,
-          and you will need to sign in again to obtain a new token.
+          the
+          <span class='cmd'>refreshToken()</span>
+          API method. After your token expires, however, it cannot be refreshed, and you will need
+          to sign in again to obtain a new token.
         </li>
       </ul>
     </div>
 
     <div id='keys'>
-      <h2>API Keys</h2>
+      <h2>API Access Keys</h2>
       <ul>
         <li>
-          API keys are created and managed on the <a href='{{ url('/ui/key') }}'>API Keys</a> page.
+          API keys are created and managed on the <a href='{{ url('/ui/key') }}'>API Access Keys</a>
+          page.
         </li>
         <li>
           API keys allow temporary programmatic access to resources without sharing login
           credentials.
         </li>
         <li>
+          In order to authenticate your requests to the EDI repository APIs and programmatically
+          access your resources, create a key and use it with the
+          <span class='cmd'>getTokenByKey()</span>
+          API method to obtain an EDI authentication token. Then pass the token in a
+          <span class='highlight'>Cookie: edi-token=...</span>
+          header of your requests.
+        </li>
+        <li>
           An API key can authenticate either a user profile or a user group, as selected in the
           Principal field.
         </li>
         <li>
-          Each API key has an expiration date and can also be revoked by the user at any time.
+          Each API key has an expiration date and can also be deleted by the user at any time.
         </li>
         <li>
           Users can generate multiple API keys for different purposes.
