@@ -18,9 +18,9 @@ Array.prototype.filter.call(forms, form => {
     const fromDate = new Date(fromInputEl.value);
     const toDate = new Date(toInputEl.value);
     let invalidMsg = 'Invalid date.';
-    if (!isNaN(fromDate.getTime()) && !isNaN(toDate.getTime()) && fromDate >= toDate) {
+    if (!isNaN(fromDate.getTime()) && !isNaN(toDate.getTime()) && fromDate > toDate) {
       fromInputEl.classList.add('is-invalid');
-      invalidMsg = 'From-date must be before to-date';
+      invalidMsg = "'Valid from' must be before 'Valid to'";
       isValidDateRange = false;
     }
     document.getElementById('fromDateFeedback').textContent = invalidMsg;
