@@ -60,8 +60,8 @@ class KeyInterface:
 
     async def get_valid_key(self, secret_str):
         """Get a valid key by its secret.
-        - Raises sqlalchemy.exc.NoResultFound if the key is not found or not valid (expired or not
-        yet active).
+        - Raises sqlalchemy.exc.NoResultFound if the key is not found, expired, not yet active, or
+        marked as deleted.
         - If found and valid, increment the use count and update the last use date for the key.
         """
         result = await self.session.execute(
@@ -73,7 +73,7 @@ class KeyInterface:
             .where(
                 Key.secret_hash == self._hash_secret(secret_str),
                 Key.valid_from <= sqlalchemy.func.now(),
-                sqlalchemy.func.now() <= Key.valid_to,
+                sqlalchemy.func.now() <= (Key.valid_to + sqlalchemy.text('interval \'1 day\'')),
             )
         )
         try:
@@ -84,34 +84,30 @@ class KeyInterface:
         await self._increment_key_use_count(key_row.id)
         return key_row
 
-    async def get_key(self, secret_str):
-        """Get a key by its secret.
-        - Raises sqlalchemy.exc.NoResultFound if the key is not found.
-        """
-        result = await self.session.execute(
-            sqlalchemy.select(Key).where(
-                Key.secret_hash == self._hash_secret(secret_str),
-            )
-        )
-        return result.scalar_one()
-
     async def get_owned_key(self, token_profile_row, key_id):
         """Get a key owned by the given token profile.
-        - If the key is not found,or is not owned by the token profile, raise
+        - If the key is not found, is marked as deleted, or is not owned by the token profile, raise
         sqlalchemy.exc.NoResultFound.
         """
         result = await self.session.execute(
             sqlalchemy.select(Key).where(
                 Key.profile_id == token_profile_row.id,
                 Key.id == key_id,
+                Key.deleted.is_(None),
             )
         )
         return result.scalar_one()
 
-    async def get_keys(self, token_profile_row):
+    async def get_key_list(self, token_profile_row):
+        """Get all keys owned by the given token profile.
+        - Keys marked as deleted are not included.
+        """
         result = await self.session.execute(
             sqlalchemy.select(Key)
-            .where(Key.profile_id == token_profile_row.id)
+            .where(
+                Key.profile_id == token_profile_row.id,
+                Key.deleted.is_(None),
+            )
             .order_by(Key.updated.desc())
         )
         return result.scalars().all()
@@ -128,4 +124,4 @@ class KeyInterface:
 
     async def delete_key(self, token_profile_row, key_id):
         key_row = await self.get_owned_key(token_profile_row, key_id)
-        await self.session.delete(key_row)
+        key_row.deleted = sqlalchemy.func.now()

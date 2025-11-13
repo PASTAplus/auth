@@ -49,6 +49,7 @@ class Key(db.models.base.Base):
         default=datetime.datetime.now,
         onupdate=datetime.datetime.now,
     )
+    deleted = sqlalchemy.Column(sqlalchemy.DateTime, nullable=True)
     last_used = sqlalchemy.Column(sqlalchemy.DateTime, nullable=True)
     profile = sqlalchemy.orm.relationship(
         'db.models.profile.Profile',

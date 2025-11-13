@@ -32,6 +32,13 @@ async def get_ui_key(
     # We create a new EdiTokenClaims here, in order to pick up any changes that have been made to
     # the profile since the last login.
     now_dt = datetime.datetime.now()
+    try:
+        year_dt = now_dt.replace(year=now_dt.year + 1)
+    except ValueError:
+        # Handle leap year (Feb 29 -> Feb 28)
+        year_dt = now_dt.replace(year=now_dt.year + 1, month=2, day=28)
+    year_dt -= datetime.timedelta(days=1)
+
     return util.template.templates.TemplateResponse(
         'key.html',
         {
@@ -56,7 +63,7 @@ async def get_ui_key(
                     'duration': util.date.format_duration(k.valid_from, k.valid_to),
                     'use_count': k.use_count,
                 }
-                for k in await dbi.get_keys(token_profile_row)
+                for k in await dbi.get_key_list(token_profile_row)
             ],
             'group_list': [
                 {
@@ -68,10 +75,12 @@ async def get_ui_key(
                 for g in await dbi.get_all_owned_groups(token_profile_row)
             ],
             'now': util.date.to_datepicker(now_dt),
-            'now_plus_one_year': util.date.to_datepicker(now_dt + datetime.timedelta(days=365)),
+            'now_plus_one_year': util.date.to_datepicker(year_dt),
             'new_secret': request.query_params.get('secret', ''),
         },
     )
+
+
 
 
 #

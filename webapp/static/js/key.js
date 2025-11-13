@@ -105,7 +105,7 @@ function updateDurationDisplay()
 {
   const fromDate = new Date(fromInputEl.value);
   const toDate = new Date(toInputEl.value);
-  if (!isNaN(fromDate.getTime()) && !isNaN(toDate.getTime()) && fromDate < toDate) {
+  if (!isNaN(fromDate.getTime()) && !isNaN(toDate.getTime()) && fromDate <= toDate) {
     durationEl.value = formatDuration(fromDate, toDate);
   }
   else {
@@ -135,6 +135,7 @@ function getDuration(startDate, endDate)
 {
   let start = new Date(startDate);
   let end = new Date(endDate);
+  end.setDate(end.getDate() + 1);
   let years = end.getFullYear() - start.getFullYear();
   let months = end.getMonth() - start.getMonth();
   // If months is negative, adjust years and months
