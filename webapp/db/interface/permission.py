@@ -33,7 +33,6 @@ The resources of interest will always be a cross-section of:
     handle thousands of equivalent principals efficiently, should someone want that in the future.
 """
 
-import time
 import re
 
 import daiquiri
@@ -253,7 +252,6 @@ class PermissionInterface:
         """Remove a resource by its row."""
         await self.session.delete(resource_row)
 
-
     async def delete_resource_by_key(self, key):
         """Remove a resource by its key."""
         result = await self.execute(sqlalchemy.delete(Resource).where(Resource.key == key))
@@ -287,10 +285,6 @@ class PermissionInterface:
         :param principal_id: The ID of the principal (profile or group) to grant the permission to.
         :param permission_level: The permission level to grant (READ, WRITE, CHANGE).
         """
-
-        start_ts = time.time()
-
-        permission_level = permission_level_int_to_enum(permission_level)
         principal_row = await self.get_principal(principal_id)
 
         resource_id_set = set(resource_ids)
@@ -325,8 +319,6 @@ class PermissionInterface:
             resource_row = await self.get_resource_by_id(resource_id)
             if await self.is_authorized(token_profile_row, resource_row, PermissionLevel.CHANGE):
                 await self.create_or_update_rule(resource_row, principal_row, permission_level)
-
-        log.info('set_permissions(): %.3f sec', time.time() - start_ts)
 
     async def create_or_update_rule(
         self,
@@ -381,6 +373,14 @@ class PermissionInterface:
                 )
             )
         )
+        return result.scalar_one()
+
+    async def count_rules_by_resource(self, resource_id, permission_level=None):
+        """Count the number of rules for a resource, optionally filtered by permission level."""
+        stmt = sqlalchemy.select(sqlalchemy.func.count()).where(Rule.resource_id == resource_id)
+        if permission_level is not None:
+            stmt = stmt.where(Rule.permission == permission_level)
+        result = await self.execute(stmt)
         return result.scalar_one()
 
     async def delete_rules_by_resource(self, resource_key):
@@ -796,7 +796,6 @@ class PermissionInterface:
         """
         principal_row = await self.get_principal_by_edi_id(edi_id)
         return principal_row.subject_type
-
 
     async def delete_principal_by_id(self, principal_id):
         """Delete a principal by its ID."""

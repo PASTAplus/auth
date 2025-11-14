@@ -140,7 +140,7 @@ Delete the access control rule (ACR) for a principal on a resource.
 ```
 DELETE: /auth/v1/resource/<resource_key>/<principal_edi_id>
 
-deleteResource(
+deleteRule(
   edi_token: the token of the requesting client
   resource_key: the unique resource key of the resource
   principal_edi_id: the principal of the ACR
