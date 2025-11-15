@@ -689,12 +689,11 @@ function fetchSetPermission(resources, principalId, permissionLevel)
         principalSearchEl.value = '';
         refreshExpandedTrees();
         fetchSelectedResourcePermissions();
-        if (resultObj.eligible_count < resultObj.total_count) {
+        if (resultObj.skip_count) {
           showMsgModal(
-              'Permissions Not Updated',
-              `Note: ${resultObj.total_count - resultObj.eligible_count} out of 
-              ${resultObj.total_count} resources could not be updated because removing the last 
-              owner is not permitted.`
+              'Permissions not updated',
+              `${resultObj.skip_count} of ${resultObj.total_count} resources could not be updated
+              because removing the last owner is not permitted.`
           );
         }
       })

@@ -284,6 +284,8 @@ class PermissionInterface:
         :param resource_ids: A sequence of resource IDs to grant the permission on.
         :param principal_id: The ID of the principal (profile or group) to grant the permission to.
         :param permission_level: The permission level to grant (READ, WRITE, CHANGE).
+
+        Returns: Count of resources not updated due to RemoveLastChangePermissionError.
         """
         principal_row = await self.get_principal(principal_id)
 
@@ -315,10 +317,17 @@ class PermissionInterface:
                     resource_row, principal_row, permission_level, increase_only=True
                 )
 
+        skip_count = 0
+
         for resource_id in resource_id_set:
             resource_row = await self.get_resource_by_id(resource_id)
             if await self.is_authorized(token_profile_row, resource_row, PermissionLevel.CHANGE):
-                await self.create_or_update_rule(resource_row, principal_row, permission_level)
+                try:
+                    await self.create_or_update_rule(resource_row, principal_row, permission_level)
+                except util.exc.RemoveLastChangePermissionError:
+                    skip_count += 1
+
+        return skip_count
 
     async def create_or_update_rule(
         self,
@@ -328,12 +337,15 @@ class PermissionInterface:
         increase_only=False,
     ):
         """Create or update a permission for a principal on a resource.
-
-        CHANGE permission on the resource must already have been validated before calling this
+        - CHANGE permission on the resource must already have been validated before calling this
         method.
-
-        increase_only: If True, method is a no-op if a rule already exists with same or higher
+        - We want all resources to have at least one principal with CHANGE permission. So if the
+        change we are making would remove the last CHANGE permission from a resource, we skip it. Of
+        course, if we are changing TO changePermission, then this is not an issue.
+        - increase_only: If True, method is a no-op if a rule already exists with same or higher
         permission level.
+        - Raises RemoveLastChangePermissionError if the change would remove the last CHANGE
+        permission from the resource.
         """
         try:
             rule_row = await self.get_rule(resource_row, principal_row)
@@ -345,6 +357,20 @@ class PermissionInterface:
                 return
             if increase_only and rule_row.permission.value > permission_level.value:
                 return
+        # Raise error if we are removing the last CHANGE permission on the resource.
+        if (
+            rule_row is not None
+            and rule_row.permission == PermissionLevel.CHANGE
+            and permission_level != PermissionLevel.CHANGE
+        ):
+            change_rule_count = await self.count_rules_by_resource(
+                resource_row.id, PermissionLevel.CHANGE
+            )
+            if change_rule_count <= 1:
+                raise util.exc.RemoveLastChangePermissionError(
+                    f'Skipping removal of last CHANGE permission on resource "{resource_row.key}" '
+                    f'for principal ID {principal_row.id}'
+                )
 
         if permission_level == PermissionLevel.NONE:
             if rule_row is not None:
@@ -360,6 +386,7 @@ class PermissionInterface:
             else:
                 rule_row.permission = permission_level
 
+        # TODO: Move flush() to where it's needed (if anywhere)
         await self.flush()
 
     async def get_rule(self, resource_row, principal_row):
@@ -385,14 +412,13 @@ class PermissionInterface:
 
     async def delete_rules_by_resource(self, resource_key):
         """Delete all rules for a resource."""
-        result = await self.execute(
+        await self.execute(
             sqlalchemy.delete(Rule).where(
                 Rule.resource_id.in_(
                     sqlalchemy.select(Resource.id).where(Resource.key == resource_key)
                 )
             )
         )
-        log.error(f'Deleted {result.rowcount} rules for resource_key="{resource_key}"')
 
     async def get_resource_list(self, token_profile_row, search_str, resource_type):
         """Get a list of resources and permissions, with resource labels filtered on search_str.

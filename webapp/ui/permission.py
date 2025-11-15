@@ -114,7 +114,6 @@ async def get_ui_permission(
 # Landing pages
 #
 
-# https://auth-d.edirepository.org/auth/package?id=ecotrends.3.1&token=...
 @router.get('/package')
 async def get_package_landing_page(
     request: starlette.requests.Request,
@@ -336,16 +335,8 @@ async def post_permission_update(
         update_dict['permissionLevel']
     )
     total_count = len(resource_list)
-    if permission_level != db.models.permission.PermissionLevel.CHANGE:
-        resource_list = [
-            resource_id
-            for resource_id in resource_list
-            if await dbi.count_rules_by_resource(
-                resource_id, db.models.permission.PermissionLevel.CHANGE
-            )
-            > 1
-        ]
-    await dbi.set_permissions(
+
+    skip_count = await dbi.set_permissions(
         token_profile_row,
         resource_list,
         update_dict['principalId'],
@@ -354,6 +345,6 @@ async def post_permission_update(
     return starlette.responses.JSONResponse(
         {
             'total_count': total_count,
-            'eligible_count': len(resource_list),
+            'skip_count': skip_count,
         }
     )
