@@ -46,19 +46,8 @@
   <div class='main-content'>
     <div class='panel'>
       <div class="panel-top">
-        <!-- Content for the top section -->
         <h4>Select Resources</h4>
         <span>{{ search_result_msg }}</span>
-
-        {#<label>#}
-        {#  <input type='checkbox' id='selectAllCheckbox'/>#}
-        {#  Select All#}
-        {#</label>#}
-
-        {#<label>#}
-        {#  <input type='checkbox' id='showPermissionsCheckbox' checked/>#}
-        {#  Show Permissions#}
-        {#</label>#}
       </div>
 
       <div class='panel-bottom'>
@@ -80,6 +69,7 @@
           <div id='principalList' tabindex='0' class='form-control'></div>
         </div>
       </div>
+
       <div class='panel-bottom'>
         <div class='permission-grid' id='permissionList'>
           {#<div class='grid-msg'>Loading permissions...</div>#}

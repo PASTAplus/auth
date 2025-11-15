@@ -49,6 +49,11 @@ class ResourcePermissionDeniedError(AuthError):
         super().__init__(self.message)
 
 
+# Permissions
+
+class RemoveLastChangePermissionError(AuthError):
+    pass
+
 # EML
 
 

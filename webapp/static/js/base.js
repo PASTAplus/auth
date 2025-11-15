@@ -130,6 +130,19 @@ document.addEventListener('click', async ev => {
   // showModalNextToElement2(helpModalEl, anchorEl);
 });
 
+
+// Msg modal
+
+function showMsgModal(title, msg)
+{
+  const msgModalEl = document.getElementById('msgModal');
+  const msgModalTitleEl = document.getElementById('msgModalTitle');
+  const msgModalBodyEl = document.getElementById('msgModalBody');
+  msgModalTitleEl.textContent = title;
+  msgModalBodyEl.innerHTML = msg;
+  new bootstrap.Modal(msgModalEl).show();
+}
+
 function showModalNextToElement1(modalEl, targetEl)
 {
   const rect = targetEl.getBoundingClientRect();
@@ -199,6 +212,7 @@ function showModalNextToElement2(modalEl, targetEl)
     backdrop.addEventListener('click', hide);
     document.body.appendChild(backdrop);
   }
+
   // Cleanup/hide
   function hide()
   {
@@ -212,6 +226,7 @@ function showModalNextToElement2(modalEl, targetEl)
     const closeEls = modalEl.querySelectorAll('[data-bs-dismiss="modal"], .btn-close');
     closeEls.forEach(el => el.removeEventListener('click', hide));
   }
+
   // Wire dismiss buttons
   const closeEls = modalEl.querySelectorAll('[data-bs-dismiss="modal"], .btn-close');
   closeEls.forEach(el => el.addEventListener('click', hide));

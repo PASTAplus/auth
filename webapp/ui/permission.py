@@ -1,3 +1,5 @@
+import html
+import re
 import time
 
 import daiquiri
@@ -25,6 +27,8 @@ log = daiquiri.getLogger(__name__)
 
 router = fastapi.APIRouter()
 
+
+PACKAGE_ID_RX = re.compile('^([a-zA-Z-]+).(\d+).(\d+)$')
 
 #
 # UI routes
@@ -104,6 +108,43 @@ async def get_ui_permission(
             'search_result_msg': search_result_msg,
         },
     )
+
+
+#
+# Landing pages
+#
+
+@router.get('/package')
+async def get_package_landing_page(
+    request: starlette.requests.Request,
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+):
+    """Package landing page that redirects to the permission search with package scope."""
+    package_id = request.query_params.get('id')
+    if m := PACKAGE_ID_RX.match(package_id):
+        param_dict = {
+            'search-type': 'package-search',
+            'scope': m.group(1),
+            'identifier': m.group(2),
+            'revision': m.group(3),
+        }
+    else:
+        return starlette.responses.Response(
+            content=f'Invalid package ID: {html.escape(package_id, quote=True)}',
+            status_code=starlette.status.HTTP_400_BAD_REQUEST,
+        )
+    token_str = request.query_params.get('token')
+    edi_token = await util.edi_token.decode(dbi, token_str)
+    if edi_token is None:
+        return starlette.responses.Response(
+            content='Invalid or expired token',
+            status_code=starlette.status.HTTP_401_UNAUTHORIZED,
+        )
+    token_profile_row = await dbi.get_profile(edi_token.edi_id)
+    new_search_session = await dbi.create_search_session(token_profile_row, param_dict)
+    response = util.url.internal(f'/ui/permission/{new_search_session.uuid}')
+    response.set_cookie('edi-token', token_str)
+    return response
 
 
 #
@@ -287,10 +328,23 @@ async def post_permission_update(
     # enabled in the UI. After fixing, the solution can be checked by adding a sleep on the server
     # side, or by setting a very low bandwidth limit in the browser dev tools.
     update_dict = await request.json()
-    await dbi.set_permissions(
-        token_profile_row,
-        update_dict['resources'],
-        update_dict['principalId'],
-        update_dict['permissionLevel'],
+    # changePermission level access on a resource cannot be removed if it's the last access at that
+    # level.
+    resource_list = update_dict['resources']
+    permission_level = db.models.permission.permission_level_int_to_enum(
+        update_dict['permissionLevel']
     )
-    return starlette.responses.Response()
+    total_count = len(resource_list)
+
+    skip_count = await dbi.set_permissions(
+        token_profile_row,
+        resource_list,
+        update_dict['principalId'],
+        permission_level,
+    )
+    return starlette.responses.JSONResponse(
+        {
+            'total_count': total_count,
+            'skip_count': skip_count,
+        }
+    )

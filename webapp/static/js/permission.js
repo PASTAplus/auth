@@ -683,11 +683,19 @@ function fetchSetPermission(resources, principalId, permissionLevel)
           redirectToLogin();
           return Promise.reject('Unauthorized');
         }
+        return response.json();
       })
-      .then(() => {
+      .then((resultObj) => {
         principalSearchEl.value = '';
         refreshExpandedTrees();
         fetchSelectedResourcePermissions();
+        if (resultObj.skip_count) {
+          showMsgModal(
+              'Permissions not updated',
+              `${resultObj.skip_count} of ${resultObj.total_count} resources could not be updated
+              because removing the last owner is not permitted.`
+          );
+        }
       })
       .catch((error) => {
         if (error !== 'Unauthorized') {
