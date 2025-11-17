@@ -66,7 +66,7 @@ The container wraps everything on the page except for the navbar.
     padding: 1rem;
     background-color: #f9f9f9;
     border: 1px solid #ccc;
-    margin-bottom: 1rem;
+    /* margin-bottom: 1rem; */
 }
 
 .panel-bottom {
@@ -116,7 +116,7 @@ Resource Tree (left side)
     white-space: nowrap; /* Prevent wrapping */
     overflow-x: hidden; /* Prevent horizontal scrolling */
     overflow-y: hidden; /* Prevent vertical scrolling */
-    margin: .5rem;
+    /* margin: .5rem; */
 }
 
 .tree-indent {
@@ -140,7 +140,7 @@ Resource Tree (left side)
 }
 
 
-.temp-container {
+.hide-container {
     position: absolute;
     visibility: hidden;
     height: auto;
