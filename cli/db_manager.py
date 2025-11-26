@@ -172,11 +172,14 @@ async def create_missing(dbi):
 async def update_functions_and_triggers(dbi):
     await create_function_get_resource_descendants(dbi)
     await create_function_get_resource_ancestors(dbi)
+    await create_function_get_resource_root(dbi)
+    await create_function_is_scope_admin(dbi)
     await create_sync_triggers(dbi)
     await create_search_package_scopes_trigger(dbi)
     await create_search_resource_type_trigger(dbi)
     await create_search_root_resource_trigger(dbi)
     await create_profile_link_trigger(dbi)
+    await create_scope_admin_resource_trigger(dbi)
 
 
 async def create_tables(dbi):
@@ -281,8 +284,88 @@ async def create_function_get_resource_ancestors(dbi):
                     inner join parent_tree pt on r.id = pt.parent_id
                 )
                 select * 
-                from parent_tree pt2
-                where pt2.id != all(node_ids);
+                from parent_tree
+                where parent_tree.id != all(node_ids);
+            end;
+            $body$;
+            """
+        )
+    )
+
+
+async def create_function_get_resource_root(dbi):
+    """Create a resource to find the root resource of a given resource tree."""
+    await dbi.execute(
+        sqlalchemy.text(
+            """
+            create or replace function get_resource_root(node_ids integer[])
+            returns table(id integer, label varchar, type varchar, parent_id integer)
+            language plpgsql
+            as $body$
+            begin
+                return query
+                with recursive parent_tree as (
+                    select r.id, r.label, r.type, r.parent_id
+                    from resource r
+                    where r.id = any(node_ids)
+                    union all
+                    select r.id, r.label, r.type, r.parent_id
+                    from resource r
+                    inner join parent_tree pt on r.id = pt.parent_id
+                )
+                select * 
+                from parent_tree
+                where parent_id is null;
+            end;
+            $body$;
+            """
+        )
+    )
+
+
+async def create_function_is_scope_admin(dbi):
+    """Create a function to check if a profile is a scope admin for a given package scope."""
+    await dbi.execute(
+        sqlalchemy.text(
+            """
+            create or replace function is_scope_admin(
+                equivalent_principal_ids integer[],
+                package_scope varchar
+            )
+            returns boolean
+            language plpgsql
+            as $body$
+            declare
+                v_resource_key varchar;
+                v_resource_id integer;
+                v_is_admin boolean := false;
+                v_scope varchar;
+            begin
+                if package_scope ~ '^[^.]+\\.[0-9]+\\.[0-9]+$' 
+                then
+                    return false;
+                end if;
+
+                v_scope := split_part(package_scope, '.', 1);
+                v_resource_key := 'scope/admin/' || v_scope;
+            
+                select r.id into v_resource_id
+                from resource r
+                where r.key = v_resource_key;
+            
+                if v_resource_id is null then
+                    return false;
+                end if;
+                
+                select exists(
+                    select 1
+                    from rule ru
+                    where ru.resource_id = v_resource_id
+                      and ru.principal_id = any(equivalent_principal_ids)
+                      and ru.permission = 'CHANGE'
+                ) into v_is_admin;
+
+                return v_is_admin;
             end;
             $body$;
             """
@@ -524,6 +607,72 @@ async def create_profile_link_trigger(dbi):
             before insert or update on profile_link
             for each row
             execute function profile_link_trigger_func();
+            """
+        )
+    )
+
+
+async def create_scope_admin_resource_trigger(dbi):
+    """Create a trigger to create system resources for assigning scope level admin level access to
+    profiles.
+    """
+    await dbi.execute(
+        sqlalchemy.text(
+            f"""
+            create or replace function scope_admin_resource_trigger_func()
+            returns trigger
+            language plpgsql
+            as $body$
+            declare
+                package_scope varchar;
+                service_principal_id integer;
+                resource_id integer;
+            begin
+                if new.parent_id is null 
+                and new.type = 'package' 
+                and new.label ~ '^[^.]+\\.[0-9]+\\.[0-9]+$' 
+                then
+                    package_scope := split_part(new.label, '.', 1);
+                    with ins as (
+                        insert into resource (key, label, type) values(
+                            'scope/admin/' || package_scope,
+                            'Scope Administrator for ' || package_scope,
+                            'scope-admin'
+                        )
+                        on conflict (key) do nothing
+                        returning id
+                    )
+                    select id into resource_id from ins;
+
+                    if resource_id is not null then
+                        select id into service_principal_id
+                        from principal 
+                        where subject_id = (
+                            select id from profile
+                            where edi_id = '{Config.SERVICE_EDI_ID}'
+                        )
+                        and subject_type = 'PROFILE';
+
+                        insert into rule (resource_id, principal_id, permission, granted_date)
+                        values (resource_id, service_principal_id, 'CHANGE', now());
+                    end if;
+                end if;
+                return null;
+            end;
+            $body$;
+            """
+        )
+    )
+    await dbi.execute(
+        sqlalchemy.text(
+            # language=sql
+            """
+            drop trigger if exists scope_admin_resource_trigger on resource;
+
+            create trigger scope_admin_resource_trigger
+            after insert or update on resource
+            for each row
+            execute function scope_admin_resource_trigger_func();
             """
         )
     )

@@ -202,7 +202,6 @@ async def delete_v1_profile(
 #     for profile_row in await dbi.get_all_profiles():
 #         profile_list.append(profile_row.as_dict())
 #
-#     log.error('############################################# Profile list:')
 #     util.pretty.pp(profile_list)
 #
 #     return starlette.responses.Response(util.pretty.to_pretty_json(profile_list))

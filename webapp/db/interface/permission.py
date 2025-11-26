@@ -178,20 +178,6 @@ class PermissionInterface:
     async def is_authorized(self, token_profile_row, resource_row, permission_level):
         """Check if a profile has a specific permission or higher on a resource.
 
-        This method implements the logic equivalent of the following pseudocode:
-
-        def is_authorized(principal, resource, permission_level):
-            if is_superuser(principal):
-                return True
-            acl = getAcl(resource)
-            principals = getPrincipals(profile)
-            for principal in principals:
-                for acr in acl:
-                    if acr.principal == principal:
-                        if acr.permission_level >= permission_level:
-                            return True
-            return False
-
         Superusers have all permissions on all resources.
 
         A profile may have a number of equivalents. These always include the Public Access profile,
@@ -204,12 +190,51 @@ class PermissionInterface:
         """
         if util.profile_cache.is_superuser(token_profile_row):
             return True
+
+        if await self.is_scope_admin(token_profile_row, resource_row, permission_level):
+            return True
+
+        return await self._is_authorized(token_profile_row, resource_row, permission_level)
+
+    async def is_scope_admin(self, token_profile_row, resource_row, permission_level):
+        """Check if a profile is an admin for a given scope."""
+        # Find the root in the resource tree which contains the resource.
+        root_resource_row = await self.get_resource_tree_root(resource_row.id)
+        if root_resource_row.type != 'package':
+            return False
+        if not (m := re.match(r'^([^.]+)\.\d+\.\d+$', root_resource_row.label)):
+            return False
+        scope_str = m.group(1)
+        # Find the resource which captures permissions for the scope.
+        scope_admin_key = f'scope/admin/{scope_str}'
+        try:
+            admin_resource_row = await self.get_resource(scope_admin_key)
+        except sqlalchemy.exc.NoResultFound:
+            raise util.exc.ResourceDoesNotExistError(scope_admin_key)
+        # Check if the profile has the required permission on the scope admin resource.
+        return self._is_authorized(token_profile_row, admin_resource_row, permission_level)
+
+    async def _is_authorized(self, token_profile_row, resource_row, permission_level):
+        """This method implements the logic equivalent of the following pseudocode:
+
+        def is_authorized(principal, resource, permission_level):
+            if is_superuser(principal):
+                return True
+            acl = getAcl(resource)
+            principals = getPrincipals(profile)
+            for principal in principals:
+                for acr in acl:
+                    if acr.principal == principal:
+                        if acr.permission_level >= permission_level:
+                            return True
+            return False
+        """
         result = await self.execute(
             sqlalchemy.select(
                 sqlalchemy.exists().where(
                     Rule.resource == resource_row,
                     Rule.principal_id.in_(
-                        await self._get_equivalent_principal_id_query(token_profile_row)
+                        await self.get_equivalent_principal_id_query(token_profile_row)
                     ),
                     Rule.permission >= permission_level,
                 )
@@ -536,6 +561,14 @@ class PermissionInterface:
         # db.models.permission.Resource(id=row[0], label=row[1], type=row[2], parent_id=row[3])
         return {int(row[0]) for row in result.scalars()}
 
+    async def get_resource_tree_root(self, resource_row):
+        """Get the root of the resource tree to which resource belongs.
+        - Returns the resource itself if it's a resource root.
+        """
+        stmt = sqlalchemy.select(sqlalchemy.func.get_resource_root(resource_row.id))
+        result = await self.execute(stmt)
+        return result.scalar_one()
+
     async def get_resource_filter_gen(self, token_profile_row, resource_ids, permission_level):
         """Yield resources with associated ACRs for a list of resource IDs, filtered by permission.
         - Yields rows of (Resource, Rule, Principal, Profile/Group)
@@ -552,7 +585,7 @@ class PermissionInterface:
         is_superuser = util.profile_cache.is_superuser(token_profile_row)
 
         equivalent_principal_id_list = (
-            (await self.execute(await self._get_equivalent_principal_id_query(token_profile_row)))
+            (await self.execute(await self.get_equivalent_principal_id_query(token_profile_row)))
             .scalars()
             .all()
         )
@@ -627,7 +660,7 @@ class PermissionInterface:
     # Principal
     #
 
-    async def _get_equivalent_principal_id_query(self, token_profile_row):
+    async def get_equivalent_principal_id_query(self, token_profile_row):
         """Return a Select object for use in SQLAlchemy 'where' and 'in' clauses for rules.
 
         The Select query returns the principal IDs for all principals that the profile has access
@@ -712,7 +745,7 @@ class PermissionInterface:
         the 'principals' field of the JWT.
         """
         # Build the subquery for equivalent principal IDs
-        principal_id_subquery = await self._get_equivalent_principal_id_query(token_profile_row)
+        principal_id_subquery = await self.get_equivalent_principal_id_query(token_profile_row)
 
         stmt = (
             sqlalchemy.select(

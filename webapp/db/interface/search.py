@@ -306,13 +306,11 @@ class SearchInterface:
         )
 
         if where_conditions:
-            range_where_clause = sqlalchemy.and_(*where_conditions)
+            where_clause = sqlalchemy.and_(*where_conditions)
         else:
-            range_where_clause = sqlalchemy.true()
+            where_clause = sqlalchemy.true()
 
-        await self._populate_search_session(
-            token_profile_row, search_session_row, range_where_clause
-        )
+        await self._populate_search_session(token_profile_row, search_session_row, where_clause)
 
     async def _populate_search_session_for_general_resources(
         self,
@@ -379,9 +377,7 @@ class SearchInterface:
                 raise ValueError(f'Invalid {field_name} format: {range_str}')
         return []
 
-    async def _populate_search_session(
-        self, token_profile_row, search_session_row, range_where_clause
-    ):
+    async def _populate_search_session(self, token_profile_row, search_session_row, where_clause):
         select_query = sqlalchemy.select(
             search_session_row.id,
             sqlalchemy.func.row_number()
@@ -398,9 +394,19 @@ class SearchInterface:
             RootResource.resource_id.label('resource_id'),
             RootResource.label.label('resource_label'),
             RootResource.type.label('resource_type'),
-        ).where(range_where_clause)
+        ).where(where_clause)
 
         if not util.profile_cache.is_superuser(token_profile_row):
+            equivalent_principal_id_list = (
+                (
+                    await self.execute(
+                        await self.get_equivalent_principal_id_query(token_profile_row)
+                    )
+                )
+                .scalars()
+                .all()
+            )
+
             select_query = (
                 select_query.join(
                     Resource,
@@ -411,9 +417,16 @@ class SearchInterface:
                     Rule.resource_id == Resource.id,
                 )
                 .where(
-                    Rule.permission >= PermissionLevel.CHANGE,
-                    Rule.principal_id.in_(
-                        await self._get_equivalent_principal_id_query(token_profile_row)
+                    sqlalchemy.or_(
+                        sqlalchemy.and_(
+                            Rule.permission >= PermissionLevel.CHANGE,
+                            Rule.principal_id.in_(equivalent_principal_id_list),
+                        ),
+                        sqlalchemy.and_(
+                            sqlalchemy.func.is_scope_admin(
+                                equivalent_principal_id_list, RootResource.package_scope
+                            ),
+                        ),
                     ),
                 )
             )
