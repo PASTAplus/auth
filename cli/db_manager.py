@@ -172,8 +172,9 @@ async def create_missing(dbi):
 async def update_functions_and_triggers(dbi):
     await create_function_get_resource_descendants(dbi)
     await create_function_get_resource_ancestors(dbi)
-    await create_function_get_resource_root(dbi)
+    await create_function_get_root_resource(dbi)
     await create_function_is_scope_admin(dbi)
+    await create_function_is_scope_admin_by_descendant(dbi)
     await create_sync_triggers(dbi)
     await create_search_package_scopes_trigger(dbi)
     await create_search_resource_type_trigger(dbi)
@@ -293,14 +294,14 @@ async def create_function_get_resource_ancestors(dbi):
     )
 
 
-async def create_function_get_resource_root(dbi):
+async def create_function_get_root_resource(dbi):
     """Create a function to find the root resource of a given resource tree.
     - Returns a plain tuple of (id, label, type) for the root resource.
     """
     await dbi.execute(
         sqlalchemy.text(
             """
-            create or replace function get_resource_root(resource_id integer)
+            create or replace function get_root_resource(resource_id integer)
             returns table(id integer, label varchar, type varchar)
             language plpgsql
             as $body$
@@ -331,8 +332,8 @@ async def create_function_is_scope_admin(dbi):
         sqlalchemy.text(
             """
             create or replace function is_scope_admin(
-                equivalent_principal_ids integer[],
-                package_scope varchar
+                p_equiv_principal_ids integer[],
+                p_package_scope varchar
             )
             returns boolean
             language plpgsql
@@ -343,12 +344,12 @@ async def create_function_is_scope_admin(dbi):
                 v_is_admin boolean := false;
                 v_scope varchar;
             begin
-                if package_scope ~ '^[^.]+\\.[0-9]+\\.[0-9]+$' 
+                if p_package_scope ~ '^[^.]+\\.[0-9]+\\.[0-9]+$' 
                 then
                     return false;
                 end if;
 
-                v_scope := split_part(package_scope, '.', 1);
+                v_scope := split_part(p_package_scope, '.', 1);
                 v_resource_key := 'scope/admin/' || v_scope;
             
                 select r.id into v_resource_id
@@ -363,10 +364,50 @@ async def create_function_is_scope_admin(dbi):
                     select 1
                     from rule ru
                     where ru.resource_id = v_resource_id
-                      and ru.principal_id = any(equivalent_principal_ids)
+                      and ru.principal_id = any(p_equiv_principal_ids)
                       and ru.permission = 'CHANGE'
                 ) into v_is_admin;
 
+                return v_is_admin;
+            end;
+            $body$;
+            """
+        )
+    )
+
+
+async def create_function_is_scope_admin_by_descendant(dbi):
+    """Create a function to check if a profile is a scope admin for any resource that is a member of
+    a package tree.
+    """
+    await dbi.execute(
+        sqlalchemy.text(
+            """
+            create or replace function is_scope_admin_by_descendant(
+                p_equiv_principal_ids integer[],
+                p_package_resource_id integer
+            )
+            returns boolean
+            language plpgsql
+            as $body$
+            declare
+                v_label varchar;
+                v_type varchar;
+                v_scope varchar;
+                v_is_admin boolean := false;
+            begin
+                select r.label, r.type into strict v_label, v_type
+                from get_root_resource(p_package_resource_id) r;
+                                        
+                if v_label !~ '^[^.]+\\.[0-9]+\\.[0-9]+$' or v_type != 'package'
+                then
+                    return false;
+                end if;
+
+                v_scope := split_part(v_label, '.', 1);
+                    
+                select is_scope_admin(p_equiv_principal_ids, v_scope) INTO v_is_admin;
+                
                 return v_is_admin;
             end;
             $body$;

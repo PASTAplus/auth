@@ -566,7 +566,7 @@ class PermissionInterface:
         - Returns a plain tuple of (id, label, type) for the root resource.
         - Returns the resource itself if it's a resource root.
         """
-        stmt = sqlalchemy.select(sqlalchemy.func.get_resource_root(resource_row.id))
+        stmt = sqlalchemy.select(sqlalchemy.func.get_root_resource(resource_row.id))
         result = await self.execute(stmt)
         return result.scalar_one()
 
@@ -593,7 +593,6 @@ class PermissionInterface:
 
         for i in range(0, len(resource_ids), Config.DB_CHUNK_SIZE):
             resource_id_chunk_list = resource_ids[i : i + Config.DB_CHUNK_SIZE]
-
             # Filter the resource IDs to only include those for which the token_profile_row has the
             # required permission level or higher. For superusers, all resource IDs are
             # included.
@@ -609,8 +608,12 @@ class PermissionInterface:
                         is_superuser,
                         sqlalchemy.and_(
                             Rule.permission >= permission_level,
-                            # Principal.id.in_(equivalent_principal_id_list),
                             Rule.principal_id.in_(equivalent_principal_id_list),
+                        ),
+                        sqlalchemy.and_(
+                            sqlalchemy.func.is_scope_admin_by_descendant(
+                                equivalent_principal_id_list, Resource.id
+                            ),
                         ),
                     ),
                 )

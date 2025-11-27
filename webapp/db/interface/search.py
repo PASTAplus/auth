@@ -173,7 +173,7 @@ class SearchInterface:
         await self.session.execute(stmt)
         # await self.session.commit()
 
-    async def get_root_resources(self, start_idx, limit):
+    async def get_root_resource_list(self, start_idx, limit):
         """Get a list of root resources with pagination."""
         stmt = (
             sqlalchemy.select(RootResource).order_by(RootResource.id).offset(start_idx).limit(limit)
@@ -422,10 +422,8 @@ class SearchInterface:
                             Rule.permission >= PermissionLevel.CHANGE,
                             Rule.principal_id.in_(equivalent_principal_id_list),
                         ),
-                        sqlalchemy.and_(
-                            sqlalchemy.func.is_scope_admin(
-                                equivalent_principal_id_list, RootResource.package_scope
-                            ),
+                        sqlalchemy.func.is_scope_admin(
+                            equivalent_principal_id_list, RootResource.package_scope
                         ),
                     ),
                 )
