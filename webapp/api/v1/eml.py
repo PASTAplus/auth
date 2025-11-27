@@ -256,7 +256,7 @@ async def _create_rules(dbi, resource_row, access_el):
         # - A legacy Google email address of a profile
         # The only way to get an EDI-ID is to create a profile or a group. So if the principal_str
         # is a well-formed EDI-ID, we just check if it exists in the DB as a profile or group and
-        # error out if not. An error probably here means that a user deleted their profile or group,
+        # error out if not. An error here probably means that a user deleted their profile or group,
         # or the EML is being submitted to the wrong EDI IAM Service.
         if util.edi_id.is_well_formed_edi_id(principal_str):
             try:

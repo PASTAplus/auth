@@ -233,3 +233,70 @@ function showModalNextToElement2(modalEl, targetEl)
 
   return hide;
 }
+
+// Ctrl-drag rectangle drawing
+// This draws a rectangle on the screen while holding Ctrl and dragging the mouse. For use when
+// creating tutorials.
+
+let box = null;
+let startX = 0;
+let startY = 0;
+let lastMouseX = 0;
+let lastMouseY = 0;
+
+// Start rectangle on Ctrl keydown (guard against key repeat)
+document.addEventListener('keydown', ev => {
+  if (ev.key === 'Control' && !box) {
+    if (document.activeElement && document.activeElement.closest('input,textarea,select')) {
+      return;
+    }
+    startX = lastMouseX;
+    startY = lastMouseY;
+    box = document.createElement('div');
+    box.style.position = 'absolute';
+    box.style.border = '2px solid red';
+    box.style.left = `${startX}px`;
+    box.style.top = `${startY}px`;
+    box.style.width = '1px';
+    box.style.height = '1px';
+    box.style.pointerEvents = 'none';
+    box.style.zIndex = 9999;
+    document.body.appendChild(box);
+  }
+});
+
+// Track mouse position and resize while box exists
+document.addEventListener('mousemove', ev => {
+  lastMouseX = ev.pageX;
+  lastMouseY = ev.pageY;
+  if (box) {
+    updateBox(ev.pageX, ev.pageY);
+  }
+});
+
+// Remove rectangle on Ctrl release
+document.addEventListener('keyup', ev => {
+  if (ev.key === 'Control' && box) {
+    box.remove();
+    box = null;
+  }
+});
+
+// Safety: clean up on window blur
+window.addEventListener('blur', () => {
+  if (box) {
+    box.remove();
+    box = null;
+  }
+});
+
+function updateBox(x, y)
+{
+  if (!box) {
+    return;
+  }
+  box.style.width = `${Math.abs(x - startX)}px`;
+  box.style.height = `${Math.abs(y - startY)}px`;
+  box.style.left = `${Math.min(x, startX)}px`;
+  box.style.top = `${Math.min(y, startY)}px`;
+}

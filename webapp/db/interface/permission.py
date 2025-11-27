@@ -199,10 +199,10 @@ class PermissionInterface:
     async def is_scope_admin(self, token_profile_row, resource_row, permission_level):
         """Check if a profile is an admin for a given scope."""
         # Find the root in the resource tree which contains the resource.
-        root_resource_row = await self.get_resource_tree_root(resource_row.id)
-        if root_resource_row.type != 'package':
+        package_id, package_label, package_type = await self.get_resource_tree_root(resource_row)
+        if package_type != 'package':
             return False
-        if not (m := re.match(r'^([^.]+)\.\d+\.\d+$', root_resource_row.label)):
+        if not (m := re.match(r'^([^.]+)\.\d+\.\d+$', package_label)):
             return False
         scope_str = m.group(1)
         # Find the resource which captures permissions for the scope.
@@ -212,7 +212,7 @@ class PermissionInterface:
         except sqlalchemy.exc.NoResultFound:
             raise util.exc.ResourceDoesNotExistError(scope_admin_key)
         # Check if the profile has the required permission on the scope admin resource.
-        return self._is_authorized(token_profile_row, admin_resource_row, permission_level)
+        return await self._is_authorized(token_profile_row, admin_resource_row, permission_level)
 
     async def _is_authorized(self, token_profile_row, resource_row, permission_level):
         """This method implements the logic equivalent of the following pseudocode:
@@ -563,6 +563,7 @@ class PermissionInterface:
 
     async def get_resource_tree_root(self, resource_row):
         """Get the root of the resource tree to which resource belongs.
+        - Returns a plain tuple of (id, label, type) for the root resource.
         - Returns the resource itself if it's a resource root.
         """
         stmt = sqlalchemy.select(sqlalchemy.func.get_resource_root(resource_row.id))

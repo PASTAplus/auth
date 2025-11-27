@@ -11,6 +11,7 @@ will then cause the test to pass or fail respectively.
 Install the `meld` command with `apt install meld`.
 """
 
+import difflib
 import json
 import logging
 import pathlib
@@ -23,7 +24,7 @@ import util.pretty
 HERE_PATH = pathlib.Path(__file__).parent.resolve()
 TEST_FILES_PATH = HERE_PATH / 'test_files'
 
-RUN_MELD = True
+RUN_MELD = False
 
 log = logging.getLogger(__name__)
 
@@ -47,8 +48,20 @@ def assert_match(received_obj: str | dict | set | list, filename: str, clobber=F
         if RUN_MELD:
             is_identical = _meld(norm_json_str, filename)
         else:
+            dump_diff(norm_json_str, expected_json_str)
             is_identical = False
         assert is_identical, 'The received string does not match the expected string'
+
+
+def dump_diff(current_str, sample_str):
+    """Dump a diff between the received object and the expected JSON."""
+    print(
+        'Sample mismatch.\nActual:\n{}\nExpected:\n{}\nDiff:\n{}\n'.format(
+            current_str,
+            sample_str,
+            '\n'.join(difflib.Differ().compare(current_str.splitlines(), sample_str.splitlines())),
+        )
+    )
 
 
 def reset():
@@ -100,6 +113,7 @@ def _meld(left_str, filename):
         subprocess.run(('meld', tmp_file.name, (TEST_FILES_PATH / filename).as_posix()))
         tmp_file.seek(0)
         return tmp_file.read() == (TEST_FILES_PATH / filename).read_bytes()
+
 
 def _clobber_edi_ids(o):
     """Recursively clobber EDI IDs in the given dict or list, replacing them with a fixed string.

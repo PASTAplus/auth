@@ -240,7 +240,7 @@ async def create_function_get_resource_descendants(dbi):
     await dbi.execute(
         sqlalchemy.text(
             """
-            create or replace function get_resource_descendants(node_ids integer[])
+            create or replace function get_resource_descendants(resource_ids integer[])
             returns table(id integer, label varchar, type varchar, parent_id integer)
             language plpgsql
             as $body$
@@ -249,7 +249,7 @@ async def create_function_get_resource_descendants(dbi):
                 with recursive resource_tree as (
                     select r.id, r.label, r.type, r.parent_id
                     from resource r
-                    where r.id = any(node_ids)
+                    where r.id = any(resource_ids)
                     union all
                     select r.id, r.label, r.type, r.parent_id
                     from resource r
@@ -268,7 +268,7 @@ async def create_function_get_resource_ancestors(dbi):
     await dbi.execute(
         sqlalchemy.text(
             """
-            create or replace function get_resource_ancestors(node_ids integer[])
+            create or replace function get_resource_ancestors(resource_ids integer[])
             returns table(id integer, label varchar, type varchar, parent_id integer)
             language plpgsql
             as $body$
@@ -277,7 +277,7 @@ async def create_function_get_resource_ancestors(dbi):
                 with recursive parent_tree as (
                     select r.id, r.label, r.type, r.parent_id
                     from resource r
-                    where r.id = any(node_ids)
+                    where r.id = any(resource_ids)
                     union all
                     select r.id, r.label, r.type, r.parent_id
                     from resource r
@@ -285,7 +285,7 @@ async def create_function_get_resource_ancestors(dbi):
                 )
                 select * 
                 from parent_tree
-                where parent_tree.id != all(node_ids);
+                where parent_tree.id != all(resource_ids);
             end;
             $body$;
             """
@@ -294,12 +294,14 @@ async def create_function_get_resource_ancestors(dbi):
 
 
 async def create_function_get_resource_root(dbi):
-    """Create a resource to find the root resource of a given resource tree."""
+    """Create a function to find the root resource of a given resource tree.
+    - Returns a plain tuple of (id, label, type) for the root resource.
+    """
     await dbi.execute(
         sqlalchemy.text(
             """
-            create or replace function get_resource_root(node_ids integer[])
-            returns table(id integer, label varchar, type varchar, parent_id integer)
+            create or replace function get_resource_root(resource_id integer)
+            returns table(id integer, label varchar, type varchar)
             language plpgsql
             as $body$
             begin
@@ -307,15 +309,15 @@ async def create_function_get_resource_root(dbi):
                 with recursive parent_tree as (
                     select r.id, r.label, r.type, r.parent_id
                     from resource r
-                    where r.id = any(node_ids)
+                    where r.id = resource_id
                     union all
                     select r.id, r.label, r.type, r.parent_id
                     from resource r
                     inner join parent_tree pt on r.id = pt.parent_id
                 )
-                select * 
-                from parent_tree
-                where parent_id is null;
+                select p.id, p.label, p.type
+                from parent_tree p
+                where p.parent_id is null;
             end;
             $body$;
             """
