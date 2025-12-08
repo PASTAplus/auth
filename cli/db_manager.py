@@ -365,7 +365,7 @@ async def create_function_is_scope_admin(dbi):
                     from rule ru
                     where ru.resource_id = v_resource_id
                       and ru.principal_id = any(p_equiv_principal_ids)
-                      and ru.permission = 'CHANGE'
+                      and ru.permission = 'WRITE'
                 ) into v_is_admin;
 
                 return v_is_admin;
@@ -679,8 +679,8 @@ async def create_scope_admin_resource_trigger(dbi):
                     with ins as (
                         insert into resource (key, label, type) values(
                             'scope/admin/' || package_scope,
-                            'Scope Administrator for ' || package_scope,
-                            'scope-admin'
+                            'Administrator for ' || package_scope,
+                            'scope'
                         )
                         on conflict (key) do nothing
                         returning id
