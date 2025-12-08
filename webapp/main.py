@@ -151,14 +151,15 @@ class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     - If a request is made to a '/ui' path without a valid token, the user is redirected to
     '/signout', which removes the invalid (usually expired) cookie and which then redirects to
     '/ui/signin'.
-    - For any other request without a valid token, a 401 Unauthorized response is returned.
     """
 
     async def dispatch(self, request: starlette.requests.Request, call_next):
         if re.match(fr'{util.url.url("/ui")}(?!/(?:signin(?!/link)|help|api/))', request.url.path):
+            info_dict = {}
             if request.state.claims is None:
-                # log.debug('Redirecting to /ui/signin: UI page requested without valid token')
-                return util.url.internal('/signout', info='expired')
+                if request.cookies.get('edi-token', False):
+                    info_dict['info'] = 'expired'
+                return util.url.internal('/signout', **info_dict)
 
         return await call_next(request)
 
