@@ -1,3 +1,6 @@
+const containerFluidEl = document.getElementById('containerFluid');
+const enableDevMenu = containerFluidEl.dataset.enableDevMenu === 'true';
+
 // Highlight the current page in the navigation bar
 const headerEl = document.querySelectorAll('div.header-container[data-highlight-menu]');
 if (!headerEl) {
@@ -143,6 +146,62 @@ function showMsgModal(title, msg)
   new bootstrap.Modal(msgModalEl).show();
 }
 
+// Confirm modal
+
+function showConfirmModal(title, msg)
+{
+  const confirmModalEl = document.getElementById('confirmModal');
+  const confirmModalTitleEl = document.getElementById('confirmModalTitle');
+  const confirmModalBodyEl = document.getElementById('confirmModalBody');
+  confirmModalTitleEl.textContent = title;
+  confirmModalBodyEl.innerHTML = msg;
+  new bootstrap.Modal(confirmModalEl).show();
+}
+
+// Returns a Promise that resolves to the clicked button's value (or data-action) for non-form
+// modals. Modal buttons should have `data-action` or a `value` attribute.
+function showModalValue(modalId, title, msg)
+{
+  return new Promise((resolve) => {
+    const modalEl = document.getElementById(modalId);
+    if (!modalEl) {
+      resolve(null);
+      return;
+    }
+
+    const confirmModalTitleEl = document.getElementById('confirmModalTitle');
+    const confirmModalBodyEl = document.getElementById('confirmModalBody');
+    confirmModalTitleEl.textContent = title;
+    confirmModalBodyEl.innerHTML = msg;
+
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    const buttons = Array.from(
+        modalEl.querySelectorAll('button, input[type="button"], input[type="submit"]'));
+    const onHidden = () => {
+      cleanup();
+      resolve(null);
+    };
+    const onClick = (e) => {
+      e.preventDefault();
+      const btn = e.currentTarget;
+      // const val = btn.getAttribute('data-action') ?? btn.value ?? null;
+      const val = btn.value;
+      cleanup();
+      modal.hide();
+      resolve(val);
+    };
+    const cleanup = () => {
+      modalEl.removeEventListener('hidden.bs.modal', onHidden);
+      buttons.forEach((b) => b.removeEventListener('click', onClick));
+    };
+    modalEl.addEventListener('hidden.bs.modal', onHidden, {once: true});
+    buttons.forEach((b) => b.addEventListener('click', onClick, {once: true}));
+    modal.show();
+  });
+}
+
+//
+
 function showModalNextToElement1(modalEl, targetEl)
 {
   const rect = targetEl.getBoundingClientRect();
@@ -244,51 +303,53 @@ let startY = 0;
 let lastMouseX = 0;
 let lastMouseY = 0;
 
-// Start rectangle on Ctrl keydown (guard against key repeat)
-document.addEventListener('keydown', ev => {
-  if (ev.key === 'Control' && !box) {
-    if (document.activeElement && document.activeElement.closest('input,textarea,select')) {
-      return;
+if (enableDevMenu) {
+  // Start rectangle on Ctrl keydown (guard against key repeat)
+  document.addEventListener('keydown', ev => {
+    if (ev.key === 'Control' && !box) {
+      if (document.activeElement && document.activeElement.closest('input,textarea,select')) {
+        return;
+      }
+      startX = lastMouseX;
+      startY = lastMouseY;
+      box = document.createElement('div');
+      box.style.position = 'absolute';
+      box.style.border = '2px solid red';
+      box.style.left = `${startX}px`;
+      box.style.top = `${startY}px`;
+      box.style.width = '1px';
+      box.style.height = '1px';
+      box.style.pointerEvents = 'none';
+      box.style.zIndex = 9999;
+      document.body.appendChild(box);
     }
-    startX = lastMouseX;
-    startY = lastMouseY;
-    box = document.createElement('div');
-    box.style.position = 'absolute';
-    box.style.border = '2px solid red';
-    box.style.left = `${startX}px`;
-    box.style.top = `${startY}px`;
-    box.style.width = '1px';
-    box.style.height = '1px';
-    box.style.pointerEvents = 'none';
-    box.style.zIndex = 9999;
-    document.body.appendChild(box);
-  }
-});
+  });
 
-// Track mouse position and resize while box exists
-document.addEventListener('mousemove', ev => {
-  lastMouseX = ev.pageX;
-  lastMouseY = ev.pageY;
-  if (box) {
-    updateBox(ev.pageX, ev.pageY);
-  }
-});
+  // Track mouse position and resize while box exists
+  document.addEventListener('mousemove', ev => {
+    lastMouseX = ev.pageX;
+    lastMouseY = ev.pageY;
+    if (box) {
+      updateBox(ev.pageX, ev.pageY);
+    }
+  });
 
-// Remove rectangle on Ctrl release
-document.addEventListener('keyup', ev => {
-  if (ev.key === 'Control' && box) {
-    box.remove();
-    box = null;
-  }
-});
+  // Remove rectangle on Ctrl release
+  document.addEventListener('keyup', ev => {
+    if (ev.key === 'Control' && box) {
+      box.remove();
+      box = null;
+    }
+  });
 
-// Safety: clean up on window blur
-window.addEventListener('blur', () => {
-  if (box) {
-    box.remove();
-    box = null;
-  }
-});
+  // Safety: clean up on window blur
+  window.addEventListener('blur', () => {
+    if (box) {
+      box.remove();
+      box = null;
+    }
+  });
+}
 
 function updateBox(x, y)
 {

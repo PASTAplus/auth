@@ -27,7 +27,9 @@
 
 <nav class='navbar navbar-expand-lg navbar-light bg-light'>
 
-  <div class='container-fluid'>
+  <div class='container-fluid' id='containerFluid'
+       data-enable-dev-menu='{{ enable_dev_menu | default(false) | lower }}'
+  >
 
     <a class='navbar-brand' href='{{ url('/') }}'>
       <img src='{{ url('/static/svg/EDI-logo-no-padding.svg') }}'
@@ -81,7 +83,7 @@
 
       {# Dev dropdown #}
 
-      {% if dev_menu %}
+      {% if enable_dev_menu %}
         <div class='dropdown'>
           <button class='btn btn-secondary dropdown-toggle' type='button' id='dropdownMenuButton1'
                   data-bs-toggle='dropdown' aria-expanded='false'>
@@ -301,7 +303,7 @@
   </div>
 </div>
 
-{# Msg dialog #}
+{# Modal message dialog #}
 <div class="modal fade" id="msgModal" tabindex="-1" aria-hidden="true">
   <div class='modal-dialog modal-dialog-centered'>
     <div class="modal-content">
@@ -312,6 +314,27 @@
       <div class="modal-body" id="msgModalBody"></div>
       <div class='modal-footer'>
         <button type='button' class='btn btn-primary' data-bs-dismiss='modal'>Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# Modal confirm dialog #}
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+  <div class='modal-dialog modal-dialog-centered'>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmModalTitle"></h5>
+      </div>
+      <div class="modal-body" id="confirmModalBody"></div>
+      <div class='modal-footer'>
+        <button type='submit' class='btn btn-secondary' data-bs-dismiss='modal' name='action'
+                value='cancel'>
+          Cancel
+        </button>
+        <button type='submit' class='btn btn-primary' name='action' value='accept'>
+          Apply Changes
+        </button>
       </div>
     </div>
   </div>

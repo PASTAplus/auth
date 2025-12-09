@@ -7,10 +7,12 @@ const BASE_PATH = headerContainerEl.dataset.basePath;
 const PUBLIC_EDI_ID = headerContainerEl.dataset.publicEdiId;
 const TOTAL_TREE_COUNT = parseInt(headerContainerEl.dataset.rootCount);
 const SEARCH_UUID = headerContainerEl.dataset.searchUuid;
+const ENABLE_PUBLIC_ACCESS_WARNING = headerContainerEl.dataset.enablePublicAccessWarning === 'true';
+
 // const AUTHENTICATED_EDI_ID = headerContainerEl.dataset.authenticatedEdiId;
 // const RESOURCE_TYPE = headerContainerEl.dataset.resourceType;
 
-const PERMISSION_LEVEL_LIST = ['None', 'Reader', 'Editor', 'Owner'];
+const PERMISSION_LEVEL_ARRAY = ['None', 'Reader', 'Editor', 'Owner'];
 
 // Resource tree head checkboxes
 // selectAllCheckboxEl = document.getElementById('selectAllCheckbox');
@@ -290,8 +292,37 @@ permissionListEl.addEventListener('change', ev => {
     // dataset values are HTML attributes, which are always strings
     const principalId = parseInt(divEl.dataset.principalId);
     const permissionLevel = parseInt(ev.target.value);
-    const resources = getSelectedResourceIds();
-    fetchSetPermission(resources, principalId, permissionLevel);
+
+    if (ENABLE_PUBLIC_ACCESS_WARNING) {
+      if (divEl.dataset.ediId === PUBLIC_EDI_ID && permissionLevel === 0) {
+        (async () => {
+          const action = await showModalValue('confirmModal',
+              'Revoking public access', `
+              <p>
+                Public access on Package and Metadata resources may only be removed when pre-approved by
+                EDI.
+              </p>
+              <p>
+                If your selection includes Package and Metadata resources in published packages, please
+                cancel this operation and contact EDI for additional guidance.
+              </p>`
+          );
+          if (action === 'accept') {
+            const resources = getSelectedResourceIds();
+            fetchSetPermission(resources, principalId, permissionLevel);
+          }
+          else {
+            // Revert the dropdown to the previous value
+            const previousPermission = permissionArray.find(p => p.principal_id === principalId);
+            ev.target.value = previousPermission ? previousPermission.permission_level : 0;
+          }
+        })();
+      }
+    }
+    else {
+      const resources = getSelectedResourceIds();
+      fetchSetPermission(resources, principalId, permissionLevel);
+    }
   }
 });
 
@@ -594,8 +625,9 @@ function fetchSetPermission(resources, principalId, permissionLevel)
         refreshExpandedTrees();
         fetchSelectedResourcePermissions();
         if (result.skip_count) {
-          showMsgModal('Permissions not updated', `${result.skip_count} of ${result.total_count} resources could not be updated
-              because removing the last owner is not permitted.`);
+          showMsgModal(
+              'Permissions not updated', `${result.skip_count} of ${result.total_count} 
+              resources could not be updated because removing the last owner is not permitted.`);
         }
       })
       .catch((error) => {
@@ -681,10 +713,9 @@ function formatTreePrincipalDiv(principalList)
   return htmlArray.join('');
 }
 
-
 function formatTreePermissionLevelDiv(level)
 {
-  return PERMISSION_LEVEL_LIST[level] || 'Unknown';
+  return PERMISSION_LEVEL_ARRAY[level] || 'Unknown';
 }
 
 function refreshPermissions()
@@ -771,7 +802,7 @@ function addPermissionLevelDropdownDiv(parentEl, permission)
 {
   const levelEl = document.createElement('div');
   levelEl.dataset.principalId = permission.principal_id;
-  // levelEl.dataset.principalType = permission.principal_type;
+  levelEl.dataset.ediId = permission.edi_id;
   const permission_level = permission.permission_level;
   let optionsHtml = `
     <option value='0' ${permission_level === 0 ? 'selected' : ''}>None</option>

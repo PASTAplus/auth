@@ -69,8 +69,6 @@ their Google accounts, and moving to using Google's OAuth2 UID as the unique ide
 
 ### Configuration
 
-- TODO
-
 ## Google
 
 - Google's OAuth2 service is part of Google Cloud and accessed via Google Cloud Console
@@ -334,6 +332,15 @@ Example `com.chrome.devtools.json`:
 For details, see:
 
 https://chromium.googlesource.com/devtools/devtools-frontend/+/main/docs/ecosystem/automatic_workspace_folders.md
+
+# Preparing the database on first install
+
+```shell
+sudo -u postgres createuser --pwprompt auth
+sudo -u postgres createdb -O auth auth
+```
+
+Then update `config.py` with the password you set for the `auth` Postgres user.
 
 ## Export Postgres DB to another server
 
