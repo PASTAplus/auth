@@ -323,7 +323,7 @@ Example `com.chrome.devtools.json`:
 ```json
 {
   "workspace": {
-    "root": "/Users/foobar/Projects/my-awesome-web-project",
+    "root": "/home/user/projects/auth",
     "uuid": "53b029bb-c989-4dca-969b-835fecec3717"
   }
 }

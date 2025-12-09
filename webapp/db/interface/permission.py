@@ -191,14 +191,26 @@ class PermissionInterface:
         if util.profile_cache.is_superuser(token_profile_row):
             return True
 
-        if await self.is_scope_admin(token_profile_row, resource_row, permission_level):
+        if await self.is_scope_admin(token_profile_row, resource_row):
             return True
 
         return await self._is_authorized(token_profile_row, resource_row, permission_level)
 
-    async def is_scope_admin(self, token_profile_row, resource_row, permission_level):
-        """Check if a profile is an admin for a given scope."""
+    async def is_scope_admin(self, token_profile_row, resource_row):
+        """Check if a profile is an admin for a given scope.
+        - In order to be a scope admin for a scope, the profile must have WRITE permission on the
+        scope-admin resource for the scope. So WRITE on the scope-admin resource provides CHANGE on
+        all packages with that scope, and their descendants.
+        - By default scope-admin resources have no permissions assigned to them, so only superusers
+        can add permissions.
+        - If a scope admin should also be able to manage permissions on the scope-admin resource,
+        they will need CHANGE permission.
+        - There is also an 'is_scope_admin' PL/pgSQL function that is used in bulk queries.
+        """
         # Find the root in the resource tree which contains the resource.
+        # return sqlalchemy.func.is_scope_admin_by_descendant(
+        #
+        # )
         package_id, package_label, package_type = await self.get_resource_tree_root(resource_row)
         if package_type != 'package':
             return False
@@ -212,9 +224,11 @@ class PermissionInterface:
         except sqlalchemy.exc.NoResultFound:
             raise util.exc.ResourceDoesNotExistError(scope_admin_key)
         # Check if the profile has the required permission on the scope admin resource.
-        return await self._is_authorized(token_profile_row, admin_resource_row, permission_level)
+        return await self._is_authorized(
+            token_profile_row, admin_resource_row, PermissionLevel.WRITE
+        )
 
-    async def _is_authorized(self, token_profile_row, resource_row, permission_level):
+    async def _is_authorized(self, equivalent_principal_list, resource_row, permission_level):
         """This method implements the logic equivalent of the following pseudocode:
 
         def is_authorized(principal, resource, permission_level):
@@ -233,9 +247,7 @@ class PermissionInterface:
             sqlalchemy.select(
                 sqlalchemy.exists().where(
                     Rule.resource == resource_row,
-                    Rule.principal_id.in_(
-                        await self.get_equivalent_principal_id_query(token_profile_row)
-                    ),
+                    Rule.principal_id.in_(equivalent_principal_list),
                     Rule.permission >= permission_level,
                 )
             )
@@ -583,13 +595,7 @@ class PermissionInterface:
         # case.
         resource_ids = list(set(resource_ids))
 
-        is_superuser = util.profile_cache.is_superuser(token_profile_row)
-
-        equivalent_principal_id_list = (
-            (await self.execute(await self.get_equivalent_principal_id_query(token_profile_row)))
-            .scalars()
-            .all()
-        )
+        equivalent_principal_id_set = await self.get_equivalent_principal_id_set(token_profile_row)
 
         for i in range(0, len(resource_ids), Config.DB_CHUNK_SIZE):
             resource_id_chunk_list = resource_ids[i : i + Config.DB_CHUNK_SIZE]
@@ -605,15 +611,16 @@ class PermissionInterface:
                 .where(
                     Resource.id.in_(resource_id_chunk_list),
                     sqlalchemy.or_(
-                        is_superuser,
+                        # Superuser has access to all resources
+                        util.profile_cache.is_superuser(token_profile_row),
+                        # Direct permission via ACR
                         sqlalchemy.and_(
                             Rule.permission >= permission_level,
-                            Rule.principal_id.in_(equivalent_principal_id_list),
+                            Rule.principal_id.in_(equivalent_principal_id_set),
                         ),
-                        sqlalchemy.and_(
-                            sqlalchemy.func.is_scope_admin_by_descendant(
-                                equivalent_principal_id_list, Resource.id
-                            ),
+                        # Scope admin permission via ACR on scope-admin resource
+                        sqlalchemy.func.is_scope_admin_by_descendant(
+                            equivalent_principal_id_set, Resource.id
                         ),
                     ),
                 )
@@ -664,20 +671,18 @@ class PermissionInterface:
     # Principal
     #
 
-    async def get_equivalent_principal_id_query(self, token_profile_row):
-        """Return a Select object for use in SQLAlchemy 'where' and 'in' clauses for rules.
-
-        The Select query returns the principal IDs for all principals that the profile has access
-        to. We refer to these as the profile's equivalent principals. These principals, except for
-        the profile itself, are included in the 'principals' field of the JWT.
-
-        The returned list includes the principal IDs of:
-            - The primary profile (referenced by token_profile_row)
+    async def get_equivalent_principal_id_set(self, token_profile_row):
+        """Returns the principal IDs for all principals to which the profile has access.
+        - We refer to these as the profile's equivalent principals.
+        - These principals, except for the profile itself, are included in the 'principals' field
+        of the JWT.
+        - The returned list includes the principal IDs of:
+            - The primary profile
             - The Public Access profile
             - The Authenticated Access profile
             - All linked (secondary) profiles
-            - All groups in which the profiles are a member (for the primary and all linked
-            profiles)
+            - All groups in which the primary profile is a member
+            - All groups in which any of the linked profiles is a member
 
         For the special cases of finding equivalent principals for the Public Access profile, we
         don't include the Authenticated Access profile and vice versa.
@@ -686,14 +691,11 @@ class PermissionInterface:
         authenticated_profile_id = await util.profile_cache.get_authenticated_access_profile_id(
             self
         )
-
-        subject_type = await self.get_subject_type(token_profile_row.edi_id)
-
-        return sqlalchemy.select(Principal.id).where(
+        stmt = sqlalchemy.select(Principal.id).where(
             sqlalchemy.or_(
                 # The primary profile
                 sqlalchemy.and_(
-                    Principal.subject_type == subject_type,
+                    Principal.subject_type == await self.get_subject_type(token_profile_row.edi_id),
                     Principal.subject_id == token_profile_row.id,
                 ),
                 # Public Access
@@ -741,16 +743,13 @@ class PermissionInterface:
                 ),
             ),
         )
+        return set((await self.execute(stmt)).scalars().all())
 
     async def get_equivalent_principal_edi_id_set(self, token_profile_row):
         """Get a set of EDI-IDs for all principals that the profile has access to.
-
-        Note: This includes the EDI-ID for the profile itself, which should not be included in
-        the 'principals' field of the JWT.
+        - This includes the EDI-ID for the profile itself, which should not be included in the
+        'principals' field of the JWT.
         """
-        # Build the subquery for equivalent principal IDs
-        principal_id_subquery = await self.get_equivalent_principal_id_query(token_profile_row)
-
         stmt = (
             sqlalchemy.select(
                 sqlalchemy.case(
@@ -776,9 +775,8 @@ class PermissionInterface:
                     Principal.subject_type == SubjectType.PROFILE,
                 ),
             )
-            .where(Principal.id.in_(principal_id_subquery))
+            .where(Principal.id.in_(await self.get_equivalent_principal_id_set(token_profile_row)))
         )
-
         return set((await self.execute(stmt)).scalars().all())
 
     async def _add_principal(self, subject_id, subject_type):

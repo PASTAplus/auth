@@ -106,6 +106,7 @@ async def get_ui_permission(
             'root_count': root_count,
             'search_uuid': search_uuid,
             'search_result_msg': search_result_msg,
+            'enable_public_access_warning': Config.ENABLE_PUBLIC_ACCESS_WARNING,
         },
     )
 

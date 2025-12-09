@@ -1,15 +1,18 @@
-"""Build a tree from a flat list of resources.
+"""Build a list of trees from a flat list of resources.
 
 - Each resource can be standalone or a member of a tree.
-- A standalone resource has parent_key=None and no other resources have it as their parent_key
-- A root resource has parent_key=None and other resources may have it as their parent_key
-- Our current approach to assembling resources into a list of trees uses several steps:
-    - Two recursive DB functions are used for finding the resource IDs of all the resources that are
-    in the same tree as the given resource
+- A standalone resource has parent_key=None (it has no ancestors) and no other resources have it as
+  their parent_key (it has no descendants).
+- A root resource has parent_key=None and other resources may have it as their parent_key.
+- Our approach to assembling resources into a list of trees uses several steps:
+    - Custom PL/pgSQL (Procedural Language/PostgreSQL) procedures get_resource_ancestors() and
+      get_resource_descendants() functions are called for finding the resource IDs of all the
+      resources that are in the same trees as the given resources.
         - This step ignores ACRs and all IDs are returned. That's because we need to visit all the
-        nodes in the tree in order to find descendants
+          nodes in the tree in order to find descendants, and that wouldn't be possible if some
+          nodes were missing due to ACR filtering.
     - A plain list of all the discovered resource IDs are bundled together in no specific order
-    - A flat DB function selects and returns a join of (resource, group, principal, profile, group)
+    - A DB procedure selects and returns a join of (resource, group, principal, profile, group)
         - This function also filters the resources by the ACRs of the token, so that only resources
         that the token has at least READ on are returned.
     - A Python function iterates over the join result and first builds a flat list of resources,

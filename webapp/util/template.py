@@ -10,7 +10,8 @@ templates.env.globals.update(
         # Make these functions and other objects available in all templates
         'url': util.url.url,
         'url_buster': util.url.url_buster,
-        'dev_menu': Config.ENABLE_DEV_MENU,
+        'enable_dev_menu': Config.ENABLE_DEV_MENU,
+        'enable_ctrl_draw': getattr(Config, 'ENABLE_CTRL_DRAW', False),
         'IdpName': db.models.profile.IdpName,
     }
 )
