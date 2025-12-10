@@ -5,12 +5,14 @@
 *.key
 *.pem
 *.sqlite
-__RD.md
-auth.log
+*.log
+___*
 config.py
-webapp/avatars/
-webapp/static/lib/
-docs/*.png
+avatars/
+webapp/static/bootstrap/
+# Put pre-rendered images in docs/images instead
+docs/schemas/*.png
+certs/
 
 # General
 

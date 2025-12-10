@@ -1,0 +1,420 @@
+:root {
+    /* Variables set in JS */
+    /* Path for the expand/collapse SVG icon used in the resource tree */
+    --expand-collapse-path: '';
+    /* Height of the navbar, used to calculate the height of the main container */
+    --navbar-height: 0px;
+}
+
+.indent {
+    margin: 0 0 0 2rem;;
+}
+
+/*
+Main layout
+*/
+
+/*
+
++-----------------------------+
+|          container          |
+|  +-----------------------+  |
+|  |      main-content     |  |
+|  |  +-------+ +-------+  |  |
+|  |  | panel | | panel |  |  |
+|  |  |  top  | |  top  |  |  |
+|  |  |-------| |-------|  |  |
+|  |  |bottom | |bottom |  |  |
+|  |  +-------+ +-------+  |  |
+|  +-----------------------+  |
++-----------------------------+*/
+
+/*
+The container wraps everything on the page except for the navbar.
+*/
+.container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - var(--navbar-height) - 1rem);
+    /* Include padding and border in element's total width and height */
+    box-sizing: border-box;
+    /* Prevent scrollbars on main page */
+    overflow: hidden;
+}
+
+.main-content {
+    margin-top: 1rem;
+    margin-left: 2rem;
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+.panel-top {
+    /* Expand only to fit the contents */
+    flex: 0 0 auto;
+    padding: 1rem;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    /* margin-bottom: 1rem; */
+}
+
+.panel-bottom {
+    /* Take up the remaining space */
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.panel + .panel {
+    /* Space between panels */
+    margin-left: 1rem;
+}
+
+/*
+Resource Tree (left side)
+*/
+
+/* Resource tree */
+
+#resourceTree {
+    position: relative;
+    overflow-y: auto;
+    height: 100%;
+}
+
+#spacer {
+    height: 0; /* dynamically set in JS */
+}
+
+#visible-trees {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+.tree-container {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 35px; /* match JS collapsedTreeHeight */
+    padding: 5px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    background: #fff;
+    white-space: nowrap; /* Prevent wrapping */
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+    overflow-y: hidden; /* Prevent vertical scrolling */
+    /* margin: .5rem; */
+}
+
+.tree-indent {
+    white-space: nowrap;
+    /* padding-left: 2rem; */
+    /*padding-bottom: 10rem;*/
+}
+
+.tree-resource-type {
+    text-transform: capitalize;
+    font-size: smaller;
+    padding: .2rem;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    margin: 0 1rem 0 1rem;
+}
+
+.tree-resource-title {
+    font-weight: bold;
+}
+
+
+.hide-container {
+    position: absolute;
+    visibility: hidden;
+    height: auto;
+}
+
+.tree-measuring > summary {
+    /* Keep the summary visible */
+    visibility: visible;
+}
+
+.tree-measuring > ul {
+    /* Only hide the content being expanded */
+    visibility: hidden;
+}
+
+
+/* Principals */
+
+.tree-principal {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.tree-principal-name:empty {
+    /* Hide the principal name if it is empty */
+    display: none;
+}
+
+
+.tree-principal-hidden {
+    display: none;
+}
+
+.tree-principal-permission-level {
+    font-weight: bold;
+    margin-left: auto;
+}
+
+.tree-principal-edi-id {
+    font-size: smaller;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 5rem;
+    margin: 0;
+    padding: 0;
+}
+
+/*
+Permissions (right side)
+*/
+
+/*
+The permission grid:
+Col 1: Principal info
+Col 2: PermissionLevel dropdown
+*/
+.permission-grid {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    /* Use full width of each column */
+    /*grid-template-columns: 1fr auto;*/
+    align-items: center;
+    justify-items: left;
+    gap: 1rem;
+    /* row-gap: 2rem; */
+    /*white-space: nowrap;*/
+    /*max-width: 10rem;*/
+    /* overflow: hidden; */
+    /*text-overflow: ellipsis;*/
+    /*!* Make room for shadows around buttons at edges *!*/
+    padding: 0 1rem 0 1rem;
+    /* Ensures padding and border are included in the element's total width */
+    /* box-sizing: border-box; */
+}
+
+.grid-child {
+    white-space: nowrap;
+    /* padding: 1rem 1rem 1rem 1rem; */
+}
+
+.grid-child-span-2 {
+    /* grid-column: span 2; */
+}
+
+.permission-grid-title {
+    /*font-size: larger;*/
+    /*font-weight: bold;*/
+}
+
+/*
+Principal (2 col row)
+*/
+
+.principal-flex {
+    display: flex;
+    /* justify-content: center; */
+    align-items: center;
+    gap: 1rem;
+    /* white-space: nowrap; */
+    /* padding: 0 0 0 0; */
+    /* max-width: 10rem; */
+    /*overflow: hidden; */
+    /*text-overflow: ellipsis; */
+    /* background-color: red; */
+}
+
+.principal-child {
+    /* white-space: nowrap; */
+    /* padding: 1rem 1rem 1rem 1rem; */
+}
+
+
+.principal-avatar {
+    /* background-color: blue; */
+}
+
+.principal-info {
+    /* Prefer breaking at spaces, but break long words if needed */
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+.principal-title {
+    font-weight: bold;
+}
+
+.principal-description {
+}
+
+.principal-public {
+    font-weight: bold;
+}
+
+/*
+Rule dropdown
+*/
+
+.level-dropdown {
+    padding: 0.2rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+/*
+Principal search
+*/
+
+#principalSearch {
+    /* margin-bottom: 1rem; */
+}
+
+#principalList {
+    display: none;
+    flex-direction: column;
+    padding: .3rem;
+    /* Open a bit of space between the input element and the dropdown. */
+    /* margin-top: .5rem; */
+    /* Ensure the dropdown is above other elements */
+    z-index: 1000;
+    /*
+    A bit of a hack to make dropdown look like the input element.
+    Is there a better way to do this in Bootstrap?
+    This is in addition to setting the form-control class on principalList
+    */
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    margin-bottom: .5rem;
+    overflow: hidden;
+}
+
+#principalList.visible {
+    display: flex;
+}
+
+
+#principalList .principal-flex {
+    padding: .3rem;
+}
+
+#principalList .principal-flex:hover {
+    background-color: rgba(0, 0, 0, 0.10);
+    transition: background-color .3s ease-in-out;
+    cursor: pointer;
+}
+
+
+/*************************************************/
+/* Based on: https://iamkate.com/code/tree-views */
+
+.tree {
+    --spacing: 1.3rem;
+    --radius: 10px;
+    padding-left: 0;
+    margin-bottom: 0;
+}
+
+.tree li {
+    display: block;
+    position: relative;
+    padding-left: calc(2 * var(--spacing) - var(--radius) - 0px);
+}
+
+.tree ul {
+    margin-left: calc(var(--radius) - var(--spacing));
+    padding-left: 0;
+}
+
+.tree ul li {
+    /* border-left: 2px solid #ddd; */
+}
+
+.tree ul li:last-child {
+    border-color: transparent;
+}
+
+.tree ul li::before {
+    /* Vertical lines */
+    content: '';
+    display: block;
+    position: absolute;
+    top: calc(var(--spacing) / -2);
+    left: -2px;
+    width: calc(var(--spacing) + 2px);
+    height: calc(var(--spacing) + 1px);
+    border: solid #ddd;
+    border-width: 0 0 2px 2px;
+}
+
+.tree summary {
+    display: block;
+    cursor: pointer;
+}
+
+.tree summary::marker,
+.tree summary::-webkit-details-marker {
+    display: none;
+}
+
+.tree summary:focus {
+    outline: none;
+}
+
+.tree summary:focus-visible {
+    outline: 1px dotted #000;
+}
+
+.tree li::after,
+.tree summary::before {
+    content: '';
+    display: block;
+    position: absolute;
+    top: calc(var(--spacing) / 2 - var(--radius));
+    left: calc(var(--spacing) - var(--radius) - 1px);
+    width: calc(2 * var(--radius));
+    height: calc(2 * var(--radius));
+    border-radius: 50%;
+    background: #ddd;
+}
+
+.tree summary::before {
+    z-index: 1;
+    background: #0075ff var(--expand-collapse-path) 0 0;
+}
+
+.tree details[open] > summary::before {
+    background-position: calc(-2 * var(--radius)) 0;
+}
+
+.tree input[type="checkbox"] {
+    width: calc(2 * var(--radius));
+    height: calc(1.5 * var(--radius));
+}
+

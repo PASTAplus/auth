@@ -1,0 +1,4 @@
+{
+    "method": "searchPrincipals",
+    "msg": "Bad request: Invalid URL: Missing query parameter: s (search string)"
+}

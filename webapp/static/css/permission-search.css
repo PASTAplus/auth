@@ -1,0 +1,9 @@
+.form-select {
+    width: fit-content;
+    min-width: 10rem;
+}
+
+.form-control {
+    width: auto;
+    max-width: 12rem;
+}

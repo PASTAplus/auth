@@ -3,9 +3,12 @@ import fastapi
 import starlette.requests
 import starlette.templating
 
-import db.iface
-import pasta_jwt
-import util
+import util.avatar
+import util.dependency
+import util.edi_token
+import util.pretty
+import util.url
+import util.template
 
 log = daiquiri.getLogger(__name__)
 
@@ -13,86 +16,79 @@ log = daiquiri.getLogger(__name__)
 router = fastapi.APIRouter()
 
 
+#
 # UI routes
+#
+
 
 # We allow opening the profile via POST in addition to GET, to be compliant with what
 # other clients except. TODO: Still needed?
 @router.api_route('/ui/profile', methods=['GET', 'POST'])
-async def profile(
+async def get_post_ui_profile(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    profile_row = udb.get_profile(token.urid)
-
-    return util.templates.TemplateResponse(
+    return util.template.templates.TemplateResponse(
         'profile.html',
         {
             # Base
-            'token': token,
-            'avatar_url': util.get_profile_avatar_url(
-                profile_row,
-                refresh=request.query_params.get('refresh') == 'true',
-            ),
-            'profile': profile_row,
-            #
             'request': request,
+            'profile': token_profile_row,
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
+            'error_msg': request.query_params.get('error'),
+            'info_msg': request.query_params.get('info'),
+            # Page
         },
     )
 
 
 @router.get('/ui/profile/edit')
-async def profile_edit(
+async def get_ui_profile_edit(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    profile_row = udb.get_profile(token.urid)
-
-    return util.templates.TemplateResponse(
+    return util.template.templates.TemplateResponse(
         'profile-edit.html',
         {
             # Base
-            'token': token,
-            'avatar_url': util.get_profile_avatar_url(
-                profile_row,
-                refresh=request.query_params.get('refresh') == 'true',
-            ),
-            'profile': profile_row,
-            #
             'request': request,
-            'msg': request.query_params.get('msg'),
+            'profile': token_profile_row,
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
+            'error_msg': request.query_params.get('error'),
+            'info_msg': request.query_params.get('info'),
+            # Page
         },
     )
 
 
+#
 # Internal routes
+#
 
 
-@router.post('/profile/edit/update')
-async def profile_edit_update(
+@router.post('/ui/api/profile/edit/update')
+async def post_profile_edit_update(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     form_data = await request.form()
-    util.log_dict(log.info, 'Updating profile', dict(form_data))
-    udb.update_profile(
-        token.urid,
-        full_name=form_data.get('full-name'),
+    util.pretty.log_dict(log.info, 'Updating profile', dict(form_data))
+    await dbi.update_profile(
+        token_profile_row,
+        common_name=form_data.get('common-name'),
         email=form_data.get('email'),
         email_notifications='email-notifications' in form_data,
-        organization=form_data.get('organization'),
-        association=form_data.get('association'),
     )
-    return util.redirect_internal('/ui/profile/edit', msg='Profile updated')
+    return util.url.internal('/ui/profile/edit', info='Profile updated successfully.')
 
 
-@router.post('/profile/edit/delete')
-async def profile_edit_delete(
-    request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+@router.post('/ui/api/profile/edit/delete')
+async def post_profile_edit_delete(
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    udb.delete_profile(token.urid)
-    return util.redirect_internal('/signout')
+    await dbi.delete_profile(token_profile_row)
+    return util.url.internal('/signout', info='Profile deleted successfully.')

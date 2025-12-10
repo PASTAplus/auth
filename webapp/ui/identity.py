@@ -3,72 +3,87 @@ import fastapi
 import starlette.requests
 import starlette.templating
 
-import db.iface
-import pasta_jwt
-import util
+import db.models.profile
+import util.avatar
+import util.dependency
+import util.edi_token
+import util.url
+import util.template
+import util.url
 
 log = daiquiri.getLogger(__name__)
 
 
 router = fastapi.APIRouter()
 
+#
 # UI routes
+#
 
 
 @router.get('/ui/identity')
-async def identity(
+async def get_ui_identity(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    profile_row = udb.get_profile(token.urid)
+    profile_list = [
+        {
+            'idp_name': token_profile_row.idp_name,
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
+            'idp_logo_url': util.url.get_idp_logo_url(token_profile_row.idp_name),
+            'email': token_profile_row.email,
+            'common_name': token_profile_row.common_name,
+            'edi_id': token_profile_row.edi_id,
+            'sort_key': 0,
+        }
+    ]
 
-    identity_list = []
-    for identity_row in profile_row.identities:
-        identity_list.append(
+    for linked_profile_row in await dbi.get_linked_profile_list(token_profile_row.id):
+        profile_list.append(
             {
-                'idp_name': identity_row.idp_name,
-                'uid': identity_row.uid,
-                'avatar_url': util.get_identity_avatar_url(identity_row),
-                'idp_logo_url': util.get_idp_logo_url(identity_row.idp_name),
-                'full_name': identity_row.email,
+                'profile_id': linked_profile_row.id,
+                'idp_name': linked_profile_row.idp_name,
+                'avatar_url': await util.avatar.get_profile_avatar_url(dbi, linked_profile_row),
+                'idp_logo_url': util.url.get_idp_logo_url(linked_profile_row.idp_name),
+                'email': linked_profile_row.email,
+                'common_name': linked_profile_row.common_name,
+                'edi_id': linked_profile_row.edi_id,
+                'sort_key': 1,
             }
         )
 
-    identity_list.sort(key=lambda x: (x['idp_name'], x['full_name']))
+    profile_list.sort(
+        key=lambda x: (x['sort_key'], x['idp_name'].name, x['email'], x['common_name'])
+    )
 
-    return util.templates.TemplateResponse(
+    return util.template.templates.TemplateResponse(
         'identity.html',
         {
             # Base
-            'token': token,
-            'avatar_url': util.get_profile_avatar_url(profile_row),
-            'profile': profile_row,
-            #
             'request': request,
-            'identity_list': identity_list,
-            'msg': request.query_params.get('msg'),
+            'profile': token_profile_row,
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
+            'error_msg': request.query_params.get('error'),
+            'info_msg': request.query_params.get('info'),
+            # Page
+            'profile_list': profile_list,
         },
     )
 
 
+#
 # Internal routes
+#
 
 
-@router.post('/identity/unlink')
-async def identity_unlink(
+@router.post('/ui/api/profile/unlink')
+async def post_profile_unlink(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    profile_row = udb.get_profile(token.urid)
-
     form_data = await request.form()
-    idp_name = form_data.get('idp_name')
-    uid = form_data.get('uid')
-
-    log.info(f'Unlinking identity: idp_name={idp_name}, uid={uid}')
-
-    udb.delete_identity(profile_row, idp_name, uid)
-
-    return util.redirect_internal('/ui/identity')
+    profile_id = int(form_data.get('unlink-profile-id'))
+    await dbi.unlink_profile(token_profile_row, profile_id)
+    return util.url.internal('/ui/identity', info='Profile unlinked successfully.')

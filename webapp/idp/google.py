@@ -1,16 +1,25 @@
+import functools
+import logging
+import random
 import re
+import string
 
-import daiquiri
 import fastapi
 import requests
+import sqlalchemy.exc
 import starlette.requests
 import starlette.status
 
-import db.iface
-import util
+import db.models.profile
+import util.avatar
+import util.dependency
+import util.login
+import util.pretty
+import util.url
+import util.url
 from config import Config
 
-log = daiquiri.getLogger(__name__)
+log = logging.getLogger(__name__)
 router = fastapi.APIRouter()
 
 # https://developers.google.com/identity/protocols/oauth2
@@ -21,7 +30,7 @@ router = fastapi.APIRouter()
 
 
 @router.get('/login/google')
-async def login_google(
+async def get_login_google(
     request: starlette.requests.Request,
 ):
     """Accept the initial login request from an EDI service and redirect to the
@@ -38,13 +47,13 @@ async def login_google(
             'Login unsuccessful: Cannot download Google provider configuration',
             exc_info=True,
         )
-        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.url.client_error(target_url, 'Login unsuccessful')
 
-    util.log_dict(log.debug, 'google_provider_cfg', google_provider_cfg)
+    # util.pretty.log_dict(log.debug, 'google_provider_cfg', google_provider_cfg)
 
-    return util.redirect_to_idp(
+    return util.url.idp(
         google_provider_cfg['authorization_endpoint'],
-        'google',
+        db.models.profile.IdpName.GOOGLE,
         login_type,
         target_url,
         client_id=Config.GOOGLE_CLIENT_ID,
@@ -57,16 +66,17 @@ async def login_google(
 
 
 @router.get('/callback/google')
-async def callback_google(
+async def get_callback_google(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    login_type, target_url = util.unpack_state(request.query_params.get('state'))
+    login_type, target_url = util.login.unpack_state(request.query_params.get('state'))
     log.debug(f'callback_google() login_type="{login_type}" target_url="{target_url}"')
 
     code_str = request.query_params.get('code')
     if code_str is None:
-        return util.redirect_to_client_error(target_url, 'Login cancelled')
+        return util.url.client_error(target_url, 'Login cancelled')
 
     google_provider_cfg = get_google_provider_cfg()
     token_endpoint = google_provider_cfg['token_endpoint']
@@ -78,30 +88,32 @@ async def callback_google(
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Accept': 'application/json',
             },
-            data=util.build_query_string(
-                client_id=Config.GOOGLE_CLIENT_ID,
-                client_secret=Config.GOOGLE_CLIENT_SECRET,
-                code=code_str,
-                authorization_response=str(
-                    util.get_redirect_uri('google').replace_query_params(code=code_str)
-                ),
-                redirect_uri=util.get_redirect_uri('google'),
-                grant_type='authorization_code',
+            data=(
+                util.url.build_query_string(
+                    client_id=Config.GOOGLE_CLIENT_ID,
+                    client_secret=Config.GOOGLE_CLIENT_SECRET,
+                    code=code_str,
+                    authorization_response=str(
+                        util.login.get_redirect_uri('google').replace_query_params(code=code_str)
+                    ),
+                    redirect_uri=util.login.get_redirect_uri('google'),
+                    grant_type='authorization_code',
+                )
             ),
         )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.url.client_error(target_url, 'Login unsuccessful')
 
     try:
         token_dict = token_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {token_response.text}', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.url.client_error(target_url, 'Login unsuccessful')
 
     if 'error' in token_dict:
         log.error(f'Login unsuccessful: {token_dict["error"]}', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.url.client_error(target_url, 'Login unsuccessful')
 
     try:
         userinfo_response = requests.get(
@@ -112,46 +124,36 @@ async def callback_google(
         )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.url.client_error(target_url, 'Login unsuccessful')
 
     try:
         user_dict = userinfo_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {userinfo_response.text}', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.url.client_error(target_url, 'Login unsuccessful')
 
     if not user_dict.get('email_verified'):
-        return util.redirect_to_client_error(
-            target_url, 'Login unsuccessful: Email not verified'
-        )
+        return util.url.client_error(target_url, 'Login unsuccessful: Email not verified')
 
     # Fetch the avatar
-    has_avatar = False
-    try:
-        avatar = get_user_avatar(token_dict['access_token'])
-    except fastapi.HTTPException as e:
-        log.error(f'Failed to fetch user avatar: {e.detail}')
-    else:
-        util.save_avatar(avatar, 'google', user_dict['sub'])
-        has_avatar = True
-
     log.debug('-' * 80)
     log.debug('login_google_callback() - login successful')
-    util.log_dict(log.debug, 'token_dict', token_dict)
-    util.log_dict(log.debug, 'user_dict', user_dict)
+    util.pretty.log_dict(log.debug, 'token_dict', token_dict)
+    util.pretty.log_dict(log.debug, 'user_dict', user_dict)
     log.debug('-' * 80)
 
-    return util.handle_successful_login(
+    return await util.login.handle_successful_login(
         request=request,
-        udb=udb,
+        dbi=dbi,
+        token_profile_row=token_profile_row,
         login_type=login_type,
         target_url=target_url,
-        full_name=user_dict["name"],
-        idp_name='google',
-        uid=user_dict['sub'],
+        idp_name=db.models.profile.IdpName.GOOGLE,
+        idp_uid=user_dict['sub'],
+        common_name=user_dict['name'],
         email=user_dict['email'],
-        has_avatar=has_avatar,
-        is_vetted=False,
+        fetch_avatar_func=functools.partial(fetch_user_avatar, token_dict["access_token"]),
+        avatar_ver=''.join(random.choices(string.ascii_letters, k=16)),
     )
 
 
@@ -173,15 +175,15 @@ def get_google_provider_cfg():
 
 
 @router.get('/revoke/google')
-async def revoke_google(
+async def get_revoke_google(
     request: starlette.requests.Request,
 ):
     target_url = request.query_params.get('target')
-    uid = request.query_params.get('uid')
+    idp_uid = request.query_params.get('idp_uid')
     idp_token = request.query_params.get('idp_token')
 
     log.debug(
-        f'revoke_google() target_url="{target_url}" uid="{uid}" idp_token="{idp_token}"'
+        f'revoke_google() target_url="{target_url}" idp_uid="{idp_uid}" idp_token="{idp_token}"'
     )
 
     try:
@@ -191,13 +193,13 @@ async def revoke_google(
         )
     except requests.RequestException:
         log.error('Revoke unsuccessful', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Revoke unsuccessful')
+        return util.url.client_error(target_url, 'Revoke unsuccessful')
     else:
         if response.status_code != starlette.status.HTTP_200_OK:
             log.error(f'Revoke unsuccessful: {response.text}', exc_info=True)
-            return util.redirect_to_client_error(target_url, 'Revoke unsuccessful')
+            return util.url.client_error(target_url, 'Revoke unsuccessful')
 
-    return util.redirect(target_url)
+    return util.url.redirect(target_url)
 
 
 #
@@ -205,43 +207,29 @@ async def revoke_google(
 #
 
 
-def get_user_avatar(access_token):
+def fetch_user_avatar(access_token):
     response_url = requests.get(
         'https://people.googleapis.com/v1/people/me?personFields=photos',
         headers={'Authorization': f'Bearer {access_token}'},
     )
-
     try:
         response_dict = response_url.json()
     except requests.JSONDecodeError:
-        raise fastapi.HTTPException(
-            status_code=starlette.status.HTTP_404_NOT_FOUND,
-            detail=response_url.text,
-        )
-
-    util.log_dict(log.debug, 'google: get_user_avatar()', response_dict)
-
+        log.error(f'Error decoding Google people response: {response_url.text}')
+        return None
     photos = response_dict.get('photos')
     if not photos:
-        raise fastapi.HTTPException(
-            status_code=starlette.status.HTTP_404_NOT_FOUND,
-            detail='No photos found',
-        )
-
+        log.error('No photos found in Google people response')
+        return None
     # Assuming the first photo is the highest resolution available
     avatar_url = photos[0].get('url')
     if avatar_url is None:
-        raise fastapi.HTTPException(
-            status_code=starlette.status.HTTP_404_NOT_FOUND,
-            detail='No avatar URL found',
-        )
-
+        log.error('No URL found for the photo in Google people response')
+        return None
     # Fetch higher resolution avatar
     hirez_avatar_url = re.sub(r'=s\d+$', '=s500', avatar_url)
     response_img = requests.get(hirez_avatar_url)
     if not response_img.ok:
-        raise fastapi.HTTPException(
-            status_code=starlette.status.HTTP_404_NOT_FOUND,
-            detail=response_img.text,
-        )
+        log.error(f'Failed to fetch user avatar: {response_img.status_code} {response_img.text}')
+        return None
     return response_img.content

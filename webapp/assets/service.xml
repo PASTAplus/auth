@@ -1,0 +1,1261 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<pasta:service   
+    xmlns:pasta="pasta://pasta.edirepository.org/service-0.1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="pasta://pasta.edirepository.org/service-0.1 http://nis.lternet.edu/schemas/pasta/pasta-service.xsd"
+    >
+    
+    <pasta:service-method name="appendProvenance">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>write</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="createDataPackage">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>vetted</principal>
+                <permission>write</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="createDataPackageArchive">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>write</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="createReservation">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>vetted</principal>
+                <permission>write</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="deleteReservation">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>vetted</principal>
+                <permission>write</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="deleteDataPackage">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>vetted</principal>
+                <permission>write</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="evaluateDataPackage">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>write</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="getProvenanceMetadata">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>write</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="isAuthorized">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+     </pasta:service-method>
+    
+     <pasta:service-method name="listActiveReservations">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="listDataEntities">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="listDataDescendants">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="listDataSources">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="listRecentChanges">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="listDataPackageIdentifiers">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="listDataPackageRevisions">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="listDataPackageScopes">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="listDeletedDataPackages">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="listRecentUploads">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+     <pasta:service-method name="listReservationIdentifiers">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="listServiceMethods">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="listUserDataPackages">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="listWorkingOn">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="readDataEntity">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="readDataEntityAcl">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>uid=gmn-pasta,o=EDI,dc=edirepository,dc=org</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="readDataEntityRmd">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="readDataEntityChecksum">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="readDataEntityDoi">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="readDataEntityName">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="readDataEntityNames">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="readDataEntitySize">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="readDataEntitySizes">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="readDataPackage">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="readDataPackageAcl">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>uid=gmn-pasta,o=EDI,dc=edirepository,dc=org</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="readDataPackageRmd">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="readDataPackageArchive">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="readDataPackageDoi">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="readDataPackageError">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="readDataPackageFromDoi">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="readDataPackageReport">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="readDataPackageReportAcl">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>uid=gmn-pasta,o=EDI,dc=edirepository,dc=org</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="readDataPackageReportRmd">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="readDataPackageReportChecksum">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="readDataPackageReportDoi">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="readEvaluateReport">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="readMetadata">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="readMetadataDublinCore">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="readMetadataAcl">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>uid=gmn-pasta,o=EDI,dc=edirepository,dc=org</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="readMetadataRmd">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="readMetadataChecksum">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="readMetadataDoi">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="readMetadataFormat">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="searchDataPackages">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <pasta:service-method name="updateDataPackage">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>vetted</principal>
+                <permission>write</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    
+    <!-- Event subscription services -->
+    
+    <pasta:service-method name="createSubscription">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>write</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="deleteSubscription">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>write</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="executeSubscription">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>write</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="getMatchingSubscriptions">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="getSubscriptionWithId">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="notifyOfEvent">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>write</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+    <!-- Journal Citation web services -->
+
+    <pasta:service-method name="createJournalCitation">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>vetted</principal>
+                <permission>write</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="updateJournalCitation">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>vetted</principal>
+                <permission>write</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="deleteJournalCitation">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>vetted</principal>
+                <permission>write</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="getCitationWithId">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="listDataPackageCitations">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="listDataPackagesCitedBy">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+
+    <pasta:service-method name="listPrincipalOwnerCitations">
+        <access
+            system="https://pasta.edirepository.org"
+            authSystem="https://pasta.edirepository.org/authentication"
+            order="allowFirst">
+            <allow>
+                <principal>pasta</principal>
+                <permission>write</permission>
+            </allow>
+            <allow>
+                <principal>authenticated</principal>
+                <permission>read</permission>
+            </allow>
+            <allow>
+                <principal>public</principal>
+                <permission>read</permission>
+            </allow>
+        </access>
+    </pasta:service-method>
+    
+</pasta:service>

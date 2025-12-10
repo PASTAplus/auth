@@ -3,53 +3,56 @@ import fastapi
 import starlette.requests
 import starlette.templating
 
-import db.iface
-import pasta_jwt
-import util
+import util.avatar
+import util.dependency
+import util.edi_token
+import util.url
+import util.template
 
 log = daiquiri.getLogger(__name__)
 
 
 router = fastapi.APIRouter()
 
+#
 # UI routes
+#
 
 
 @router.get('/ui/membership')
-async def membership(
+async def get_ui_membership(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    profile_row = udb.get_profile(token.urid)
-    return util.templates.TemplateResponse(
+    return util.template.templates.TemplateResponse(
         'membership.html',
         {
             # Base
-            'token': token,
-            'avatar_url': util.get_profile_avatar_url(
-                profile_row,
-                refresh=request.query_params.get('refresh') == 'true',
-            ),
-            'profile': profile_row,
-            #
             'request': request,
-            'group_membership_list': udb.get_group_membership_list(profile_row),
+            'profile': token_profile_row,
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
+            'error_msg': request.query_params.get('error'),
+            'info_msg': request.query_params.get('info'),
+            # Page
+            'group_membership_list': await dbi.get_group_membership_list(token_profile_row),
+            'group_avatar': util.avatar.get_group_avatar_url(),
         },
     )
 
 
+#
 # Internal routes
+#
 
 
-@router.post('/membership/leave')
-async def membership_leave(
+@router.post('/ui/api/membership/leave')
+async def post_membership_leave(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     form_data = await request.form()
-    group_id = form_data.get('group-id')
-    profile_row = udb.get_profile(token.urid)
-    udb.leave_group_membership(profile_row, group_id)
-    return util.redirect_internal('/ui/membership')
+    group_id = int(form_data.get('group-id'))
+    await dbi.leave_group_membership(token_profile_row, group_id)
+    return util.url.internal('/ui/membership')

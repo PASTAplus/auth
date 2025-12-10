@@ -1,6 +1,6 @@
 # Database migrations
 
-This directory contains database migrations for the webapp.
+This directory contains database migrations for the 
 
 We don't have formally a versioned database schema, and we probably won't need a fully automated migration system for Auth. So at least for now, we'll just manually write migration scripts as needed.
 

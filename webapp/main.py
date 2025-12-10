@@ -1,80 +1,132 @@
-import contextlib
+import logging
 import pathlib
+import re
+import time
 
 import daiquiri.formatter
 import fastapi
 import fastapi.staticfiles
+import sqlalchemy.exc
 import starlette.middleware.base
 import starlette.requests
 import starlette.responses
 import starlette.status
 
-import api.ping
-import api.refresh_token
-import fuzz
+import api.v1.eml
+import api.v1.group
+import api.v1.key
+import api.v1.ping
+import api.v1.profile
+import api.v1.resource
+import api.v1.rule
+import api.v1.search
+import api.v1.token
+import db.models.permission
 import idp.github
 import idp.google
 import idp.ldap
 import idp.microsoft
 import idp.orcid
-import pasta_jwt
 import ui.avatar
 import ui.dev
 import ui.group
+import ui.help
 import ui.identity
 import ui.index
+import ui.key
 import ui.membership
+import ui.permission
 import ui.privacy_policy
 import ui.profile
 import ui.signin
-import util
+import ui.token
+import util.avatar
+import util.dependency
+import util.edi_token
+import util.search_cache
+import util.url
 from config import Config
+from fastapi_app import app
 
+# Configure logging using the daiquiri library
 daiquiri.setup(
     level=Config.LOG_LEVEL,
     outputs=[
-        daiquiri.output.File(Config.LOG_PATH / 'auth.log'),
-        'stdout',
+        # Log to a file with a custom formatter
+        daiquiri.output.File(
+            Config.LOG_PATH,
+            formatter=daiquiri.formatter.ColorExtrasFormatter(
+                fmt=Config.LOG_FORMAT,
+                datefmt=Config.LOG_DATE_FORMAT,
+            ),
+            level=Config.LOG_LEVEL,
+        ),
+        # Log to the console with a custom formatter
+        daiquiri.output.Stream(
+            formatter=daiquiri.formatter.ColorExtrasFormatter(
+                fmt=Config.LOG_FORMAT,
+                datefmt=Config.LOG_DATE_FORMAT,
+            ),
+            level=Config.LOG_LEVEL,
+        ),
     ],
-    # formatter=daiquiri.formatter.ColorExtrasFormatter(
-    #     # fmt=(Config.LOG_FORMAT),
-    #     # datefmt=Config.LOG_DATE_FORMAT,
-    # ),
 )
+
+# Suppress noisy debug logs from specific dependencies
+daiquiri.getLogger('filelock').setLevel(logging.WARNING)
+# daiquiri.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 log = daiquiri.getLogger(__name__)
 
-
-@contextlib.asynccontextmanager
-async def lifespan(
-    _app: fastapi.FastAPI,
-):
-    log.info('Application starting...')
-    await fuzz.init_cache()
-    yield
-    log.info('Application stopping...')
-
-
-app = fastapi.FastAPI(lifespan=lifespan)
-
-# Set up serving of static files
+# Serve static files from the configured static path
 app.mount(
     '/static',
     fastapi.staticfiles.StaticFiles(directory=Config.STATIC_PATH),
     name='static',
 )
 
-# Set up serving of avatars
+
+# Custom StaticFiles class to set MIME type for SVG files
+class AvatarFiles(fastapi.staticfiles.StaticFiles):
+    """Custom StaticFiles class to set the MIME type for SVG files."""
+
+    async def get_response(self, path, scope):
+        """Serve a file with the appropriate MIME type.
+        If the file is an SVG, set the MIME type to 'image/svg+xml'.
+        """
+        full_path, stat_result = self.lookup_path(path)
+        if stat_result is None:
+            raise fastapi.HTTPException(status_code=404, detail='File not found')
+        return starlette.responses.FileResponse(
+            full_path,
+            stat_result=stat_result,
+            media_type='image/svg+xml' if await self.is_svg(full_path) else 'image/*',
+        )
+
+    async def is_svg(self, path):
+        """Check if the file is an SVG by reading its first few bytes."""
+        with open(path, 'rb') as f:
+            return b'<?xml' in f.read(16).lower()
+
+
+# Serve avatar files from the configured avatars path
 app.mount(
     Config.AVATARS_URL,
-    fastapi.staticfiles.StaticFiles(directory=Config.AVATARS_PATH),
+    AvatarFiles(directory=Config.AVATARS_PATH),
     name='avatars',
 )
 
 
-# Set up favicon and manifest routes, served from the root
-def create_route(file_path: pathlib.Path):
-    @app.get(f'/{file_path.name}')
+# Create routes for serving specific static files
+def create_route(url_path: str, file_path: pathlib.Path):
+    """Create a route to serve a specific static file.
+    If the file is not found, return a 404 error.
+    """
+    assert file_path.exists(), f'File does not exist: {file_path}'
+    log.debug(f'Creating route for {url_path} -> {file_path}')
+
+    # As with all routes, the root path is prepended automatically.
+    @app.get(url_path)
     async def serve_file():
         try:
             return starlette.responses.FileResponse(file_path)
@@ -84,56 +136,152 @@ def create_route(file_path: pathlib.Path):
             )
 
 
-for file_path in (Config.STATIC_PATH / 'site').iterdir():
-    create_route(file_path)
+create_route('/favicon.svg', Config.STATIC_PATH / 'site/favicon.svg')
+create_route('/manifest.json', Config.STATIC_PATH / 'site/manifest.json')
 
 
-class RootPathMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
-    async def dispatch(self, request: starlette.requests.Request, call_next):
-        if not request.url.path.startswith(Config.ROOT_PATH):
-            return util.redirect_internal(request.url.path)
-        # Setting the root_path here has the same effect as setting it in the reverse proxy (e.g.,
-        # nginx). We just set it here so that we can avoid special nginx configuration. The
-        # root_path setting is part of the ASGI spec, and is used by FastAPI to properly route
-        # requests. With this, we can keep routes agnostic of the root path the app is being served
-        # from.
-        request.scope['root_path'] = Config.ROOT_PATH
-        return await call_next(request)
+# Middleware
 
-
-class RouterLoggingMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
-    async def dispatch(self, request: starlette.requests.Request, call_next):
-        log.info(f'>>> {request.method} {request.url}')
-        response = await call_next(request)
-        log.info(f'<<< {response.status_code}')
-        return response
+# Note: Middleware is executed in reverse order of addition.
 
 
 class RedirectToSigninMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
+    """
+    Middleware to redirect unauthenticated users to the sign-in page.
+    - If a request is made to a '/ui' path without a valid token, the user is redirected to
+    '/signout', which removes the invalid (usually expired) cookie and which then redirects to
+    '/ui/signin'.
+    """
+
     async def dispatch(self, request: starlette.requests.Request, call_next):
-        # If the request is for a /ui path, redirect to signin if the token is invalid
+        if re.match(fr'{util.url.url("/ui")}(?!/(?:signin(?!/link)|help|api/))', request.url.path):
+            info_dict = {}
+            if request.state.claims is None:
+                if request.cookies.get('edi-token', False):
+                    info_dict['info'] = 'expired'
+                return util.url.internal('/signout', **info_dict)
+
+        return await call_next(request)
+
+
+# noinspection PyTypeChecker
+app.add_middleware(RedirectToSigninMiddleware)
+
+
+class TokenProfileMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
+    """Middleware to decode the EDI token from the request cookie.
+    - If the token is missing or invalid, the token claims is set to None.
+    - If the token is older than the refresh delta, but still valid, it is refreshed by adding a new
+    token cookie to the response.
+    - The token claims is stored in the request state for use by downstream handlers.
+    """
+
+    async def dispatch(self, request: starlette.requests.Request, call_next):
+        claims_obj = None  # type: util.edi_token.EdiTokenClaims | None
+        # If we're signed in, there will be a token cookie
+        token_str = request.cookies.get('edi-token')
+        if token_str is not None:
+            # Note: It's important to not run this code for the unit tests, as it creates a separate
+            # session in which the test profiles don't exist, which causes the token to be invalid.
+            async with util.dependency.get_dbi() as dbi:
+                claims_obj = await util.edi_token.decode(dbi, token_str)
+                # A DB row is only valid within the session it was created in, so we cannot store a
+                # profile_row here for use in downstream handlers.
+
+        request.state.claims = claims_obj
+        response = await call_next(request)
+
+        # Refresh the token if it's older than the refresh delta
         if (
-            request.url.path.startswith(str(util.url('/ui')))
-            and not request.url.path.startswith(str(util.url('/ui/signin')))
-            and not pasta_jwt.PastaJwt.is_valid(request.cookies.get('pasta_token'))
+            # token is still valid
+            claims_obj is not None
+            # but older than the refresh delta
+            and time.time() - claims_obj.iat > Config.JWT_REFRESH_DELTA.total_seconds()
+            # and we're not currently signing out
+            and not re.match(str(util.url.url('/ui/signout')), request.url.path)
         ):
-            log.debug(
-                'Redirecting to /ui/signin: UI page requested without valid token'
-            )
-            return util.redirect_internal('/ui/signin')
+            async with util.dependency.get_dbi() as dbi:
+                try:
+                    subject_type = await dbi.get_subject_type(claims_obj.edi_id)
+                    if subject_type == db.models.permission.SubjectType.PROFILE:
+                        profile_row = await dbi.get_profile(claims_obj.edi_id)
+                        new_token = await util.edi_token.create(dbi, profile_row)
+                        response.set_cookie('edi-token', new_token)
+                except sqlalchemy.exc.NoResultFound:
+                    pass
+
+        return response
+
+
+# noinspection PyTypeChecker
+app.add_middleware(TokenProfileMiddleware)
+
+
+class ApiKeyMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
+    """Middleware to sign in via API key.
+    - If already signed in, the user is immediately signed out, then signed in via the API key.
+    """
+
+    async def dispatch(self, request: starlette.requests.Request, call_next):
+        key_str = request.query_params.get('key')
+        if key_str is not None:
+            async with util.dependency.get_dbi() as dbi:
+                try:
+                    key_row = await dbi.get_valid_key(key_str)
+                except sqlalchemy.exc.NoResultFound:
+                    return util.url.internal('/ui/signin', error='Invalid API key')
+                if key_row.group is not None:
+                    return util.url.internal(
+                        '/ui/signin',
+                        error='Invalid API key: Cannot sign in as group. Use a key with a profile principal',
+                    )
+                else:
+                    response = util.url.internal(
+                        '/ui/profile',
+                        info="""Welcome to the EDI Identity and Access Manager! You have been 
+                        successfully signed in via API key.
+                        """,
+                    )
+                    response.set_cookie(
+                        'edi-token', await util.edi_token.create(dbi, key_row.profile)
+                    )
+                    return response
+
+        return await call_next(request)
+
+
+# noinspection PyTypeChecker
+app.add_middleware(ApiKeyMiddleware)
+
+
+class RootPathMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
+    """Middleware to set the root path for the application.
+    - This middleware ensures that the application routes are agnostic of the root path it is being
+    served from. It sets the root_path in the ASGI request scope.
+    - In addition, it redirects requests that do not start with the root path to the root path.
+    """
+
+    async def dispatch(self, request: starlette.requests.Request, call_next):
+        if not request.url.path.startswith(Config.ROOT_PATH):
+            return util.url.internal(request.url.path)
+        request.scope['root_path'] = Config.ROOT_PATH
         return await call_next(request)
 
 
 # noinspection PyTypeChecker
 app.add_middleware(RootPathMiddleware)
-# noinspection PyTypeChecker
-app.add_middleware(RouterLoggingMiddleware)
-# noinspection PyTypeChecker
-app.add_middleware(RedirectToSigninMiddleware)
 
-app.include_router(api.refresh_token.router)
-app.include_router(api.ping.router)
-# app.include_router(api.user.router)
+
+# Include all routers
+app.include_router(api.v1.eml.router)
+app.include_router(api.v1.group.router)
+app.include_router(api.v1.key.router)
+app.include_router(api.v1.ping.router)
+app.include_router(api.v1.profile.router)
+app.include_router(api.v1.resource.router)
+app.include_router(api.v1.rule.router)
+app.include_router(api.v1.search.router)
+app.include_router(api.v1.token.router)
 app.include_router(idp.github.router)
 app.include_router(idp.google.router)
 app.include_router(idp.ldap.router)
@@ -142,9 +290,13 @@ app.include_router(idp.orcid.router)
 app.include_router(ui.avatar.router)
 app.include_router(ui.dev.router)
 app.include_router(ui.group.router)
+app.include_router(ui.help.router)
 app.include_router(ui.identity.router)
 app.include_router(ui.index.router)
+app.include_router(ui.key.router)
 app.include_router(ui.membership.router)
+app.include_router(ui.permission.router)
 app.include_router(ui.privacy_policy.router)
 app.include_router(ui.profile.router)
 app.include_router(ui.signin.router)
+app.include_router(ui.token.router)

@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% set highlight_menu = 'search' %}
+
+{% block title %}
+  Resource Search
+{% endblock %}
+
+{% block head %}
+  <link rel='stylesheet' href='{{ url_buster('/static/css/permission-search.css') }}'>
+{% endblock %}
+
+{% block scripts %}
+  <script src='{{ url_buster('/static/js/permission-search.js') }}'></script>
+{% endblock %}
+
+{% block header %}
+  <h1 aria-label>Resource Search
+    <a href='{{ url('/ui/help#resource-search') }}' target='_blank'>
+      <i class='bi bi-question-circle help-button'></i>
+    </a>
+  </h1>
+{% endblock %}
+
+{% block content %}
+  <div class='header-container'
+       data-highlight-menu='permission'
+       data-base-path='{{ url('') }}'
+       data-public-edi-id='{{ public_edi_id }}'
+       data-authenticated-edi-id='{{ authenticated_edi_id }}'
+       data-resource-type='{{ resource_type }}'
+  >
+  </div>
+
+  <div class='indent'>
+    <h2>Search packages
+      <a href='{{ url('/ui/help#search-packages') }}' target='_blank'>
+        <i class='bi bi-question-circle help-button'></i>
+      </a>
+    </h2>
+
+    <div class='indent'>
+      <form id='resource-filter-form' method='post' action='{{ url('/ui/api/permission/search') }}'
+            class='needs-validation' novalidate>
+        <input type='hidden' name='search-type' value='package-search'>
+        <div class='row mb-3'>
+          <div class='col-auto'>
+            <label for='scope' class='form-label'>Scope:</label>
+            <select id='scope' name='scope' class='form-select'>
+              {% for row in package_scope_list %}
+                <option value='{{ row.scope }}'>{{ row.scope }}</option>
+              {% endfor %}
+              <option value=''>ALL</option>
+            </select>
+            <div class='invalid-feedback'>Please select a scope.</div>
+          </div>
+
+          <div class='col-auto'>
+            <label for='identifier' class='form-label'>Identifier:</label>
+            <input type='text' id='identifier' name='identifier' class='form-control'
+                   placeholder='' pattern='^(|\s*|\d+|\d+-\d+|-\d+|\d+-|)$' maxlength='64'>
+            <div class='invalid-feedback'>
+              Invalid identifier
+            </div>
+          </div>
+
+          <div class='col-auto'>
+            <label for='revision' class='form-label'>Revision:</label>
+            <input type='text' id='revision' name='revision' class='form-control'
+                   placeholder='' pattern='^(|\s*|\d+|\d+-\d+|-\d+|\d+-|)$' maxlength='64'>
+            <div class='invalid-feedback'>
+              Invalid revision
+            </div>
+          </div>
+        </div>
+
+        <button type='submit' class='btn btn-primary'>Search</button>
+      </form>
+
+    </div>
+
+    <h2>Search resources
+      <a href='{{ url('/ui/help#search-resources') }}' target='_blank'>
+        <i class='bi bi-question-circle help-button'></i>
+      </a>
+    </h2>
+
+    <div class='indent'>
+      <form id='resource-filter-form' method='post' action='{{ url('/ui/api/permission/search') }}'
+            class='needs-validation' novalidate>
+        <input type='hidden' name='search-type' value='general-search'>
+        <div class='row mb-3'>
+          <div class='col-auto'>
+            <label for='type' class='form-label'>Resource type:</label>
+            <select id='type' name='type' class='form-select'>
+              {% for row in resource_type_list %}
+                <option value='{{ row.type }}'>{{ row.type }}</option>
+              {% endfor %}
+              <option value=''>ALL</option>
+            </select>
+          </div>
+          <div class='col-auto'>
+            <label for='label' class='form-label'>Label:</label>
+            <input type='text' id='label' name='label' class='form-control'
+                   placeholder='' maxlength='64'>
+          </div>
+        </div>
+        <button type='submit' class='btn btn-primary'>Search</button>
+      </form>
+    </div>
+  </div>
+
+
+{% endblock %}

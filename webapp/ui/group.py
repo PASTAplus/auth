@@ -5,201 +5,193 @@ import starlette.responses
 import starlette.status
 import starlette.templating
 
-import db.iface
-import fuzz
-import pasta_jwt
-import util
+import util.url
+import util.avatar
+import util.dependency
+import util.edi_token
+import util.url
+import util.search_cache
+import util.template
 
 log = daiquiri.getLogger(__name__)
 
 
 router = fastapi.APIRouter()
 
+#
 # UI routes
+#
 
 
 @router.get('/ui/group')
-async def group(
+async def get_ui_group(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    profile_row = udb.get_profile(token.urid)
-
     group_list = []
 
-    for group_row in profile_row.groups:
+    owned_group_list = await dbi.get_all_owned_groups(token_profile_row)
+
+    # for group_row in token_profile_row.groups:
+    for group_row in owned_group_list:
         group_list.append(
             {
                 'id': group_row.id,
-                'grid': group_row.grid,
+                'edi_id': group_row.edi_id,
                 'name': group_row.name,
                 'description': group_row.description,
-                'member_count': group_row.member_count,
+                'member_count': await dbi.get_group_member_count(token_profile_row, group_row.id),
                 'updated': group_row.updated,
             }
         )
 
     # TODO: Create a toggle for these sorts?
     # group_list.sort(key=lambda x: x['name'])
-    group_list.sort(key=lambda x: x['updated'])
+    group_list.sort(key=lambda x: x['updated'], reverse=True)
 
-    return util.templates.TemplateResponse(
+    return util.template.templates.TemplateResponse(
         'group.html',
         {
             # Base
-            'token': token,
-            'avatar_url': util.get_profile_avatar_url(profile_row),
-            'profile': profile_row,
-            #
             'request': request,
+            'profile': token_profile_row,
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
+            'error_msg': request.query_params.get('error'),
+            'info_msg': request.query_params.get('info'),
+            # Page
             'group_list': group_list,
         },
     )
 
 
 @router.get('/ui/group/member/{group_id}')
-async def group_member(
-    group_id: str,
+async def get_ui_group_member(
+    group_id: int,
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    # form_data = await request.form()
-    # form_data.get('group-id')
-    profile_row = udb.get_profile(token.urid)
-    group_row = udb.get_group(profile_row, int(group_id))
-    # group_row.created = group_row.created.strftime('%Y-%m-%d %H:%M')
-    # group_row.updated = group_row.updated.strftime('%Y-%m-%d %H:%M')
+    group_row = await dbi.get_owned_group(token_profile_row, group_id)
     group_row.created = group_row.created.strftime('%m/%d/%Y %I:%M %p')
     group_row.updated = group_row.updated.strftime('%m/%d/%Y %I:%M %p')
-    return util.templates.TemplateResponse(
+    return util.template.templates.TemplateResponse(
         'member.html',
         {
             # Base
-            'token': token,
-            'avatar_url': util.get_profile_avatar_url(profile_row),
-            'profile': profile_row,
-            #
             'request': request,
+            'profile': token_profile_row,
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
+            'error_msg': request.query_params.get('error'),
+            'info_msg': request.query_params.get('info'),
+            # Page
             'group_row': group_row,
         },
     )
 
 
+#
 # Internal routes
+#
 
 
-@router.post('/group/new')
-async def group_new(
+@router.post('/ui/api/group/new')
+async def post_group_new(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     form_data = await request.form()
     name = form_data.get('name')
     description = form_data.get('description')
-    profile_row = udb.get_profile(token.urid)
-    udb.create_group(profile_row, name, description)
-    return util.redirect_internal('/ui/group')
+    await dbi.create_group(token_profile_row, name, description)
+    return util.url.internal('/ui/group')
 
 
-@router.post('/group/edit')
-async def group_edit(
+@router.post('/ui/api/group/edit')
+async def post_group_edit(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     form_data = await request.form()
-    group_id = form_data.get('group-id')
+    group_id = int(form_data.get('group-id'))
     name = form_data.get('name')
     description = form_data.get('description')
-    profile_row = udb.get_profile(token.urid)
-    udb.update_group(profile_row, group_id, name, description)
-    return util.redirect_internal('/ui/group')
+    await dbi.update_group(token_profile_row, group_id, name, description)
+    return util.url.internal('/ui/group')
 
 
-@router.post('/group/delete')
-async def group_delete(
+@router.post('/ui/api/group/delete')
+async def post_group_delete(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     form_data = await request.form()
-    group_id = form_data.get('group-id')
-    profile_row = udb.get_profile(token.urid)
-    udb.delete_group(profile_row, group_id)
-    return util.redirect_internal('/ui/group')
+    group_id = int(form_data.get('group-id'))
+    await dbi.delete_group(token_profile_row, group_id)
+    return util.url.internal('/ui/group')
 
 
-@router.get('/group/member/list/{group_id}')
-async def group_member(
-    group_id: str,
-    request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+@router.get('/int/api/group/member/list/{group_id}')
+async def get_group_member_list(
+    # request: starlette.requests.Request,
+    group_id: int,
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    profile_row = udb.get_profile(token.urid)
-    group_row = udb.get_group(profile_row, int(group_id))
-    member_list = udb.get_group_member_list(profile_row, group_row.id)
-    member_list = sorted(member_list, key=lambda x: x.profile.full_name)
+    if token_profile_row is None:
+        return starlette.responses.Response(status_code=starlette.status.HTTP_401_UNAUTHORIZED)
+    group_row = await dbi.get_owned_group(token_profile_row, group_id)
+    member_list = await dbi.get_group_member_list(token_profile_row, group_row.id)
+    member_list.sort(
+        # Sort members by common name, or by edi_id if common_name is None. We sort edi_id after
+        # common name by prepending \uffff, a high unicode character, to the edi_id key.
+        key=lambda x: x.profile.common_name
+        or ('\uffff' + x.profile.edi_id)
+    )
     return starlette.responses.JSONResponse(
-        {
-            'status': 'ok',
-            'member_list': await get_client_profile_list(
-                [m.profile for m in member_list]
-            ),
-        }
+        [
+            {
+                'profile_id': p.id,
+                'edi_id': p.edi_id,
+                'title': p.common_name,
+                'description': p.email,
+                'avatar_url': await util.avatar.get_profile_avatar_url(dbi, p),
+            }
+            for p in [m.profile for m in member_list]
+        ],
     )
 
 
-@router.post('/group/member/search')
-async def group_member_search(
+@router.post('/int/api/group/member/search')
+async def post_group_member_search(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
+):
     # Prevent this from being called by anyone not logged in
-    _token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
-):
+    if token_profile_row is None:
+        return starlette.responses.Response(status_code=starlette.status.HTTP_401_UNAUTHORIZED)
     query_dict = await request.json()
-    # profile_row = udb.get_profile(token.urid)
-    # group_row = udb.get_group(profile_row, form_data.get('group-id'))
     query_str = query_dict.get('query')
-    match_list = await fuzz.search(query_str)
-    candidate_list = udb.get_profiles_by_ids(match_list)
-    return starlette.responses.JSONResponse(
-        {
-            'status': 'ok',
-            'candidate_list': await get_client_profile_list(candidate_list),
-        }
-    )
+    principal_list = await util.search_cache.search(dbi, query_str, include_groups=False)
+    return starlette.responses.JSONResponse(principal_list)
 
 
-async def get_client_profile_list(profile_list):
-    """Create a set of plain key/value dicts with limited profile values for exposing
-    client side."""
-    return [
-        {
-            'profile_id': p.id,
-            'full_name': p.full_name,
-            'email': p.email,
-            'organization': p.organization,
-            'association': p.association,
-            'avatar_url': p.avatar_url,
-        }
-        for p in profile_list
-    ]
-
-
-@router.post('/group/member/add-remove')
-async def group_member_add_remove(
+@router.post('/int/api/group/member/add-remove')
+async def post_group_member_add_remove(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
+    if token_profile_row is None:
+        return starlette.responses.Response(status_code=starlette.status.HTTP_401_UNAUTHORIZED)
     request_dict = await request.json()
-    profile_row = udb.get_profile(token.urid)
     is_add = request_dict['is_add']
-    group_row = udb.get_group(profile_row, request_dict['group_id'])
-    f = udb.add_group_member if is_add else udb.delete_group_member
-    f(profile_row, group_row.id, request_dict['member_profile_id'])
-    return starlette.responses.JSONResponse({'status': 'ok'})
+    group_row = await dbi.get_owned_group(token_profile_row, int(request_dict['group_id']))
+    f = dbi.add_group_member if is_add else dbi.delete_group_member
+    # noinspection PyArgumentList
+    await f(token_profile_row, group_row.id, int(request_dict['member_profile_id']))
+    return starlette.responses.JSONResponse({})

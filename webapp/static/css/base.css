@@ -1,27 +1,15 @@
-/* Extra styles for auth */
-
 :root {
     /* Set the size of 1rem */
-    font-size: 17px;
-    /*--font-color: #a0a000;*/
-}
-
-.container {
-    margin-top: 2rem;
-    margin-bottom: 2rem;
-}
-
-.header-container {
-    display: flex;
-    align-items: center;
-}
-
-.header-container h1 {
+    font-size: 16px;
 }
 
 /*
     Navbar Menu
 */
+
+.navbar {
+    border-bottom: 1px solid var(--bs-gray-400); /* Add a bottom border */
+}
 
 .navbar .navbar-brand {
     font-size: 1rem;
@@ -37,12 +25,6 @@
     margin-right: 0.5rem;
 }
 
-/* Override the default navbar color for the 'brand' name */
-.navbar-brand {
-    /*color: #000000a6 !important;*/
-    /*pointer-events: none;*/
-    /*cursor: default;*/
-}
 
 /* The small avatar in the navbar */
 
@@ -68,7 +50,7 @@
     border-radius: .3rem;
 }
 .dropdown-item:hover {
-    background-color: rgba(0, 0, 0, 0.15);
+    background-color: rgba(0, 0, 0, 0.10);
 }
 
 /**/
@@ -79,39 +61,23 @@
 
 /* Headers */
 
-/* Reduce all header sizes by 0.2rem from default */
 h1 {
+    /* We use h1 headers for the title at the top of each page.
+    Open up some space between the navbar and the title. */
+    padding-top: 2rem;
     font-size: 1.8rem;
 }
 
 h2 {
-    font-size: 1.6rem;
-}
-
-h3 {
     font-size: 1.4rem;
 }
 
-h4 {
+h3 {
     font-size: 1.2rem;
 }
 
-h5 {
+h4 {
     font-size: 1.0rem;
-}
-
-h6 {
-    font-size: 0.8rem;
-}
-
-h1 {
-    /*padding-top: 2rem;*/
-}
-
-h1, h2, h3, h4, h5, h6 {
-    /* margin: 0; */
-    /* margin-top: 1rem; */
-    /* margin-bottom: 1rem; */
 }
 
 table td, table th {
@@ -136,8 +102,17 @@ table td, table th {
     height: 5rem;
 }
 
+.avatar-smaller {
+    width: 3rem;
+    height: 3rem;
+}
+
 .indent {
     margin: 2rem 0 2rem 2rem;
+}
+
+.capitalize {
+    text-transform: capitalize;
 }
 
 .space {
@@ -278,10 +253,11 @@ table td, table th {
 .icon-button {
     cursor: pointer;
     border: none;
-    background: transparent;
+    /* background: transparent; */
     border-radius: .3rem;
-    padding: 0.2rem;
-    margin: 0 .5rem 0 0;
+    /* padding: 0.2rem; */
+    /* margin: 0 .5rem 0 0; */
+    /* height: 2rem; */
 }
 
 .icon-button img {
@@ -290,7 +266,7 @@ table td, table th {
 
 .icon-button:hover {
     transition: background-color .3s ease-in-out;
-    background-color: rgba(0, 0, 0, 0.15);
+    background-color: rgba(0, 0, 0, 0.10);
 }
 
 .icon-button:active {
@@ -302,34 +278,28 @@ table td, table th {
 
 .icon-text-button {
     display: inline-flex;
-    align-items: center;
+    /* align-items: center; */
     gap: 0.5rem;
     border: none;
-    /* border: 1px solid gray; */
     background: transparent;
     border-radius: .3rem;
     padding: 0.2rem 1rem 0.2rem 1rem;
-    /*margin: 0 1rem 0 0;*/
+    /* margin: 0 1rem 0 0; */
     box-shadow: 1px 1px 1.5px rgba(0, 0, 0, 0.5);
+    white-space: nowrap;
+    /* Hide link styling */
     text-decoration: none;
-    color: inherit;
+    color: unset;
 }
 
-.icon-text-button a {
-  /* position: absolute; */
-  /* top: 0; */
-  /* left: 0; */
-  /* width: 100%; */
-  /* height: 100%; */
-  /* display: flex; */
-  /* align-items: center; */
-  /* justify-content: center; */
-  /* z-index: 1; */
+.icon-text-button .bi {
+    font-size: 110%;
+    color: rgba(0, 0, 0, 0.75);
 }
 
 .icon-text-button:hover {
     /* box-shadow: 0 0 .2rem rgba(0, 0, 0, 0.5); */
-    background-color: rgba(0, 0, 0, 0.15);
+    background-color: rgba(0, 0, 0, 0.10);
     /* Setting the transition on hover prevents button animation from triggering and causing flashing when the page is loaded */
     transition: background-color .3s ease-in-out;
 }
@@ -347,67 +317,105 @@ table td, table th {
     height: 1.2rem;
 }
 
-/* For accessibility, we can show the label only to screen readers */
-.screen-reader-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
-    padding: 0;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    border: 0;
-}
+/* Text with copy button */
 
-/*.pasta-id-copy-button {*/
-/*    display: flex;*/
-/*    align-items: center;*/
-/*    gap: 0.5rem;*/
-/*    border: none;*/
-/*    background: transparent;*/
-/*    border-radius: .3rem;*/
-/*    padding: 0.3em;*/
-/*    transition: background-color .3s ease-in-out;*/
-/*}*/
-
-/* Pasta ID with copy button */
-
-.pasta-id-parent {
+.copy-text-parent {
     display: flex;
     align-items: center;
-    /* gap: 0.5rem; */
-    max-width: 10rem;
+    max-width: 8rem;
 }
 
-.pasta-id-child-text {
+.copy-text-text {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.pasta-id-child-icon {
+.copy-text-icon {
     cursor: pointer;
+    /* font-size: 2rem; */
     border-radius: .3rem;
     padding: 0 .5rem 0 .5rem;
-    /* height: 1.5rem; */
-    /* width: 1.2rem; */
 }
 
-.pasta-id-child-icon img {
-    height: 1.05rem;
-}
-
-.pasta-id-child-icon:hover {
+.copy-text-icon:hover {
     transition: background-color .3s ease-in-out;
-    background-color: rgba(0, 0, 0, 0.15);
+    background-color: rgba(0, 0, 0, 0.10);
 }
 
-.pasta-id-child-icon:active {
+.copy-text-icon:active {
     transform: scale(0.95);
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
 }
 
-/* Add a bit of space between BootStrap form-group's */
+.copy-text-copied-box {
+    position: absolute;
+    /* Move 'Copied' box to the right of the copy button */
+    transform: translateX(30%) translateY(-100%);
+    border-radius: .5rem;
+    z-index: 1000;
+    padding: .2rem 1rem .2rem 1rem;
+    border: 1px solid #ccc;
+    margin-top: .2rem;
+    background-color: white;
+}
+
+/* Add a bit of space between BootStrap form-groups */
+
 .form-group {
     padding: .5rem;
 }
+
+/* Error dialog */
+
+#errorMsg {
+    font-family: monospace;
+    font-size: .5rem;
+    white-space: pre;
+    overflow: hidden;
+    margin: 1rem;
+    overflow-x: auto;
+}
+
+/* Alerts */
+
+.alert .bi {
+    font-size: 1.6rem;
+}
+
+.alert-icon {
+    height: 1.6rem;
+}
+
+.alert-row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* Button with question mark icon */
+
+.help-button {
+    position: relative;
+    color: #a0a0a0;
+    font-size: 1.2rem;
+    border-radius: .3rem;
+    padding: .2rem .5rem .2rem .5rem;
+}
+
+.help-button:hover {
+    transition: transform 0.3s ease-in-out, background-color 0.3s ease-in-out;
+    background-color: rgba(0, 0, 0, 0.10);
+}
+
+/* Help modal */
+
+.perm {
+    font-style: italic;
+    font-weight: bold;
+}
+
+.cmd {
+    background-color: rgba(0, 0, 0, 0.10);
+}
+

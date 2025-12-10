@@ -1,3 +1,7 @@
+import functools
+import random
+import string
+
 import cryptography.hazmat.backends
 import cryptography.x509
 import daiquiri
@@ -7,8 +11,13 @@ import requests
 import starlette.requests
 import starlette.responses
 
-import db.iface
-import util
+import db.models.profile
+import util.avatar
+import util.dependency
+import util.login
+import util.pretty
+import util.url
+import util.url
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -20,7 +29,7 @@ router = fastapi.APIRouter()
 
 
 @router.get('/login/microsoft')
-async def login_microsoft(
+async def get_login_microsoft(
     request: starlette.requests.Request,
 ):
     """Accept the initial login request from an EDI service and redirect to the
@@ -30,9 +39,9 @@ async def login_microsoft(
     target_url = request.query_params.get('target')
     log.debug(f'login_microsoft() login_type="{login_type}" target_url="{target_url}"')
 
-    return util.redirect_to_idp(
+    return util.url.idp(
         Config.MICROSOFT_AUTH_ENDPOINT,
-        'microsoft',
+        db.models.profile.IdpName.MICROSOFT,
         login_type,
         target_url,
         client_id=Config.MICROSOFT_CLIENT_ID,
@@ -47,9 +56,10 @@ async def login_microsoft(
 
 
 @router.get('/callback/microsoft')
-async def callback_microsoft(
+async def get_callback_microsoft(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     """On successful login, redeem a code for an access token. Otherwise, just redirect to the
     target URL.
@@ -60,14 +70,12 @@ async def callback_microsoft(
     The microsoft oauth service redirects to this endpoint with a code parameter after successful
     authentication.
     """
-    login_type, target_url = util.unpack_state(request.query_params.get('state'))
-    log.debug(
-        f'callback_microsoft() login_type="{login_type}" target_url="{target_url}"'
-    )
+    login_type, target_url = util.login.unpack_state(request.query_params.get('state'))
+    log.debug(f'callback_microsoft() login_type="{login_type}" target_url="{target_url}"')
 
     code_str = request.query_params.get('code')
     if code_str is None:
-        return util.redirect_to_client_error(target_url, 'Login cancelled')
+        return util.url.client_error(target_url, 'Login cancelled')
 
     try:
         token_response = requests.post(
@@ -76,27 +84,27 @@ async def callback_microsoft(
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Accept': 'application/json',
             },
-            data=util.build_query_string(
+            data=util.url.build_query_string(
                 client_id=Config.MICROSOFT_CLIENT_ID,
                 client_secret=Config.MICROSOFT_CLIENT_SECRET,
                 code=code_str,
-                redirect_uri=util.get_redirect_uri('microsoft'),
+                redirect_uri=util.login.get_redirect_uri('microsoft'),
                 grant_type='authorization_code',
             ),
         )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.url.client_error(target_url, 'Login unsuccessful')
 
     try:
         token_dict = token_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {token_response.text}', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.url.client_error(target_url, 'Login unsuccessful')
 
     if 'id_token' not in token_dict:
-        util.log_dict(log.error, 'Login unsuccessful: token_dict', token_dict)
-        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
+        util.pretty.log_dict(log.error, 'Login unsuccessful: token_dict', token_dict)
+        return util.url.client_error(target_url, 'Login unsuccessful')
 
     jwt_unverified_header_dict = jwt.get_unverified_header(token_dict['id_token'])
     ms_pub_key = get_microsoft_public_key_by_kid(jwt_unverified_header_dict['kid'])
@@ -107,34 +115,25 @@ async def callback_microsoft(
         audience=Config.MICROSOFT_CLIENT_ID,
     )
 
-    # Fetch the avatar
-    has_avatar = False
-    try:
-        avatar = get_user_avatar(token_dict['access_token'])
-    except fastapi.HTTPException as e:
-        log.error(f'Failed to fetch user avatar: {e.detail}')
-    else:
-        util.save_avatar(avatar, 'microsoft', user_dict['sub'])
-        has_avatar = True
-
     log.debug('-' * 80)
     log.debug('login_microsoft_callback() - login successful')
-    util.log_dict(log.debug, 'jwt_unverified_header_dict', jwt_unverified_header_dict)
-    util.log_dict(log.debug, 'token_dict', token_dict)
-    util.log_dict(log.debug, 'user_dict', user_dict)
+    util.pretty.log_dict(log.debug, 'jwt_unverified_header_dict', jwt_unverified_header_dict)
+    util.pretty.log_dict(log.debug, 'token_dict', token_dict)
+    util.pretty.log_dict(log.debug, 'user_dict', user_dict)
     log.debug('-' * 80)
 
-    return util.handle_successful_login(
+    return await util.login.handle_successful_login(
         request=request,
-        udb=udb,
+        dbi=dbi,
+        token_profile_row=token_profile_row,
         login_type=login_type,
         target_url=target_url,
-        full_name=user_dict['name'],
-        idp_name='microsoft',
-        uid=user_dict['sub'],
+        idp_name=db.models.profile.IdpName.MICROSOFT,
+        idp_uid=(user_dict['sub']),
+        common_name=user_dict['name'],
         email=user_dict['email'],
-        has_avatar=has_avatar,
-        is_vetted=False,
+        fetch_avatar_func=functools.partial(fetch_user_avatar, token_dict["access_token"]),
+        avatar_ver=''.join(random.choices(string.ascii_letters, k=16))
     )
 
 
@@ -168,7 +167,7 @@ def get_microsoft_public_key_by_kid(kid):
 
 
 @router.get('/logout/microsoft')
-async def logout_microsoft(
+async def get_logout_microsoft(
     request: starlette.requests.Request,
 ):
     """Receive the initial logout request from an EDI service and redirect to the
@@ -176,21 +175,21 @@ async def logout_microsoft(
     callback URL with a `post_logout_redirect_uri` parameter.
     """
     target_url = request.query_params.get('target')
-    uid = request.query_params.get('uid')
-    log.debug(f'logout_microsoft() target_url="{target_url}" uid="{uid}"')
+    idp_uid = request.query_params.get('idp_uid')
+    log.debug(f'logout_microsoft() target_url="{target_url}" idp_uid="{idp_uid}"')
 
     # request.base_url matches the route that points to this handler, except for
     # query parameters. We built onto the base_url to reach the next handler, which
     # is the callback handler.
-    return util.redirect(
+    return util.url.redirect(
         Config.MICROSOFT_LOGOUT_ENDPOINT,
         client_id=Config.MICROSOFT_CLIENT_ID,
-        post_logout_redirect_uri=util.get_redirect_uri('microsoft'),
+        post_logout_redirect_uri=util.login.get_redirect_uri('microsoft'),
     )
 
 
-@router.get('/logout/microsoft/callback/{target_url:path}')
-async def logout_microsoft_callback(target_url):
+@router.get('/logout/microsoft/callback/{target_url}')
+async def get_logout_microsoft_callback(target_url):
     """Receive the callback from the Microsoft logout endpoint and redirect to the
     target URL.
 
@@ -201,11 +200,11 @@ async def logout_microsoft_callback(target_url):
     this callback URL.
     """
     log.debug(f'logout_microsoft_callback() target_url="{target_url}"')
-    return util.redirect(target_url)
+    return util.url.redirect(target_url)
 
 
 @router.get('/logout/microsoft/clear-session')
-async def logout_microsoft_clear_session(request: starlette.requests.Request):
+async def get_logout_microsoft_clear_session(request: starlette.requests.Request):
     """Receive the redirect from the Microsoft logout endpoint and redirect to the
     target URL.
 
@@ -235,14 +234,13 @@ async def logout_microsoft_clear_session(request: starlette.requests.Request):
 #
 
 
-def get_user_avatar(access_token):
+def fetch_user_avatar(access_token):
     """Fetch the user's avatar from Microsoft Graph API."""
     response = requests.get(
         'https://graph.microsoft.com/v1.0/me/photo/$value',
         headers={'Authorization': f'Bearer {access_token}', 'Accept': 'image/*'},
     )
-    if not response.ok:
-        raise fastapi.HTTPException(
-            status_code=response.status_code, detail=response.text
-        )
-    return response.content
+    if response.ok:
+        return response.content
+    log.error(f'Failed to fetch user avatar: {response.status_code} {response.text}')
+    return None

@@ -1,0 +1,8 @@
+{
+    "description": "test_read_group() - Description of Test Group",
+    "group_edi_id": "[CLOBBERED-EDI-ID]",
+    "members": [],
+    "method": "readGroup",
+    "msg": "Group retrieved successfully",
+    "title": "test_read_group() - Test Group"
+}

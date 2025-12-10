@@ -1,17 +1,37 @@
+# Ruff
+
+[tool.ruff]
+line-length = 100
+ignore = [
+    "E402", # module level import not at top of file
+    "F541", # f-string is missing placeholders
+]
+
+# Black
+
 [tool.black]
 skip-string-normalization = true
+line-length = 100
+
+# pytest
 
 [tool.pytest.ini_options]
+# We add this so that pytest imports use the same import paths as the rest of the code. Without
+# this, we will for example get multiple SQLAlchemy table registration bases, one under each import
+# path.
 pythonpath = ["webapp"]
+filterwarnings = [
+    # Treat all warnings as errors.
+    "error",
+    # Ignore specific warnings.
+    "ignore::DeprecationWarning",
+    "ignore::sqlalchemy.exc.SAWarning",
+    "ignore:function ham\\(\\) is deprecated:DeprecationWarning"]
 
-#filterwarnings = [
-#    "error",
-#    "ignore::sqlalchemy.esc.SAWarning",
-#    # note the use of single quote below to denote "raw" strings in TOML
-#    'ignore:function ham\(\) is deprecated:DeprecationWarning',
-#]
+asyncio_default_fixture_loop_scope = "session"
 
-#addopts = [
-#    "-p no:warnings]"
-#]
+addopts = [
+    # "-p no:warnings"
+    '--capture=no',
+]
 

@@ -1,16 +1,122 @@
-.main-grid {
-    display: grid;
-    /* grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); */
-    grid-template-columns: max-content;
-    /* gap: 1rem; */
-    row-gap: 2rem;
-    /*align-items: center;*/
-    /*justify-items: left;*/
-    white-space: nowrap;
-    /* padding: 0 1rem 0 0; */
-    /*max-width: 10rem;*/
+:root {
+    /* Variables set in JS */
+    /* Height of the navbar, used to calculate the height of the main container */
+    --navbar-height: 0px;
+}
+
+/*
+Main grid
+*/
+
+/*
++-----------------------------+
+|        split-container      |
+|  +-----------------------+  |
+|  |      split-main       |  |
+|  |  +-------+  +-------+ |  |
+|  |  | split-|  | split-| |  |
+|  |  | left- |  | right-| |  |
+|  |  |section|  |section| |  |
+|  |  +-------+  +-------+ |  |
+|  +-----------------------+  |
++-----------------------------+
+*/
+
+
+/*
+The container wraps everything on the page except for the navbar.
+
+We use a flex column layout to allow the split-container to take up the remaining space below the
+navbar. The container height is set to the full size of the viewport minus the navbar height, so the
+split-container can use flex: 1 to take up the remaining space.
+*/
+.container {
+    display: flex;
+    flex-direction: column;
+    /* Include padding and border in element's total width and height */
+    box-sizing: border-box;
+    height: calc(100vh - var(--navbar-height));
+    /* Prevent scrollbars on main page */
     overflow: hidden;
-    text-overflow: ellipsis;
+    /*border: 3px solid red;*/
+}
+
+.split-container {
+    /* display: grid; */
+    /* grid-template-rows: auto 1fr; */
+    /* height: 100vh; */
+    /* height: 100%; */
+    /* box-sizing: border-box; */
+    /* Prevent overflow */
+    overflow: auto;
+    flex: 1;
+}
+
+.split-main {
+    display: flex;
+    /* Add vertical scrolling */
+    /* overflow-y: auto; */
+    height: 100%;
+    overflow: auto;
+    margin-left: 1rem;
+}
+
+.split-section {
+    /* Allow the container to take up the remaining space */
+    flex: 1;
+    overflow-y: auto;
+
+    /*height: 50%;*/
+}
+
+.split-left {
+    /* Border between the left and right sides */
+    /* padding: 0 3px 0 3px; */
+    /* margin-right: 1rem; */
+    /* background-color: #444400; */
+    /* Boxes */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-left: 1rem;
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.split-right {
+    /* Border between the left and right sides */
+    /* padding: 0 3px 0 .8rem;*/
+    /* border-left: 2px solid #d0d0d0;*/
+    /* margin-left: .8rem;*/
+    /* background-color: #004444; */
+    /* Boxes */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    /* The right margin is to make space for the box-shadow */
+    margin: 1rem 4px 1rem 1rem;
+    padding: 1rem;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+
+.main-grid {
+}
+
+.main-grid-child {
+}
+
+/*
+Groups (left side)
+
+2-col grid that lines up the group selection radio buttons and the group details.
+*/
+
+.group-grid {
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+    align-items: center;
+    word-break: break-word;
     /* Make room for shadows around buttons at edges */
     padding: 2px;
 }
@@ -19,84 +125,172 @@
     font-weight: bold;
 }
 
-.description {
-    padding: .5rem 0 .5rem 0;
+.grid-child-description {
+    /* font-size: 90%; */
+}
+
+.group-details {
+    transition: background-color .3s ease-in-out;
+    border-radius: .3rem;
+    padding: .5rem 1rem .5rem 1rem;
+}
+.group-details:hover {
+    background-color: rgba(0, 0, 0, 0.10);
+}
+
+#newGroupButton {
+    margin-top: 1rem;
 }
 
 /*
+Members (right side)
 */
 
-.child-grid {
+/*
+The member grid:
+Col 1: Principal info
+Col 2: Remove button
+*/
+.member-grid {
     display: grid;
-    grid-template-columns: max-content;
+    grid-template-columns: 1fr auto;
+    /* Use full width of each column */
+    /*grid-template-columns: 1fr auto;*/
     align-items: center;
     justify-items: left;
+    gap: 1rem;
 }
 
-.child-grid-child {
-    /* display: flex; */
-    /* justify-content: center; */
+.grid-child {
     /* white-space: nowrap; */
-    /* padding: 0 0 0 0; */
-    /* max-width: 10rem; */
-    /* overflow: hidden; */
-    /* text-overflow: ellipsis; */
-    /* background-color: red; */
+    /* padding: 1rem 1rem 1rem 1rem; */
 }
 
-.row-center-parent {
-    /* gap: 1rem; */
+.grid-child-span-2 {
+    /* grid-column: span 2; */
 }
 
-.button-row {
-    gap: 2rem;
+.member-grid-title {
+    /*font-size: larger;*/
+    /*font-weight: bold;*/
 }
 
-/*.child-grid-button {*/
-/*    display: flex;*/
-/*    justify-content: center;*/
-/*}*/
+/*
+Principal (2 col row)
+*/
 
-/*.child-grid-row {*/
-/*    display: contents;*/
-/*}*/
+.principal-flex {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.principal-child {
+}
 
 
+.principal-avatar {
+}
+
+.principal-info {
+    /* Prefer breaking at spaces, but break long words if needed */
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
 
 
-/*.grid {*/
-/*    display: grid;*/
-/*    grid-template-columns: repeat(6, max-content);*/
-/*    align-items: center;*/
-/*    justify-items: left;*/
-/*}*/
+.principal-title {
+    font-weight: bold;
+}
 
-/*.grid-child {*/
-/*    white-space: nowrap;*/
-/*    padding: .2rem 1rem .2rem 1rem;*/
-/*}*/
+.principal-description {
+}
 
-/*.grid-child-title {*/
-/*    font-weight: bold;*/
-/*}*/
+.principal-public {
+    font-weight: bold;
+}
 
-/*.grid-row {*/
-/*    display: contents;*/
-/*}*/
+/*
+Member dropdown
+*/
 
-/*.grid-logo {*/
-/*    height: 1rem;*/
-/*    !* margin-right: 1rem; *!*/
-/*}*/
+.level-dropdown {
+    padding: 0.2rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
 
-/* */
+#principalSearch {
+    margin-bottom: 1rem;
+}
+
+#principalList {
+    /* This is a flex, but starts out hidden */
+    display: none;
+    flex-direction: column;
+    padding: .3rem;
+    /* Open a bit of space between the input element and the dropdown. */
+    /* margin-top: .5rem; */
+    /* Ensure the dropdown is above other elements */
+    z-index: 1000;
+    /*
+    A bit of a hack to make dropdown look like the input element.
+    Is there a better way to do this in Bootstrap?
+    This is in addition to setting the form-control class on principalList
+    */
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    margin-bottom: .5rem;
+    overflow: hidden;
+}
+
+#principalList.visible {
+    display: flex;
+}
+
+
+#principalList .principal-flex {
+    padding: .3rem;
+}
+
+#principalList .principal-flex:hover {
+    background-color: rgba(0, 0, 0, 0.10);
+    transition: background-color .3s ease-in-out;
+    cursor: pointer;
+}
 
 #deleteGroupName {
     font-weight: bold;
+    word-wrap: break-word;
 }
 
 #deleteGroupModal .modal-body span {
     display: inline;
     margin: 0;
     padding: 0;
+}
+
+.grid-msg {
+    /* font-size: smaller; */
+    /* color: #808080; */
+    margin: 1rem 0 0 0;
+}
+
+/*
+*/
+
+.row-center-parent {
+    justify-content: flex-start;
+}
+
+.button-row {
+    padding-top: .5rem;
+    gap: 1rem;
+}
+
+.icon-text-button {
+    margin: 0 .8rem 0 0;
+    padding: .2rem .6rem .2rem .6rem;
 }

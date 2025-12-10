@@ -1,0 +1,26 @@
+{
+    "method": "readResourceTree",
+    "msg": "Resource tree retrieved successfully",
+    "tree": [
+        {
+            "children": [],
+            "key": "2b22d840a07643d897588820343f8ac3",
+            "principals": [
+                {
+                    "description": "john@smith.com",
+                    "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                    "permission": "changePermission",
+                    "principal_type": "profile",
+                    "title": "John Smith"
+                },
+                {
+                    "description": "sarah@martinez.com",
+                    "edi_id": "EDI-e3d2004572074df7a3a9f6f3a65e6bae",
+                    "permission": "changePermission",
+                    "principal_type": "profile",
+                    "title": "Sarah Martinez"
+                }
+            ]
+        }
+    ]
+}

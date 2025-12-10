@@ -9,9 +9,12 @@ import starlette.responses
 import starlette.status
 import starlette.templating
 
-import db.iface
-import pasta_jwt
-import util
+import db.models.profile
+import util.avatar
+import util.dependency
+import util.edi_token
+import util.url
+import util.template
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -24,83 +27,44 @@ def assert_dev_enabled(func):
     @functools.wraps(func)
     async def wrapper(*args, **kwargs):
         if not Config.ENABLE_DEV_MENU:
-            raise starlette.exceptions.HTTPException(
-                status_code=403, detail='Dev menu is disabled'
-            )
+            raise starlette.exceptions.HTTPException(status_code=403, detail='Dev menu is disabled')
         return await func(*args, **kwargs)
 
     return wrapper
 
 
-@router.get('/dev/token')
+@router.get('/ui/api/dev/profiles')
 @assert_dev_enabled
-async def dev_token(
+async def get_dev_profiles(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    if token is None:
-        return util.templates.TemplateResponse(
-            'token.html',
-            {
-                # Base
-                'token': token,
-                'avatar_url': util.get_anon_avatar_url(),
-                'profile': None,
-                #
-                'request': request,
-                'token_pp': 'NO TOKEN',
-            },
-        )
-    profile_row = udb.get_profile(token.urid)
-    return util.templates.TemplateResponse(
-        'token.html',
-        {
-            # Base
-            'token': token,
-            'avatar_url': util.get_profile_avatar_url(profile_row),
-            'profile': profile_row,
-            #
-            'request': request,
-            'token_pp': token.claims_pp,
-        },
-    )
-
-
-@router.get('/dev/profiles')
-@assert_dev_enabled
-async def index(
-    request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
-):
-    profile_list = udb.get_all_profiles()
-    return util.templates.TemplateResponse(
+    profile_list = await dbi.get_all_profiles()
+    return util.template.templates.TemplateResponse(
         'index.html',
         {
             # Base
-            'token': token,
-            'profile': None,
-            #
             'request': request,
+            'profile': token_profile_row,
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
+            'error_msg': request.query_params.get('error'),
+            'info_msg': request.query_params.get('info'),
+            # Page
             'profile_list': profile_list,
         },
     )
 
 
-@router.get('/dev/signin/{urid}')
+@router.get('/ui/api/dev/signin/{idp_name}/{idp_uid}')
 @assert_dev_enabled
-async def dev_signin_urid(
-    urid: str,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+async def get_dev_signin(
+    idp_name: db.models.profile.IdpName,
+    idp_uid: str,
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
 ):
-    response = util.redirect_internal('/ui/profile')
-    profile_row = udb.get_profile(urid)
-    pasta_token = pasta_jwt.PastaJwt(
-        {
-            'sub': urid,
-            'groups': udb.get_group_membership_grid_set(profile_row),
-        }
-    )
-    response.set_cookie(key='pasta_token', value=pasta_token)
+    response = util.url.internal('/ui/profile')
+    identity_row = await dbi.get_profile(idp_name, idp_uid)
+    edi_token = await util.edi_token.create(dbi, identity_row)
+    response.set_cookie('edi-token', edi_token)
     return response

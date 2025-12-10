@@ -1,0 +1,5 @@
+{
+    "group_edi_id": "[CLOBBERED-EDI-ID]",
+    "method": "createGroup",
+    "msg": "Group created successfully"
+}

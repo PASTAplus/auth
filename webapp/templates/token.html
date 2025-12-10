@@ -1,15 +1,68 @@
 {% extends 'base.html' %}
-{% set active_page = 'profile' %}
+{% set highlight_menu = 'token' %}
 
 {% block title %}
-  Token
+  EDI Authentication Token
+{% endblock %}
+
+{% block head %}
+  <link rel='stylesheet' href='{{ url_buster('/static/css/token.css') }}'>
+{% endblock %}
+
+{% block scripts %}
+  <script src='{{ url_buster('/static/js/token.js') }}'></script>
+{% endblock %}
+
+{% block header %}
+  <h1 aria-label>EDI Authentication Token
+    <a href='{{ url('/ui/help#tokens') }}' target='_blank'>
+      <i class='bi bi-question-circle help-button'></i>
+    </a>
+  </h1>
 {% endblock %}
 
 {% block content %}
-  <h1 aria-label>Token</h1>
-
-  <div class='indent'>
-    <pre>{{ token_pp }}</pre>
+  <div class='header-container'
+       data-highlight-menu='token'
+       data-base-path='{{ url('') }}'
+  >
   </div>
 
+  <div class='indent'>
+    <p>
+      The following is the payload of the token which you are currently signed in with, augmented
+      for readability:
+    </p>
+    <div class='indent'>
+      <pre>{{ token_pp }}</pre>
+    </div>
+  </div>
+
+  <h2 aria-label>Token access</h2>
+
+  <div class='indent'>
+    <p>
+      The token is valid for <span class='highlight'>{{ lifetime }} hours</span>.
+    </p>
+  </div>
+
+  <div class='indent'>
+    <h3>Copy to clipboard</h3>
+    <div class='indent'>
+      <span>
+        <button id='copyTokenButton' class='btn btn-primary'>Copy Token</button>
+        <span id='copyStatus' class='copy-status'></span>
+      </span>
+    </div>
+  </div>
+
+  <div class='indent'>
+    <h3>Download</h3>
+    <div class='indent'>
+      <p>
+        Filename: <span class='highlight'>{{ filename }}</span>.
+      </p>
+      <a href="{{ url('/ui/api/token/download') }}" class='btn btn-primary'>Download Token</a>
+    </div>
+  </div>
 {% endblock %}

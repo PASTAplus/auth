@@ -1,28 +1,44 @@
 server {
-	listen 80;
-	server_name dashboard.edirepository.org;
 
-        location / {
-                # First attempt to serve request as file, then
-                # as directory, then fall back to displaying a 404.
-		root /var/www/html;
-	        index index.html index.htm index.nginx-debian.html;
-                try_files $uri $uri/ =404;
-        }
+    server_name <AUTH>.edirepository.org;
 
-	location /dashboard {
-		include uwsgi_params;
-		uwsgi_pass unix:///tmp/dashboard.sock;
-	}
+    listen 443 ssl;
 
-	listen 443 ssl; # managed by Certbot
-	ssl_certificate /etc/letsencrypt/live/bill.edirepository.org/fullchain.pem; # managed by Certbot
-	ssl_certificate_key /etc/letsencrypt/live/bill.edirepository.org/privkey.pem; # managed by Certbot
-	include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
-	ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/<HOST>.edirepository.org/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/<HOST>.edirepository.org/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
+    disable_symlinks off;
+    merge_slashes off;
 
-	if ($scheme != "https") {
-		return 301 https://$host$request_uri;
-	} # managed by Certbot
+    root /var/www/html;
+
+    location /static {
+        alias /home/pasta/auth/webapp/static;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_buffer_size 16k;
+        proxy_buffers 4 16k;
+    }
+
+}
+
+server {
+    server_name <AUTH>.edirepository.org;
+
+    listen 80;
+
+    if ($host = <AUTH>.edirepository.org) {
+        return 301 https://$host$request_uri;
+    }
+
+    root /var/www/html;
+    index index.html index.htm index.nginx-debian.html;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
 }

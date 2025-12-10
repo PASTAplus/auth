@@ -1,0 +1,31 @@
+{
+    "groups": [
+        {
+            "avatar_url": "/auth/static/svg/group.svg",
+            "description": "",
+            "edi_id": "EDI-7368d80668844b9a876f62a18a15b8cb",
+            "name": "Jane's group #0"
+        },
+        {
+            "avatar_url": "/auth/static/svg/group.svg",
+            "description": "",
+            "edi_id": "EDI-593f4fc0ad96443bb2cdaacde067e5c3",
+            "name": "Jane's group #1"
+        },
+        {
+            "avatar_url": "/auth/static/svg/group.svg",
+            "description": "",
+            "edi_id": "EDI-59fed3c4cec84b29bd841836bf0b023a",
+            "name": "Jane's group #2"
+        },
+        {
+            "avatar_url": "/auth/static/svg/group.svg",
+            "description": "",
+            "edi_id": "EDI-ab31874e03ed44449463195577090ed1",
+            "name": "Jane's group #3"
+        }
+    ],
+    "method": "searchPrincipals",
+    "msg": "Profiles and/or groups searched successfully",
+    "profiles": []
+}

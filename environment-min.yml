@@ -4,22 +4,25 @@ channels:
   - defaults
 dependencies:
   - python=3.11
-  - sqlalchemy=1.4.46
+  - sqlalchemy
   - click
   - cryptography
   - daiquiri
   - fastapi
+  - filelock
   - gunicorn
   - ldap3
   - libiconv
   - pendulum
   - pillow
+  - psycopg
   - pycryptodome
   - pyjwt
   - pynacl
   - pytest
+  - pytest-asyncio
   - requests
   - sqlite
-  - thefuzz
   - urllib3
   - uvicorn
+  - lxml

@@ -1,39 +1,36 @@
 {% extends 'base.html' %}
-{% set active_page = 'profile' %}
+{% set highlight_menu = 'profile-edit' %}
 
 {% block title %}
-  Profile
+  Edit Profile
 {% endblock %}
 
 {% block head %}
-  <link rel='stylesheet' href='{{ url('/static/css/profile.css') }}'>
+  <link rel='stylesheet' href='{{ url_buster('/static/css/profile.css') }}'>
 {% endblock %}
 
 {% block scripts %}
-  <script src='{{ url('/static/js/profile_edit.js') }}'></script>
+  <script src='{{ url_buster('/static/js/profile_edit.js') }}'></script>
 {% endblock %}
 
 {% block content %}
 
-  <h1 aria-label>Edit Profile</h1>
+  <div class='header-container'
+       data-highlight-menu='profile-edit'
+  >
+  </div>
 
   <div class='indent'>
 
-    {% if msg %}
-      <p class='alert alert-info'>
-        {{ msg }}
-      </p>
-    {% endif %}
-
     <form id='editProfileForm' class='needs-validation' novalidate
-          action='{{ url('/profile/edit/update') }}' method='post'
+          action='{{ url('/ui/api/profile/edit/update') }}' method='post'
     >
       <div class='form-group'>
         <label for='modalName'>Name</label>
-        <input type='text' class='form-control' id='modalName' name='full-name' required pattern='.{3,}'
-               value='{{ profile.full_name or '' }}'>
+        <input type='text' class='form-control' id='modalName' name='common-name'
+               required pattern='.{3,}' value='{{ profile.common_name or '' }}' maxlength='64'>
         <div class='invalid-feedback'>
-          Name must be at least 3 characters long.
+          Please prove a name for the profile.
         </div>
       </div>
       <div class='form-group'>
@@ -44,16 +41,6 @@
         <label for='modalNotifications'>Email notifications</label>
         <input type='checkbox' class='form-check-input' id='modalNotifications'
                name='email-notifications' {{ 'checked' if profile.email_notifications else '' }}>
-      </div>
-      <div class='form-group'>
-        <label for='modalOrganization'>Organization</label>
-        <input type='text' class='form-control' id='modalOrganization' name='organization'
-               value='{{ profile.organization or '' }}'>
-      </div>
-      <div class='form-group'>
-        <label for='modalAssociation'>Association</label>
-        <input type='text' class='form-control' id='modalAssociation' name='association'
-               value='{{ profile.association or '' }}'>
       </div>
       <div class='form-group'>
         <button type='submit' class='btn btn-primary' id='saveProfileButton'>Save Changes</button>
@@ -84,35 +71,46 @@
           <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
         </div>
         <div class='modal-body'>
-          <form action='{{ url('/profile/edit/delete') }}' method='post' id='deleteProfileForm'>
+          <form action='{{ url('/ui/api/profile/edit/delete') }}' method='post' id='deleteProfileForm'>
             <div class='form-group'>
               <p>
                 Are you sure you want to delete your profile?
               </p>
               <ul>
                 <li>
-                  Your account(s) will be unlinked, and your profile, will be deleted from the system.
+                  Your profile, will be deleted from the system.
                 </li>
                 <li>
-                  Your access to resources <b>created by you</b> will be revoked.
+                  Any linked profiles will be unlinked, but will remain in the system.
                 </li>
                 <li>
-                  Your access to resources <b>granted to you</b> by others, both directly and via group memberships, will be revoked.
-                </li>
-                <li>
-                  Access <b>granted by you</b> to others will be revoked.
-                </li>
-                <li>
-                  <b>Groups created by you</b> will be removed, and access <b>granted to their members</b> will be revoked.
+                  The following access will be revoked:
+                  <ul>
+                    <li>
+                      Your access to resources created by you.
+                    </li>
+                    <li>
+                      Your access to resources granted to you by others, both directly and via group
+                      memberships.
+                    </li>
+                    <li>
+                      Access you have granted to others.
+                    </li>
+                    <li>
+                      Groups created by you will be removed, and access granted to their members
+                      will be revoked.
+                    </li>
+                  </ul>
                 </li>
               </ul>
             </div>
             <div class='form-group'>
               <label for='modalName'>
-                Type 'DELETE' in the box below, then click 'Delete Profile' to confirm that you wish to
-                delete your profile. <b>This action cannot be undone</b>.
+                Please type 'DELETE' in the box below, then click 'Delete Profile' to confirm that
+                you wish to delete your profile. <b>This action cannot be undone</b>.
               </label>
-              <input type='text' class='form-control' id='modalName' name='name' required pattern='DELETE'>
+              <input type='text' class='form-control' id='modalName' name='name'
+                     required pattern='DELETE' maxlength='64'>
             </div>
             <div class='modal-footer'>
               <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Cancel</button>

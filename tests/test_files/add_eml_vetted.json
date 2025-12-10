@@ -1,0 +1,314 @@
+{
+    "method": "readResourceTree",
+    "msg": "Resource tree retrieved successfully",
+    "tree": [
+        {
+            "children": [
+                {
+                    "children": [
+                        {
+                            "children": [],
+                            "key": "https://test.example/package/metadata/eml/icarus/3/1",
+                            "principals": [
+                                {
+                                    "description": null,
+                                    "edi_id": "EDI-078e6e3cee4f7f2812f150701da9351acb51e089",
+                                    "permission": "read",
+                                    "principal_type": "profile",
+                                    "title": "Public Access"
+                                },
+                                {
+                                    "description": "john@smith.com",
+                                    "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                                    "permission": "changePermission",
+                                    "principal_type": "profile",
+                                    "title": "John Smith"
+                                },
+                                {
+                                    "description": null,
+                                    "edi_id": "EDI-166ebf44ac70835c7ebce152e2219ae5eab16418",
+                                    "permission": "changePermission",
+                                    "principal_type": "profile",
+                                    "title": null
+                                },
+                                {
+                                    "description": null,
+                                    "edi_id": "EDI-1caae73e3e39bed43f7058555277bdcde816a4ce",
+                                    "permission": "changePermission",
+                                    "principal_type": "profile",
+                                    "title": null
+                                }
+                            ]
+                        },
+                        {
+                            "children": [],
+                            "key": "https://test.example/package/report/eml/icarus/3/1",
+                            "principals": [
+                                {
+                                    "description": null,
+                                    "edi_id": "EDI-078e6e3cee4f7f2812f150701da9351acb51e089",
+                                    "permission": "read",
+                                    "principal_type": "profile",
+                                    "title": "Public Access"
+                                },
+                                {
+                                    "description": "john@smith.com",
+                                    "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                                    "permission": "changePermission",
+                                    "principal_type": "profile",
+                                    "title": "John Smith"
+                                },
+                                {
+                                    "description": null,
+                                    "edi_id": "EDI-166ebf44ac70835c7ebce152e2219ae5eab16418",
+                                    "permission": "changePermission",
+                                    "principal_type": "profile",
+                                    "title": null
+                                },
+                                {
+                                    "description": null,
+                                    "edi_id": "EDI-1caae73e3e39bed43f7058555277bdcde816a4ce",
+                                    "permission": "changePermission",
+                                    "principal_type": "profile",
+                                    "title": null
+                                }
+                            ]
+                        }
+                    ],
+                    "key": "CLOBBERED-RANDOM-KEY",
+                    "principals": [
+                        {
+                            "description": null,
+                            "edi_id": "EDI-078e6e3cee4f7f2812f150701da9351acb51e089",
+                            "permission": "read",
+                            "principal_type": "profile",
+                            "title": "Public Access"
+                        },
+                        {
+                            "description": "john@smith.com",
+                            "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                            "permission": "changePermission",
+                            "principal_type": "profile",
+                            "title": "John Smith"
+                        },
+                        {
+                            "description": null,
+                            "edi_id": "EDI-166ebf44ac70835c7ebce152e2219ae5eab16418",
+                            "permission": "changePermission",
+                            "principal_type": "profile",
+                            "title": null
+                        },
+                        {
+                            "description": null,
+                            "edi_id": "EDI-1caae73e3e39bed43f7058555277bdcde816a4ce",
+                            "permission": "changePermission",
+                            "principal_type": "profile",
+                            "title": null
+                        }
+                    ]
+                },
+                {
+                    "children": [
+                        {
+                            "children": [],
+                            "key": "https://pasta-s.lternet.edu/package/data/eml/edi/718/11/9a072c4e4af39f96f60954fc4f7d8be5",
+                            "principals": [
+                                {
+                                    "description": "john@smith.com",
+                                    "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                                    "permission": "changePermission",
+                                    "principal_type": "profile",
+                                    "title": "John Smith"
+                                },
+                                {
+                                    "description": null,
+                                    "edi_id": "EDI-166ebf44ac70835c7ebce152e2219ae5eab16418",
+                                    "permission": "changePermission",
+                                    "principal_type": "profile",
+                                    "title": null
+                                },
+                                {
+                                    "description": null,
+                                    "edi_id": "EDI-1caae73e3e39bed43f7058555277bdcde816a4ce",
+                                    "permission": "changePermission",
+                                    "principal_type": "profile",
+                                    "title": null
+                                }
+                            ]
+                        },
+                        {
+                            "children": [],
+                            "key": "https://pasta-s.lternet.edu/package/data/eml/edi/718/11/5a1454801605a1237489e9c14d10ff2c",
+                            "principals": [
+                                {
+                                    "description": "john@smith.com",
+                                    "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                                    "permission": "changePermission",
+                                    "principal_type": "profile",
+                                    "title": "John Smith"
+                                },
+                                {
+                                    "description": null,
+                                    "edi_id": "EDI-166ebf44ac70835c7ebce152e2219ae5eab16418",
+                                    "permission": "changePermission",
+                                    "principal_type": "profile",
+                                    "title": null
+                                },
+                                {
+                                    "description": null,
+                                    "edi_id": "EDI-1caae73e3e39bed43f7058555277bdcde816a4ce",
+                                    "permission": "changePermission",
+                                    "principal_type": "profile",
+                                    "title": null
+                                }
+                            ]
+                        },
+                        {
+                            "children": [],
+                            "key": "https://pasta-s.lternet.edu/package/data/eml/edi/718/11/afc6533cfe52c120e971016dcf214b97",
+                            "principals": [
+                                {
+                                    "description": "john@smith.com",
+                                    "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                                    "permission": "changePermission",
+                                    "principal_type": "profile",
+                                    "title": "John Smith"
+                                },
+                                {
+                                    "description": null,
+                                    "edi_id": "EDI-166ebf44ac70835c7ebce152e2219ae5eab16418",
+                                    "permission": "changePermission",
+                                    "principal_type": "profile",
+                                    "title": null
+                                },
+                                {
+                                    "description": null,
+                                    "edi_id": "EDI-1caae73e3e39bed43f7058555277bdcde816a4ce",
+                                    "permission": "changePermission",
+                                    "principal_type": "profile",
+                                    "title": null
+                                }
+                            ]
+                        },
+                        {
+                            "children": [],
+                            "key": "https://pasta-s.lternet.edu/package/data/eml/edi/718/11/8b01d46d764d7486b84d4b9903517fa9",
+                            "principals": [
+                                {
+                                    "description": "john@smith.com",
+                                    "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                                    "permission": "changePermission",
+                                    "principal_type": "profile",
+                                    "title": "John Smith"
+                                },
+                                {
+                                    "description": null,
+                                    "edi_id": "EDI-166ebf44ac70835c7ebce152e2219ae5eab16418",
+                                    "permission": "changePermission",
+                                    "principal_type": "profile",
+                                    "title": null
+                                },
+                                {
+                                    "description": null,
+                                    "edi_id": "EDI-1caae73e3e39bed43f7058555277bdcde816a4ce",
+                                    "permission": "changePermission",
+                                    "principal_type": "profile",
+                                    "title": null
+                                }
+                            ]
+                        },
+                        {
+                            "children": [],
+                            "key": "https://pasta-s.lternet.edu/package/data/eml/edi/718/11/2da469de3846ce79c3138c07b0ac70a2",
+                            "principals": [
+                                {
+                                    "description": "john@smith.com",
+                                    "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                                    "permission": "changePermission",
+                                    "principal_type": "profile",
+                                    "title": "John Smith"
+                                },
+                                {
+                                    "description": null,
+                                    "edi_id": "EDI-166ebf44ac70835c7ebce152e2219ae5eab16418",
+                                    "permission": "changePermission",
+                                    "principal_type": "profile",
+                                    "title": null
+                                },
+                                {
+                                    "description": null,
+                                    "edi_id": "EDI-1caae73e3e39bed43f7058555277bdcde816a4ce",
+                                    "permission": "changePermission",
+                                    "principal_type": "profile",
+                                    "title": null
+                                }
+                            ]
+                        }
+                    ],
+                    "key": "CLOBBERED-RANDOM-KEY",
+                    "principals": [
+                        {
+                            "description": null,
+                            "edi_id": "EDI-078e6e3cee4f7f2812f150701da9351acb51e089",
+                            "permission": "read",
+                            "principal_type": "profile",
+                            "title": "Public Access"
+                        },
+                        {
+                            "description": "john@smith.com",
+                            "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                            "permission": "changePermission",
+                            "principal_type": "profile",
+                            "title": "John Smith"
+                        },
+                        {
+                            "description": null,
+                            "edi_id": "EDI-166ebf44ac70835c7ebce152e2219ae5eab16418",
+                            "permission": "changePermission",
+                            "principal_type": "profile",
+                            "title": null
+                        },
+                        {
+                            "description": null,
+                            "edi_id": "EDI-1caae73e3e39bed43f7058555277bdcde816a4ce",
+                            "permission": "changePermission",
+                            "principal_type": "profile",
+                            "title": null
+                        }
+                    ]
+                }
+            ],
+            "key": "https://test.example/package/eml/icarus/3/1",
+            "principals": [
+                {
+                    "description": null,
+                    "edi_id": "EDI-078e6e3cee4f7f2812f150701da9351acb51e089",
+                    "permission": "read",
+                    "principal_type": "profile",
+                    "title": "Public Access"
+                },
+                {
+                    "description": "john@smith.com",
+                    "edi_id": "EDI-147dd745c653451d9ef588aeb1d6a188",
+                    "permission": "changePermission",
+                    "principal_type": "profile",
+                    "title": "John Smith"
+                },
+                {
+                    "description": null,
+                    "edi_id": "EDI-166ebf44ac70835c7ebce152e2219ae5eab16418",
+                    "permission": "changePermission",
+                    "principal_type": "profile",
+                    "title": null
+                },
+                {
+                    "description": null,
+                    "edi_id": "EDI-1caae73e3e39bed43f7058555277bdcde816a4ce",
+                    "permission": "changePermission",
+                    "principal_type": "profile",
+                    "title": null
+                }
+            ]
+        }
+    ]
+}

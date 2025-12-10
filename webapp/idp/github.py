@@ -1,13 +1,20 @@
+import functools
 import json
 
 import daiquiri
 import fastapi
 import requests
+import sqlalchemy.exc
 import starlette.requests
 import starlette.status
 
-import db.iface
-import util
+import db.models.profile
+import util.avatar
+import util.dependency
+import util.login
+import util.pretty
+import util.url
+import util.url
 from config import Config
 
 log = daiquiri.getLogger(__name__)
@@ -19,7 +26,7 @@ router = fastapi.APIRouter()
 
 
 @router.get('/login/github')
-async def login_github(
+async def get_login_github(
     request: starlette.requests.Request,
 ):
     """Accept the initial login request from an EDI service and redirect to the
@@ -29,9 +36,9 @@ async def login_github(
     target_url = request.query_params.get('target')
     log.debug(f'login_github() login_type="{login_type}" target_url="{target_url}"')
 
-    return util.redirect_to_idp(
+    return util.url.idp(
         Config.GITHUB_AUTH_ENDPOINT,
-        'github',
+        db.models.profile.IdpName.GITHUB,
         login_type,
         target_url,
         client_id=Config.GITHUB_CLIENT_ID,
@@ -42,20 +49,23 @@ async def login_github(
 
 
 @router.get('/callback/github')
-async def callback_github(
+async def get_callback_github(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    # token_profile_row is None if the user is logging in
+    # token_profile_row is set if the user is linking a profile
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    login_type, target_url = util.unpack_state(request.query_params.get('state'))
+    login_type, target_url = util.login.unpack_state(request.query_params.get('state'))
     log.debug(f'callback_github() login_type="{login_type}" target_url="{target_url}"')
 
     if is_error(request):
         log.error(get_error_message(request))
-        return util.redirect_to_client_error(target_url, 'Login failed')
+        return util.url.client_error(target_url, 'Login failed')
 
     code_str = request.query_params.get('code')
     if code_str is None:
-        return util.redirect_to_client_error(target_url, 'Login cancelled')
+        return util.url.client_error(target_url, 'Login cancelled')
 
     try:
         token_response = requests.post(
@@ -64,30 +74,30 @@ async def callback_github(
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Accept': 'application/json',
             },
-            data=util.build_query_string(
+            data=util.url.build_query_string(
                 client_id=Config.GITHUB_CLIENT_ID,
                 client_secret=Config.GITHUB_CLIENT_SECRET,
                 code=code_str,
                 authorization_response=str(
-                    util.get_redirect_uri("github").replace_query_params(code=code_str)
+                    util.login.get_redirect_uri('github').replace_query_params(code=code_str)
                 ),
-                redirect_uri=util.get_redirect_uri('github'),
+                redirect_uri=util.login.get_redirect_uri('github'),
                 grant_type='authorization_code',
             ),
         )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.url.client_error(target_url, 'Login unsuccessful')
 
     try:
         token_dict = token_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {token_response.text}', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.url.client_error(target_url, 'Login unsuccessful')
 
     if 'error' in token_dict:
         log.error(f'Login unsuccessful: {token_dict["error"]}', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.url.client_error(target_url, 'Login unsuccessful')
 
     try:
         userinfo_response = requests.get(
@@ -98,49 +108,33 @@ async def callback_github(
         )
     except requests.RequestException:
         log.error('Login unsuccessful', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.url.client_error(target_url, 'Login unsuccessful')
 
     try:
         user_dict = userinfo_response.json()
     except requests.JSONDecodeError:
         log.error(f'Login unsuccessful: {userinfo_response.text}', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Login unsuccessful')
+        return util.url.client_error(target_url, 'Login unsuccessful')
 
-    # Fetch the avatar
-    has_avatar = False
-    try:
-        avatar = get_user_avatar(user_dict['avatar_url'])
-    except fastapi.HTTPException as e:
-        log.error(f'Failed to fetch user avatar: {e.detail}')
-    else:
-        util.save_avatar(avatar, 'github', user_dict['html_url'])
-        has_avatar = True
-
+    idp_uid = user_dict['html_url']
     log.debug('-' * 80)
     log.debug('github_callback() - login successful')
-    util.log_dict(log.debug, 'token_dict', token_dict)
-    util.log_dict(log.debug, 'user_dict', user_dict)
+    util.pretty.log_dict(log.debug, 'token_dict', token_dict)
+    util.pretty.log_dict(log.debug, 'user_dict', user_dict)
     log.debug('-' * 80)
 
-    uid = user_dict['html_url']
-    if 'name' in user_dict and user_dict['name'] is not None:
-        full_name = user_dict['name']
-    elif 'login' in user_dict and user_dict['login'] is not None:
-        full_name = user_dict['login']
-    else:
-        full_name = uid
-
-    return util.handle_successful_login(
+    return await util.login.handle_successful_login(
         request=request,
-        udb=udb,
+        dbi=dbi,
+        token_profile_row=token_profile_row,
         login_type=login_type,
         target_url=target_url,
-        full_name=full_name,
-        idp_name='github',
-        uid=uid,
+        idp_name=db.models.profile.IdpName.GITHUB,
+        idp_uid=idp_uid,
+        common_name=user_dict.get('name') or user_dict.get('login') or idp_uid,
         email=user_dict.get('email'),
-        has_avatar=has_avatar,
-        is_vetted=False,
+        fetch_avatar_func=functools.partial(fetch_user_avatar, user_dict['avatar_url']),
+        avatar_ver=util.url.get_query_param(user_dict['avatar_url'], 'v'),
     )
 
 
@@ -150,28 +144,26 @@ async def callback_github(
 
 
 @router.get('/revoke/github')
-async def revoke_github(
+async def get_revoke_github(
     request: starlette.requests.Request,
 ):
-    """Receive the initial revoke request from an EDI service, delete the user's
-    token, and redirect back to client.
+    """Receive the initial revoke request from an EDI service, delete the user's token, and redirect
+    back to client.
     """
     target_url = request.query_params.get('target')
     idp_token = request.query_params.get('idp_token')
     log.debug(f'revoke_github() target_url="{target_url}" idp_token="{idp_token}"')
-
     try:
         pass
         # revoke_grant(target_url, idp_token)
         # revoke_app_token(target_url, idp_token)
     except requests.RequestException:
         log.error('Revoke unsuccessful', exc_info=True)
-        return util.redirect_to_client_error(target_url, 'Revoke unsuccessful')
+        return util.url.client_error(target_url, 'Revoke unsuccessful')
+    return util.url.redirect(target_url)
 
-    return util.redirect(target_url)
 
-
-def revoke_app_token(target_url, idp_token):
+def revoke_app_token(_target_url, idp_token):
     revoke_response = requests.delete(
         f'https://api.github.com/applications/{Config.GITHUB_CLIENT_ID}/token',
         auth=(Config.GITHUB_CLIENT_ID, Config.GITHUB_CLIENT_SECRET),
@@ -182,7 +174,6 @@ def revoke_app_token(target_url, idp_token):
         },
         data=json.dumps({'access_token': idp_token}),
     )
-
     if revoke_response.status_code != starlette.status.HTTP_204_NO_CONTENT:
         raise requests.RequestException(revoke_response.text)
 
@@ -207,10 +198,9 @@ def get_error_message(
     return f'{error_title}: {error_description} ({error_uri})'
 
 
-def get_user_avatar(avatar_url):
+def fetch_user_avatar(avatar_url):
     response = requests.get(avatar_url)
-    if not response.ok:
-        raise fastapi.HTTPException(
-            status_code=response.status_code, detail=response.text
-        )
-    return response.content
+    if response.ok:
+        return response.content
+    log.error(f'Failed to fetch user avatar: {response.status_code} {response.text}')
+    return None

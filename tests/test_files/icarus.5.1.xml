@@ -1,0 +1,2204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eml:eml packageId="icarus.5.1" system="https://pasta.edirepository.org"
+  xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0"
+  xmlns:stmml="http://www.xml-cml.org/schema/stmml-1.2"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0/eml.xsd https://eml.ecoinformatics.org/eml-2.2.0/eml.xsd">
+   <access
+    authSystem="https://pasta.edirepository.org/authentication"
+    order="allowFirst" scope="document"
+      system="https://pasta.edirepository.org">
+      <allow>
+         <!-- roger.dahl.unm@gmail.com -->
+         <principal>EDI-ff8622e9e9e269cb04174948b1dc70eaa8fd37cf</principal>
+         <permission>all</permission>
+      </allow>
+      <allow>
+         <!-- Roger's test group -->
+         <principal>EDI-988d13246991dd7f9fdad254982452df59c15d76</principal>
+         <permission>all</permission>
+      </allow>
+   </access>
+   <dataset>
+      <title>Time series of total and soluble metal concentrations from Falling Creek Reservoir, Beaverdam Reservoir, and Carvins Cove Reservoir in southwestern Virginia, USA from 2014-2024</title>
+      <creator>
+         <individualName>
+            <givenName>Madeline</givenName>
+            <givenName>E.</givenName>
+            <surName>Schreiber</surName>
+         </individualName>
+         <organizationName>Virginia Tech</organizationName>
+         <electronicMailAddress>mschreib@vt.edu</electronicMailAddress>
+         <userId
+        directory="https://orcid.org">https://orcid.org/0000-0002-1858-7730</userId>
+      </creator>
+      <creator>
+         <individualName>
+            <givenName>Carly</givenName>
+            <givenName>E.</givenName>
+            <surName>Bauer</surName>
+         </individualName>
+         <organizationName>Virginia Tech</organizationName>
+         <electronicMailAddress>carlyeb@vt.edu</electronicMailAddress>
+         <userId
+        directory="https://orcid.org">https://orcid.org/0009-0006-5955-8932</userId>
+      </creator>
+      <creator>
+         <individualName>
+            <givenName>Cecelia</givenName>
+            <givenName>E.</givenName>
+            <surName>Wood</surName>
+         </individualName>
+         <organizationName>Virginia Tech</organizationName>
+         <electronicMailAddress>cecelia@vt.edu</electronicMailAddress>
+         <userId
+        directory="https://orcid.org">https://orcid.org/0000-0003-1488-2174</userId>
+      </creator>
+      <creator>
+         <individualName>
+            <givenName>Adrienne</givenName>
+            <surName>Breef-Pilz</surName>
+         </individualName>
+         <organizationName>Virginia Tech</organizationName>
+         <electronicMailAddress>abreefpilz@vt.edu</electronicMailAddress>
+         <userId
+        directory="https://orcid.org">https://orcid.org/0000-0002-6759-0063</userId>
+      </creator>
+      <creator>
+         <individualName>
+            <givenName>Matthew</givenName>
+            <surName>Centofanti</surName>
+         </individualName>
+         <organizationName>Virginia Tech</organizationName>
+         <electronicMailAddress>mcentofanti@vt.edu</electronicMailAddress>
+         <userId
+        directory="https://orcid.org">https://orcid.org/0009-0006-7608-2921</userId>
+      </creator>
+      <creator>
+         <individualName>
+            <givenName>Sean</givenName>
+            <surName>Kenny</surName>
+         </individualName>
+         <organizationName>Virginia Tech</organizationName>
+         <electronicMailAddress>seankenny@vt.edu</electronicMailAddress>
+      </creator>
+      <creator>
+         <individualName>
+            <givenName>Michael</givenName>
+            <surName>Kricheldorf</surName>
+         </individualName>
+         <organizationName>Virginia Tech</organizationName>
+         <electronicMailAddress>mkricheldorf@vt.edu</electronicMailAddress>
+         <userId
+        directory="https://orcid.org">https://orcid.org/0009-0009-7898-1957</userId>
+      </creator>
+      <creator>
+         <individualName>
+            <givenName>Sierra</givenName>
+            <surName>Tannheiser</surName>
+         </individualName>
+         <organizationName>Virginia Tech</organizationName>
+         <electronicMailAddress>sierrat22@vt.edu</electronicMailAddress>
+      </creator>
+      <creator>
+         <individualName>
+            <givenName>Tallory</givenName>
+            <surName>Wendell</surName>
+         </individualName>
+         <organizationName>Virginia Tech</organizationName>
+         <electronicMailAddress>talloryw@vt.edu</electronicMailAddress>
+         <userId
+        directory="https://orcid.org">https://orcid.org/0009-0000-9634-4788</userId>
+      </creator>
+      <associatedParty>
+         <individualName>
+            <givenName>Jeffrey</givenName>
+            <surName>Parks</surName>
+         </individualName>
+         <organizationName>Virginia Tech</organizationName>
+         <electronicMailAddress>jparks@vt.edu</electronicMailAddress>
+         <userId
+      directory="https://orcid.org">https://orcid.org/0000-0002-1269-6987</userId>
+         <role>analytical chemist</role>
+      </associatedParty>
+      <pubDate>2025-01-29</pubDate>
+      <abstract>
+         <para>Depth profiles of total and soluble metals were sampled from 2014-2024 in three drinking-water reservoirs, Falling Creek Reservoir (FCR), Beaverdam Reservoir (BVR), and Carvins Cove Reservoir (CCR). FCR and BVR are located in Vinton, Virginia, USA and CCR is located in Roanoke, Virginia, USA.  Only Fe and Mn were analyzed from 2014-2019. The full suite of metals (Li, Na, Mg, Al, Si, K, Ca, Fe, Mn, Cu, Sr, Ba) were analyzed from 2020-2024. All reservoirs are owned and operated by the Western Virginia Water Authority and are managed as drinking-water sources for the city of Roanoke, VA. The dataset includes metal samples that were collected along a depth profile taken at the deepest site of each reservoir near the dam. Additional samples were collected at a gauged weir located on the primary inflow tributary, as well as at a secondary tributary to FCR. A 2024 sampling campaign at FCR included outflow spillway surface water sampling. A 2022 sampling campaign at CCR included inflows and a partial depth profile at the deepest site. Sampling frequency in FCR and BVR in 2024 was approximately weekly during the summer and fall (May - October), approximately fortnightly during the spring (March - April), and approximately monthly during the winter (November - March). For previous sampling campaign frequencies, please see past revisions of this data product. </para>
+      </abstract>
+      <keywordSet>
+         <keyword>Carey Lab</keyword>
+         <keyword>Schreiber Lab</keyword>
+         <keyword>Virginia Tech</keyword>
+         <keyword>Western Virginia Water Authority</keyword>
+         <keyword>Falling Creek Reservoir</keyword>
+         <keyword>Beaverdam Reservoir</keyword>
+         <keyword>Carvins Cove Reservoir</keyword>
+         <keyword>Virginia Reservoirs LTREB</keyword>
+         <keyword>LTREB</keyword>
+         <keyword>Virginia Reservoirs</keyword>
+         <keyword>BVR</keyword>
+         <keyword>CCR</keyword>
+         <keyword>FCR</keyword>
+         <keyword>Virginia Tech Center for Ecosystem Forecasting</keyword>
+         <keywordThesaurus>carey lab controlled vocabulary</keywordThesaurus>
+      </keywordSet>
+      <keywordSet>
+         <keyword>Reservoir</keyword>
+         <keyword>Reservoirs</keyword>
+         <keyword>Lake</keyword>
+         <keyword>Stream</keyword>
+         <keyword>Streams</keyword>
+         <keyword>total iron</keyword>
+         <keyword>dissolved iron</keyword>
+         <keyword>total manganese</keyword>
+         <keyword>dissolved manganese</keyword>
+         <keyword>total sodium</keyword>
+         <keyword>dissolved sodium</keyword>
+         <keyword>total lithium</keyword>
+         <keyword>dissolved lithium</keyword>
+         <keyword>total magnesium</keyword>
+         <keyword>dissolved magnesium</keyword>
+         <keyword>total aluminum</keyword>
+         <keyword>dissolved aluminum</keyword>
+         <keyword>total silicon</keyword>
+         <keyword>dissolved silicon</keyword>
+         <keyword>total potassium</keyword>
+         <keyword>dissolved potassium</keyword>
+         <keyword>total calcium</keyword>
+         <keyword>dissolved calcium</keyword>
+         <keyword>total copper</keyword>
+         <keyword>dissolved copper</keyword>
+         <keyword>total strontium</keyword>
+         <keyword>dissolved strontium</keyword>
+         <keyword>total barium</keyword>
+         <keyword>dissolved barium</keyword>
+         <keywordThesaurus>cuahsi controlled vocabulary</keywordThesaurus>
+      </keywordSet>
+      <keywordSet>
+         <keyword>Lakes</keyword>
+         <keyword>water quality</keyword>
+         <keywordThesaurus>lter controlled vocabulary</keywordThesaurus>
+      </keywordSet>
+      <additionalInfo>
+         <para>Contributions to the 2024 revision:
+MES oversaw the metals sampling program at Falling Creek Reservoir and Beaverdam Reservoir from 2014 - present, and at Carvins Cove Reservoir in 2022 - 2023. CEB and CEW served as the point people for data cleaning, analysis, and QAQC in 2024. ABP led field crew, contributed significantly to sampling, and assisted substantially with QAQC workflows. MC, SK, MK, ST, and TW contributed to fieldwork, data digitization, and field monitoring preparations.</para>
+         <para>Acknowledgments and historical contributions:
+This data package has been iteratively updated over time and builds on the many historical contributions of co-authors listed in previous revisions. In particular, we thank Cissy Ming, Nick Hammond, Katie Krueger, and Zack Munger for serving as past data product leads. We thank the Western Virginia Water Authority for providing access to these sites, Jeff Parks for analytical chemistry, and the Reservoir Group for contributing to fieldwork. We thank Heather Wander and Mary Lofton for friendly reviews.</para>
+      </additionalInfo>
+      <intellectualRights>
+         <para>This information is released under the Creative Commons license - Attribution - CC BY (https://creativecommons.org/licenses/by/4.0/). The consumer of these data (\"Data User\" herein) is required to cite it appropriately in any publication that results from its use. The Data User should realize that these data may be actively used by others for ongoing research and that coordination may be necessary to prevent duplicate publication. The Data User is urged to contact the authors of these data if any questions about methodology or results occur. Where appropriate, the Data User is encouraged to consider collaboration or co-authorship with the authors. The Data User should realize that misinterpretation of data may occur if used out of context of the original study. While substantial efforts are made to ensure the accuracy of data and associated documentation, complete accuracy of data sets cannot be guaranteed. All data are made available \"as is.\" The Data User should be aware, however, that data are updated periodically and it is the responsibility of the Data User to check for new versions of the data. The data authors and the repository where these data were obtained shall not be liable for damages resulting from any use or misinterpretation of the data. Thank you.
+</para>
+      </intellectualRights>
+      <distribution
+      id="10.0311/FK2/85695b3742100b1917d22b38fc21ae82" scope="system"
+          system="https://pasta.edirepository.org"><online><url
+        function="information">https://doi.org/10.0311/FK2/85695b3742100b1917d22b38fc21ae82</url></online></distribution><coverage>
+         <geographicCoverage>
+            <geographicDescription>Beaverdam Reservoir is located in Vinton, Virginia, USA</geographicDescription>
+            <boundingCoordinates>
+               <westBoundingCoordinate>-79.824834</westBoundingCoordinate>
+               <eastBoundingCoordinate>-79.813848</eastBoundingCoordinate>
+               <northBoundingCoordinate>37.322865</northBoundingCoordinate>
+               <southBoundingCoordinate>37.311961</southBoundingCoordinate>
+            </boundingCoordinates>
+         </geographicCoverage>
+         <geographicCoverage>
+            <geographicDescription>Carvins Cove Reservoir is located in Roanoke, Virginia, USA</geographicDescription>
+            <boundingCoordinates>
+               <westBoundingCoordinate>-79.978642</westBoundingCoordinate>
+               <eastBoundingCoordinate>-79.944052</eastBoundingCoordinate>
+               <northBoundingCoordinate>37.409127</northBoundingCoordinate>
+               <southBoundingCoordinate>37.365345</southBoundingCoordinate>
+            </boundingCoordinates>
+         </geographicCoverage>
+         <geographicCoverage>
+            <geographicDescription>Falling Creek Reservoir is located in Vinton, Virginia, USA</geographicDescription>
+            <boundingCoordinates>
+               <westBoundingCoordinate>-79.839249</westBoundingCoordinate>
+               <eastBoundingCoordinate>-79.836009</eastBoundingCoordinate>
+               <northBoundingCoordinate>37.309589</northBoundingCoordinate>
+               <southBoundingCoordinate>37.30266</southBoundingCoordinate>
+            </boundingCoordinates>
+         </geographicCoverage>
+         <temporalCoverage>
+            <rangeOfDates>
+               <beginDate>
+                  <calendarDate>2014-04-01</calendarDate>
+               </beginDate>
+               <endDate>
+                  <calendarDate>2024-12-16</calendarDate>
+               </endDate>
+            </rangeOfDates>
+         </temporalCoverage>
+      </coverage>
+      <maintenance>
+         <description>ongoing</description>
+      </maintenance>
+      <contact>
+         <individualName>
+            <givenName>Madeline</givenName>
+            <givenName>E.</givenName>
+            <surName>Schreiber</surName>
+         </individualName>
+         <organizationName>Virginia Tech</organizationName>
+         <electronicMailAddress>mschreib@vt.edu</electronicMailAddress>
+         <userId
+        directory="https://orcid.org">https://orcid.org/0000-0002-1858-7730</userId>
+      </contact>
+      <publisher>
+         <organizationName>Environmental Data Initiative</organizationName>
+         <electronicMailAddress>info@edirepository.org</electronicMailAddress>
+         <onlineUrl>https://edirepository.org</onlineUrl>
+         <userId
+          directory="https://ror.org">0330j0z60</userId>
+      </publisher>
+      <pubPlace>Environmental Data Initiative</pubPlace>
+      <methods>
+         <methodStep>
+            <description>
+               <para>WATER COLUMN SAMPLING: We collected water samples for total and soluble metal concentrations from Falling Creek Reservoir (FCR) and Beaverdam Reservoir (BVR) approximately fortnightly from March-April, weekly from May-October, and monthly from November-February. In 2022, we collected water samples from CCR approximately fortnightly during summer (May-October). Water samples were collected at various depths at the deepest site of each reservoir using a 4-L Van Dorn sampler (Wildlife Supply Company, Yulee, FL). In FCR, water samples were collected at specified depths ranging from 0.1 m to 9.8 m. Additional water samples were collected from the primary inflow tributary as well as a secondary tributary. In 2024, 0.1 m depth samples were collected from the outflow spillway of FCR. In BVR, water samples were collected at specified depths ranging from 0.1 m to 12.0 m, depending on the depth of the reservoir. In CCR, water samples were collected at specified depths ranging from 0.1 m to 21 m. Additional samples were collected at several tributaries. After collection, we poured water samples directly from the Van Dorn sampler into 15 mL tubes for total metal analyses and we syringe-filtered water using 0.45 micron nylon filters into 15 mL tubes for soluble metal analyses. All samples were preserved using trace metal grade nitric acid to pH less than 2. </para>
+               <para>
+SAMPLING TIMES: Most sampling occurred between the hours of 9:00 and 15:00. Some sampling occurred outside of these hours, including some overnight sampling; these instances are noted by the actual sampling time within the DateTime column. Samples with no exact sampling time recorded are reported as 12:00 in the DateTime column and flagged with a '1' in the Flag_DateTime column. Samples were collected in the America/New York Eastern Time Zone, which observed daylight savings time from approximately March to November in 2014-2024.</para>
+               <para>
+CHEMICAL ANALYSIS: In 2014-2015, samples were analyzed for Fe and Mn using an Inductively Coupled Plasma-Mass Spectrometer (ICP-MS; Thermo Electron X-Series) following APHA Standard Method 3125-B (American Public Health Association et al., 1998).  Detection limits for Fe and Mn were 0.0008 mg/L and 0.0005 mg/L, respectively, in 2014 and 0.0012 mg/L and 0.00007 mg/L, respectively, in 2015.  In 2016-2019, samples were analyzed for Fe and Mn using an Inductively Coupled Plasma Optical Emission Spectrometer (ICP-OES) using a Spectro ARCOS SOP (Side-On Plasma interface) instrument using methods similar to EPA 200.7 (EPA, 1994). Detection limits for Fe and Mn were 0.004 mg/L and 0.001 mg/L, respectively. Starting in 2020, samples were analyzed for Li, Na, Mg, Al, Si, K, Ca, Fe, Mn, Cu, Sr, and Ba using an Inductively Coupled Plasma-Mass Spectrometer (ICP-MS; Thermo Electron iCAP-RQ) following APHA Standard Method 3125-B (American Public Health Association et al., 1998). Please see the list  at the bottom of the methods for the minimum reporting levels for Fe, Mn, Li, Na, Mg, Al, Si, K, Ca, Cu, Sr, and Ba from 2020-2024. We used the minimum reporting levels as the lower threshold for data in 2020-2024. Values that were below the minimum detection limit (for 2014-2019) or minimum reporting level (for 2020-2024) were flagged as '3' and set to the value of the minimum detection limit or minimum reporting level. Negative values were flagged as '4' and set to 0 in 2014-2019 and were set to the minimum reporting level in 2020-2024. Abnormally high concentrations were defined as greater than three standard deviations above the mean, were flagged as '8', and retained the value. As a result, some soluble samples reported higher concentrations than the total samples.</para>
+               <para>	 
+	Occasionally, unfiltered samples contain particulates. As particulates cannot be analyzed using ICPMS, samples with particulates were first microwave-digested with concentrated trace metal grade nitric acid (modified from EPA 3015a) prior to analysis and are flagged with a '6'. Please see metals_maintenancelog_2014_2024.csv for more information about specific samples.</para>
+               <para>OTHER FLAG DESCRIPTIONS: If a sample was analyzed multiple times, then the values are averaged and flagged as '7'. To check if total and soluble samples were mistakenly switched prior to analysis, the QAQC script (Metals_qaqc_2020_2024.R) checks the total and soluble concentrations of Fe and Mn. If soluble concentrations are 3 MRL higher than total concentrations for both metals, then the total and soluble concentrations are switched for all metals for that specific sample and flagged as '9'. If the authors identified samples that were processed improperly, values were set to NA and flagged as '10'. All flags are either in the maintenance log or identified with the QAQC script. Please contact the authors of the data package for more information. </para>
+               <para>DATA ANALYSIS: This data package includes 1 data file (metals_2014_2024.csv), QAQC R script (metals_qaqc_2014_2024.R), maintenance log (metals_maintenancelog_2014_2024.csv), visual inspection R script (metals_Inspection_2014_2024.Rmd), sampling sites (site_descriptions.csv). The QAQC script includes functions to process data, remove outliers, and apply the maintenance log to clean the data file included in the package; the visual inspection script provides code for plotting the data file.</para>
+               <para>
+	Multiple whole-ecosystem experiments have been conducted at Falling Creek Reservoir, including intermittent operation of hypolimnetic oxygenation (HOx) and pulsed epilimnetic mixing (EM) engineering systems. We encourage you to contact the lead author of the data package for more information.</para>
+               <para>2020-2024 Minimum Reporting Levels (mg/L):
+Al_mgL - 0.001,
+Ba_mgL - 0.00005,
+Ca_mgL - 0.05,
+Cu_mgL - 0.001,
+Fe_mgL - 0.01,
+Li_mgL - 0.0005,
+Mg_mgL - 0.001,
+Mn_mgL - 0.0001,
+K_mgL - 0.01,
+Si_mgL - 0.1,
+Na_mgL - 0.05,
+Sr_mgL - 0.00005
+</para>
+            </description>
+         </methodStep>
+      </methods>
+      <project>
+         <title>No project title to report</title>
+         <personnel>
+            <individualName>
+               <givenName>Cayelan</givenName>
+               <givenName>C.</givenName>
+               <surName>Carey</surName>
+            </individualName>
+            <organizationName>Virginia Tech</organizationName>
+            <electronicMailAddress>Cayelan@vt.edu</electronicMailAddress>
+            <userId
+            directory="https://orcid.org">https://orcid.org/0000-0001-8835-4476</userId>
+            <role>Principal Investigator</role>
+         </personnel>
+         <funding>Western Virginia Water Authority</funding>
+         <relatedProject>
+            <title>Collaborative Research: Consequences of changing oxygen availability for carbon cycling in freshwater ecosystems</title>
+            <personnel>
+               <individualName>
+                  <givenName>Cayelan</givenName>
+                  <givenName>C.</givenName>
+                  <surName>Carey</surName>
+               </individualName>
+               <organizationName>Virginia Tech</organizationName>
+               <electronicMailAddress>Cayelan@vt.edu</electronicMailAddress>
+               <userId
+            directory="https://orcid.org">https://orcid.org/0000-0001-8835-4476</userId>
+               <role>Principal Investigator</role>
+            </personnel>
+            <funding>National Science Foundation 1753639</funding>
+         </relatedProject>
+         <relatedProject>
+            <title>Collaborative Research: CIBR: Cyberinfrastructure Enabling End-to-End Workflows for Aquatic Ecosystem Forecasting</title>
+            <personnel>
+               <individualName>
+                  <givenName>Cayelan</givenName>
+                  <givenName>C.</givenName>
+                  <surName>Carey</surName>
+               </individualName>
+               <organizationName>Virginia Tech</organizationName>
+               <electronicMailAddress>Cayelan@vt.edu</electronicMailAddress>
+               <userId
+            directory="https://orcid.org">https://orcid.org/0000-0001-8835-4476</userId>
+               <role>Principal Investigator</role>
+            </personnel>
+            <funding>National Science Foundation 1933016</funding>
+         </relatedProject>
+         <relatedProject>
+            <title>LTREB: Integrating real-time open data pipelines and forecasting to quantify ecosystem predictability at day to decadal scales</title>
+            <personnel>
+               <individualName>
+                  <givenName>Cayelan</givenName>
+                  <givenName>C.</givenName>
+                  <surName>Carey</surName>
+               </individualName>
+               <organizationName>Virginia Tech</organizationName>
+               <electronicMailAddress>Cayelan@vt.edu</electronicMailAddress>
+               <userId
+            directory="https://orcid.org">https://orcid.org/0000-0001-8835-4476</userId>
+               <role>Principal Investigator</role>
+            </personnel>
+            <funding>National Science Foundation 2327030</funding>
+         </relatedProject>
+         <relatedProject>
+            <title>Collaborative Research: URoL:ASC: Applying rules of life to forecast emergent behavior of phytoplankton and advance water quality management</title>
+            <personnel>
+               <individualName>
+                  <givenName>Cayelan</givenName>
+                  <givenName>C.</givenName>
+                  <surName>Carey</surName>
+               </individualName>
+               <organizationName>Virginia Tech</organizationName>
+               <electronicMailAddress>Cayelan@vt.edu</electronicMailAddress>
+               <userId
+            directory="https://orcid.org">https://orcid.org/0000-0001-8835-4476</userId>
+               <role>Principal Investigator</role>
+            </personnel>
+            <funding>National Science Foundation 2318861</funding>
+         </relatedProject>
+         <relatedProject>
+            <title>No project title to report</title>
+            <personnel>
+               <individualName>
+                  <givenName>Cayelan</givenName>
+                  <givenName>C.</givenName>
+                  <surName>Carey</surName>
+               </individualName>
+               <organizationName>Virginia Tech</organizationName>
+               <electronicMailAddress>Cayelan@vt.edu</electronicMailAddress>
+               <userId
+      directory="https://orcid.org">https://orcid.org/0000-0001-8835-4476</userId>
+               <role>Principal Investigator</role>
+            </personnel>
+            <funding>Virginia Tech Center for Ecosystem Forecasting 034211</funding>
+         </relatedProject>
+      </project>
+      <dataTable
+      id="9a072c4e4af39f96f60954fc4f7d8be5" scope="document"
+          system="https://pasta.edirepository.org">
+         <entityName>metals_2014_2024.csv</entityName>
+         <entityDescription>ICPMS data for water samples</entityDescription>
+         <physical>
+            <objectName>metals_2014_2024.csv</objectName>
+            <size
+          unit="bytes">857519</size>
+            <authentication
+              method="MD5">06884a2bcd1398d3a5e891af6eeae3eb</authentication>
+            <dataFormat>
+               <textFormat>
+                  <numHeaderLines>1</numHeaderLines>
+                  <recordDelimiter>\n</recordDelimiter>
+                  <attributeOrientation>column</attributeOrientation>
+                  <simpleDelimited>
+                     <fieldDelimiter>,</fieldDelimiter>
+                  </simpleDelimited>
+               </textFormat>
+            </dataFormat>
+            <distribution>
+               <online>
+                  <url function="download">https://pasta-s.lternet.edu/package/data/eml/edi/718/11/9a072c4e4af39f96f60954fc4f7d8be5</url>
+               </online>
+            </distribution>
+         </physical>
+         <attributeList>
+            <attribute>
+               <attributeName>Reservoir</attributeName>
+               <attributeDefinition>Three-letter code corresponding to sampled reservoir</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>BVR</code>
+                              <definition>Beaverdam Reservoir</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>CCR</code>
+                              <definition>Carvins Cove Reservoir</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>FCR</code>
+                              <definition>Falling Creek Reservoir</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Site</attributeName>
+               <attributeDefinition>Sampling site within each reservoir</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>Outflow spillway from Falling Creek Reservoir</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>40</code>
+                              <definition>Pelagic upstream site</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>50</code>
+                              <definition>Pelagic deep hole site</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>100</code>
+                              <definition>Inflow stream site on Tunnel Branch primary inflow to Falling Creek Reservoir; long-term monitoring site where gauged weir is located</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>200</code>
+                              <definition>Inflow stream site on Falling Creek secondary inflow to Falling Creek Reservoir; also referred to as the wetland stream</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>201</code>
+                              <definition>Inflow stream site to Carvins Cove Reservoir at Carvins Creek Stream accessed via fireroad near red barns</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>301</code>
+                              <definition>Inflow stream site to Carvins Cove Reservoir at Sawmill Branch inflow site upstream of reservoir where fire road bridge crosses the stream</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>400</code>
+                              <definition>Inflow tunnel site to Carvins Cove Reservoir at emergence of Tinker Creek Tunnel</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>501</code>
+                              <definition>Inflow tunnel site to Carvins Cove Reservoir at emergence of Catawaba Creek Tunnel</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>DateTime</attributeName>
+               <attributeDefinition>Date and time of sampling. All data were collected in the eastern time zone of the U.S.A., with daylight savings time observed</attributeDefinition>
+               <storageType>date</storageType>
+               <measurementScale>
+                  <dateTime>
+                     <formatString>YYYY-MM-DD hh:mm:ss</formatString>
+                     <dateTimeDomain/>
+                  </dateTime>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Depth_m</attributeName>
+               <attributeDefinition>Depth of sample collection (from surface)</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>meter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">0.1</minimum>
+                           <maximum
+                    exclusive="false">21</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>TLi_mgL</attributeName>
+               <attributeDefinition>Total lithium concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">5e-04</minimum>
+                           <maximum
+                    exclusive="false">0.015</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>SLi_mgL</attributeName>
+               <attributeDefinition>Soluble lithium concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">5e-04</minimum>
+                           <maximum
+                    exclusive="false">0.015</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>TNa_mgL</attributeName>
+               <attributeDefinition>Total sodium concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">0.4888</minimum>
+                           <maximum
+                    exclusive="false">17.1138</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>SNa_mgL</attributeName>
+               <attributeDefinition>Soluble sodium concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">0.4945</minimum>
+                           <maximum
+                    exclusive="false">16.6014</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>TMg_mgL</attributeName>
+               <attributeDefinition>Total magnesium concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">0.3784</minimum>
+                           <maximum
+                    exclusive="false">18.1732</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>SMg_mgL</attributeName>
+               <attributeDefinition>Soluble magnesium concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">0.3725</minimum>
+                           <maximum
+                    exclusive="false">18.4412</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>TAl_mgL</attributeName>
+               <attributeDefinition>Total aluminum concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">0.001</minimum>
+                           <maximum
+                    exclusive="false">2.5238</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>SAl_mgL</attributeName>
+               <attributeDefinition>Soluble aluminum concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">0.001</minimum>
+                           <maximum
+                    exclusive="false">0.2066</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>TSi_mgL</attributeName>
+               <attributeDefinition>Total silicon concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">0.9003</minimum>
+                           <maximum
+                    exclusive="false">53.2589</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>SSi_mgL</attributeName>
+               <attributeDefinition>Soluble silicon concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">0.8883</minimum>
+                           <maximum
+                    exclusive="false">13.9674</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>TK_mgL</attributeName>
+               <attributeDefinition>Total potassium concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">0.3988</minimum>
+                           <maximum
+                    exclusive="false">5.6609</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>SK_mgL</attributeName>
+               <attributeDefinition>Soluble potassium concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">0.3696</minimum>
+                           <maximum
+                    exclusive="false">28.242</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>TCa_mgL</attributeName>
+               <attributeDefinition>Total calcium concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">0.8712</minimum>
+                           <maximum
+                    exclusive="false">56.5708</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>SCa_mgL</attributeName>
+               <attributeDefinition>Soluble calcium concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">0.8361</minimum>
+                           <maximum
+                    exclusive="false">57.5298</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>TFe_mgL</attributeName>
+               <attributeDefinition>Total iron concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">0.01</minimum>
+                           <maximum
+                    exclusive="false">64.7</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>SFe_mgL</attributeName>
+               <attributeDefinition>Soluble iron concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">0.01</minimum>
+                           <maximum
+                    exclusive="false">59.77</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>TMn_mgL</attributeName>
+               <attributeDefinition>Total manganese concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">1e-04</minimum>
+                           <maximum
+                    exclusive="false">9.1062</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>SMn_mgL</attributeName>
+               <attributeDefinition>Soluble manganese concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">1e-04</minimum>
+                           <maximum
+                    exclusive="false">8.3561</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>TCu_mgL</attributeName>
+               <attributeDefinition>Total copper concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">0.001</minimum>
+                           <maximum
+                    exclusive="false">0.0143</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>SCu_mgL</attributeName>
+               <attributeDefinition>Soluble copper concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">0.001</minimum>
+                           <maximum
+                    exclusive="false">0.0363</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>TSr_mgL</attributeName>
+               <attributeDefinition>Total strontium concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">0.0057</minimum>
+                           <maximum
+                    exclusive="false">0.5372</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>SSr_mgL</attributeName>
+               <attributeDefinition>Soluble strontium concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">0.0055</minimum>
+                           <maximum
+                    exclusive="false">0.536</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>TBa_mgL</attributeName>
+               <attributeDefinition>Total barium concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">0.0084</minimum>
+                           <maximum
+                    exclusive="false">0.6675</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>SBa_mgL</attributeName>
+               <attributeDefinition>Soluble barium concentration</attributeDefinition>
+               <storageType>float</storageType>
+               <measurementScale>
+                  <ratio>
+                     <unit>
+                        <standardUnit>milligramsPerLiter</standardUnit>
+                     </unit>
+                     <numericDomain>
+                        <numberType>real</numberType>
+                        <bounds>
+                           <minimum
+                    exclusive="false">0.003</minimum>
+                           <maximum
+      exclusive="false">0.6622</maximum>
+                        </bounds>
+                     </numericDomain>
+                  </ratio>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_DateTime</attributeName>
+               <attributeDefinition>Data flag for DateTime</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>DateTime set to 12:00 because no sampling time was recorded</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_TLi_mgL</attributeName>
+               <attributeDefinition>Data flag for total lithium (TLi)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>3</code>
+                              <definition>sample below MRL and set to MRL</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>non-standard method</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>8</code>
+                              <definition>abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>63</code>
+                              <definition>non-standard method and sample below MRL and set to MRL</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>68</code>
+                              <definition>non-standard method and abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_SLi_mgL</attributeName>
+               <attributeDefinition>Data flag for soluble lithium (SLi)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>3</code>
+                              <definition>sample below MRL and set to MRL</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>8</code>
+                              <definition>abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>10</code>
+                              <definition>improper procedure and set to NA</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>63</code>
+                              <definition>non-standard method and sample below MRL and set to MRL</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_TNa_mgL</attributeName>
+               <attributeDefinition>Data flag for total sodium (TNa)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>non-standard method</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>8</code>
+                              <definition>abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>68</code>
+                              <definition>non-standard method and abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_SNa_mgL</attributeName>
+               <attributeDefinition>Data flag for soluble sodium (SNa)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>non-standard method</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>8</code>
+                              <definition>abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>10</code>
+                              <definition>improper procedure and set to NA</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_TMg_mgL</attributeName>
+               <attributeDefinition>Data flag for total magnesium (TMg)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>non-standard method</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>8</code>
+                              <definition>abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_SMg_mgL</attributeName>
+               <attributeDefinition>Data flag for soluble magnesium (SMg)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>non-standard method</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>8</code>
+                              <definition>abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>10</code>
+                              <definition>improper procedure and set to NA</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_TAl_mgL</attributeName>
+               <attributeDefinition>Data flag for total aluminum (TAl)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>3</code>
+                              <definition>sample below MRL and set to MRL</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>non-standard method</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>8</code>
+                              <definition>abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>68</code>
+                              <definition>non-standard method and abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_SAl_mgL</attributeName>
+               <attributeDefinition>Data flag for soluble aluminum (SAl)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>3</code>
+                              <definition>sample below MRL and set to MRL</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>non-standard method</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>10</code>
+                              <definition>improper procedure and set to NA</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_TSi_mgL</attributeName>
+               <attributeDefinition>Data flag for total silicon (TSi)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>non-standard method</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>68</code>
+                              <definition>non-standard method and abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_SSi_mgL</attributeName>
+               <attributeDefinition>Data flag for soluble silicon (SSi)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>non-standard method</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>10</code>
+                              <definition>improper procedure and set to NA</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>68</code>
+                              <definition>non-standard method and abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_TK_mgL</attributeName>
+               <attributeDefinition>Data flag for total potassium (TK)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>non-standard method</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_SK_mgL</attributeName>
+               <attributeDefinition>Data flag for soluble potassium (SK)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>non-standard method</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>8</code>
+                              <definition>abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>10</code>
+                              <definition>improper procedure and set to NA</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_TCa_mgL</attributeName>
+               <attributeDefinition>Data flag for total calcium (TCa)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>non-standard method</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>8</code>
+                              <definition>abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>68</code>
+                              <definition>non-standard method and abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_SCa_mgL</attributeName>
+               <attributeDefinition>Data flag for soluble calcium (SCa)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>non-standard method</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>8</code>
+                              <definition>abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>10</code>
+                              <definition>improper procedure and set to NA</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_TFe_mgL</attributeName>
+               <attributeDefinition>Data flag for total iron (TFe)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>3</code>
+                              <definition>sample below MRL and set to MRL</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>non-standard method</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>7</code>
+                              <definition>sample run multiple times and values averaged</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>8</code>
+                              <definition>abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>68</code>
+                              <definition>non-standard method and abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_SFe_mgL</attributeName>
+               <attributeDefinition>Data flag for soluble iron (SFe)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>3</code>
+                              <definition>sample below MRL and set to MRL</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>non-standard method</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>7</code>
+                              <definition>sample run multiple times and values averaged</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>8</code>
+                              <definition>abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>10</code>
+                              <definition>improper procedure and set to NA</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_TMn_mgL</attributeName>
+               <attributeDefinition>Data flag for total manganese (TMn)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>3</code>
+                              <definition>sample below MRL and set to MRL</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>non-standard method</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>7</code>
+                              <definition>sample run multiple times and values averaged</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>8</code>
+                              <definition>abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_SMn_mgL</attributeName>
+               <attributeDefinition>Data flag for soluble manganese (SMn)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>3</code>
+                              <definition>sample below MRL and set to MRL</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>non-standard method</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>7</code>
+                              <definition>sample run multiple times and values averaged</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>8</code>
+                              <definition>abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>10</code>
+                              <definition>improper procedure and set to NA</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_TCu_mgL</attributeName>
+               <attributeDefinition>Data flag for total copper (TCu)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>3</code>
+                              <definition>sample below MRL and set to MRL</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>non-standard method</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>8</code>
+                              <definition>abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>63</code>
+                              <definition>non-standard method and sample below MRL and set to MRL</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>68</code>
+                              <definition>non-standard method and abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_SCu_mgL</attributeName>
+               <attributeDefinition>Data flag for soluble copper (SCu)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>3</code>
+                              <definition>sample below MRL and set to MRL</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>8</code>
+                              <definition>abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>10</code>
+                              <definition>improper procedure and set to NA</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>63</code>
+                              <definition>non-standard method and sample below MRL and set to MRL</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_TSr_mgL</attributeName>
+               <attributeDefinition>Data flag for total strontium (TSr)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>non-standard method</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>8</code>
+                              <definition>abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_SSr_mgL</attributeName>
+               <attributeDefinition>Data flag for soluble strontium (SSr)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>non-standard method</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>8</code>
+                              <definition>abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>10</code>
+                              <definition>improper procedure and set to NA</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_TBa_mgL</attributeName>
+               <attributeDefinition>Data flag for total barium (TBa)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>non-standard method</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>8</code>
+                              <definition>abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>68</code>
+                              <definition>non-standard method and abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+            <attribute>
+               <attributeName>Flag_SBa_mgL</attributeName>
+               <attributeDefinition>Data flag for soluble barium (SBa)</attributeDefinition>
+               <storageType>string</storageType>
+               <measurementScale>
+                  <nominal>
+                     <nonNumericDomain>
+                        <enumeratedDomain>
+                           <codeDefinition>
+                              <code>0</code>
+                              <definition>no issues</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>1</code>
+                              <definition>sample not taken</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>6</code>
+                              <definition>non-standard method</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>8</code>
+                              <definition>abnormally high concentration that is greater than 3 sd above the mean but is kept in the dataset</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>9</code>
+                              <definition>total and soluble samples switched prior to analysis; fixed in QAQC</definition>
+                           </codeDefinition>
+                           <codeDefinition>
+                              <code>10</code>
+                              <definition>improper procedure and set to NA</definition>
+                           </codeDefinition>
+                        </enumeratedDomain>
+                     </nonNumericDomain>
+                  </nominal>
+               </measurementScale>
+               <missingValueCode>
+                  <code>NA</code>
+                  <codeExplanation>value is missing</codeExplanation>
+               </missingValueCode>
+            </attribute>
+         </attributeList>
+         <numberOfRecords>4250</numberOfRecords>
+      </dataTable>
+      <otherEntity id="afc6533cfe52c120e971016dcf214b97" scope="document" system="https://pasta.edirepository.org">
+         <entityName>metals_qaqc_2014_2024.R</entityName>
+         <entityDescription>QAQC script which takes the output from ICPMS, cleans data, and flags errant data</entityDescription>
+         <physical>
+            <objectName>metals_qaqc_2014_2024.R</objectName>
+            <size
+          unit="bytes">23096</size>
+            <authentication
+              method="MD5">5af51af12246e8f8fd06eda2658ee724</authentication>
+            <dataFormat>
+               <externallyDefinedFormat>
+                  <formatName>text/plain</formatName>
+               </externallyDefinedFormat>
+            </dataFormat>
+            <distribution>
+               <online>
+                  <url function="download">https://pasta-s.lternet.edu/package/data/eml/edi/718/11/afc6533cfe52c120e971016dcf214b97</url>
+               </online>
+            </distribution>
+         </physical>
+         <entityType>unknown</entityType>
+      </otherEntity>
+   </dataset>
+</eml:eml>

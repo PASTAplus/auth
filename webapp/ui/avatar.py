@@ -6,94 +6,93 @@ import starlette.responses
 import starlette.status
 import starlette.templating
 
-import db.iface
-import pasta_jwt
-import util
+import db.models.profile
+import util.avatar
+import util.dependency
+import util.edi_token
+import util.url
+import util.template
 
 log = daiquiri.getLogger(__name__)
 
 
 router = fastapi.APIRouter()
 
+#
 # UI routes
+#
 
 
 @router.get('/ui/avatar')
-async def avatar(
+async def get_ui_avatar(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
-    profile_row = udb.get_profile(token.urid)
-
     avatar_list = [
         {
-            'url': util.get_initials_avatar_url(profile_row.initials),
-            'idp_name': None,
-            'uid': '',
+            'url': util.avatar.get_initials_avatar_url(
+                util.avatar.get_profile_initials(token_profile_row)
+            ),
+            'profile_id': 0,
         }
     ]
-    for identity_row in profile_row.identities:
-        if identity_row.has_avatar:
+    profile_row_list = [token_profile_row] + await dbi.get_linked_profile_list(token_profile_row.id)
+
+    for profile_row in profile_row_list:
+        avatar_url = util.avatar.get_profile_avatar_url_for_select(profile_row)
+        if avatar_url is not None:
             avatar_list.append(
                 {
-                    'url': util.get_identity_avatar_url(identity_row),
-                    'idp_name': identity_row.idp_name,
-                    'uid': identity_row.uid,
+                    'url': avatar_url,
+                    'profile_id': profile_row.id,
                 }
             )
-
-    return util.templates.TemplateResponse(
+    return util.template.templates.TemplateResponse(
         'avatar.html',
         {
             # Base
-            'token': token,
-            'avatar_url': util.get_profile_avatar_url(profile_row),
-            'profile': profile_row,
-            #
             'request': request,
+            'profile': token_profile_row,
+            'avatar_url': await util.avatar.get_profile_avatar_url(dbi, token_profile_row),
+            'error_msg': request.query_params.get('error'),
+            'info_msg': request.query_params.get('info'),
+            # Page
             'avatar_list': avatar_list,
         },
     )
 
 
-# Internal routes
+#
+# Internal API routes
+#
 
 
-@router.post('/avatar/update')
-async def avatar_update(
+@router.post('/ui/api/avatar/update')
+async def post_avatar_update(
     request: starlette.requests.Request,
-    udb: db.iface.UserDb = fastapi.Depends(db.iface.udb),
-    token: pasta_jwt.PastaJwt | None = fastapi.Depends(pasta_jwt.token),
+    dbi: util.dependency.DbInterface = fastapi.Depends(util.dependency.dbi),
+    token_profile_row: util.dependency.Profile = fastapi.Depends(util.dependency.token_profile_row),
 ):
     form_data = await request.form()
-    idp_name = form_data.get('idp_name')
-    uid = form_data.get('uid')
-
-    log.info(f'Updating avatar: idp_name={idp_name}, uid={uid}')
-
-    profile_row = udb.get_profile(token.urid)
-
-    if uid == '':
-        profile_row.has_avatar = False
-        avatar_path = util.get_avatar_path('profile', profile_row.urid)
-        avatar_path.unlink(missing_ok=True)
+    profile_id = int(form_data.get('profile_id'))
+    if profile_id == 0:
+        profile_id = None
+        anonymous_avatar = True
     else:
-        profile_row.has_avatar = True
-        avatar_img = util.get_avatar_path(idp_name, uid).read_bytes()
-        util.save_avatar(avatar_img, 'profile', profile_row.urid)
-
-    udb.update_profile(token.urid, has_avatar=uid != '')
-
-    return util.redirect_internal('/ui/profile', refresh='true')
+        anonymous_avatar = False
+    await dbi.update_profile(
+        token_profile_row, avatar_profile_id=profile_id, anonymous_avatar=anonymous_avatar
+    )
+    return util.url.internal('/ui/profile', info='Avatar updated successfully.')
 
 
-@router.get('/avatar/gen/{initials}')
-async def avatar_gen(
+@router.get('/ui/api/avatar/gen/{initials}')
+async def get_avatar_gen(
     initials: str,
 ):
     """Return an avatar image with the given initials."""
     return starlette.responses.Response(
-        content=util.get_initials_avatar_path(initials).read_bytes(),
+        content=util.avatar.get_initials_avatar_path(initials).read_bytes(),
         media_type='image/png',
     )
