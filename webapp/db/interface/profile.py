@@ -115,6 +115,7 @@ class ProfileInterface:
                     legacy_profile_row,
                     idp_name=idp_name,
                     common_name=common_name,
+                    idp_common_name=common_name,
                     email=email,
                 )
                 await self.flush()
