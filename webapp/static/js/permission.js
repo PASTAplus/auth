@@ -318,6 +318,10 @@ permissionListEl.addEventListener('change', ev => {
           }
         })();
       }
+      else {
+        const resources = getSelectedResourceIds();
+        fetchSetPermission(resources, principalId, permissionLevel);
+      }
     }
     else {
       const resources = getSelectedResourceIds();
