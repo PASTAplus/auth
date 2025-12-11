@@ -228,7 +228,7 @@ class PermissionInterface:
             token_profile_row, admin_resource_row, PermissionLevel.WRITE
         )
 
-    async def _is_authorized(self, equivalent_principal_list, resource_row, permission_level):
+    async def _is_authorized(self, token_profile_row, resource_row, permission_level):
         """This method implements the logic equivalent of the following pseudocode:
 
         def is_authorized(principal, resource, permission_level):
@@ -243,11 +243,12 @@ class PermissionInterface:
                             return True
             return False
         """
+        equivalent_principal_set = await self.get_equivalent_principal_id_set(token_profile_row)
         result = await self.execute(
             sqlalchemy.select(
                 sqlalchemy.exists().where(
                     Rule.resource == resource_row,
-                    Rule.principal_id.in_(equivalent_principal_list),
+                    Rule.principal_id.in_(list(equivalent_principal_set)),
                     Rule.permission >= permission_level,
                 )
             )
@@ -620,7 +621,7 @@ class PermissionInterface:
                         ),
                         # Scope admin permission via ACR on scope-admin resource
                         sqlalchemy.func.is_scope_admin_by_descendant(
-                            equivalent_principal_id_set, Resource.id
+                            list(equivalent_principal_id_set), Resource.id
                         ),
                     ),
                 )
