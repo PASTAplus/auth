@@ -80,6 +80,7 @@ class ProfileInterface:
                 profile_row,
                 idp_name=idp_name,
                 common_name=common_name,
+                idp_common_name=common_name,
                 email=email,
             )
         # Refresh the avatar
