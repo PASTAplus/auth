@@ -397,16 +397,9 @@ class SearchInterface:
         ).where(where_clause)
 
         if not util.profile_cache.is_superuser(token_profile_row):
-            equivalent_principal_id_list = (
-                (
-                    await self.execute(
-                        await self.get_equivalent_principal_id_query(token_profile_row)
-                    )
-                )
-                .scalars()
-                .all()
+            equivalent_principal_id_list = list(
+                await self.get_equivalent_principal_id_set(token_profile_row)
             )
-
             select_query = (
                 select_query.join(
                     Resource,
